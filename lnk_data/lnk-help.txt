@@ -1,0 +1,27 @@
+#     -*- mode: text; fill-column: 100;  -*-
+================================================================================
+:                     *** LIST OF BUILT-IN MATERIALS ***                       :
+:                                                                              :
+: Amorphous pyroxenes/olivines Mg/Fe fractions (Dorschner+1995, Henning+1996)  :
+:    pyr-mg100 pyr-mg95 pyr-mg80 pyr-mg70 pyr-mg60 pyr-mg50 pyr-mg40           :
+:     ol-mg100                                      ol-mg50  ol-mg40           :
+: Crystalling pyroxenes/olivines pure Mg             (Jäger+1996,Steyer+1974)  :
+:    pyr-c-mg96 ol-c-mg100                                                     :
+: Amorphous carbon                                                             :
+:    c-z  (Zubko+1996)     c-p (Preibisch+1993)                                :
+: H2O ice                                                                      :
+:    ice-w (Warren+2008)                                                       :
+: Corundum                 Iron                                                :
+:    cor-c (Koike+1995)    fe-c (Henning+1996)                                 :
+:                                                                              :
+: *** QUICK ACCESS ***                                                         :
+: pyr  -> pyr-mg70       ol  -> ol-mg50                  (amorphous silicates) :
+: ens  -> pyr-c-mg96     for -> ol-c-mg100               (crystall. silicates) :
+: c    -> c-z                                            (carbon)              :
+: ice  -> ice-w                                          (ice)                 :
+: iron -> fe-c           cor -> cor-c                    (other)               :
+================================================================================
+
+
+#: FeS with varying Mg content (Begemann+1994)                                  :
+#:    fes fes-mg10 fes-mg50                                                     :
