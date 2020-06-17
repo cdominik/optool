@@ -99,9 +99,9 @@ distribution. Also, restrict the wavelength range to 10-100\mu{}m.
 : optool -c ice-w 1.0 -a 1 3 2.5 15 -l 10 100
 
 Represent the default dust model (DIANA) in 42 grain sizes, and
-produce input files for RADMC-3D.
+produce input files with full scattering matrix for RADMC-3D.
 
-: optool -na 42 -d -radmc3d
+: optool -na 42 -d -s -radmc3d
 
 
 ** Command line options
@@ -455,3 +455,42 @@ do this:
 
 
 
+* Actions and Ideas
+
+** TODO propagate rho to fits and write it there?
+** TODO Should I use fewer code files?  Which can be combined?
+** TODO Does the angular grid have to be configurable?
+** TODO Fix the fits issues
+
+** TODO Parallelize
+Should be easy when producing many files.
+- watch the unit number, there may be clashes.
+
+** TODO Add an amorphous water ice
+
+** TODO Add more materials
+Only ones with good wavelength coverage.
+What does Christian Lammert use?
+** TODO Make the builtin carbon data smaller, the resolution is too high
+We can just use optool -b -l 0.05 3000 100 -c c-z
+to do the interpolation....
+** SDMB Move more variables into the defs module
+for example lmin and lmax, maybe locationn lnkfiles, user mass
+fractions, lnk-associated densities.....
+** SDMB Convert ancient code to FORTRAN 90 or so
+That would be kind of sweet
+
+** SDMB Implement Rya Tazakis modified mixing theory
+** SDMB Remove mantle from normalization
+we can write -m MAT +0.2 to mean that this 0.2 should nor be
+normalized along with core, but should be used as the right value if
+the core stuff is normalized to 1.
+
+** SDMB Improve the ingest script
+*** TODO Detect if rho and nlam are missing
+*** TODO Read Jena/St Petersburg standard files
+Careful, cgs lambda
+** SDMB Allow several mantles, go through MG each time
+
+** SDMB Check if lnk file has n0-rho line
+This is unfortunately reall difficult to do in Fortran....
