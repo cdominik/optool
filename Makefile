@@ -98,4 +98,4 @@ ingest:
 	./misc/ingestlnk.pl lnk_data/*.lnk > ref_ind.f90
 
 README.org: notes.org
-	perl -ne 'if (/^\* OpTool User Guide/../^\* Materials/) {s/@@.*?@@//g; print unless /^\* Materials/}' notes.org > README.org
+	perl -ne 'if (/^\* OpTool User Guide/../^\* Actions/) {s/@@.*?@@//g; print unless /^\* Materials/}' notes.org > README.org

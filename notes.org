@@ -415,6 +415,8 @@ do this:
 - Warren,S. and Brandt,R. 2008, JGRD,113, D14220
 - Zubko,V. et al. 1996, MNRAS 282,1321
 
+
+* Actions and Ideas
 ** COMMENT Stuff that is parked
 
 # Blend the refractive indices of three orientations of a material and
@@ -457,8 +459,6 @@ do this:
 #   Use the old style Blender, for robustness
 
 
-
-* Actions and Ideas
 
 ** TODO propagate rho to fits and write it there?
 ** TODO Should I use fewer code files?  Which can be combined?
