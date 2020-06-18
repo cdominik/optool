@@ -62,7 +62,7 @@ module Defs
   end type particle
 end module Defs
 
-program mmopac
+program optool
   use Defs
   implicit none
 
@@ -486,7 +486,7 @@ program mmopac
   deallocate(p%g)
   deallocate(p%F)
   
-end program mmopac
+end program optool
 
 subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho,nm0)
   ! ----------------------------------------------------------------------------
@@ -1631,9 +1631,11 @@ end subroutine read_lambda_grid
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax,nlam, &
      p_core,p_mantle,fmax,nm,location,mfrac,mfrac_user,ref_index,rho)
   implicit none
-  integer unit
-  integer na,nlam,nm,i
-  real*8 amin,amax,apow,lmin,lmax,p_core,p_mantle,fmax,mfrac(nm),mfrac_user(nm),rho(nm),amean(3)
+  integer, parameter :: dp = selected_real_kind(P=15)
+  integer :: unit
+  integer :: na,nlam,nm,i
+  real (kind=dp) :: amin,amax,apow,lmin,lmax,p_core,p_mantle,fmax
+  real (kind=dp) :: mfrac(nm),mfrac_user(nm),rho(nm),amean(3)
   character*(*) location(nm),ref_index(nm),cc
   cc = trim(cc)
   call plmeans(amin,amax,apow,amean)
@@ -1666,10 +1668,9 @@ end subroutine write_header
 subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      nm,location,mfrac,mfrac_user,ref_index,rho,label,scatter,ext)
   use Defs
-
   implicit none
-  
-  real*8 amin,amax,apow,fmax,p_core,p_mantle,mfrac(nm),mfrac_user(nm),rho(nm),lmin,lmax
+  real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
+  real (kind=dp) :: mfrac(nm),mfrac_user(nm),rho(nm),lmin,lmax
   type(particle) p
   integer nm,na,i,j,nm2,ilam,iang
   character*(*) :: location(nm),ref_index(nm)
@@ -1763,15 +1764,15 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   use Defs
   implicit none
   character*500 ref_index(nm)
-  real*8 amin,amax,apow,fmax,p_core,p_mantle
-  real mfrac(nm),rho(nm)
+  real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
+  real (kind=dp) :: mfrac(nm),rho(nm)
   logical blend
   character*6 word
   character*500 fitsfile
   type(particle) p
   integer nm,na,i,j,nm2
-  real*8,allocatable :: array(:,:,:)
-  real*8 :: amean(3)
+  real (kind=dp),allocatable :: array(:,:,:)
+  real (kind=dp) :: amean(3)
   
   integer status,unit,blocksize,bitpix,naxis,naxes(3)
   integer group,fpixel,nelements
@@ -1908,9 +1909,9 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   use Defs
   implicit none
   character*500 ref_index(nm),fitsfile
-  real*8 amin,amax,apow,fmax,p_core,p_mantle,mfrac(nm)
-  integer nm,na
-  type(particle) p
+  real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle,mfrac(nm)
+  integer :: nm,na
+  type(particle) :: p
   call remove_file_if_exists(fitsfile)
 end subroutine write_fits_file
 #endif
@@ -1919,7 +1920,8 @@ subroutine plmeans(a1,a2,p,amean)
   ! Compute the moments of the size disribution f(a) ~ a^(-p)
   ! The results are returned in AMEAN, an array of three: <a>, <a^2>, <a^3>
   implicit none
-  real*8 :: a1,a2,p,amean(3),e1,e2,e3
+  integer, parameter     :: dp = selected_real_kind(P=15)
+  real (kind=dp) :: a1,a2,p,amean(3),e1,e2,e3
   integer :: n
   do n=1,3
      e1 = 1.d0-p+n
