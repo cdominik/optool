@@ -32,12 +32,6 @@ module Defs
   ! -----------------------------------------------------------------------
   real (kind=dp), public, parameter :: pi = 3.1415926535897932384_dp
   ! -----------------------------------------------------------------------
-  ! External units (IO only, internally we use micron as length)
-  ! Applies to lnk files, cmd line parameters, output files
-  ! -----------------------------------------------------------------------
-  real (kind=dp)                 :: to_micron   = 1.d0
-  character (len=6)              :: lunit       = 'micron'
-  ! -----------------------------------------------------------------------
   ! Some global switches
   ! -----------------------------------------------------------------------
   logical, public                :: verbose   = .false. ! additional output
@@ -160,9 +154,7 @@ program mmopac
   ! Process the command line arguments
   ! ------------------------------------------------------------------------
 
-  ! First, do we need to convert length units?
-  call get_lunit(lunit,to_micron)
-  ! Now, loop over all command line arguments
+  ! Loop over all command line arguments
   call getarg(1,tmp)
   i = 1
   do while(tmp.ne.' ')
@@ -231,8 +223,8 @@ program mmopac
            print *,"ERROR: -a needs 2-4 values: amin amax [na [apow]]"
            stop
         endif
-        i=i+1; call getarg(i,value); read(value,*) amin; amin = amin * to_micron
-        i=i+1; call getarg(i,value); read(value,*) amax; amax = amax * to_micron
+        i=i+1; call getarg(i,value); read(value,*) amin
+        i=i+1; call getarg(i,value); read(value,*) amax
         ! Lets see if there is more, i.e. na
         if (arg_is_value(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) na
@@ -242,9 +234,9 @@ program mmopac
            endif
         endif
      case('-amin','--amin')
-        i = i+1; call getarg(i,value); read(value,*) amin; amin = amin * to_micron
+        i = i+1; call getarg(i,value); read(value,*) amin
      case('-amax','--amax')
-        i = i+1; call getarg(i,value); read(value,*) amax; amax = amax * to_micron
+        i = i+1; call getarg(i,value); read(value,*) amax
      case('-na')
         i = i+1; call getarg(i,value); read(value,*) na
      case('-apow','--apow')
@@ -270,16 +262,16 @@ program mmopac
            print *,"ERROR: -l needs 2-3 values: lmin lmax [nlam]"; stop
         else
            ! We have 2 numbers, these are lmin and lmax
-           i = i+1; call getarg(i,value); read(value,*) lmin; lmin = lmin * to_micron
-           i = i+1; call getarg(i,value); read(value,*) lmax; lmax = lmax * to_micron
+           i = i+1; call getarg(i,value); read(value,*) lmin
+           i = i+1; call getarg(i,value); read(value,*) lmax
            if (arg_is_value(i+1)) then
               i=i+1; call getarg(i,value); if (value.ne.'') read(value,*) nlam
            endif
         endif
      case('-lmin','--lmin')
-        i = i+1; call getarg(i,value); read(value,*) lmin; lmin = lmin * to_micron
+        i = i+1; call getarg(i,value); read(value,*) lmin
      case('-lmax','--lmax')
-        i = i+1; call getarg(i,value); read(value,*) lmax; lmax = lmax * to_micron
+        i = i+1; call getarg(i,value); read(value,*) lmax
      case('-nlam','--nlam','-nl','--nl')
         i = i+1; call getarg(i,value); read(value,*) nlam
         
@@ -337,10 +329,6 @@ program mmopac
         if (arg_is_value(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) nsubgrains;
         endif
-     case('-lunit')
-        ! This was handled by the call to get_lunit.
-        ! Skip it here, along with the value
-        i = i+1
      case('-b','-blendonly','--blendonly')
         ! Write blended refractive index to file and exit
         blendonly = .true.
@@ -854,7 +842,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      open(unit=20,file='blended.lnk')
      write(20,'(i5 f5.2)') nlam,rho_av
      do ilam=1,nlam
-        write(20,'(3e15.4)') lam(ilam)/to_micron,e1(1,ilam),e2(1,ilam)
+        write(20,'(3e15.4)') lam(ilam),e1(1,ilam),e2(1,ilam)
      enddo
      close(unit=20)
      stop
@@ -1607,37 +1595,6 @@ function arg_is_number(i)
   endif
 end function arg_is_number
 
-subroutine get_lunit(lunit,to_micron)
-  integer, parameter :: dp = selected_real_kind(P=15)
-  real (kind=dp)     :: to_micron
-  character (len=6)  :: lunit
-  character (len=10) :: arg
-  integer            :: i
-  to_micron = 1d0
-  lunit = 'micron'
-  i=1
-  call getarg(i,arg)
-  do while (arg .ne. '')
-     if (trim(arg) .eq. '-lunit') then
-        call getarg(i+1,lunit)
-        if (trim(lunit) .eq. 'cm') then
-           to_micron = 1d4
-           goto 1
-        else if (trim(lunit) .eq. 'm') then
-           to_micron = 1d6
-           goto 1
-        else
-           write(*,'("ERROR: Length unit > ",A," < not recognized")') trim(lunit)
-           stop
-        endif
-     else
-        i = i+1
-        call getarg(i,arg)
-     endif
-  enddo
-1 continue
-end subroutine get_lunit
-
 subroutine read_lambda_grid(file)
   ! Read the lambda grid from a file
   ! the file can start with comment lines (* or ! or #).
@@ -1661,7 +1618,7 @@ subroutine read_lambda_grid(file)
   do i=1, nlam
      read (99, fmt=* ) lam(i)
      ! Convert to microns
-     lam(i) = lam(i) * to_micron
+     lam(i) = lam(i)
   end do
   close(99)
 end subroutine read_lambda_grid
@@ -1744,7 +1701,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      write(20,*) 3  ! iformat
      write(20,*) nlam  ! number of lambda points
      do ilam=1,nlam
-        write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam)/to_micron,p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
+        write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
      enddo
      close(20)
   else
@@ -1774,7 +1731,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      write(20,*) 181  ! Number of angular points
      write(20,*)
      do ilam=1,nlam
-        write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam)/to_micron,p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
+        write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
      enddo
      write(20,*)
      do iang=0,180
