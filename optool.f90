@@ -37,8 +37,6 @@ module Defs
   logical, public                :: verbose   = .false. ! additional output
   logical, public                :: blendonly = .false. ! only blend materials and write result out
   logical, public                :: CLBlend   = .true.  ! use Charléne Lefévre's new blender
-  logical, public                :: mmf       = .false. ! use MMF (Tazaki 2018)
-  real (kind=dp)                 :: Dfractal,amono      ! for MMF
   ! ------------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ------------------------------------------------------------------------
@@ -130,9 +128,6 @@ program optool
 
   p_core        = 0.0_dp     ! porosity core
   p_mantle      = 0.0_dp     ! porosity mantle
-
-  Dfractal      = 3.0        ! for mmf, fractal dimension
-  amono         = 0.1        ! units are micrometer
 
   nm            = 0          ! number of materials - zeor to start with
 
@@ -287,14 +282,6 @@ program optool
         endif
      case('-fmax')
         i = i+1; call getarg(i,value); read(value,*) fmax
-     case('-mmf')
-        mmf = .true.
-        if (arg_is_value(i+1)) then
-           i=i+1; call getarg(i,value); read(value,*) Dfractal
-           if (arg_is_value(i+1)) then
-              i=i+1; call getarg(i,value); read(value,*) amono
-           endif
-        endif
 
         ! ------------------------------------------------------------------
         ! Temperature setup for mean kappas
@@ -375,17 +362,6 @@ program optool
   ! ------------------------------------------------------------------
   ! Sanity checks
   ! ------------------------------------------------------------------
-  if (mmf) then
-     print *,"Don't use MMF here yet, we do not have a good implementation"
-     stop
-  endif
-
-  if (mmf .and. have_mantle) then
-     ! FIXME is this really the right course of action?
-     print *,'Warning: Putting mantle material back into core, because of MMF'
-     location(nm) = 'core'
-     have_mantle = .false.
-  endif
   
   ! ------------------------------------------------------------------
   ! Write a setup summary to the screen
@@ -541,7 +517,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   
   real (kind=dp)                 :: cext, csca, cabs
   real (kind=dp)                 :: cext_ff, csca_ff, cabs_ff
-  real (kind=dp)                 :: cext_mmf, csca_mmf, cabs_mmf, tau
   real (kind=dp)                 :: qext, qsca, qabs, gqsc
   
   real (kind=dp), allocatable    :: f11(:,:),  f12(:,:),  f22(:,:),  f33(:,:),  f34(:,:),  f44(:,:)
@@ -565,7 +540,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   real (kind=dp)                 :: pow
   real (kind=dp)                 :: mass
   real (kind=dp)                 :: vol
-  real (kind=dp)                 :: rho_av,rho_core,rho_mantle,rho_cmpct
+  real (kind=dp)                 :: rho_av,rho_core,rho_mantle
   real (kind=dp)                 :: rcore
   real (kind=dp)                 :: wvno
   
@@ -585,11 +560,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   character (len=500)            :: mantle
 
   real (kind=dp) :: cabs_mono,cabs_rgd,cemie_mono,csmie_mono,G,nmono
-  real (kind=dp),allocatable :: e1_cmpct(:),e2_cmpct(:)
 
   nm    = nm0    ! Make copy, to that we can change it
   mfrac = mfrac0 ! Make copy, to that we can change it
-  meth = 'DHS'   ! FIXME: Does it make sense to combine DHS with MMF?
+  meth = 'DHS'   ! 
   maxf = fmax
   ns   = na      ! number of subgrains to compute
   MAXMAT = nm+1  ! Allocate one more, because vacuum will also be a material
@@ -617,8 +591,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   
   allocate(e1(MAXMAT,nlam))
   allocate(e2(MAXMAT,nlam))
-  allocate(e1_cmpct(nlam))
-  allocate(e2_cmpct(nlam))
 
   ! Set the number of f values between 0 and fmax, for DHS
   if (maxf .eq. 0e0) then
@@ -712,7 +684,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      vtot      = vtot+vfrac(im)
   enddo
   rho_core  = mtot/vtot  ! No porosity included yet, will be done below
-  rho_cmpct = rho_core   ! remember for MMF
   ! Normalize the volume fractions of the core
   vfrac(1:nm) = vfrac(1:nm)/vtot
   
@@ -775,10 +746,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   do il=1,nlam
      if (nm0.eq.1 .and. p_c.eq.0) then
         ! Solid core, single material, nothing to blend for the core
-        if (mmf) then
-           e1_cmpct(il) = e1(1,il)
-           e2_cmpct(il) = e2(1,il)
-        endif
      else
         ! Blend the core materials
         do im=1,nm
@@ -787,18 +754,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
         if (CLBlend) then
            ! Charlène Lefévre's new blender
            call brugg(vfrac,nm,epsj,eps_eff)
-           if (mmf) call brugg(vfrac/(1.d0-p_c),nm-1,epsj,eps_eff2)
         else
            ! The old Blender from OpacityTool.  Never fails, but not as good
            call Blender(vfrac,nm,epsj,eps_eff)
-           if (mmf) call Blender(vfrac/(1.d0-p_c),nm-1,epsj,eps_eff2)
         endif
         e1(1,il)   = dreal(cdsqrt(eps_eff))
         e2(1,il)   = dimag(cdsqrt(eps_eff))
-        if (mmf) then
-           e1_cmpct(il) = dreal(cdsqrt(eps_eff2))
-           e2_cmpct(il) = dreal(cdsqrt(eps_eff2))
-        endif
      endif
      if (i_mantle.gt.0) then
         ! We do have a mantle to add
@@ -821,11 +782,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
              e1blend,e2blend)
         e1(1,il) = e1blend
         e2(1,il) = e2blend
-        if (mmf) then
-           continue
-           ! FIXME: This would be the place to put a mantle on the monomers
-           ! But we decided against it, for now.
-        endif
      endif
   enddo ! end of wavelength loop over il
   
@@ -987,57 +943,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
         enddo ! end loop nf over form factors
         
-        if (mmf) then ! FIXME this totally does not work yet.
-           ! ------------------------------------------------------------------
-           ! Apply MMF to correct cabs and csca (cext is OK)
-           ! ------------------------------------------------------------------
-
-           ! FIXME: There is a contradiction between porosity, and the BCCA computations.
-           ! The porosity would be mauch bigger, since
-           
-           ! Use Minato 2006 to estimate the geometrical cross section.
-           ! This depends on assumptions about aggregate dimension and monomer size
-           nmono = r1**3 * (1.d0-p_c) / amono**3
-           !print *,"nmono",r1,amono,nmono
-           if ( nmono .ge. 16 ) then
-              if (Dfractal .gt. 2.d0) then
-                 ! more compact
-                 G = 4.27d0 * nmono**(-0.315d0) * exp(-1.74d0/nmono**0.243d0)
-              else
-                 ! more fractal
-                 G = 0.352d0 + 0.566d0 * nmono**(-0.138d0)
-              endif
-           else
-              ! FIXME the ^2/3 in Charlénes implementation is NOT in the Minato paper.
-              ! Is that a bug? Here or there?
-              ! G = (12.5d0*nmono**(-0.315d0)*exp(-2.53d0/nmono**(0.0920d0)))*nmono**(2.0_dp/3.0_dp)*pi*(a0)**2
-              !                                                                    ^^^^^^^^^^^^^^^^^
-              ! Below is the real Minato expression
-              G = 12.5d0 * nmono**(-0.315d0) * exp(-2.53d0/nmono**(0.092d0))
-           end if
-           G = G * nmono * pi * amono**2
-           G = pi*r1**2
-
-           !print *,"G= ",r1,pi*r1**3,G,nmono,G/nmono
-           ! Use Mie theory to compute cross sections for a monomer
-           ! Using the optical properties of the compact material mixture
-           call MeerhoffMie(amono,lam(ilam),e1_cmpct(ilam),e2_cmpct(ilam),csmie_mono,cemie_mono &
-                ,Mief11,Mief12,Mief33,Mief34,n_ang)
-           cabs_mono = cemie_mono-csmie_mono
-           cabs_RGD  = cabs_mono*nmono        ! Rayleigh-Gans-Debye
-           ! FIXME is mass correct here?
-           ! G * (1d0 - exp(-cabs_RGD/G)) is Cabs
-           tau = cabs_RGD/G
-           cext_mmf = cext_ff ! These are the same
-!           print *,"cabs ",cabs_ff,G,r1**2*pi,tau,(1 - exp(-tau)),G*(1 - exp(-tau)), cabs_mmf
-           cabs_mmf = max(cabs_ff,G*(1 - exp(-tau)))
-           csca_mmf = cext_mmf - cabs_mmf 
-           print *,"no MMF",cabs_ff,csca_ff,cext_ff
-           print *,"MMF   ",cabs_mmf,csca_mmf,cext_mmf
-           cext_ff = cext_mmf
-           cabs_ff = cabs_mmf
-           csca_ff = csca_mmf
-        endif
         cext = cext + cext_ff
         cabs = cabs + cabs_ff
         csca = csca + csca_ff
@@ -1073,8 +978,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   deallocate(e2)
   deallocate(e1mantle)
   deallocate(e2mantle)
-  deallocate(e1_cmpct)
-  deallocate(e2_cmpct)
   
   deallocate(Mief11)
   deallocate(Mief12)
