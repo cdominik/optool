@@ -1819,6 +1819,7 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   integer status,unit,blocksize,bitpix,naxis,naxes(3)
   integer group,fpixel,nelements
   logical simple,extend
+  real a0,a1,a2,a3
 
   call remove_file_if_exists(fitsfile)
   write(*,'("Writing full scattering data to file: ",A)') trim(fitsfile)
@@ -1829,84 +1830,81 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   ! Create the new empty FITS file
   blocksize = 1
   call ftinit(unit,fitsfile,blocksize,status)
+
+  simple=.true.
+  extend=.true.
+  group=1
+  fpixel=1
   
-  simple    = .true.
-  extend    = .true.
-  group     = 1
-  fpixel    = 1
-  
-  bitpix    = -64
-  naxis     = 2
-  naxes(1)  = nlam
-  naxes(2)  = 5
-  nelements = naxes(1)*naxes(2)
+  bitpix=-64
+  naxis=2
+  naxes(1)=nlam
+  naxes(2)=5
+  nelements=naxes(1)*naxes(2)
+  allocate(array(nlam,5,1))
   
   ! Write the required header keywords.
   call ftphpr(unit,simple,bitpix,naxis,naxes,0,1,extend,status)
   
-  ! Write read_optional keywords to the header
+  ! Write optional keywords to the header
   
   call ftpkye(unit,'r_min',real(amin),8,'[micron]',status)
   call ftpkye(unit,'r_max',real(amax),8,'[micron]',status)
-  call ftpkye(unit,'r_pow',real(apow),8,' ',status)
-  call ftpkye(unit,'f_max',real(fmax),8,' ',status)
+  call ftpkye(unit,'r_pow',real(apow),8,'',status)
+  call ftpkye(unit,'f_max',real(fmax),8,'',status)
 
   call plmeans(amin,amax,apow,amean)
-  call ftpkye(unit,'a1',real(amean(1)),8,'[micron]',  status)
-  call ftpkye(unit,'a2',real(amean(2)),8,'[micron^2]',status)
-  call ftpkye(unit,'a3',real(amean(3)),8,'[micron^3]',status)
-  !FIXME: get the density somehow...
-  !call ftpkye(unit,'density',real(p%rho),8,'[g/cm^3]',status)
+  print *,amean
+  a1 = amean(1)
+  call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
+!  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
   
-  call ftpkye(unit,'porosity', real(p_core),  8,'[none]',status)
-  call ftpkye(unit,'mporosity',real(p_mantle),8,'[none]',status)
+  call ftpkye(unit,'porosity',real(p_core),8,'[g/cm^3]',status)
+  call ftpkye(unit,'p_mantle',real(p_mantle),8,'[g/cm^3]',status)
   
   do i=1,nm
      write(word,'("file",i0.2)') i
-     call ftpkys(unit,word,trim(ref_index(i)),' ',status)
+     call ftpkys(unit,word,trim(ref_index(i)),'',status)
   enddo
   do i=1,nm
      write(word,'("frac",i0.2)') i
      call ftpkye(unit,word,real(mfrac(i)),8,'[mass fraction]',status)
   enddo
-  !FIXME do we need rho in here as well?
-  !do i=1,nm
-  !   write(word,'("rho",i0.2)') i
-  !   call ftpkye(unit,word,real(rho(i)),8,'[g/cm^3]',status)
-  !enddo
+!  do i=1,nm
+!     write(word,'("rho",i0.2)') i
+!     call ftpkye(unit,word,real(rho(i)),8,'[g/cm^3]',status)
+!  enddo
   
   call ftpkyj(unit,'n_radii',na,' ',status)
   call ftpkyj(unit,'n_mat',nm,' ',status)
-  
+    
   !  Write the array to the FITS file.
   
   !------------------------------------------------------------------------------
-  ! HDU 0: opacities
+  ! HDU 0: opacities 
   !------------------------------------------------------------------------------
-  allocate(array(nlam,5,1))
+  
   do i=1,nlam
-     array(i,1,1) = lam(i) / to_micron
-     array(i,2,1) = p%Kext(i)
-     array(i,3,1) = p%Kabs(i)
-     array(i,4,1) = p%Ksca(i)
-     array(i,5,1) = p%g(i)
+     array(i,1,1)=lam(i)
+     array(i,2,1)=p%Kext(i)
+     array(i,3,1)=p%Kabs(i)
+     array(i,4,1)=p%Ksca(i)
+     array(i,5,1)=p%g(i)
   enddo
   
-  call ftpprd(unit,group,fpixel,nelements,array(1:nlam,1:5,1),status)
+  call ftpprd(unit,group,fpixel,nelements,array(1:nlam,1:4,1),status)
   
   deallocate(array)
   
   !------------------------------------------------------------------------------
-  ! HDU 1: Scattering properties
+  ! HDU 1: scattering matrix
   !------------------------------------------------------------------------------
-  bitpix    = -64
-  naxis     = 3
-  naxes(1)  = nlam
-  naxes(2)  = 6
-  naxes(3)  = 180
-  nelements = naxes(1)*naxes(2)*naxes(3)
-
-  ! FIXME why are lambda and the angles not in here?
+  bitpix=-64
+  naxis=3
+  naxes(1)=nlam
+  naxes(2)=6
+  naxes(3)=180
+  nelements=naxes(1)*naxes(2)*naxes(3)
   
   allocate(array(nlam,6,180))
   
@@ -1918,12 +1916,12 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   
   do i=1,nlam
      do j=1,180
-        array(i,1,j) = p%F(i)%F11(j)
-        array(i,2,j) = p%F(i)%F12(j)
-        array(i,3,j) = p%F(i)%F22(j)
-        array(i,4,j) = p%F(i)%F33(j)
-        array(i,5,j) = p%F(i)%F34(j)
-        array(i,6,j) = p%F(i)%F44(j)
+        array(i,1,j)=p%F(i)%F11(j)
+        array(i,2,j)=p%F(i)%F12(j)
+        array(i,3,j)=p%F(i)%F22(j)
+        array(i,4,j)=p%F(i)%F33(j)
+        array(i,5,j)=p%F(i)%F34(j)
+        array(i,6,j)=p%F(i)%F44(j)
      enddo
   enddo
   
@@ -1935,12 +1933,11 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   !  Close the file and free the unit number.
   call ftclos(unit, status)
   call ftfiou(unit, status)
-
+  
   !  Check for any error, and if so print out error messages
   if (status.gt.0) then
-     print *,'ERROR in export to fits file',status
-  endif
-  
+     print*,'error in export to fits file',status
+  end if
   return
 end subroutine write_fits_file
 #else

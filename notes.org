@@ -337,12 +337,13 @@ after the mass fraction, like this:
   The fits-file (ending in ’.fits’) is written instead of the ASCII
   output when using the =-fits= switch. It has two HDU blocks. The first
   block contains the cross sections per unit mass. This is a N_\lambda
-  \times 4 matrix with these columns:
+  \times 5 matrix with these columns:
 
   1. wavelengths in [\mu{}m]
   2. mass extinction cross section \kappa_ext in [cm^2/g]
   3. mass absorption cross section \kappa_abs in [cm^2/g]
   4. mass scattering cross section \kappa_sca in [cm^2/g]
+  5. asymmetry factor /g/
 
   The second HDU block contains the scattering matrix elements. This
   is a N_\lambda \times 6 \times 180 matrix. These are the 6
