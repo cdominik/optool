@@ -75,6 +75,7 @@ program optool
   logical         :: write_mean_kap  ! Should mean kappas be computed?
   logical         :: write_scatter   ! Should a fits file be written?
   logical         :: write_fits      ! Should a fits file be written?
+  logical         :: for_radmc       ! Should the scattering matric use the RADME-3D convention?
   real (kind=dp)  :: tmin,tmax       ! min and max temperature for mean opacities
   integer         :: nt              ! number of temperature steps
   
@@ -108,28 +109,29 @@ program optool
   ! ------------------------------------------------------------------------
   ! Defaults values for parameters and switches
   ! ------------------------------------------------------------------------
-  amin          = 0.05       ! micrometer
-  amax          = 3000.      ! micrometer
-  apow          = 3.50_dp
-  na            = 100
+  amin           = 0.05       ! micrometer
+  amax           = 3000.      ! micrometer
+  apow           = 3.50_dp
+  na             = 100
   
-  lmin          = 0.05_dp    ! micrometers
-  lmax          = 10000.0_dp ! micrometers
-  nlam          = 300
+  lmin           = 0.05_dp    ! micrometers
+  lmax           = 10000.0_dp ! micrometers
+  nlam           = 300
 
-  write_fits    = .false.
-  write_scatter = .false.
-  write_mean_kap= .false.
-  tmin          = 10d0       ! K
-  tmax          = 1d4        ! K
-  nt            = 200
+  write_fits     = .false.
+  write_scatter  = .false.
+  write_mean_kap = .false.
+  for_radmc      = .false.
+  tmin           = 10d0       ! K
+  tmax           = 1d4        ! K
+  nt             = 200
   
-  fmax          = 0.8_dp     ! volume fraction DHS
+  fmax           = 0.8_dp     ! volume fraction DHS
 
-  p_core        = 0.0_dp     ! porosity core
-  p_mantle      = 0.0_dp     ! porosity mantle
+  p_core         = 0.0_dp     ! porosity core
+  p_mantle       = 0.0_dp     ! porosity mantle
 
-  nm            = 0          ! number of materials - zeor to start with
+  nm             = 0          ! number of materials - zeor to start with
 
   ! ------------------------------------------------------------------------
   ! Allocate space for up to 12 different materials
@@ -306,6 +308,7 @@ program optool
      case('-s','-scatter','-scat')
         write_scatter=.true.
      case('-radmc','-radmc3d')
+        for_radmc = .true.
         asciiext = ".inp"
         if (arg_is_value(i+1)) then
            i=i+1
@@ -420,7 +423,7 @@ program optool
            call write_ascii_file(p,aminsplit,amaxsplit,apow,nsub,lmin,lmax, &
                 fmax,p_core,p_mantle,nm_input, &
                 location,mfrac,mfrac_user,ref_index,rho, &
-                label,write_scatter,asciiext)
+                label,write_scatter,for_radmc)
         endif
      enddo
      stop
@@ -442,7 +445,7 @@ program optool
      call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
           fmax,p_core,p_mantle,nm_input,&
           location,mfrac,mfrac_user,ref_index,rho, &
-          radmclbl,write_scatter,asciiext)
+          radmclbl,write_scatter,for_radmc)
   endif
   ! ------------------------------------------------------------------
   ! Produce and write mean opacities
@@ -953,6 +956,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      ! Set the cross sections
      ! ------------------------------------------------------------------
      p%rho  = mass/vol
+     ! print *,mass,vol,mass/vol ! FIXME
      p%Kext(ilam) = 1d4 * cext / mass
      p%Kabs(ilam) = 1d4 * cabs / mass
      p%Ksca(ilam) = 1d4 * csca / mass
@@ -973,6 +977,17 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
         tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5)/180d0)
      enddo
      p%g(ilam) = p%g(ilam)/tot
+
+     ! Check the normalization of F11
+     tot  = 0d0
+     tot2 = 0d0
+     do j=1,n_ang
+        !                  F11                      (sin phi)                      d phi        2pi
+        tot  = tot +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(n_ang))) * (pi/180.d0) * (2.d0*pi)
+        tot2 = tot2 + sin(pi*(real(j)-0.5)/real(n_ang))*pi/180.d0*2.d0*pi
+     enddo
+     ! print *,tot,tot2,tot/tot2,csca,tot*csca,mass,tot/4/pi ! FIXME
+
   enddo
   deallocate(e1)
   deallocate(e2)
@@ -1569,24 +1584,31 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax,nlam, &
 end subroutine write_header
 
 subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
-     nm,location,mfrac,mfrac_user,ref_index,rho,label,scatter,ext)
+     nm,location,mfrac,mfrac_user,ref_index,rho,label,scatter,for_radmc)
   use Defs
   implicit none
   real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
-  real (kind=dp) :: mfrac(nm),mfrac_user(nm),rho(nm),lmin,lmax
+  real (kind=dp) :: mfrac(nm),mfrac_user(nm),rho(nm),lmin,lmax,f
   type(particle) p
   integer nm,na,i,j,nm2,ilam,iang
   character*(*) :: location(nm),ref_index(nm)
-  character*(*) :: label,ext
-  logical scatter
+  character*(*) :: label
+  character*(3) :: ext
+  logical scatter,for_radmc
   character*500                :: file1,file2
 
-  if (label .eq. ' ') then
-     file1 = "dustkappa"      // ext
-     file2 = "dustkapscatmat" // ext
+  if (for_radmc) then
+     ext = 'inp'
   else
-     file1 = "dustkappa_"   // trim(label) // ext
-     file2 = "dustkapscatmat_" // trim(label) // ext
+     ext = 'dat'
+  endif
+  
+  if (label .eq. '') then
+     file1 = "dustkappa"      // '.' // ext
+     file2 = "dustkapscatmat" // '.' // ext
+  else
+     file1 = "dustkappa_"   // trim(label) // '.' // ext
+     file2 = "dustkapscatmat_" // trim(label) // '.' // ext
   endif
   
   call remove_file_if_exists(file1)
@@ -1613,7 +1635,11 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      open(20,file=file2,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax,nlam, &
           p_core,p_mantle,fmax,nm,location,mfrac,mfrac_user,ref_index,rho)
-     write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, with scattering matrix")')
+     if (for_radmc) then
+        write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
+     else
+        write(20,'("# Standard output file, BOHREN-HUFFMAN normalization of scattering matrix")')
+     endif
      write(20,'("#    iformat                                 ! iformat   must be 1")')
      write(20,'("#    nlam                                    ! number of wavelengths")')
      write(20,'("#    nang                                    ! number of angles 0-180")')
@@ -1630,7 +1656,11 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      write(20,'("#    ...")')
      write(20,'("#    F11 F12 F22 F33 F34 F44                 ! (ilam=nlam,iang=nang))")')
      write(20,'("#============================================================================")')
-     write(20,*) 1    ! iformat
+     if (for_radmc) then
+        write(20,*) 1    ! iformat
+     else
+        write(20,*) 0
+     endif
      write(20,*) nlam ! Number of wavelength points
      write(20,*) 181  ! Number of angular points
      write(20,*)
@@ -1643,13 +1673,18 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      enddo
      write(20,*)
      do ilam=1,nlam
+        if (for_radmc) then
+           f = p%ksca(ilam)/(4.d0*pi)
+        else
+           f = 1.d0
+        endif
         do iang=0,180
            ! We have only computed 0-179, but RADMC needs 180 as well
            ! We simply repeat the 179 value
            i = 1 + min(iang,179) 
            write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
-                p%F(ilam)%F11(i),p%F(ilam)%F12(i),p%F(ilam)%F22(i), &
-                p%F(ilam)%F33(i),p%F(ilam)%F34(i),p%F(ilam)%F44(i)
+                p%F(ilam)%F11(i)*f,p%F(ilam)%F12(i)*f,p%F(ilam)%F22(i)*f, &
+                p%F(ilam)%F33(i)*f,p%F(ilam)%F34(i)*f,p%F(ilam)%F44(i)*f
         enddo
      enddo
      close(20)
