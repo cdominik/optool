@@ -406,7 +406,7 @@ program mmopac
        p_core,p_mantle,fmax,nm_input,location,mfrac/sum(mfrac(1:nm)),mfrac,ref_index,rho)
  
   meanfile    = "dustkapmean.dat"
-  fitsfile    = "dustkapscatmat.fits"
+  fitsfile    = "dustkappa.fits"
 
   ! ------------------------------------------------------------------
   ! Make a logarithmic lambda grid, unless read in from file
