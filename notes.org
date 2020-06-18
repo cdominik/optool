@@ -381,7 +381,7 @@ computed opacities.  You will get two plots
   the downward peaks are actually places where the matrix element goes
   through zero.
 
-#+CAPTION: Screenshot of the plots created by running =python optool.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to deal with range and sign issues.
+#+CAPTION: Screenshot of the plots created by running =ipython -i optool.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to deal with range and sign issues.
 #+ATTR_LATEX: :width 15cm :options angle=0
 [[./misc/inspect.png]]
 
@@ -472,7 +472,6 @@ Should be easy when producing many files.
 - watch the unit number, there may be clashes.
 
 ** TODO Add an amorphous water ice
-
 ** TODO Add more materials
 Only ones with good wavelength coverage.
 What does Christian Lammert use?
