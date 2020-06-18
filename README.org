@@ -147,11 +147,11 @@ produce input files with full scattering matrix for RADMC-3D.
 *** Grain size distribution
 + =-a AMIN AMAX [NA [APOW]]= ::
 
-  Specify minimum and maximum grain radius, and optionally the size
-  distribution powerlaw and the number of size bins.  You can also use
-  the options *-amin*, *-amax*, *-na*, *-apow*, to set individual
-  values.  The defaults are 0.05 \mu{}m, 3000 \mu{}m, 100, and 3.5,
-  respectively.
+  Specify minimum and maximum grain radius, and optionally the
+  number of size bins and the size distribution powerlaw.  You can
+  also use the options *-amin*, *-amax*, *-na*, *-apow*, to set
+  individual values.  The defaults are 0.05 \mu{}m, 3000 \mu{}m, 100,
+  and 3.5, respectively.
 
 *** Wavelength grid
 
@@ -378,7 +378,7 @@ computed opacities.  You will get two plots
   the downward peaks are actually places where the matrix element goes
   through zero.
 
-#+CAPTION: Screenshot of the plots created by running =python optool.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to dead with range and sign issues.
+#+CAPTION: Screenshot of the plots created by running =python optool.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to deal with range and sign issues.
 #+ATTR_LATEX: :width 15cm :options angle=0
 [[./misc/inspect.png]]
 
