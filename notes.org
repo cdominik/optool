@@ -82,18 +82,18 @@ A simple grain made only of the default pyroxene
 
 Reproduce the DIANA standard dust model, using the pyroxene with 70%
 magnesium, and 13% (by mass) carbon, and 25% porosity.
-: optool -c pyr-mg70 0.87   -c c-z 0.13   -p 0.25
+: optool -c pyr-mg70 0.87  -c c-z 0.13  -p 0.25
 
 List the built-in materials
 : optool -c ?
 
 Add an ice mantle that is 20% of the core mass
-: optool -c pyr-mg70 0.87   -c c-z 0.13   -m ice-w 0.2 -p 0.25
+: optool -c pyr-mg70 0.87  -c c-z 0.13  -m ice-w 0.2 -p 0.25
 
 Like the previous example, but use ice refractive index data from a
 separate file.
 
-: optool -c pyr-mg70 0.87   -c c-z 0.13   -m ~/lnk/ice_hudgins_2.dat 0.2 -p 0.25
+: optool -c pyr-mg70 0.87  -c c-z 0.13  -m ~/lnk/ice_hudgins_2.dat 0.2  -p 0.25
 
 Pure ice grains in a narrow size distribution from 1 to 3 microns,
 with 15 sample sizes following an $f(a)\propto a^{-2.5}$ powerlaw size
@@ -104,7 +104,7 @@ distribution. Also, restrict the wavelength range to 10-100\mu{}m.
 Represent the default dust model (DIANA) in 42 grain sizes, and
 produce input files with full scattering matrix for RADMC-3D.
 
-: optool -na 42 -d -s -radmc3d
+: optool -na 42 -d -s -radmc
 
 
 ** Command line options
@@ -119,8 +119,8 @@ produce input files with full scattering matrix for RADMC-3D.
 
 + =-c KEY-or-FILE [Mfrac]= ::
 
-  Specify a material to include into the grain.  =KEYorFILE= can be an
-  abbreviation key for a builtin material, or the path to the correct
+  Specify a material to include into the grain.  =KEYorFILE= can be the
+  [[#builtin-materials][key for a builtin material]], or the path to the correct
   =lnk= file. =Mfrac= is the /mass/ fraction of the material. You can
   give up to 10 *-c* switches to add the different contributions.  All
   materials will be mixed together using the Bruggeman rule, and
@@ -163,8 +163,8 @@ produce input files with full scattering matrix for RADMC-3D.
   Minimum and maximum wavelength and optionally the number of
   wavelengths points for the construction of the wavelength grid.  The
   default values are 0.05 \mu{}m, 10000 \mu{}m, and 300, respectively.
-  Use the options *-lmin*, *-lmax*, and *-nlam* to set individual
-  values.
+  Use the options *-lmin*, *-lmax*, and *-nlam* (or *-nl*) to set
+  individual values.
 
 + =-l FILE= ::
 
@@ -179,7 +179,7 @@ and the asymmetry parameter /g/. The following options lead to
 extended output.  See the section [[#output-files][Output files]] for details on the
 files that can be produced.
 
-+ =-s= ::
++ =-s= , =-scat= ::
 
   Include the full scattering matrix in the output. Without this
   switch, the output is limited to just \kappa_abs, \kappa_sca, and
@@ -205,7 +205,7 @@ files that can be produced.
   scattering matrix elements, instead of ASCII output.  With the =-d=
   switch, =NA= such files will be written, one for each grain size.
 
-+ =-radmc3d [LABEL]= ::
++ =-radmc [LABEL]= , =-radmc3d [LABEL]=  ::
 
   The structure of the ASCII output of =optool= is already compatible
   with RADMC-3D. However, RADMC-3D uses a different normalization for
@@ -390,8 +390,7 @@ computed opacities.  You will get two plots
 
 ** Acknowledgments
 - [[http://michielmin.nl/][Michiel Min]] for the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][DIANA OpacityTool]] and all the work that went
-  into it. =optool= is strongly based on it, and this user guide
-  reuses some of his description.
+  into it. =optool= is a direct derivative of that tool.
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]]. =optool= uses the generalized Bruggeman
   solver and a few other bits from SIGMA's code base.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
@@ -421,8 +420,8 @@ do this:
 :CUSTOM_ID: normalization
 :END:
 A number of different normalizations for the scattering matrix are
-being used in the literature and in computational tools. The various
-versions can be quite different and it is important to be aware of the
+being used in the literature and in computational tools. The
+differences are significant, and it is important to be aware of the
 choice. For =optool= we are using a convention in which the average
 over all directions of the 1-1 element of the scattering matrix equals
 unity, i.e.
@@ -432,22 +431,22 @@ unity, i.e.
 \oint_{(4\pi)} F_{11}(\lambda,\Theta) d\Omega = 4\pi
 \end{equation}
 
-See [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Hovenier (2004)]] for a discussion of this normalization.  =optool=
-can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] which uses a different
-normalization, namely
+See [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Hovenier (2004)]] for a discussion of this (called $F^{\rm au}$)
+normalization.  =optool= can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] which
+uses a different normalization, namely
 
 \begin{equation}
 \label{eq:2}
 \oint_{(4\pi)} Z_{11}(\lambda,\Theta) d\Omega = \kappa_{\rm sca}(\lambda)
 \end{equation}
 
-You can also find an extensive discussion about the scattering matrix
-and it's normalization in the [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/guide.html][RADMC-3D manual]].
+For details, see the [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/guide.html][RADMC-3D manual]].
 
 
 ** Bibliography
 - Dorschner,J. et al. 1995, A&A 300, 503
 - Henning, Th. and Stognienko, R. 1996, A&A 311,291
+- Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
 - Jäger,C. et al. 1998, A&A 339, 904
 - Koike,C. et al. 1995, Icarus 114, 203
 - Lefèvre,C.; Min,M. et al. 2020, A&A (submitted)
@@ -459,7 +458,6 @@ and it's normalization in the [[http://www.ita.uni-heidelberg.de/~dullemond/soft
 - Steyer,T. 1974, PhD Thesis, The University of Arizona
 - Warren,S. and Brandt,R. 2008, JGRD,113, D14220
 - Zubko,V. et al. 1996, MNRAS 282,1321
-- Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
 
 
 * Actions and Ideas
