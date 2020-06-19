@@ -1594,13 +1594,16 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
   character*(*) :: location(nm),ref_index(nm)
   character*(*) :: label
   character*(3) :: ext
+  character*(23) :: ml
   logical scatter,for_radmc
   character*500                :: file1,file2
 
   if (for_radmc) then
      ext = 'inp'
+     ml = 'Z11 Z12 Z22 Z33 Z34 Z44'
   else
      ext = 'dat'
+     ml = 'F11 F12 F22 F33 F34 F44'
   endif
   
   if (label .eq. '') then
@@ -1649,17 +1652,17 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      write(20,'("#    ang(1)                                  ! ang(1)    must be 0")')
      write(20,'("#    ...")')
      write(20,'("#    ang(nang)                               ! ang(nang) must be 180")')
-     write(20,'("#    F11 F12 F22 F33 F34 F44                 ! (ilam=   1,iang=   1)")')
+     write(20,'("#    ",A,                  "                 ! (ilam=   1,iang=   1)")') ml
      write(20,'("#    ...")')
-     write(20,'("#    F11 F12 F22 F33 F34 F44                 ! (ilam=   1,iang=nang))")')
-     write(20,'("#    F11 F12 F22 F33 F34 F44                 ! (ilam=   2,iang=   1))")')
+     write(20,'("#    ",A,                  "                 ! (ilam=   1,iang=nang)")') ml
+     write(20,'("#    ",A,                  "                 ! (ilam=   2,iang=   1)")') ml
      write(20,'("#    ...")')
-     write(20,'("#    F11 F12 F22 F33 F34 F44                 ! (ilam=nlam,iang=nang))")')
+     write(20,'("#    ",A,                  "                 ! (ilam=nlam,iang=nang)")') ml
      write(20,'("#============================================================================")')
      if (for_radmc) then
         write(20,*) 1    ! iformat
      else
-        write(20,*) 0
+        write(20,*) 0    ! This is supposed to cause an error when RADMC is reading it
      endif
      write(20,*) nlam ! Number of wavelength points
      write(20,*) 181  ! Number of angular points
