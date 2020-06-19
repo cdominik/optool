@@ -98,3 +98,7 @@ ingest:
 
 README.org: notes.org
 	perl -ne 'if (/^\* OpTool User Guide/../^\* Actions/) {s/@@.*?@@//g; print unless /^\* Actions/}' notes.org > README.org
+
+manual:
+	cp notes.pdf OpTool.pdf
+	make README.org
