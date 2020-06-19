@@ -42,8 +42,7 @@ LIBS    = $(LIBS_FITS)
 OBJS	= optool.o \
 	  optool_extra.o \
 	  ref_ind.o \
-	  dmilay_f95.o \
-          meanopacity.o \
+	  dmilay_f95.o
 
 
 # program name and install location
