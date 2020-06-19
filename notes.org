@@ -207,10 +207,16 @@ files that can be produced.
 
 + =-radmc3d [LABEL]= ::
 
-  The ASCII output of =optool= is already compatible with
-  RADMC-3D. With this switch, the extension of the files will be
-  changed to =.inp=, and if you specify a label, it will be used in
-  the file name(s).
+  The structure of the ASCII output of =optool= is already compatible
+  with RADMC-3D. However, RADMC-3D uses a different normalization for
+  the scattering matrix[fn:2]. With this switch, the extension of the files
+  will be changed to =.inp=, the normalization will be modified, and
+  if you specify LABEL, it will be used in the file name(s).
+
+[fn:2] The default normalization in =optool= is such that $F_{11}$
+averages out to 1/steradian, i.e. $\oint F_{11} d\Omega = 4\pi$.  For
+RADMC-3D, the normalization is $\oint Z_{11} d\Omega = \kappa_{\rm
+scat}$.
 
 ** Material properties
 =optool= needs refractive index data to work.  For your convenience, a
