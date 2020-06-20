@@ -40,7 +40,7 @@ module Defs
   ! ------------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ------------------------------------------------------------------------
-  real (kind=dp), allocatable    :: lam(:)     ! wavelength
+  real (kind=dp), allocatable    :: lam(:)     ! wavelength array
   integer                        :: nlam       ! nr of wavelength points
   ! ------------------------------------------------------------------------
   ! Mueller matrix structure, records only non-zero elements of the matrix
@@ -93,8 +93,8 @@ program optool
   integer         :: nm,nm_input     ! nr of grain materials
 
   type(particle)  :: p
-  integer         :: i, j
-  integer         :: ilam,iang
+  integer         :: i, j            ! j always loops through angles in this routine
+  integer         :: ilam,iang,im    ! for lambda, angle, material
   character*100   :: tmp
   character*100   :: value
 
@@ -122,28 +122,28 @@ program optool
   ! ------------------------------------------------------------------------
   amin           = 0.05       ! micrometer
   amax           = 3000.      ! micrometer
-  apow           = 3.50_dp
-  na             = 100
+  apow           = 3.50_dp    ! a minus sign will be added internally
+  na             = 50
 
-  lmin           = 0.05_dp    ! micrometers
-  lmax           = 10000.0_dp ! micrometers
+  lmin           = 0.05_dp    ! micrometer
+  lmax           = 10000.0_dp ! micrometer
   nlam           = 300
 
-  write_fits     = .false.
-  write_scatter  = .false.
-  write_mean_kap = .false.
-  for_radmc      = .false.
   tmin           = 10d0       ! K
   tmax           = 1d4        ! K
   nt             = 200
 
   fmax           = 0.8_dp     ! volume fraction DHS
-
   p_core         = 0.0_dp     ! porosity core
   p_mantle       = 0.0_dp     ! porosity mantle
 
-  nm             = 0          ! number of materials - zeor to start with
+  nm             = 0          ! number of materials - zero to start with
 
+  write_fits     = .false.    ! Default is to write ASCII output
+  write_scatter  = .false.    ! Default is to not write scattering matrix
+  write_mean_kap = .false.    ! Default is to not compute mean kappas
+  for_radmc      = .false.    ! Default is to use optool conventions.
+  
   ! ------------------------------------------------------------------------
   ! Allocate space for up to 12 different materials
   ! ------------------------------------------------------------------------
@@ -154,8 +154,9 @@ program optool
   allocate(rho(12))
   have_mantle = .false.
   ! Initialize rho, because we need the fact that it has not been set
-  do i=1,12
-     rho(i) = 0.d0
+  ! to decide what to do with lnk files where it is missing
+  do im=1,12
+     rho(im) = 0.d0
   enddo
 
   ! ------------------------------------------------------------------------
@@ -347,7 +348,7 @@ program optool
         stop
      end select
      i = i+1
-     call getarg(i,tmp)
+     call getarg(i,tmp)   ! Get the next argument for the loop.
   enddo
 
   ! ------------------------------------------------------------------
@@ -370,24 +371,25 @@ program optool
      ref_index(2) = 'c-z'      ; location(2)  = 'core' ; mfrac(2)     = 0.1301d0
      p_core       = 0.25d0
   endif
-  nm_input = nm
+  nm_input   = nm
   mfrac_user = mfrac
 
   if (nm .ge. 10) then
      write(*,*) 'ERROR: Too many materials'
      stop
   endif
-    do i = 1, nm
-     location(i)   = trim(location(i))
-     ref_index(i)  = trim(ref_index(i))
+  do im = 1, nm
+     location(im)   = trim(location(im))
+     ref_index(im)  = trim(ref_index(im))
   enddo
 
   ! ------------------------------------------------------------------
   ! Write a setup summary to the screen
   ! ------------------------------------------------------------------
   call write_header(6,'',amin,amax,apow,na,lmin,lmax,nlam, &
-       p_core,p_mantle,fmax,nm_input,location,mfrac/sum(mfrac(1:nm)),mfrac,ref_index,rho)
-
+       p_core,p_mantle,fmax, &
+       nm_input,location,mfrac/sum(mfrac(1:nm)),mfrac,ref_index,rho)
+  
   meanfile    = "dustkapmean.dat"
   fitsfile    = "dustkappa.fits"
 
@@ -416,10 +418,11 @@ program optool
   if (split) then
      nsub = nsubgrains
      if (mod(nsub,2).eq.0) nsub = nsub+1
-     afact = (amax/amin)**(1.d0/real(na)) ! factor to next grain size
+     afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
+
      do ia=1,na
-        asplit    = amin*afact**real(ia-1+0.5)
+        asplit    = amin  *afact**real(ia-1+0.5)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
 
@@ -450,6 +453,7 @@ program optool
   ! ------------------------------------------------------------------
   call ComputePart(p,amin,amax,apow,na,fmax,p_core,p_mantle,&
        mfrac,location,ref_index,rho,nm)
+
   ! ------------------------------------------------------------------
   ! Write the output
   ! ------------------------------------------------------------------
@@ -463,6 +467,7 @@ program optool
           location,mfrac,mfrac_user,ref_index,rho, &
           radmclbl,write_scatter,for_radmc)
   endif
+
   ! ------------------------------------------------------------------
   ! Produce and write mean opacities
   ! ------------------------------------------------------------------
@@ -508,6 +513,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   !   mfrac0     An array of nm mass fraction for the various materials.
   !   loc        Location of material (core or mantle)
   !   ref_index  key of file with refractive index data
+  !   rho        the specific densities of the materials.  Hight already have been
+  !              set by the user on the command line, but normaly we should get it
+  !              later from the lnk file
   !   nm0        The number of materials, also the size of the arrays mfrac,
   !              loc, ref_index, rho
   !
@@ -516,7 +524,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   !              See the module Defs for the definition.
   ! ----------------------------------------------------------------------------
   use Defs
-  !use omp_lib
   implicit none
 
   real (kind=dp)                 :: amin,amax,apow   ! min and max grain size, and power law exp
@@ -534,7 +541,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
 
   TYPE (PARTICLE)                :: p
 
-  integer                        :: i,j,k
+  integer                        :: i,j,k            ! counters for various loops
   integer                        :: MAXMAT           ! maximum number of grain material
   integer, parameter             :: n_ang = 180      ! number of angles FIXME let the user set this?
   integer                        :: na               ! Number of grains sizes between amin and amax
@@ -542,7 +549,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   integer                        :: ns,is            ! Number of grains sizes
   integer                        :: ilam,il          ! Counter for wavelengths
   integer                        :: i_mantle         ! Index of mantle material, if any
-  integer                        :: err,spheres,toolarge
+  integer                        :: err,spheres,toolarge ! Error control for Mie routines
 
   real (kind=dp)                 :: cext, csca, cabs
   real (kind=dp)                 :: cext_ff, csca_ff, cabs_ff
@@ -561,11 +568,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   real (kind=dp)                 :: csmie, cemie
   real (kind=dp)                 :: theta
 
-  real (kind=dp)                 :: maxf
   real (kind=dp)                 :: aminlog, amaxlog
   real (kind=dp)                 :: rad
   real (kind=dp)                 :: r1
-  real (kind=dp)                 :: tot, tot2,mtot,vtot
+  real (kind=dp)                 :: tot,tot2,mtot,vtot
   real (kind=dp)                 :: pow
   real (kind=dp)                 :: mass
   real (kind=dp)                 :: vol
@@ -593,55 +599,35 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   nm    = nm0    ! Make copy, to that we can change it
   mfrac = mfrac0 ! Make copy, to that we can change it
   meth = 'DHS'   !
-  maxf = fmax
   ns   = na      ! number of subgrains to compute
   MAXMAT = nm+1  ! Allocate one more, because vacuum will also be a material
 
-  allocate(Mief11(n_ang))
-  allocate(Mief12(n_ang))
-  allocate(Mief22(n_ang))
-  allocate(Mief33(n_ang))
-  allocate(Mief34(n_ang))
-  allocate(Mief44(n_ang))
-  allocate(mu(n_ang))
-  allocate(M1(n_ang,2))
-  allocate(M2(n_ang,2))
-  allocate(S21(n_ang,2))
-  allocate(D21(n_ang,2))
+  allocate(Mief11(n_ang),Mief12(n_ang),Mief22(n_ang),Mief33(n_ang),Mief34(n_ang),Mief44(n_ang))
+  allocate(mu(n_ang),M1(n_ang,2),M2(n_ang,2),S21(n_ang,2),D21(n_ang,2))
 
   allocate(vfrac(MAXMAT))
   allocate(epsj(MAXMAT))
-  allocate(f11(nlam,n_ang))
-  allocate(f12(nlam,n_ang))
-  allocate(f22(nlam,n_ang))
-  allocate(f33(nlam,n_ang))
-  allocate(f34(nlam,n_ang))
-  allocate(f44(nlam,n_ang))
+  allocate(f11(nlam,n_ang),f12(nlam,n_ang),f22(nlam,n_ang))
+  allocate(f33(nlam,n_ang),f34(nlam,n_ang),f44(nlam,n_ang))
 
-  allocate(e1(MAXMAT,nlam))
-  allocate(e2(MAXMAT,nlam))
+  allocate(e1(MAXMAT,nlam),e2(MAXMAT,nlam))
 
   ! Set the number of f values between 0 and fmax, for DHS
-  if (maxf .eq. 0e0) then
+  if (fmax .eq. 0e0) then
      ! DHS is turned off by setting fmax to 0.
      nf = 1
   else
      nf = 20
   endif
-  allocate(r(ns))
-  allocate(nr(ns))
-  allocate(f(nf))
-  allocate(wf(nf))
-  allocate(e1d(nlam))
-  allocate(e2d(nlam))
-  allocate(e1mantle(nlam))
-  allocate(e2mantle(nlam))
+  allocate(r(ns),nr(ns))
+  allocate(f(nf),wf(nf))
+  allocate(e1d(nlam),e2d(nlam))
+  allocate(e1mantle(nlam),e2mantle(nlam))
 
   ! ------------------------------------------------------------------------
-  ! Definition of dust components volume fractions
-  ! ------------------------------------------------------------------------
-
   ! Normalize the mass fractions
+  ! ------------------------------------------------------------------------
+
   tot = 0.0_dp
   do im=1,nm
      tot=tot+mfrac(im)
@@ -701,10 +687,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      e2mantle(1:nlam) = e2d(1:nlam)
   endif
 
-  deallocate(e1d)
-  deallocate(e2d)
+  deallocate(e1d,e2d)
 
+  ! ------------------------------------------------------------------
   ! Turn the mass fractions into volume fractions and compute rho_core
+  ! ------------------------------------------------------------------
   mtot = 0.d0
   vtot = 0.d0
   do im = 1,nm
@@ -716,7 +703,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   ! Normalize the volume fractions of the core
   vfrac(1:nm) = vfrac(1:nm)/vtot
 
-  min = dcmplx(1d0,0d0)
   ! ------------------------------------------------------------------
   ! Add vacuum as an extra material, to model porosity
   ! ------------------------------------------------------------------
@@ -747,8 +733,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      ! 2. mfrac_m = rho_m*vfrac_m/rho
      !
      ! Given mfrac_m, rho_c, and rho_m, we solve for rho and vfrac_m
-     !
-     ! FIXME: Still needs testing
      !
      if (p_m.gt.0d0) then
         ! reduce the density of the mantle material because it is porous as well.
@@ -814,11 +798,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      endif
   enddo ! end of wavelength loop over il
 
-  ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! --------------------------------------------------------------------------
   ! We are done with all the blending, so from now on we have ony one material
-  !
+  ! --------------------------------------------------------------------------
   nm = 1
-  ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! Write the derived n and k to a file, if that is all we are supposed to do.
   if (blendonly) then
@@ -844,16 +827,16 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      enddo
   enddo
 
-  if (nf.gt.1 .and. maxf.gt.0.01e0) then
+  if (nf.gt.1 .and. fmax.gt.0.01e0) then
      ! Get the weights for Gauss-Legendre integration
-     call gauleg2(0.01e0,maxf,f(1:nf),wf(1:nf),nf)
-  else if (maxf.eq.0e0) then
+     call gauleg2(0.01e0,fmax,f(1:nf),wf(1:nf),nf)
+  else if (fmax.eq.0e0) then
      ! Just a compact sphere, weight is 1
      f(1:nf)  = 0d0
      wf(1:nf) = 1d0/real(nf)
   else
      ! Just one fixed volume fraction of hollow
-     f(1)  = maxf
+     f(1)  = fmax
      wf(1) = 1d0
   endif
 
@@ -881,10 +864,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
         err      = 0
         spheres  = 0
         toolarge = 0
-        ! ------------------------------------------------------------------
+        ! ----------------------------------------------------------------
         ! Start the loop over the DHS f factors
-        ! ------------------------------------------------------------------
+        ! ----------------------------------------------------------------
         cext_ff = 0.d0; cabs_ff = 0.d0; csca_ff = 0.d0
+        min = dcmplx(1d0,0d0)
         do if=1,nf
            rad  = r1 / (1d0-f(if))**(1d0/3d0)
            m    = dcmplx(e1(1,ilam),-e2(1,ilam))
@@ -899,14 +883,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            else if (meth(1:3) .eq. 'DHS') then
               rcore = rad*f(if)**(1d0/3d0)
               call DMiLay(rcore, rad, wvno, m, min, mu, &
-                   &                   n_ang/2, qext, qsca, qabs, gqsc, &
-                   &                   m1, m2, s21, d21, n_ang ,err)
+                   n_ang/2, qext, qsca, qabs, gqsc, &
+                   m1, m2, s21, d21, n_ang ,err)
            else
               rcore = rad*0.999
-
               call DMiLay(rcore, rad, wvno, min, m, mu, &
-                   &                   n_ang/2, qext, qsca, qabs, gqsc, &
-                   &                   m1, m2, s21, d21, n_ang ,err)
+                   n_ang/2, qext, qsca, qabs, gqsc, &
+                   m1, m2, s21, d21, n_ang ,err)
            endif
            if (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1) then
               rad   = r1
@@ -917,11 +900,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
               e2mie = e2(1,ilam)
               if (err.eq.1 .or. if.eq.1) then
                  if (rmie/lmie.lt.5000d0) then
-                    call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie &
-                         &      ,Mief11,Mief12,Mief33,Mief34,n_ang)
+                    call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
+                         Mief11,Mief12,Mief33,Mief34,n_ang)
                  else
-                    call MeerhoffMie(rmie,rmie/5000d0,e1mie,e2mie,csmie,cemie &
-                         &      ,Mief11,Mief12,Mief33,Mief34,n_ang)
+                    call MeerhoffMie(rmie,rmie/5000d0,e1mie,e2mie,csmie,cemie, &
+                         Mief11,Mief12,Mief33,Mief34,n_ang)
                  endif
               endif
 
@@ -938,6 +921,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
                  Mief33(j) = (S21(j,1))                  / csmie/wvno**2*2d0*pi
                  Mief34(j) = (-D21(j,1))                 / csmie/wvno**2*2d0*pi
                  Mief44(j) = (S21(j,1))                  / csmie/wvno**2*2d0*pi
+                 ! Here we use the assumption that the grid is regular.  An adapted
+                 ! grid is not possible if it is not symmetric around pi/2.
                  Mief11(n_ang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
                  Mief12(n_ang-j+1) = (M2(j,2) - M1(j,2)) / csmie/wvno**2*2d0*pi
                  Mief22(n_ang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
@@ -948,15 +933,20 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            endif
 
            ! make sure the scattering matrix is properly normalized by adjusting the forward peak.
+           ! ASKMICHIEL: You are only adjusting the one point a 0 degrees.
+           ! So that means that the basic normalization is already in place at this point,
+           ! and you just want to be sure that things are right on your specific grid?
            tot  = 0d0
            tot2 = 0d0
            do j=1,n_ang
+              ! This integration assumes that the grid is regular (linear)
               tot  = tot +  Mief11(j)*sin(pi*(real(j)-0.5)/real(n_ang))
               tot2 = tot2 + sin(pi*(real(j)-0.5)/real(n_ang))
            enddo
            Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5)/real(n_ang))
            if (Mief11(1).lt.0d0) Mief11(1) = 0d0
 
+           ! Add this contribution with the proper weights
            do j=1,n_ang
               f11(ilam,j) = f11(ilam,j) + wf(if)*nr(is)*Mief11(j)*csmie
               f12(ilam,j) = f12(ilam,j) + wf(if)*nr(is)*Mief12(j)*csmie
@@ -970,8 +960,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            cabs_ff = cabs_ff + wf(if)*nr(is)*(cemie-csmie)
            mass = mass + wf(if)*nr(is)*rho_av*4d0*pi*r1**3/3d0
            vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
-        enddo ! end loop nf over form factors
+        enddo ! end loop "nf" over form factors
 
+        ! Add the contribution of the current grains size to the overall sum
         cext = cext + cext_ff
         cabs = cabs + cabs_ff
         csca = csca + csca_ff
@@ -982,7 +973,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      ! Set the cross sections
      ! ------------------------------------------------------------------
      p%rho  = mass/vol
-     ! print *,mass,vol,mass/vol ! FIXME
      p%Kext(ilam) = 1d4 * cext / mass
      p%Kabs(ilam) = 1d4 * cabs / mass
      p%Ksca(ilam) = 1d4 * csca / mass
@@ -996,15 +986,18 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      p%F(ilam)%F33(1:180) = f33(ilam,1:180)/csca
      p%F(ilam)%F34(1:180) = f34(ilam,1:180)/csca
      p%F(ilam)%F44(1:180) = f44(ilam,1:180)/csca
+
+     ! Average ofver angles to compute asymmetry factor g
+     ! FIXME: a regular angular grid is assumed for this computation
      tot = 0.0_dp
      do i=1,180
         p%g(ilam) = p%g(ilam) + p%F(ilam)%F11(i)*cos(pi*(real(i)-0.5)/180d0) &
-             &                  *sin(pi*(real(i)-0.5)/180d0)
+             *sin(pi*(real(i)-0.5)/180d0)
         tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5)/180d0)
      enddo
      p%g(ilam) = p%g(ilam)/tot
 
-     ! Check the normalization of F11
+     ! Check the normalization of F11  FIXME remove again.
      tot  = 0d0
      tot2 = 0d0
      do j=1,n_ang
@@ -1015,36 +1008,19 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      ! print *,tot,tot2,tot/tot2,csca,tot*csca,mass,tot/4/pi ! FIXME
 
   enddo
-  deallocate(e1)
-  deallocate(e2)
-  deallocate(e1mantle)
-  deallocate(e2mantle)
+  
+  deallocate(e1,e2)
+  deallocate(e1mantle,e2mantle)
 
-  deallocate(Mief11)
-  deallocate(Mief12)
-  deallocate(Mief22)
-  deallocate(Mief33)
-  deallocate(Mief34)
-  deallocate(Mief44)
-  deallocate(mu)
-  deallocate(M1)
-  deallocate(M2)
-  deallocate(S21)
-  deallocate(D21)
+  deallocate(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)
+  deallocate(mu,M1,M2,S21,D21)
 
   deallocate(vfrac)
   deallocate(epsj)
-  deallocate(f11)
-  deallocate(f12)
-  deallocate(f22)
-  deallocate(f33)
-  deallocate(f34)
-  deallocate(f44)
+  deallocate(f11,f12,f22,f33,f34,f44)
 
-  deallocate(r)
-  deallocate(nr)
-  deallocate(f)
-  deallocate(wf)
+  deallocate(r,nr)
+  deallocate(f,wf)
 
   return
 end subroutine ComputePart
@@ -1088,26 +1064,26 @@ subroutine brugg(f, nm, e, epsavg)
   !     return it back to the calling program.
   !
   !  Variable and parameter descriptions:
-  !     nm      = number of grain material
+  !     nm      = number of grain materials
   !     f       = volume fraction of each component
   !     e       = dielectric constant of each component
-  !     epsavg  = averaged dielectric constant
+  !     epsavg  = averaged dielectric constant, the return values
   !**********************************************************************
 
   use Defs
   implicit none
-  integer               :: nm, i, k, l, m
-  integer               :: j(nm+1)
-  real(kind =dp)        :: f(nm)
-  COMPLEX (kind=dp)     :: e(nm)
-  COMPLEX (kind=dp)     :: epsavg
-  COMPLEX (kind=dp)     :: c(nm+1)
-  COMPLEX (kind=dp)     :: prod
-  COMPLEX (kind=dp)     :: x(nm)
-  COMPLEX (kind=dp)     :: roots(nm)
-  COMPLEX (kind=dp)     :: total !to check the result of Bruggeman rule
-  logical polish
-  polish=.false.
+  integer           :: nm, i, k, l, m
+  integer           :: j(nm+1)
+  real(kind =dp)    :: f(nm)
+  COMPLEX (kind=dp) :: e(nm)
+  COMPLEX (kind=dp) :: epsavg
+  COMPLEX (kind=dp) :: c(nm+1)
+  COMPLEX (kind=dp) :: prod
+  COMPLEX (kind=dp) :: x(nm)
+  COMPLEX (kind=dp) :: roots(nm)
+  COMPLEX (kind=dp) :: total !to check the result of Bruggeman rule
+  logical           :: polish
+  polish = .false.
 
   c = 0d0
   do i=1,nm
@@ -1144,9 +1120,10 @@ subroutine brugg(f, nm, e, epsavg)
      if(real(roots(i)).gt.0d0 .and. dimag(roots(i)).gt.0d0) THEN
         epsavg=roots(i)
      else if (roots(i).eq.roots(1) .and. dimag(roots(i)).lt.0d0) then
-        write(*,*) "ERROR Bruggeman rule did not converge: no positive solution for effective refractive index: "
+        write(*,*) "ERROR: Bruggeman rule did not converge: "
+        write(*,*) "       no positive solution for effective refractive index: "
         write(*,*) roots(i)
-        write(*,*) "Please try with a restricted range by using -lmin and -lmax"
+        write(*,*) "Please try with a restricted wavelength range"
         write(*,FMT='(a,f6.1,a,f6.1)') "currently lmin = ", lam(1), ", lmax = ", lam(nlam)
         stop
      endif
@@ -1166,11 +1143,15 @@ subroutine brugg(f, nm, e, epsavg)
 end subroutine brugg
 
 subroutine blender(abun,nm,e_in,e_out)
-  IMPLICIT NONE
-  integer nm,j,iter
-  real abun(nm)
-  complex*16 e_in(nm),e_out
-  complex*16 mm,m(nm),me,sum
+  ! --------------------------------------------------------
+  ! This is the original blender routine used in OpacityTool
+  ! --------------------------------------------------------
+  implicit none
+  integer, parameter :: dp = selected_real_kind(P=15)
+  integer            :: nm,j,iter
+  real (kind=dp)     ::abun(nm)
+  complex (kind=dp)  :: e_in(nm),e_out
+  complex (kind=dp)  :: mm,m(nm),me,sum
 
   mm = dcmplx(1d0,0d0)
   m  = e_in
@@ -1189,10 +1170,10 @@ end subroutine blender
 subroutine zroots(a,m,roots,polish)
   ! Root finder for complex polynomials.  From Numerical Recipes.
   use Defs
-  integer m,MAXM
-  real(kind=dp) EPS
-  COMPLEX(kind=dp) a(m+1),roots(m)
-  logical polish
+  integer          :: m,MAXM
+  real(kind=dp)    :: EPS
+  complex(kind=dp) :: a(m+1),roots(m)
+  logical          :: polish
   parameter (EPS=1.e-15,MAXM=101) ! A small number and maximum anticipated value of m+1.
   ! USES laguer
 
@@ -1225,11 +1206,12 @@ subroutine zroots(a,m,roots,polish)
 
   if (polish) then
      do j=1,m
-        !Polish the roots using the undeflated coefficients.
+        ! Polish the roots using the undeflated coefficients.
         call laguer(a,m,roots(j),its)
      enddo
   endif
   ! Adapted for SIGMA by Charlene Lefevre - only root with positive real part is kept
+  ! FIXME: this assumes that there is only one, and we keep the last one...
   do j=1,m
      if (dreal(roots(j)).gt.0.0_dp) roots(1)=roots(j)
   enddo
@@ -1568,8 +1550,8 @@ function count_data_lines (file)
 end function count_data_lines
 
 subroutine read_lambda_grid(file)
-  ! Read the lambda grid from a file
-  ! the file can start with comment lines (* or ! or #).
+  ! Read the lambda grid from a file.
+  ! The file can start with comment lines (* or ! or #).
   ! First non-comment line needs to have the number of lines as first number
   ! The rest should be lines where lambda is always the first value.
   ! For example, an lnk file would work.

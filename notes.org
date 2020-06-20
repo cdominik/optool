@@ -151,7 +151,7 @@ produce input files with full scattering matrix for RADMC-3D.
   Specify minimum and maximum grain radius, and optionally the
   number of size bins and the size distribution powerlaw.  You can
   also use the options *-amin*, *-amax*, *-na*, *-apow*, to set
-  individual values.  The defaults are 0.05 \mu{}m, 3000 \mu{}m, 100,
+  individual values.  The defaults are 0.05 \mu{}m, 3000 \mu{}m, 50,
   and 3.5, respectively.
 
 *** Wavelength grid
@@ -506,6 +506,29 @@ For details, see the [[http://www.ita.uni-heidelberg.de/~dullemond/software/radm
 ** TODO propagate rho to fits and write it there?
 ** TODO Should I use fewer code files?  Which can be combined?
 ** TODO Does the angular grid have to be configurable?
+Michiels code does assum that teh grid is regular in two places.
+1. DMieLay only computes from 0 to pi/2, and then the other half is
+   constructed from what we already have
+2. Michiel adjusts the forward peak (gust that one grid point) to
+   ensure F11 is OK normalised.  The integration done for this assumes
+   that the grid is regular (dphi is dropped out of the equation.
+
+So, if we want to refine the grid, we have to do it both at phi=0 and
+at phi=pi.  Or, we make a computation with increasing the total number
+of grid points, and then let the user program do the interpolation.
+
+Or, if the user asks us to refine at forward, we can just internally
+increase nang sufficiently and then interpolate on the grid the user
+wants.  Lots of possibilities, all a but complicated.
+
+Another issue is that the 180 is hard-coded in some array dimensions.
+So this would have to be fixed as well.  A consequence qould be the
+the fits files no longer have fixed array sizes, the the readers of
+those files would have to adapt.
+
+For now, I think we leave the angular grid alone - until the need
+arizes to change it.
+
 ** TODO Fix the fits issues
 
 ** TODO Parallelize
