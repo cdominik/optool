@@ -60,6 +60,17 @@ module Defs
   end type particle
 end module Defs
 
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+!
+!                         optool, the main program
+!
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+
+
 program optool
   use Defs
   implicit none
@@ -69,7 +80,7 @@ program optool
   real (kind=dp)  :: apow            ! power law index f(a) ~ a^(-apow)
   real (kind=dp)  :: fmax            ! maximum fraction of vaccum for DHS
   real (kind=dp)  :: p_core, p_mantle! porosity for core and mantle
-  
+
   real (kind=dp)  :: lmin,lmax       ! min and max wavelength
 
   logical         :: write_mean_kap  ! Should mean kappas be computed?
@@ -78,15 +89,15 @@ program optool
   logical         :: for_radmc       ! Should the scattering matric use the RADME-3D convention?
   real (kind=dp)  :: tmin,tmax       ! min and max temperature for mean opacities
   integer         :: nt              ! number of temperature steps
-  
+
   integer         :: nm,nm_input     ! nr of grain materials
-  
+
   type(particle)  :: p
   integer         :: i, j
   integer         :: ilam,iang
   character*100   :: tmp
   character*100   :: value
-  
+
   integer,        allocatable  :: number(:)       ! number associated to a component
   character*500,  allocatable  :: location(:)     ! Either 'core' or 'mantle'
   character*500,  allocatable  :: ref_index(:)
@@ -97,8 +108,8 @@ program optool
   logical         :: have_mantle
   logical         :: arg_is_value, arg_is_number  ! functions to test arguments
   character*500   :: fitsfile,meanfile            ! file names for output
-  character*50    :: radmclbl   = ""              ! file label for RADMC-3D compatible 
-  character*4     :: asciiext   = ".dat"          ! files extension for ASCII output 
+  character*50    :: radmclbl   = ""              ! file label for RADMC-3D compatible
+  character*4     :: asciiext   = ".dat"          ! files extension for ASCII output
   character*50    :: label                        ! for use in file names
 
   logical         :: split=.false.
@@ -113,7 +124,7 @@ program optool
   amax           = 3000.      ! micrometer
   apow           = 3.50_dp
   na             = 100
-  
+
   lmin           = 0.05_dp    ! micrometers
   lmax           = 10000.0_dp ! micrometers
   nlam           = 300
@@ -125,7 +136,7 @@ program optool
   tmin           = 10d0       ! K
   tmax           = 1d4        ! K
   nt             = 200
-  
+
   fmax           = 0.8_dp     ! volume fraction DHS
 
   p_core         = 0.0_dp     ! porosity core
@@ -178,7 +189,7 @@ program optool
         else
            i = i+1; call getarg(i,value); read(value,*) mfrac(nm)
         endif
-        
+
         if (mfrac(nm).eq.0) then
            print *, "WARNING: Ignoring material with zero mass fraction: ",trim(ref_index(nm))
            nm = nm-1
@@ -208,7 +219,7 @@ program optool
         if (arg_is_value(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) rho(nm)
         endif
-        
+
         ! ------------------------------------------------------------------
         ! Grain size setup
         ! ------------------------------------------------------------------
@@ -238,7 +249,7 @@ program optool
         i = i+1; call getarg(i,value); read(value,*) na
      case('-apow','--apow')
         i = i+1; call getarg(i,value); read(value,*) apow
-        
+
         ! ------------------------------------------------------------------
         ! Wavelength setup
         ! ------------------------------------------------------------------
@@ -271,7 +282,7 @@ program optool
         i = i+1; call getarg(i,value); read(value,*) lmax
      case('-nlam','--nlam','-nl','--nl')
         i = i+1; call getarg(i,value); read(value,*) nlam
-        
+
         ! ------------------------------------------------------------------
         ! Grain geometry
         ! ------------------------------------------------------------------
@@ -338,6 +349,15 @@ program optool
      i = i+1
      call getarg(i,tmp)
   enddo
+
+  ! ------------------------------------------------------------------
+  ! Sanity checks
+  ! ------------------------------------------------------------------
+  if (split .and. write_mean_kap) then
+     write(*,*) 'ERROR: With both -d and -t options, the dustkapmean.dat file'
+     write(*,*) '       would only reflect the final size bin.'
+     stop
+  endif
   
   ! ------------------------------------------------------------------
   ! Default grain composition if nothing is specified
@@ -361,17 +381,13 @@ program optool
      location(i)   = trim(location(i))
      ref_index(i)  = trim(ref_index(i))
   enddo
-  
-  ! ------------------------------------------------------------------
-  ! Sanity checks
-  ! ------------------------------------------------------------------
-  
+
   ! ------------------------------------------------------------------
   ! Write a setup summary to the screen
   ! ------------------------------------------------------------------
   call write_header(6,'',amin,amax,apow,na,lmin,lmax,nlam, &
        p_core,p_mantle,fmax,nm_input,location,mfrac/sum(mfrac(1:nm)),mfrac,ref_index,rho)
- 
+
   meanfile    = "dustkapmean.dat"
   fitsfile    = "dustkappa.fits"
 
@@ -450,7 +466,7 @@ program optool
   ! ------------------------------------------------------------------
   ! Produce and write mean opacities
   ! ------------------------------------------------------------------
-  if (write_mean_kap) then 
+  if (write_mean_kap) then
      call mean_opacities(lam,nlam,p%kabs,p%ksca,p%g,tmin,tmax,nt,meanfile)
   endif
 
@@ -464,8 +480,18 @@ program optool
   deallocate(p%Ksca)
   deallocate(p%g)
   deallocate(p%F)
-  
+
 end program optool
+
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+!
+!     ComputePart, the central routine avaraging properties over sizes
+!
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
 
 subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho,nm0)
   ! ----------------------------------------------------------------------------
@@ -484,7 +510,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   !   ref_index  key of file with refractive index data
   !   nm0        The number of materials, also the size of the arrays mfrac,
   !              loc, ref_index, rho
-  ! 
+  !
   ! OUTPUT
   !   p          A "particle" structure to return all the information in.
   !              See the module Defs for the definition.
@@ -492,11 +518,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   use Defs
   !use omp_lib
   implicit none
-  
+
   real (kind=dp)                 :: amin,amax,apow   ! min and max grain size, and power law exp
   real (kind=dp)                 :: fmax             ! maximum fraction of vaccum for DHS
   real (kind=dp)                 :: p_c,p_m          ! porosity, core and mantle
-  
+
   integer                        :: nm0,nm,im        ! nr of grain materials in a composite grain
   real (kind=dp)                 :: rho(nm0)         ! specific material dnesities
   real (kind=dp)                 :: mfrac0(nm0)      ! mass fractions, input
@@ -505,9 +531,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   character*500                  :: ref_index(nm0)   ! Key or file with refractive index data
   real (kind=dp)                 :: vfrac_mantle     ! volume fraction of mantle
   real (kind=dp)                 :: mfrac_mantle     ! mass   fraction of mantle
-  
+
   TYPE (PARTICLE)                :: p
-  
+
   integer                        :: i,j,k
   integer                        :: MAXMAT           ! maximum number of grain material
   integer, parameter             :: n_ang = 180      ! number of angles FIXME let the user set this?
@@ -516,25 +542,25 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   integer                        :: ns,is            ! Number of grains sizes
   integer                        :: ilam,il          ! Counter for wavelengths
   integer                        :: i_mantle         ! Index of mantle material, if any
-  integer                        :: err,spheres,toolarge 
-  
+  integer                        :: err,spheres,toolarge
+
   real (kind=dp)                 :: cext, csca, cabs
   real (kind=dp)                 :: cext_ff, csca_ff, cabs_ff
   real (kind=dp)                 :: qext, qsca, qabs, gqsc
-  
+
   real (kind=dp), allocatable    :: f11(:,:),  f12(:,:),  f22(:,:),  f33(:,:),  f34(:,:),  f44(:,:)
   real (kind=dp), allocatable    :: Mief11(:), Mief12(:), Mief22(:), Mief33(:), Mief34(:), Mief44(:)
-  
+
   real (kind=dp), allocatable    :: mu(:)
   real (kind=dp), allocatable    :: M1(:,:), M2(:,:), S21(:,:), D21(:,:)
   real (kind=dp), allocatable    :: r(:),nr(:)       ! Grain radii and size distribution
   real (kind=dp), allocatable    :: f(:),wf(:)       ! Needed for Gauss-Legendre integration
-  
+
   real (kind=dp)                 :: rmie, lmie
   real (kind=dp)                 :: e1mie, e2mie
   real (kind=dp)                 :: csmie, cemie
   real (kind=dp)                 :: theta
-  
+
   real (kind=dp)                 :: maxf
   real (kind=dp)                 :: aminlog, amaxlog
   real (kind=dp)                 :: rad
@@ -546,19 +572,19 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   real (kind=dp)                 :: rho_av,rho_core,rho_mantle
   real (kind=dp)                 :: rcore
   real (kind=dp)                 :: wvno
-  
+
   ! Effective refractive index
   real (kind=dp)                 :: e1blend,        e2blend
   real (kind=dp), allocatable    :: e1(:,:),        e2(:,:)
   real (kind=dp), allocatable    :: e1d(:),         e2d(:)
   real (kind=dp), allocatable    :: e1mantle(:),    e2mantle(:)
   real (kind=dp), allocatable    :: vfrac(:)
-  
+
   COMPLEX (kind=dp), allocatable :: epsj(:)
   COMPLEX (kind=dp)              :: m       ! FIXME rename?
   COMPLEX (kind=dp)              :: eps_eff,eps_eff2
   COMPLEX (kind=dp)              :: min
-  
+
   character (len=3)              :: meth
   character (len=500)            :: mantle
 
@@ -566,11 +592,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
 
   nm    = nm0    ! Make copy, to that we can change it
   mfrac = mfrac0 ! Make copy, to that we can change it
-  meth = 'DHS'   ! 
+  meth = 'DHS'   !
   maxf = fmax
   ns   = na      ! number of subgrains to compute
   MAXMAT = nm+1  ! Allocate one more, because vacuum will also be a material
-  
+
   allocate(Mief11(n_ang))
   allocate(Mief12(n_ang))
   allocate(Mief22(n_ang))
@@ -582,7 +608,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   allocate(M2(n_ang,2))
   allocate(S21(n_ang,2))
   allocate(D21(n_ang,2))
-  
+
   allocate(vfrac(MAXMAT))
   allocate(epsj(MAXMAT))
   allocate(f11(nlam,n_ang))
@@ -591,7 +617,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   allocate(f33(nlam,n_ang))
   allocate(f34(nlam,n_ang))
   allocate(f44(nlam,n_ang))
-  
+
   allocate(e1(MAXMAT,nlam))
   allocate(e2(MAXMAT,nlam))
 
@@ -621,7 +647,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      tot=tot+mfrac(im)
   enddo
   mfrac = mfrac/tot
-  
+
   ! ------------------------------------------------------------------
   ! Identify the mantle material and take it out of the main list
   ! ------------------------------------------------------------------
@@ -674,7 +700,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      e1mantle(1:nlam) = e1d(1:nlam)
      e2mantle(1:nlam) = e2d(1:nlam)
   endif
-  
+
   deallocate(e1d)
   deallocate(e2d)
 
@@ -689,7 +715,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   rho_core  = mtot/vtot  ! No porosity included yet, will be done below
   ! Normalize the volume fractions of the core
   vfrac(1:nm) = vfrac(1:nm)/vtot
-  
+
   min = dcmplx(1d0,0d0)
   ! ------------------------------------------------------------------
   ! Add vacuum as an extra material, to model porosity
@@ -787,13 +813,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
         e2(1,il) = e2blend
      endif
   enddo ! end of wavelength loop over il
-  
+
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! We are done with all the blending, so from now on we have ony one material
   !
   nm = 1
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
   ! Write the derived n and k to a file, if that is all we are supposed to do.
   if (blendonly) then
      write(*,'("Writing the blended n and k to blended.lnk, and exiting")')
@@ -817,7 +843,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
         f44(il,j) = 0d0
      enddo
   enddo
-  
+
   if (nf.gt.1 .and. maxf.gt.0.01e0) then
      ! Get the weights for Gauss-Legendre integration
      call gauleg2(0.01e0,maxf,f(1:nf),wf(1:nf),nf)
@@ -841,12 +867,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      cext     = 0d0
      mass     = 0d0
      vol      = 0d0
-     
+
      do j=1,n_ang/2
         theta=(real(j)-0.5)/real(n_ang/2)*pi/2d0
         mu(j)=cos(theta)
      enddo
-     
+
      ! ------------------------------------------------------------------
      ! Start the main loop over all particle sizes
      ! ------------------------------------------------------------------
@@ -863,7 +889,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            rad  = r1 / (1d0-f(if))**(1d0/3d0)
            m    = dcmplx(e1(1,ilam),-e2(1,ilam))
            wvno = 2d0*pi / lam(ilam)
-           
+
            if (f(if) .eq. 0d0) then
               ! solid sphere
               spheres = 1
@@ -877,7 +903,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
                    &                   m1, m2, s21, d21, n_ang ,err)
            else
               rcore = rad*0.999
-              
+
               call DMiLay(rcore, rad, wvno, min, m, mu, &
                    &                   n_ang/2, qext, qsca, qabs, gqsc, &
                    &                   m1, m2, s21, d21, n_ang ,err)
@@ -898,10 +924,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
                          &      ,Mief11,Mief12,Mief33,Mief34,n_ang)
                  endif
               endif
-              
+
               Mief22 = Mief11
               Mief44 = Mief33
-              
+
            else
               cemie = qext * pi * rad**2
               csmie = qsca * pi * rad**2
@@ -920,7 +946,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
                  Mief44(n_ang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
               enddo
            endif
-           
+
            ! make sure the scattering matrix is properly normalized by adjusting the forward peak.
            tot  = 0d0
            tot2 = 0d0
@@ -930,7 +956,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            enddo
            Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5)/real(n_ang))
            if (Mief11(1).lt.0d0) Mief11(1) = 0d0
-           
+
            do j=1,n_ang
               f11(ilam,j) = f11(ilam,j) + wf(if)*nr(is)*Mief11(j)*csmie
               f12(ilam,j) = f12(ilam,j) + wf(if)*nr(is)*Mief12(j)*csmie
@@ -945,13 +971,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            mass = mass + wf(if)*nr(is)*rho_av*4d0*pi*r1**3/3d0
            vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
         enddo ! end loop nf over form factors
-        
+
         cext = cext + cext_ff
         cabs = cabs + cabs_ff
         csca = csca + csca_ff
 
      enddo   ! end loop "is" over grain sizes
-     
+
      ! ------------------------------------------------------------------
      ! Set the cross sections
      ! ------------------------------------------------------------------
@@ -993,7 +1019,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   deallocate(e2)
   deallocate(e1mantle)
   deallocate(e2mantle)
-  
+
   deallocate(Mief11)
   deallocate(Mief12)
   deallocate(Mief22)
@@ -1005,7 +1031,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   deallocate(M2)
   deallocate(S21)
   deallocate(D21)
-  
+
   deallocate(vfrac)
   deallocate(epsj)
   deallocate(f11)
@@ -1014,21 +1040,27 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   deallocate(f33)
   deallocate(f34)
   deallocate(f44)
-  
+
   deallocate(r)
   deallocate(nr)
   deallocate(f)
   deallocate(wf)
-  
+
   return
 end subroutine ComputePart
 
-! ------------------------------------------------------------------
-! Routines needed to apply mixing rules
-! ------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+!
+!                          Effective medium routines
+!
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
 
 subroutine brugg(f, nm, e, epsavg)
-  
+
   !***********************************************************************
   !  This subroutine calculates the average dielectric function.
   !  It uses a generalized version of the Bruggeman dielectric mixing function.
@@ -1061,7 +1093,7 @@ subroutine brugg(f, nm, e, epsavg)
   !     e       = dielectric constant of each component
   !     epsavg  = averaged dielectric constant
   !**********************************************************************
-  
+
   use Defs
   implicit none
   integer               :: nm, i, k, l, m
@@ -1076,12 +1108,12 @@ subroutine brugg(f, nm, e, epsavg)
   COMPLEX (kind=dp)     :: total !to check the result of Bruggeman rule
   logical polish
   polish=.false.
-  
+
   c = 0d0
   do i=1,nm
      x    = -e/2d0
      x(i) = e(i)
-     
+
      c(nm+1) = c(nm+1)+f(i)
      do k=1,nm
         do l=1,k
@@ -1106,7 +1138,7 @@ subroutine brugg(f, nm, e, epsavg)
         continue
      enddo
   enddo
-  
+
   call zroots(c,nm,roots,polish)
   do i=1,nm
      if(real(roots(i)).gt.0d0 .and. dimag(roots(i)).gt.0d0) THEN
@@ -1119,12 +1151,12 @@ subroutine brugg(f, nm, e, epsavg)
         stop
      endif
   enddo
-  
+
   total = 0.0_dp
   do i = 1,nm
      total = total + (e(i)-epsavg)/(e(i)+2.0_dp*epsavg)*f(i)
   enddo
-  
+
   if (abs(dreal(total)).gt.1e-15_dp.or.abs(dimag(total)).gt.1e-15_dp) THEN
      write(*,*) "ERROR Bruggeman rule did not converge"
      write(*,*) total
@@ -1139,7 +1171,7 @@ subroutine blender(abun,nm,e_in,e_out)
   real abun(nm)
   complex*16 e_in(nm),e_out
   complex*16 mm,m(nm),me,sum
-  
+
   mm = dcmplx(1d0,0d0)
   m  = e_in
   do iter=1,100
@@ -1163,7 +1195,7 @@ subroutine zroots(a,m,roots,polish)
   logical polish
   parameter (EPS=1.e-15,MAXM=101) ! A small number and maximum anticipated value of m+1.
   ! USES laguer
-  
+
   ! Given the degree m and the complex coefficients a(1:m+1) of the
   ! polynomial m+1 a(i)xi−1, i=1 this routine successively calls
   ! laguer and finds all m complex roots. The logical variable polish
@@ -1190,7 +1222,7 @@ subroutine zroots(a,m,roots,polish)
         b      = x*b+c
      enddo
   enddo
-  
+
   if (polish) then
      do j=1,m
         !Polish the roots using the undeflated coefficients.
@@ -1278,7 +1310,7 @@ subroutine maxgarn_2compo(e1in,e2in,e1mantle_in,e2mantle_in,abun,e1out,e2out)
   implicit none
   real (kind=dp) e1in,e2in,e1out,e2out,e1mantle_in,e2mantle_in,abun !up, down
   complex (kind=dp) m1,m2,me
-  
+
   ! Maxwell Garnet Rules is used
   m2 = dcmplx(e1mantle_in,e2mantle_in) ! mantle = coating material = matrix
   m1 = dcmplx(e1in,e2in)               ! inner core is the "inclusion"
@@ -1291,7 +1323,7 @@ subroutine maxgarn_2compo(e1in,e2in,e1mantle_in,e2mantle_in,abun,e1out,e2out)
   me    = cdsqrt(me)
   e1out = dreal(me)
   e2out = dimag(me)
-  
+
   return
 end subroutine maxgarn_2compo
 
@@ -1329,9 +1361,15 @@ subroutine gauleg2(x1,x2,x,w,n)
   return
 end subroutine gauleg2
 
-! ------------------------------------------------------------------
-! Helper functions and subroutines
-! ------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+!
+!                      Helper functions and subroutines
+!
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
 
 function cdlog10(x)
   ! Complex logarith base 10
@@ -1358,6 +1396,90 @@ subroutine tellertje(i,n)
   if(i.eq.n) write(*,*)
   return
 end subroutine tellertje
+
+subroutine check_for_file (file)
+  ! Throw an error if FILE does not exist
+  character*(*) file
+  logical file_exists
+  inquire (file=trim(file),exist=file_exists)
+  if (.not. file_exists) then
+     write(*,'("ERROR: File ",A, " does not exist")') trim(file)
+     stop
+  endif
+end subroutine check_for_file
+
+subroutine remove_file_if_exists (file)
+  ! Remove FILE if it already exists
+  character*(*) file
+  logical file_exists
+  inquire (file=trim(file),exist=file_exists)
+  if (file_exists) then
+     open(unit=90,file=trim(file))
+     close(unit=90,status='delete')
+  endif
+end subroutine remove_file_if_exists
+
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+!
+!         Functions to help with the extended command line syntax, where
+!                we allow a single switch to have several values.
+!
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+
+function arg_is_value(i)
+  ! Check if command line argument is a value. That means the arg is
+  ! there, and it is not a switch (starting with -)
+  ! Problems: This still gets it wrong for -.5
+  integer i
+  logical arg_is_value
+  character*2 :: value
+  call getarg(i,value)
+  if ((value.eq.'') .or. (len_trim(value).ge.2) .and. &
+       ((value(1:1).eq.'-') .and. ((value(2:2).lt.'0') .or. value(2:2).gt.'9'))) then
+     arg_is_value = .false.
+  else
+     arg_is_value = .true.
+  endif
+end function arg_is_value
+
+function arg_is_number(i)
+  ! Check if command line arg i is a number, i.e.
+  ! starts with [0-9] or .[0-9] or -[0-9]
+  ! Problems:
+  ! - We do not check for -.5
+  integer i
+  logical arg_is_number
+  character*2 :: value
+  call getarg(i,value)
+  arg_is_number = .false.
+  if (len_trim(value).gt.0) then
+     if (len_trim(value).eq.1) then
+        if (value(1:1).ge.'0' .and. value(1:1).le.'9') then
+           arg_is_number = .true.
+        endif
+     else
+        if ((value(1:1).ge.'0' .and. value(1:1).le.'9') .or. &
+             (((value(1:1).eq.'.') .or. value(1:1).eq."-") .and. &
+             ((value(2:2).ge.'0' .and. value(2:2).le.'9')))) then
+           arg_is_number = .true.
+        endif
+     endif
+  endif
+end function arg_is_number
+
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+!
+!           Reading files and checking for some consistency
+!
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
 
 function count_words (string)
   !
@@ -1445,74 +1567,6 @@ function count_data_lines (file)
   count_data_lines = n
 end function count_data_lines
 
-
-subroutine remove_file_if_exists (file)
-  ! Remove FILE if it already exists.  So we can cleanly overwrite it.
-  character*(*) file
-  logical file_exists
-  inquire (file=trim(file),exist=file_exists)
-  if (file_exists) then
-     open(unit=90,file=trim(file))
-     close(unit=90,status='delete')
-  endif
-end subroutine remove_file_if_exists
-
-subroutine check_for_file (file)
-  ! Throw an error if FILE does not exist
-  character*(*) file
-  logical file_exists
-  inquire (file=trim(file),exist=file_exists)
-  if (.not. file_exists) then
-     write(*,'("ERROR: File ",A, " does not exist")') trim(file)
-     stop
-  endif
-end subroutine check_for_file
-
-!
-! Functions to help with the extended command line syntax, where
-! we allow a single switch to have several values.
-!
-function arg_is_value(i)
-  ! Check if command line argument is a value. That means the arg is
-  ! there, and it is not a switch (starting with -)
-  ! Problems: This gets it wrong for -.5
-  integer i
-  logical arg_is_value
-  character*2 :: value
-  call getarg(i,value)
-  if ((value.eq.'') .or. (len_trim(value).ge.2) .and. &
-       ((value(1:1).eq.'-') .and. ((value(2:2).lt.'0') .or. value(2:2).gt.'9'))) then
-     arg_is_value = .false.
-  else
-     arg_is_value = .true.
-  endif
-end function arg_is_value
-
-function arg_is_number(i)
-  ! Check if command line arg i is a number, i.e.
-  ! starts with [0-9] or .[0-9] or -[0-9]
-  ! Problems:
-  ! - We do not check for -.5
-  integer i
-  logical arg_is_number
-  character*2 :: value
-  call getarg(i,value)
-  arg_is_number = .false.
-  if (len_trim(value).gt.0) then
-     if (len_trim(value).eq.1) then
-        if (value(1:1).ge.'0' .and. value(1:1).le.'9') then
-           arg_is_number = .true.
-        endif
-     else
-        if ((value(1:1).ge.'0' .and. value(1:1).le.'9') .or. &
-             (((value(1:1).eq.'.') .or. value(1:1).eq."-") .and. &
-             ((value(2:2).ge.'0' .and. value(2:2).le.'9')))) then
-           arg_is_number = .true.
-        endif
-     endif
-  endif
-end function arg_is_number
-
 subroutine read_lambda_grid(file)
   ! Read the lambda grid from a file
   ! the file can start with comment lines (* or ! or #).
@@ -1542,12 +1596,22 @@ subroutine read_lambda_grid(file)
 end subroutine read_lambda_grid
 
 
-! ------------------------------------------------------------------
-! Routines to write output files
-! ------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+!
+!                        Routines to write output files
+!
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
 
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax,nlam, &
      p_core,p_mantle,fmax,nm,location,mfrac,mfrac_user,ref_index,rho)
+  ! ----------------------------------------------------------------------
+  ! Write a header describing the full setup of the calculation
+  ! CC is the comment character that should be added in front of each line
+  ! ----------------------------------------------------------------------
   implicit none
   integer, parameter :: dp = selected_real_kind(P=15)
   integer :: unit
@@ -1562,7 +1626,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax,nlam, &
   write(unit,'(A," Parameters:")') cc
   write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f10.2,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
   write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f10.2,"  nlam=",I5)') cc,lmin, lmax, nlam
-  write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"            DHS fmax=",g10.2)') cc,p_core,p_mantle,fmax  
+  write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"            DHS fmax=",g10.2)') cc,p_core,p_mantle,fmax
   write(unit,'(A," Composition:")') cc
 
   if (rho(1).gt.0) then
@@ -1585,6 +1649,14 @@ end subroutine write_header
 
 subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      nm,location,mfrac,mfrac_user,ref_index,rho,label,scatter,for_radmc)
+  ! ----------------------------------------------------------------------
+  ! Write an ASCII file with opacaties.
+  ! The routine will include LABEL in the file name.  With the flag
+  ! If the flag SCATTER is set, add the full scattering matrix.
+  ! With the flag FOR_RADMC, the extension of the file becomes ".inp"
+  ! and the normaliation of the scattering matrix is changed according
+  ! to RADMC-3D's convention.
+  ! ----------------------------------------------------------------------
   use Defs
   implicit none
   real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
@@ -1605,7 +1677,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      ext = 'dat'
      ml = 'F11 F12 F22 F33 F34 F44'
   endif
-  
+
   if (label .eq. '') then
      file1 = "dustkappa"      // '.' // ext
      file2 = "dustkapscatmat" // '.' // ext
@@ -1613,11 +1685,12 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      file1 = "dustkappa_"   // trim(label) // '.' // ext
      file2 = "dustkapscatmat_" // trim(label) // '.' // ext
   endif
-  
+
   call remove_file_if_exists(file1)
   call remove_file_if_exists(file2)
 
   if (.not. scatter) then
+
      write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax,nlam, &
@@ -1633,7 +1706,9 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
         write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
      enddo
      close(20)
+
   else
+
      write(*,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax,nlam, &
@@ -1659,23 +1734,29 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      write(20,'("#    ...")')
      write(20,'("#    ",A,                  "                 ! (ilam=nlam,iang=nang)")') ml
      write(20,'("#============================================================================")')
+
      if (for_radmc) then
         write(20,*) 1    ! iformat
      else
-        write(20,*) 0    ! This is supposed to cause an error when RADMC is reading it
+        write(20,*) 0    ! This is supposed to cause an error when RADMC-3D is reading it
      endif
+
      write(20,*) nlam ! Number of wavelength points
      write(20,*) 181  ! Number of angular points
-     write(20,*)
+     write(20,*)      ! an empty line
+     ! The opacities as function of lambda
      do ilam=1,nlam
         write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
      enddo
-     write(20,*)
+     write(20,*)      ! an empty line
+     ! The angular grid
      do iang=0,180
         write(20,'(f8.2)') real(iang)
      enddo
-     write(20,*)
+     write(20,*)      ! an empty line
+     ! Write the scattering matrix
      do ilam=1,nlam
+        ! Set the scaling for the normalization
         if (for_radmc) then
            f = p%ksca(ilam)/(4.d0*pi)
         else
@@ -1684,7 +1765,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
         do iang=0,180
            ! We have only computed 0-179, but RADMC needs 180 as well
            ! We simply repeat the 179 value
-           i = 1 + min(iang,179) 
+           i = 1 + min(iang,179)
            write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
                 p%F(ilam)%F11(i)*f,p%F(ilam)%F12(i)*f,p%F(ilam)%F22(i)*f, &
                 p%F(ilam)%F33(i)*f,p%F(ilam)%F34(i)*f,p%F(ilam)%F44(i)*f
@@ -1699,7 +1780,8 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
      fmax,p_core,p_mantle, &
      nm,mfrac,ref_index,fitsfile)
   ! ------------------------------------------------------------------
-  ! Routine to write a FITS file with all the information abou the particle.
+  ! Routine to write a FITS file with all the information about
+  ! the opacities and scattering properties.
   ! FIXME: Something goes wrong with the keywords
   ! ------------------------------------------------------------------
   use Defs
@@ -1714,7 +1796,7 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   integer nm,na,i,j,nm2
   real (kind=dp),allocatable :: array(:,:,:)
   real (kind=dp) :: amean(3)
-  
+
   integer status,unit,blocksize,bitpix,naxis,naxes(3)
   integer group,fpixel,nelements
   logical simple,extend
@@ -1734,19 +1816,19 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   extend=.true.
   group=1
   fpixel=1
-  
+
   bitpix=-64
   naxis=2
   naxes(1)=nlam
   naxes(2)=5
   nelements=naxes(1)*naxes(2)
   allocate(array(nlam,5,1))
-  
+
   ! Write the required header keywords.
   call ftphpr(unit,simple,bitpix,naxis,naxes,0,1,extend,status)
-  
+
   ! Write optional keywords to the header
-  
+
   call ftpkye(unit,'r_min',real(amin),8,'[micron]',status)
   call ftpkye(unit,'r_max',real(amax),8,'[micron]',status)
   call ftpkye(unit,'r_pow',real(apow),8,'',status)
@@ -1757,10 +1839,10 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   a1 = amean(1)
   call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
 !  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
-  
+
   call ftpkye(unit,'porosity',real(p_core),8,'[g/cm^3]',status)
   call ftpkye(unit,'p_mantle',real(p_mantle),8,'[g/cm^3]',status)
-  
+
   do i=1,nm
      write(word,'("file",i0.2)') i
      call ftpkys(unit,word,trim(ref_index(i)),'',status)
@@ -1773,16 +1855,16 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
 !     write(word,'("rho",i0.2)') i
 !     call ftpkye(unit,word,real(rho(i)),8,'[g/cm^3]',status)
 !  enddo
-  
+
   call ftpkyj(unit,'n_radii',na,' ',status)
   call ftpkyj(unit,'n_mat',nm,' ',status)
-    
+
   !  Write the array to the FITS file.
-  
+
   !------------------------------------------------------------------------------
-  ! HDU 0: opacities 
+  ! HDU 0: opacities
   !------------------------------------------------------------------------------
-  
+
   do i=1,nlam
      array(i,1,1)=lam(i)
      array(i,2,1)=p%Kext(i)
@@ -1790,11 +1872,11 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
      array(i,4,1)=p%Ksca(i)
      array(i,5,1)=p%g(i)
   enddo
-  
+
   call ftpprd(unit,group,fpixel,nelements,array(1:nlam,1:4,1),status)
-  
+
   deallocate(array)
-  
+
   !------------------------------------------------------------------------------
   ! HDU 1: scattering matrix
   !------------------------------------------------------------------------------
@@ -1804,15 +1886,15 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   naxes(2)=6
   naxes(3)=180
   nelements=naxes(1)*naxes(2)*naxes(3)
-  
+
   allocate(array(nlam,6,180))
-  
+
   ! create new hdu
   call ftcrhd(unit, status)
-  
+
   !  Write the required header keywords.
   call ftphpr(unit,simple,bitpix,naxis,naxes,0,1,extend,status)
-  
+
   do i=1,nlam
      do j=1,180
         array(i,1,j)=p%F(i)%F11(j)
@@ -1823,16 +1905,16 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
         array(i,6,j)=p%F(i)%F44(j)
      enddo
   enddo
-  
+
   !  Write the array to the FITS file.
   call ftpprd(unit,group,fpixel,nelements,array,status)
-  
+
   deallocate(array)
-  
+
   !  Close the file and free the unit number.
   call ftclos(unit, status)
   call ftfiou(unit, status)
-  
+
   !  Check for any error, and if so print out error messages
   if (status.gt.0) then
      print*,'error in export to fits file',status
@@ -1876,22 +1958,20 @@ subroutine plmeans(a1,a2,p,amean)
   enddo
 end subroutine plmeans
 
-
-
-
-
-
-
-
-
-
-!=======================================================================
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
 !     Code to compute mean opacities kappa_Rosseland, kappa_Planck
 !
 !         Adapted from code provided by Kees Dullemond
-!=======================================================================
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
+! ----------------------------------------------------------------------------
 
 subroutine mean_opacities(lambda,nlam,kabs,ksca,g,tmin,tmax,ntemp,file)
+  ! -------------------------------------------------------------------
+  ! Compute the mean opacities and write them to FILE
+  ! -------------------------------------------------------------------
   implicit none
   integer :: nlam,ntemp
   doubleprecision, external :: bplanck,bplanckdt
@@ -1933,7 +2013,7 @@ subroutine mean_opacities(lambda,nlam,kabs,ksca,g,tmin,tmax,ntemp,file)
         !
         bnu    = bplanck(temp(itemp),nu(ilam))
         dbnudt = bplanckdt(temp(itemp),nu(ilam))
-        !       
+        !
         ! Compute dnu
         !
         if(ilam.eq.1) then
@@ -1944,7 +2024,7 @@ subroutine mean_opacities(lambda,nlam,kabs,ksca,g,tmin,tmax,ntemp,file)
            dnu = 0.5d0*abs(nu(ilam+1)-nu(ilam-1))
         endif
         !
-        ! Set the dust opacities. Note that for the scattering I 
+        ! Set the dust opacities. Note that for the scattering I
         ! reduce the scattering opacity by a factor of (1-g), where
         ! g is the scattering anisotropy factor, because according to
         ! Ishimaru (1978) in the diffusion limit non-isotropic scattering
@@ -1993,7 +2073,7 @@ end subroutine mean_opacities
 !----------------------------------------------------------------------------
 !                THE BLACKBODY PLANCK FUNCTION B_nu(T)
 !
-!     This function computes the Blackbody function 
+!     This function computes the Blackbody function
 !
 !                    2 h nu^3 / c^2
 !        B_nu(T)  = ------------------    [ erg / cm^2 s ster Hz ]
@@ -2008,28 +2088,28 @@ function bplanck(temp,nu)
   doubleprecision :: temp
   doubleprecision :: nu
   doubleprecision :: bplanck
-  !
-  if(temp.eq.0.d0) then 
+
+  if(temp.eq.0.d0) then
      bplanck = 0.d0
      return
   endif
-  !
+
   bplanck = 1.47455d-47 * nu * nu * nu /                   &
             (exp(4.7989d-11 * nu / temp)-1.d0) + 1.d-290
-  !
+
   return
 end function bplanck
 
 !----------------------------------------------------------------------------
-!           THE TEMPERATURE DERIVATIVE OF PLANCK FUNCTION 
-!     
+!           THE TEMPERATURE DERIVATIVE OF PLANCK FUNCTION
+!
 !      This function computes the temperature derivative of the
-!      Blackbody function 
-!      
-!         dB_nu(T)     2 h^2 nu^4      exp(h nu / kT)        1 
+!      Blackbody function
+!
+!         dB_nu(T)     2 h^2 nu^4      exp(h nu / kT)        1
 !         --------   = ---------- ------------------------  ---
 !            dT          k c^2    [ exp(h nu / kT) - 1 ]^2  T^2
-!     
+!
 !      ARGUMENTS:
 !         nu    [Hz]            = Frequency
 !         temp  [K]             = Temperature
@@ -2038,7 +2118,7 @@ function bplanckdt(temp,nu)
   implicit none
   doubleprecision :: temp,nu
   doubleprecision :: theexp,bplanckdt
-  !
+
   theexp = exp(4.7989d-11*nu/temp)
   if(theexp.lt.1.d33) then
      bplanckdt = 7.07661334104d-58 * nu**4 * theexp /    &
@@ -2050,6 +2130,4 @@ function bplanckdt(temp,nu)
   return
 end function bplanckdt
 
-
-  
 

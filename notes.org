@@ -49,31 +49,36 @@ classical dust models in a computationally extremely efficient way.
 
 The code doing the real work of =optool= was adopted and modified from
 the publicly available versions of the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] and [[https://github.com/charlenelefevre/SIGMA][SIGMA]]. I
-focused on simplicity and introduced my preferred set of
+focused on the interface, on simplicity and a clean set of
 conventions. If you are using this tool, you should give credit to the
 papers describing the methods used to compute the opacities, as well
 as to the original laboratory papers that published the refractive
 index measurements.
 
-- Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
+- DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
 - DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016]]
 - SIGMA: Lefévre, Min et al. 2020, A&A (submitted)
-- DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
+- Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
 - References to [[#builtin-materials][refractive index data]] used in your particular
   application.
 
 ** Compiling =optool=
-On most systems =optool= will compile by simply doing the following
-steps
+On most systems, you can download and compile =optool=, with these
+steps:
+
 : git clone https://github.com/cdominik/optool.git
 : cd optool
 : make
+
 This creates the executable =optool=, which you should put on your
 execution path. The =Makefile= uses the GNU compiler [[https://gcc.gnu.org/wiki/GFortran][=gfortran=]]. To
 use the Intel compiler instead, run
+
 : make ifort=true
+
 To compile with support for writing fits files, install [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] and
 use
+
 : make fitsio=true
 
 ** Examples
@@ -394,7 +399,8 @@ computed opacities.  You will get two plots
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]]. =optool= uses the generalized Bruggeman
   solver and a few other bits from SIGMA's code base.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
-  on github]]), and code for computing Planck and Rosseland means.
+  on github]]), and code for computing Planck and Rosseland means
+  opacities.
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for pointers to refractive index data.
 
 ** Appendix
@@ -431,9 +437,9 @@ unity, i.e.
 \oint_{(4\pi)} F_{11}(\lambda,\Theta) d\Omega = 4\pi
 \end{equation}
 
-See [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Hovenier (2004)]] for a discussion of this (called $F^{\rm au}$)
-normalization.  =optool= can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] which
-uses a different normalization, namely
+See [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Hovenier (2004)]] for a discussion of this normalization.  =optool=
+can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] which uses a different
+normalization, namely
 
 \begin{equation}
 \label{eq:2}
