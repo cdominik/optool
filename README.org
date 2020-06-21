@@ -8,11 +8,11 @@ This tool allows to produce complex dust opacities right from the
 command line. It is derived from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] for the
 [[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program, and committed to its simplicity. For a more
 wide-ranging toolset to produce opacities, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]], the
-/Simple Icy Grain Model for Aggregates/[fn:1], by Lefévre et
+/Simple Icy Grain Model for Aggregates/, by Lefévre et
 al. (2020), also derived from [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]], =optool= uses its
 effective medium mixing tool set.
 
-** Capabilities
+* Capabilities
 
 - fully command line driven, no input files need to be edited
 - combining materials through mixing into a complex grain
@@ -21,7 +21,7 @@ effective medium mixing tool set.
 - full scattering matrix output in a variety of formats and
   normalizations.
 
-** Terms of use
+* Terms of use
 
 The code doing the real work of =optool= was adopted and modified from
 the publicly available versions of the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] and [[https://github.com/charlenelefevre/SIGMA][SIGMA]]. I
@@ -35,7 +35,8 @@ index measurements.
 - DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016]]
 - SIGMA: Lefévre, Min et al. 2020, A&A (submitted)
 - Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
-- References to [[#builtin-materials][refractive index data]] used in your particular
+- References to refractive index data used in your particular
   application.
 
-See the user guide optool.pdf for more information.
+* User Guide
+See the [[file:optool.pdf][User Guide]] for more information.
