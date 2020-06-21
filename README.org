@@ -137,11 +137,11 @@ produce input files with full scattering matrix for RADMC-3D.
 *** Grain size distribution
 + =-a AMIN AMAX [NA [APOW]]= ::
 
-  Specify minimum and maximum grain radius, and optionally the
-  number of size bins and the size distribution powerlaw.  You can
-  also use the options *-amin*, *-amax*, *-na*, *-apow*, to set
-  individual values.  The defaults are 0.05 \mu{}m, 3000 \mu{}m, 100,
-  and 3.5, respectively.
+  Specify minimum and maximum grain radius, and optionally the number
+  of size bins and the size distribution powerlaw.  You can also use
+  options to set individual values with *-amin*, *-amax*, *-na*,
+  *-apow*.  The defaults are 0.05 \mu{}m, 3000 \mu{}m, 50, and 3.5,
+  respectively.
 
 *** Wavelength grid
 
@@ -177,7 +177,7 @@ files that can be produced.
   Compute mean opacities per g of dust mass, \kappa_Planck and
   \kappa_Rosseland, in the given temperature interval, in =nt= steps,
   and write them to the file =dustkapmean.dat=. The parameters
-  default to 10K, 10000K, and 200.
+  default to 10K, 10000K, and 200, respectively.
 
 + =-d [NSUB]= ::
 
@@ -205,8 +205,8 @@ files that can be produced.
 ** Material properties
 =optool= needs refractive index data to work.  For your convenience, a
 useful list of materials is compiled into =optool=, but you can also
-find and use your own data.  No matter where the data is from, you
-should /always/ cite the original laboratory papers.
+find and use other data.  No matter where the data is from, you should
+/always/ cite the original laboratory papers.
 
 *** Built-in materials
 :PROPERTIES:
@@ -314,7 +314,7 @@ after the mass fraction, like this:
 - dustkapscatmat.dat ::
 
   ASCII file with cross sections and full scattering matrix.  The
-  comment section at the stars of the file explains the structure. See
+  comment section at the start of the file explains the structure. See
   [[#normalization][the appendix]] for information about the normalization of the
   scattering matrix.  And see the =-radmc= switch which will modify
   the output to make sure it can be used as an input file for
@@ -387,21 +387,13 @@ computed opacities.  You will get two plots
 
 ** Appendix
 
-*** How to ingest another material
-Additional data tables can be compiled into the code.  Here is how to
-do this:
-
-1. Give your lnk file a name exactly like =pyr-mg70-Dorschner1995.lnk=, where
-   =pyr-mg70= is the key to access the material and =Dorschner1995= is
-   the reference.
-2. Put this file into the =lnk_data= directory.
-3. Edit =lnk_data/lnk-help.txt=, so that =optool -c ?= will list the
-   new material.
-4. Run =make ingest= to update =ref_ind.f90=, now including your new
-   material.
-5. Recompile and install the code.
-
-#+LATEX: \clearpage
+*** Units
+The input and output of =optool= uses the following units
+- *microns* for grain sizes and wavelengths
+- *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
+- *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
+  see below.
+- *Kelvin* for temperatures
 
 *** Scattering phase function normalization
 :PROPERTIES:
@@ -430,6 +422,21 @@ normalization, namely
 
 For details, see the [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/guide.html][RADMC-3D manual]].
 
+
+*** How to ingest another material
+Additional refractive index data tables can be compiled into the code.
+Here is how:
+
+1. Give your lnk file a name exactly like =pyr-mg70-Dorschner1995.lnk=, where
+   =pyr-mg70= is the key to access the material and =Dorschner1995= is
+   the reference.
+2. Put this file into the =lnk_data= directory.
+3. Optionally edit =lnk_data/lnk-help.txt=, so that =optool -c ?= will
+   list the new material.  Note that, in order to define generic keys,
+   optool looks for pairs like =genkey -> fullkey= in this file.
+4. Run =make ingest= to update =ref_ind.f90=, now including your new
+   material.
+5. Recompile and install the code.
 
 ** Bibliography
 - Dorschner,J. et al. 1995, A&A 300, 503
