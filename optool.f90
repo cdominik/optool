@@ -43,6 +43,17 @@ module Defs
   real (kind=dp), allocatable    :: lam(:)     ! wavelength array
   integer                        :: nlam       ! nr of wavelength points
   ! ------------------------------------------------------------------------
+  ! Material properties
+  ! ------------------------------------------------------------------------
+  integer                      :: mat_nm       ! number of materials specified
+  integer,        allocatable  :: mat_num(:)   ! number associated to a component
+  character*500,  allocatable  :: mat_loc(:)   ! either 'core' or 'mantle'
+  character*500,  allocatable  :: mat_lnk(:)   ! the lnk key of file path
+  real (kind=dp), allocatable  :: mat_rho(:)   ! specific mass density of material
+  real (kind=dp), allocatable  :: mat_mfr(:)   ! mass fraction of each component
+  real (kind=dp), allocatable  :: mat_e1(:,:)  ! Real      componont of ref index
+  real (kind=dp), allocatable  :: mat_e2(:,:)  ! Imaginary componont of ref index
+  ! ------------------------------------------------------------------------
   ! Mueller matrix structure, records only non-zero elements of the matrix
   ! ------------------------------------------------------------------------
   type mueller
@@ -70,7 +81,6 @@ end module Defs
 ! ----------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------
 
-
 program optool
   use Defs
   implicit none
@@ -90,20 +100,13 @@ program optool
   real (kind=dp)  :: tmin,tmax       ! min and max temperature for mean opacities
   integer         :: nt              ! number of temperature steps
 
-  integer         :: nm,nm_input     ! nr of grain materials
+  integer         :: nm              ! nr of grain materials
 
   type(particle)  :: p
   integer         :: i, j            ! j always loops through angles in this routine
   integer         :: ilam,iang,im    ! for lambda, angle, material
   character*100   :: tmp
   character*100   :: value
-
-  integer,        allocatable  :: number(:)       ! number associated to a component
-  character*500,  allocatable  :: location(:)     ! Either 'core' or 'mantle'
-  character*500,  allocatable  :: ref_index(:)
-  real (kind=dp), allocatable  :: rho(:)          ! specific mass density of material
-  real (kind=dp), allocatable  :: mfrac(:)        ! mass fraction of each component
-  real (kind=dp), allocatable  :: mfrac_user(:)   ! original values
 
   logical         :: have_mantle
   logical         :: arg_is_value, arg_is_number  ! functions to test arguments
@@ -116,6 +119,8 @@ program optool
   real (kind=dp)  :: asplit,afact,afsub,amaxsplit,aminsplit
   integer         :: nsubgrains = 5,nsub
   integer         :: ia,is
+
+  real (kind=dp), allocatable :: e1d(:),e2d(:)
 
   ! ------------------------------------------------------------------------
   ! Defaults values for parameters and switches
@@ -147,16 +152,19 @@ program optool
   ! ------------------------------------------------------------------------
   ! Allocate space for up to 12 different materials
   ! ------------------------------------------------------------------------
-  allocate(number(12))
-  allocate(location(12))
-  allocate(ref_index(12))
-  allocate(mfrac(12),mfrac_user(12))
-  allocate(rho(12))
+  allocate(mat_num(12))
+  allocate(mat_loc(12))
+  allocate(mat_lnk(12))
+  allocate(mat_mfr(12))
+  allocate(mat_rho(12))
   have_mantle = .false.
+
+  ! ------------------------------------------------------------------------
   ! Initialize rho, because we need the fact that it has not been set
   ! to decide what to do with lnk files where it is missing
+  ! ------------------------------------------------------------------------
   do im=1,12
-     rho(im) = 0.d0
+     mat_rho(im) = 0.d0
   enddo
 
   ! ------------------------------------------------------------------------
@@ -174,10 +182,10 @@ program optool
         ! ------------------------------------------------------------------
      case('-c','-m')
         i  = i+1
-        nm = nm+1; number(nm) = nm
+        nm = nm+1; mat_num(nm) = nm
 
         ! First value is the material key or refindex file path
-        call getarg(i,value); read(value,'(A)') ref_index(nm)
+        call getarg(i,value); read(value,'(A)') mat_lnk(nm)
 
         if (value .eq. '?') then
            call ListBuiltinMaterials()
@@ -185,14 +193,14 @@ program optool
         endif
         ! Second value is the volume fraction
         if (.not. arg_is_value(i+1)) then
-           print *, "WARNING: 1.0 used for missing mass fraction of material: ",trim(ref_index(nm))
-           mfrac(nm) = 1.0
+           print *, "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
+           mat_mfr(nm) = 1.0
         else
-           i = i+1; call getarg(i,value); read(value,*) mfrac(nm)
+           i = i+1; call getarg(i,value); read(value,*) mat_mfr(nm)
         endif
 
-        if (mfrac(nm).eq.0) then
-           print *, "WARNING: Ignoring material with zero mass fraction: ",trim(ref_index(nm))
+        if (mat_mfr(nm).eq.0) then
+           print *, "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
            nm = nm-1
         else
            ! Set the type, and make sure we have at most one mantle material
@@ -204,7 +212,7 @@ program optool
                  if (nm.eq.1) then
                     print *,"ERROR: at least one core material must be specified"; stop
                  endif
-                 location(nm) = 'mantle'
+                 mat_loc(nm) = 'mantle'
                  have_mantle = .true.
               endif
            else
@@ -212,13 +220,13 @@ program optool
               if (have_mantle) then
                  print *,"ERROR: Mantle material must be specified last"; stop
               endif
-              location(nm) = 'core'
+              mat_loc(nm) = 'core'
            endif
         endif
 
         ! There might be a density, as a third argument
         if (arg_is_value(i+1)) then
-           i = i+1; call getarg(i,value); read(value,*) rho(nm)
+           i = i+1; call getarg(i,value); read(value,*) mat_rho(nm)
         endif
 
         ! ------------------------------------------------------------------
@@ -368,7 +376,6 @@ program optool
   endif
 #endif
   
-
   ! ------------------------------------------------------------------
   ! Default grain composition if nothing is specified
   ! ------------------------------------------------------------------
@@ -376,28 +383,26 @@ program optool
      ! Set default composition will set a default composition here, the DIANA opacities
      write(*,'("No materials specified, using DIANA standard")')
      nm = 2
-     ref_index(1) = 'pyr-mg70' ; location(1)  = 'core' ; mfrac(1)     = 0.87d0
-     ref_index(2) = 'c-z'      ; location(2)  = 'core' ; mfrac(2)     = 0.1301d0
-     p_core       = 0.25d0
+     mat_lnk(1) = 'pyr-mg70' ; mat_loc(1)  = 'core' ; mat_mfr(1)     = 0.87d0
+     mat_lnk(2) = 'c-z'      ; mat_loc(2)  = 'core' ; mat_mfr(2)     = 0.1301d0
+     p_core     = 0.25d0
   endif
-  nm_input   = nm
-  mfrac_user = mfrac
+  mat_nm   = nm
 
   if (nm .ge. 10) then
      write(*,*) 'ERROR: Too many materials'
      stop
   endif
   do im = 1, nm
-     location(im)   = trim(location(im))
-     ref_index(im)  = trim(ref_index(im))
+     mat_loc(im) = trim(mat_loc(im))
+     mat_lnk(im) = trim(mat_lnk(im))
   enddo
 
   ! ------------------------------------------------------------------
   ! Write a setup summary to the screen
   ! ------------------------------------------------------------------
-  call write_header(6,'',amin,amax,apow,na,lmin,lmax,nlam, &
-       p_core,p_mantle,fmax, &
-       nm_input,location,mfrac/sum(mfrac(1:nm)),mfrac,ref_index,rho)
+  call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
+       p_core,p_mantle,fmax)
   
   meanfile    = "dustkapmean.dat"
   fitsfile    = "dustkappa.fits"
@@ -421,6 +426,21 @@ program optool
   allocate(p%g(nlam))
   allocate(p%F(nlam))
 
+  ! Allocate space for the refractive indices
+  allocate(mat_e1(nm+1,nlam),mat_e2(nm+1,nlam))
+
+  ! Read the refractive index data
+    ! ------------------------------------------------------------------
+  ! Get the refractory index data for all materials
+  ! ------------------------------------------------------------------
+  allocate(e1d(nlam),e2d(nlam))
+  do im=1,nm
+     call GetAndRegridLNK(mat_lnk(im),lam(1:nlam),e1d(1:nlam),e2d(1:nlam),nlam,.true.,mat_rho(im))
+     mat_e1(im,1:nlam)    = e1d(1:nlam)
+     mat_e2(im,1:nlam)    = e2d(1:nlam)
+  enddo
+  deallocate(e1d,e2d)
+  
   ! ----------------------------------------------------------------------
   ! Loop for splitting the output into files by grain size
   ! ----------------------------------------------------------------------
@@ -440,20 +460,19 @@ program optool
         write(*,'("Computing grain size: ",f10.3," micron")') asplit
 
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,p_core,p_mantle, &
-             mfrac,location,ref_index,rho,nm)
+             mat_mfr,mat_nm)
 
         if (write_fits) then
 #ifdef USE_FITSIO
            call write_fits_file(p,aminsplit,amaxsplit,apow,nsub, &
                 fmax,p_core,p_mantle, &
-                nm_input,mfrac,ref_index,fitsfile)
+                mat_nm,mat_mfr,mat_lnk,fitsfile)
 #endif
            continue
         else
            if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
            call write_ascii_file(p,aminsplit,amaxsplit,apow,nsub,lmin,lmax, &
-                fmax,p_core,p_mantle,nm_input, &
-                location,mfrac,mfrac_user,ref_index,rho, &
+                fmax,p_core,p_mantle, &
                 label,write_scatter,for_radmc)
         endif
      enddo
@@ -463,8 +482,7 @@ program optool
   ! ------------------------------------------------------------------
   ! Call the main routine to compute the opacities and scattering matrix
   ! ------------------------------------------------------------------
-  call ComputePart(p,amin,amax,apow,na,fmax,p_core,p_mantle,&
-       mfrac,location,ref_index,rho,nm)
+  call ComputePart(p,amin,amax,apow,na,fmax,p_core,p_mantle,mat_mfr,nm)
 
   ! ------------------------------------------------------------------
   ! Write the output
@@ -473,13 +491,12 @@ program optool
 #ifdef USE_FITSIO
      call write_fits_file(p,amin,amax,apow,nsub, &
           fmax,p_core,p_mantle,&
-          nm_input,mfrac,ref_index,fitsfile)
+          mat_nm,mat_mfr,mat_lnk,fitsfile)
 #endif
      continue
   else
      call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
-          fmax,p_core,p_mantle,nm_input,&
-          location,mfrac,mfrac_user,ref_index,rho, &
+          fmax,p_core,p_mantle,&
           radmclbl,write_scatter,for_radmc)
   endif
 
@@ -490,11 +507,11 @@ program optool
      call mean_opacities(lam,nlam,p%kabs,p%ksca,p%g,tmin,tmax,nt,meanfile)
   endif
 
-  deallocate(number)
-  deallocate(location)
-  deallocate(ref_index)
-  deallocate(mfrac,mfrac_user)
-  deallocate(rho)
+  deallocate(mat_num)
+  deallocate(mat_loc)
+  deallocate(mat_lnk)
+  deallocate(mat_mfr)
+  deallocate(mat_rho)
   deallocate(p%Kabs)
   deallocate(p%Kext)
   deallocate(p%Ksca)
@@ -513,7 +530,7 @@ end program optool
 ! ----------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------
 
-subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho,nm0)
+subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   ! ----------------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
   !
@@ -526,13 +543,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   !   p_c        The porosity of the core, volume fraction of vacuum
   !   p_m        The porosity of the mantle, if there is one
   !   mfrac0     An array of nm mass fraction for the various materials.
-  !   loc        Location of material (core or mantle)
-  !   ref_index  key of file with refractive index data
-  !   rho        the specific densities of the materials.  Hight already have been
-  !              set by the user on the command line, but normaly we should get it
-  !              later from the lnk file
-  !   nm0        The number of materials, also the size of the arrays mfrac,
-  !              loc, ref_index, rho
+  !   nm0        The number of materials, also the size of the array mfrac
   !
   ! OUTPUT
   !   p          A "particle" structure to return all the information in.
@@ -546,11 +557,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   real (kind=dp)                 :: p_c,p_m          ! porosity, core and mantle
 
   integer                        :: nm0,nm,im        ! nr of grain materials in a composite grain
-  real (kind=dp)                 :: rho(nm0)         ! specific material dnesities
+  real (kind=dp),allocatable     :: rho(:)           ! specific material dnesities
   real (kind=dp)                 :: mfrac0(nm0)      ! mass fractions, input
-  real (kind=dp)                 :: mfrac(nm0)       ! mass fractions, modified
-  character*500                  :: loc(nm0)         ! 'core' or 'mantle'
-  character*500                  :: ref_index(nm0)   ! Key or file with refractive index data
+  real (kind=dp),allocatable     :: mfrac(:)         ! mass fractions, modified
   real (kind=dp)                 :: vfrac_mantle     ! volume fraction of mantle
   real (kind=dp)                 :: mfrac_mantle     ! mass   fraction of mantle
 
@@ -595,37 +604,36 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   real (kind=dp)                 :: wvno
 
   ! Effective refractive index
-  real (kind=dp)                 :: e1blend,        e2blend
-  real (kind=dp), allocatable    :: e1(:,:),        e2(:,:)
-  real (kind=dp), allocatable    :: e1d(:),         e2d(:)
-  real (kind=dp), allocatable    :: e1mantle(:),    e2mantle(:)
+  real (kind=dp)                 :: e1mg,       e2mg
+  real (kind=dp), allocatable    :: e1(:,:),    e2(:,:)
+  real (kind=dp), allocatable    :: e1blend(:), e2blend(:)
+  real (kind=dp), allocatable    :: e1mantle(:),e2mantle(:)
   real (kind=dp), allocatable    :: vfrac(:)
 
-  COMPLEX (kind=dp), allocatable :: epsj(:)
-  COMPLEX (kind=dp)              :: m       ! FIXME rename?
-  COMPLEX (kind=dp)              :: eps_eff,eps_eff2
-  COMPLEX (kind=dp)              :: min
+  complex (kind=dp), allocatable :: epsj(:)
+  complex (kind=dp)              :: m       ! FIXME rename?
+  complex (kind=dp)              :: eps_eff,eps_eff2
+  complex (kind=dp)              :: min
 
   character (len=3)              :: meth
   character (len=500)            :: mantle
 
   real (kind=dp) :: cabs_mono,cabs_rgd,cemie_mono,csmie_mono,G,nmono
 
-  nm    = nm0    ! Make copy, to that we can change it
-  mfrac = mfrac0 ! Make copy, to that we can change it
-  meth = 'DHS'   !
-  ns   = na      ! number of subgrains to compute
-  MAXMAT = nm+1  ! Allocate one more, because vacuum will also be a material
+  MAXMAT = nm0+1 ! Allocate one more, because vacuum will also be a material
+  ns     = na    ! number of subgrains to compute
+  meth   = 'DHS' !
 
   allocate(Mief11(n_ang),Mief12(n_ang),Mief22(n_ang),Mief33(n_ang),Mief34(n_ang),Mief44(n_ang))
   allocate(mu(n_ang),M1(n_ang,2),M2(n_ang,2),S21(n_ang,2),D21(n_ang,2))
 
-  allocate(vfrac(MAXMAT))
+  allocate(vfrac(MAXMAT),mfrac(MAXMAT),rho(MAXMAT))
   allocate(epsj(MAXMAT))
   allocate(f11(nlam,n_ang),f12(nlam,n_ang),f22(nlam,n_ang))
   allocate(f33(nlam,n_ang),f34(nlam,n_ang),f44(nlam,n_ang))
 
   allocate(e1(MAXMAT,nlam),e2(MAXMAT,nlam))
+  allocate(e1blend(nlam),e2blend(nlam))
 
   ! Set the number of f values between 0 and fmax, for DHS
   if (fmax .eq. 0e0) then
@@ -636,13 +644,19 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   endif
   allocate(r(ns),nr(ns))
   allocate(f(nf),wf(nf))
-  allocate(e1d(nlam),e2d(nlam))
   allocate(e1mantle(nlam),e2mantle(nlam))
 
   ! ------------------------------------------------------------------------
+  ! Make copies of arrays and numbers we want to change in this routine
+  ! without affecting values in the calling routine
+  ! ------------------------------------------------------------------------
+  nm          = nm0
+  mfrac(1:nm) = mfrac0(1:nm)
+  rho(1:nm)   = mat_rho(1:nm)
+  
+  ! ------------------------------------------------------------------------
   ! Normalize the mass fractions
   ! ------------------------------------------------------------------------
-
   tot = 0.0_dp
   do im=1,nm
      tot=tot+mfrac(im)
@@ -653,10 +667,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   ! Identify the mantle material and take it out of the main list
   ! ------------------------------------------------------------------
   i_mantle = 0
-  if (trim(loc(nm)).EQ."mantle") then
+  if (trim(mat_loc(nm)).EQ."mantle") then
      ! Remember where the mantle information is
      mfrac_mantle = mfrac(nm)   ! So this is now the correct mass fraction
-     mantle   = ref_index(nm)
+     mantle   = mat_lnk(nm)
      i_mantle = nm
      ! Reduce the number of materials, so that the Bruggeman
      ! rule is only applied to the other materials
@@ -668,7 +682,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   ! ------------------------------------------------------------------
   aminlog = log10(amin)
   amaxlog = log10(amax)
-  pow  = -apow
+  pow     = -apow
   if (ns.eq.1) then
      ! Just one size
      r(1)  = 10d0**((aminlog+amaxlog)/2d0)
@@ -689,20 +703,17 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   endif
 
   ! ------------------------------------------------------------------
-  ! Get the refractory index data for all materials
+  ! Copy the refractory index data for all materials into local arrays
   ! ------------------------------------------------------------------
   do im=1,nm
-     call GetAndRegridLNK(ref_index(im),lam(1:nlam),e1d(1:nlam),e2d(1:nlam),nlam,.true.,rho(im))
-     e1(im,1:nlam)    = e1d(1:nlam)
-     e2(im,1:nlam)    = e2d(1:nlam)
+     e1(im,1:nlam)    = mat_e1(im,1:nlam)
+     e2(im,1:nlam)    = mat_e2(im,1:nlam)
   enddo
   if (i_mantle.gt.0) then
-     call GetAndRegridLNK(ref_index(nm+1),lam(1:nlam),e1d(1:nlam),e2d(1:nlam),nlam,.true.,rho_mantle)
-     e1mantle(1:nlam) = e1d(1:nlam)
-     e2mantle(1:nlam) = e2d(1:nlam)
+     e1mantle(1:nlam) = mat_e1(i_mantle,1:nlam)
+     e2mantle(1:nlam) = mat_e2(i_mantle,1:nlam)
+     rho_mantle       = rho(i_mantle)
   endif
-
-  deallocate(e1d,e2d)
 
   ! ------------------------------------------------------------------
   ! Turn the mass fractions into volume fractions and compute rho_core
@@ -767,7 +778,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   endif
 
   ! ------------------------------------------------------------------
-  ! Now do the mixing
+  ! Now do the mixing, for all wavelengths
   ! ------------------------------------------------------------------
 
   ! Loop over wavelengths
@@ -786,8 +797,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            ! The old Blender from OpacityTool.  Never fails, but not as good
            call Blender(vfrac,nm,epsj,eps_eff)
         endif
-        e1(1,il)   = dreal(cdsqrt(eps_eff))
-        e2(1,il)   = dimag(cdsqrt(eps_eff))
+        e1blend(il) = dreal(cdsqrt(eps_eff))
+        e2blend(il) = dimag(cdsqrt(eps_eff))
      endif
      if (i_mantle.gt.0) then
         ! We do have a mantle to add
@@ -806,10 +817,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
            e2mantle(il) = dimag(cdsqrt(eps_eff))
         endif
         ! Now we have the mantle material ready - put it on the core
-        call maxgarn_2compo(e1(1,il),e2(1,il),e1mantle(il),e2mantle(il),vfrac_mantle, &
-             e1blend,e2blend)
-        e1(1,il) = e1blend
-        e2(1,il) = e2blend
+        call maxgarn_2compo(e1blend(il),e2blend(il),e1mantle(il),e2mantle(il),vfrac_mantle, &
+             e1mg,e2mg)
+        e1blend(il) = e1mg
+        e2blend(il) = e2mg
      endif
   enddo ! end of wavelength loop over il
 
@@ -818,19 +829,24 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
   ! --------------------------------------------------------------------------
   nm = 1
 
+  ! ------------------------------------------------------------------
   ! Write the derived n and k to a file, if that is all we are supposed to do.
+  ! ------------------------------------------------------------------
   if (blendonly) then
      write(*,'("Writing the blended n and k to blended.lnk, and exiting")')
      call remove_file_if_exists('blended.lnk')
      open(unit=20,file='blended.lnk')
      write(20,'(i5 f5.2)') nlam,rho_av
      do ilam=1,nlam
-        write(20,'(3e15.4)') lam(ilam),e1(1,ilam),e2(1,ilam)
+        write(20,'(3e15.4)') lam(ilam),e1blend(ilam),e2blend(ilam)
      enddo
      close(unit=20)
      stop
   endif
 
+  ! ------------------------------------------------------------------
+  ! Initialize the scattering matrix elements
+  ! ------------------------------------------------------------------
   do il=1,nlam
      do j=1,n_ang
         f11(il,j) = 0d0
@@ -842,6 +858,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      enddo
   enddo
 
+  ! ------------------------------------------------------------------
+  ! Check how we are going to average over hollow sphere components
+  ! ------------------------------------------------------------------
   if (nf.gt.1 .and. fmax.gt.0.01e0) then
      ! Get the weights for Gauss-Legendre integration
      call gauleg2(0.01e0,fmax,f(1:nf),wf(1:nf),nf)
@@ -886,7 +905,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
         min = dcmplx(1d0,0d0)
         do if=1,nf
            rad  = r1 / (1d0-f(if))**(1d0/3d0)
-           m    = dcmplx(e1(1,ilam),-e2(1,ilam))
+           m    = dcmplx(e1blend(ilam),-e2blend(ilam))
            wvno = 2d0*pi / lam(ilam)
 
            if (f(if) .eq. 0d0) then
@@ -911,8 +930,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
               rcore = rad
               rmie  = rad
               lmie  = lam(ilam)
-              e1mie = e1(1,ilam)
-              e2mie = e2(1,ilam)
+              e1mie = e1blend(ilam)
+              e2mie = e2blend(ilam)
               if (err.eq.1 .or. if.eq.1) then
                  if (rmie/lmie.lt.5000d0) then
                     call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
@@ -1002,7 +1021,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,loc,ref_index,rho
      p%F(ilam)%F34(1:180) = f34(ilam,1:180)/csca
      p%F(ilam)%F44(1:180) = f44(ilam,1:180)/csca
 
+     ! ------------------------------------------------------------------
      ! Average ofver angles to compute asymmetry factor g
+     ! ------------------------------------------------------------------
      ! FIXME: a regular angular grid is assumed for this computation
      tot = 0.0_dp
      do i=1,180
@@ -1603,19 +1624,19 @@ end subroutine read_lambda_grid
 ! ----------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------
 
-subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax,nlam, &
-     p_core,p_mantle,fmax,nm,location,mfrac,mfrac_user,ref_index,rho)
+subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
+     p_core,p_mantle,fmax)
   ! ----------------------------------------------------------------------
   ! Write a header describing the full setup of the calculation
   ! CC is the comment character that should be added in front of each line
   ! ----------------------------------------------------------------------
+  use Defs
   implicit none
-  integer, parameter :: dp = selected_real_kind(P=15)
   integer :: unit
-  integer :: na,nlam,nm,i
+  integer :: na,i
   real (kind=dp) :: amin,amax,apow,lmin,lmax,p_core,p_mantle,fmax
-  real (kind=dp) :: mfrac(nm),mfrac_user(nm),rho(nm),amean(3)
-  character*(*) location(nm),ref_index(nm),cc
+  real (kind=dp) :: amean(3)
+  character*(*) cc
   cc = trim(cc)
   call plmeans(amin,amax,apow,amean)
   write(unit,'(A,"============================================================================")') cc
@@ -1626,26 +1647,26 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax,nlam, &
   write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"            DHS fmax=",g10.2)') cc,p_core,p_mantle,fmax
   write(unit,'(A," Composition:")') cc
 
-  if (rho(1).gt.0) then
+  if (mat_rho(1).eq.0) then
      ! We don't have rho yet, so we don't put it into the header.
      ! This is the situation where we write to the screen.
      write(unit,'(A,"  Where   mfrac  rho   Material")') cc
      write(unit,'(A,"  -----   -----  ----  ----------------------------------------------------")') cc
-     do i=1,nm
-        write(unit,'(A,"  ",A6,f7.3,f6.2,"  ",A)') cc,location(i), mfrac(i),rho(i),trim(ref_index(i))
+     do i=1,mat_nm
+        write(unit,'(A,"  ",A6,f7.3,f6.2,"  ",A)') cc,mat_loc(i), mat_mfr(i)/sum(mat_mfr(1:mat_nm)),mat_rho(i),trim(mat_lnk(i))
      enddo
   else
      write(unit,'(A,"  Where   mfrac  Material")') cc
      write(unit,'(A,"  -----   -----  ----------------------------------------------------")') cc
-     do i=1,nm
-        write(unit,'(A,"  ",A6,f7.3,"  ",A)') cc,location(i), mfrac(i),trim(ref_index(i))
+     do i=1,mat_nm
+        write(unit,'(A,"  ",A6,f7.3,"  ",A)') cc,mat_loc(i), mat_mfr(i)/sum(mat_mfr(1:mat_nm)),trim(mat_lnk(i))
      enddo
   endif
   write(unit,'(A,"============================================================================")') cc
 end subroutine write_header
 
 subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
-     nm,location,mfrac,mfrac_user,ref_index,rho,label,scatter,for_radmc)
+     label,scatter,for_radmc)
   ! ----------------------------------------------------------------------
   ! Write an ASCII file with opacaties.
   ! The routine will include LABEL in the file name.  With the flag
@@ -1657,10 +1678,9 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
   use Defs
   implicit none
   real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
-  real (kind=dp) :: mfrac(nm),mfrac_user(nm),rho(nm),lmin,lmax,f
+  real (kind=dp) :: lmin,lmax,f
   type(particle) p
   integer nm,na,i,j,nm2,ilam,iang
-  character*(*) :: location(nm),ref_index(nm)
   character*(*) :: label
   character*(3) :: ext
   character*(23) :: ml
@@ -1679,7 +1699,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      file1 = "dustkappa"      // '.' // ext
      file2 = "dustkapscatmat" // '.' // ext
   else
-     file1 = "dustkappa_"   // trim(label) // '.' // ext
+     file1 = "dustkappa_"      // trim(label) // '.' // ext
      file2 = "dustkapscatmat_" // trim(label) // '.' // ext
   endif
 
@@ -1690,8 +1710,8 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
 
      write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
-     call write_header(20,'#',amin,amax,apow,na,lmin,lmax,nlam, &
-          p_core,p_mantle,fmax,nm,location,mfrac,mfrac_user,ref_index,rho)
+     call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
+          p_core,p_mantle,fmax)
      write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
      write(20,'("#    iformat")')
      write(20,'("#    nlambda")')
@@ -1708,8 +1728,8 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
 
      write(*,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
-     call write_header(20,'#',amin,amax,apow,na,lmin,lmax,nlam, &
-          p_core,p_mantle,fmax,nm,location,mfrac,mfrac_user,ref_index,rho)
+     call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
+          p_core,p_mantle,fmax)
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
      else
