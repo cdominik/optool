@@ -96,9 +96,3 @@ $(PROGRAM):     $(OBJS)
 ingest:
 	./misc/ingestlnk.pl lnk_data/*.lnk > ref_ind.f90
 
-README.org: notes.org
-	perl -ne 'if (/^\* OpTool User Guide/../^\* Actions/) {s/@@.*?@@//g; print unless /^\* Actions/}' notes.org > README.org
-
-manual:
-	cp notes.pdf OpTool.pdf
-	make README.org
