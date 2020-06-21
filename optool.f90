@@ -359,7 +359,16 @@ program optool
      write(*,*) '       would only reflect the final size bin.'
      stop
   endif
+
+#ifndef USE_FITSIO
+  if (write_fits) then
+     write(*,*) 'ERROR: Support for writing FITS files needs to be compiled in'
+     write(*,*) '       Try: "make clean", and then "make fitsio=true"'
+     stop
+  endif
+#endif
   
+
   ! ------------------------------------------------------------------
   ! Default grain composition if nothing is specified
   ! ------------------------------------------------------------------
@@ -434,9 +443,12 @@ program optool
              mfrac,location,ref_index,rho,nm)
 
         if (write_fits) then
+#ifdef USE_FITSIO
            call write_fits_file(p,aminsplit,amaxsplit,apow,nsub, &
                 fmax,p_core,p_mantle, &
                 nm_input,mfrac,ref_index,fitsfile)
+#endif
+           continue
         else
            if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
            call write_ascii_file(p,aminsplit,amaxsplit,apow,nsub,lmin,lmax, &
@@ -458,9 +470,12 @@ program optool
   ! Write the output
   ! ------------------------------------------------------------------
   if (write_fits) then
+#ifdef USE_FITSIO
      call write_fits_file(p,amin,amax,apow,nsub, &
           fmax,p_core,p_mantle,&
           nm_input,mfrac,ref_index,fitsfile)
+#endif
+     continue
   else
      call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
           fmax,p_core,p_mantle,nm_input,&
@@ -1902,22 +1917,6 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
      print*,'error in export to fits file',status
   end if
   return
-end subroutine write_fits_file
-#else
-subroutine write_fits_file(p,amin,amax,apow,na, &
-     fmax,p_core,p_mantle, &
-     nm,mfrac,ref_index,fitsfile)
-  ! ------------------------------------------------------------------
-  ! Just a dummy routine, in case there is not fits support
-  ! We need this to keep the compiler happy
-  ! ------------------------------------------------------------------
-  use Defs
-  implicit none
-  character*500 ref_index(nm),fitsfile
-  real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle,mfrac(nm)
-  integer :: nm,na
-  type(particle) :: p
-  call remove_file_if_exists(fitsfile)
 end subroutine write_fits_file
 #endif
 
