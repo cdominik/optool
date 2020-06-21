@@ -103,8 +103,8 @@ program optool
   integer         :: nm              ! nr of grain materials
 
   type(particle)  :: p
-  integer         :: i, j            ! j always loops through angles in this routine
-  integer         :: ilam,iang,im    ! for lambda, angle, material
+  integer         :: i               ! counter
+  integer         :: ilam,iang,im,ia ! for lambda, angle, material, radius
   character*100   :: tmp
   character*100   :: value
 
@@ -118,7 +118,6 @@ program optool
   logical         :: split=.false.
   real (kind=dp)  :: asplit,afact,afsub,amaxsplit,aminsplit
   integer         :: nsubgrains = 5,nsub
-  integer         :: ia,is
 
   real (kind=dp), allocatable :: e1d(:),e2d(:)
 
@@ -612,13 +611,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
 
   complex (kind=dp), allocatable :: epsj(:)
   complex (kind=dp)              :: m       ! FIXME rename?
-  complex (kind=dp)              :: eps_eff,eps_eff2
+  complex (kind=dp)              :: eps_eff
   complex (kind=dp)              :: min
 
   character (len=3)              :: meth
   character (len=500)            :: mantle
-
-  real (kind=dp) :: cabs_mono,cabs_rgd,cemie_mono,csmie_mono,G,nmono
 
   MAXMAT = nm0+1 ! Allocate one more, because vacuum will also be a material
   ns     = na    ! number of subgrains to compute
@@ -1507,7 +1504,7 @@ function count_words (string)
   character*(*) :: string
   character*(30) :: s
   integer i, count_words
-  logical in_space
+  logical :: in_space=.false.
   s = trim(string) // ' '
   count_words = 0
   if (.not. (s.eq.'')) then
@@ -1680,7 +1677,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
   real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
   real (kind=dp) :: lmin,lmax,f
   type(particle) p
-  integer nm,na,i,j,nm2,ilam,iang
+  integer na,i,ilam,iang
   character*(*) :: label
   character*(3) :: ext
   character*(23) :: ml
@@ -1979,9 +1976,9 @@ subroutine mean_opacities(lambda,nlam,kabs,ksca,g,tmin,tmax,ntemp,file)
   doubleprecision :: lambda(nlam),kabs(nlam),ksca(nlam),g(nlam)
   doubleprecision :: tmin,tmax
   character*(*)   :: file
-  doubleprecision, allocatable :: temp(:),kross(:),kplanck(:),kplanck_star(:)
+  doubleprecision, allocatable :: temp(:),kross(:),kplanck(:)
   doubleprecision, allocatable :: nu(:)
-  integer :: ilam,leng,itemp,i
+  integer :: ilam,itemp
   doubleprecision dumbnu,dumdb
   doubleprecision bnu,dbnudt,dnu
   doubleprecision kaptot_abs,kaptot_scat,kap_p,kap_r
