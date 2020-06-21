@@ -1,7 +1,7 @@
 
 
 
-* Introduction
+* Introduction to optool
 
 This tool allows to produce complex dust opacities right from the
 command line. It is derived from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] for the
@@ -38,4 +38,4 @@ index measurements.
   application.
 
 * User Guide
-See the [[file:optool.pdf][User Guide]] for more information.
+See the [[file:UserGuide.pdf][User Guide]] for more information.

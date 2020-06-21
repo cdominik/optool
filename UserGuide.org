@@ -1,7 +1,6 @@
 
 #+TITLE: OpTool User Guide
 
-
 * Introduction
 
 This tool allows to produce complex dust opacities right from the
