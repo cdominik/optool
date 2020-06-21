@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 
 # Take all the link files on the command line and turn them into
-# subroutines of a fortaran 90 code file RefInd.f90. The names of the
-# lnk files must follow narrow conventions - see the User guide for
-# more information.
+# subroutines of a fortaran 90 code spit out to STDOUT. The names of
+# the lnk files must follow narrow conventions - see the User guide
+# for more information.
 
 # Usage: ingestlnk path/to/lnk/file.lnk [...]
 
