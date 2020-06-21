@@ -14,7 +14,7 @@ ifeq ($(debug),true)
   ifeq ($(ifort),true)
     DEBUGGING = -check all -traceback -check bounds -O0 -g -check -fpe1
   else	
-    DEBUGGING = -fbounds-check -fbacktrace -Wall
+    DEBUGGING = -fbounds-check -fbacktrace
   endif
 endif
 

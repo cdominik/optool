@@ -96,7 +96,7 @@ program optool
   logical         :: write_mean_kap  ! Should mean kappas be computed?
   logical         :: write_scatter   ! Should a fits file be written?
   logical         :: write_fits      ! Should a fits file be written?
-  logical         :: for_radmc       ! Should the scattering matric use the RADME-3D convention?
+  logical         :: for_radmc       ! Should the scattering matrix use RADME-3D convention?
   real (kind=dp)  :: tmin,tmax       ! min and max temperature for mean opacities
   integer         :: nt              ! number of temperature steps
 
@@ -428,13 +428,13 @@ program optool
   ! Allocate space for the refractive indices
   allocate(mat_e1(nm+1,nlam),mat_e2(nm+1,nlam))
 
-  ! Read the refractive index data
-    ! ------------------------------------------------------------------
+  ! ------------------------------------------------------------------
   ! Get the refractory index data for all materials
   ! ------------------------------------------------------------------
   allocate(e1d(nlam),e2d(nlam))
   do im=1,nm
-     call GetAndRegridLNK(mat_lnk(im),lam(1:nlam),e1d(1:nlam),e2d(1:nlam),nlam,.true.,mat_rho(im))
+     call GetAndRegridLNK(mat_lnk(im),lam(1:nlam),e1d(1:nlam),e2d(1:nlam), &
+          nlam,.true.,mat_rho(im))
      mat_e1(im,1:nlam)    = e1d(1:nlam)
      mat_e2(im,1:nlam)    = e2d(1:nlam)
   enddo
@@ -465,7 +465,7 @@ program optool
 #ifdef USE_FITSIO
            call write_fits_file(p,aminsplit,amaxsplit,apow,nsub, &
                 fmax,p_core,p_mantle, &
-                mat_nm,mat_mfr,mat_lnk,fitsfile)
+                mat_nm,mat_mfr,fitsfile)
 #endif
            continue
         else
@@ -490,7 +490,7 @@ program optool
 #ifdef USE_FITSIO
      call write_fits_file(p,amin,amax,apow,nsub, &
           fmax,p_core,p_mantle,&
-          mat_nm,mat_mfr,mat_lnk,fitsfile)
+          mat_nm,mat_mfr,fitsfile)
 #endif
      continue
   else
@@ -1792,7 +1792,7 @@ end subroutine write_ascii_file
 #ifdef USE_FITSIO
 subroutine write_fits_file(p,amin,amax,apow,na, &
      fmax,p_core,p_mantle, &
-     nm,mfrac,ref_index,fitsfile)
+     nm,mfrac,fitsfile)
   ! ------------------------------------------------------------------
   ! Routine to write a FITS file with all the information about
   ! the opacities and scattering properties.
@@ -1800,7 +1800,6 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   ! ------------------------------------------------------------------
   use Defs
   implicit none
-  character*500 ref_index(nm)
   real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
   real (kind=dp) :: mfrac(nm),rho(nm)
   logical blend
@@ -1849,7 +1848,6 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   call ftpkye(unit,'f_max',real(fmax),8,'',status)
 
   call plmeans(amin,amax,apow,amean)
-  print *,amean
   a1 = amean(1)
   call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
 !  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
@@ -1859,7 +1857,7 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
 
   do i=1,nm
      write(word,'("file",i0.2)') i
-     call ftpkys(unit,word,trim(ref_index(i)),'',status)
+     call ftpkys(unit,word,trim(mat_lnk(i)),'',status)
   enddo
   do i=1,nm
      write(word,'("frac",i0.2)') i
