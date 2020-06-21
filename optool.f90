@@ -1713,7 +1713,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
      else
-        write(20,'("# Standard output file, BOHREN-HUFFMAN normalization of scattering matrix")')
+        write(20,'("# Standard output file, scattering matrix mormalizattion: <F11>=1/sr")')
      endif
      write(20,'("#    iformat                                 ! iformat   must be 1")')
      write(20,'("#    nlam                                    ! number of wavelengths")')
