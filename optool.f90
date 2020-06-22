@@ -104,7 +104,7 @@ program optool
 
   type(particle)  :: p
   integer         :: i               ! counter
-  integer         :: ilam,iang,im,ia ! for lambda, angle, material, radius
+  integer         :: im,ia           ! for material, radius
   character*100   :: tmp
   character*100   :: value
 
@@ -112,7 +112,6 @@ program optool
   logical         :: arg_is_value, arg_is_number  ! functions to test arguments
   character*500   :: fitsfile,meanfile            ! file names for output
   character*50    :: radmclbl   = ""              ! file label for RADMC-3D compatible
-  character*4     :: asciiext   = ".dat"          ! files extension for ASCII output
   character*50    :: label                        ! for use in file names
 
   logical         :: split=.false.
@@ -147,7 +146,10 @@ program optool
   write_scatter  = .false.    ! Default is to not write scattering matrix
   write_mean_kap = .false.    ! Default is to not compute mean kappas
   for_radmc      = .false.    ! Default is to use optool conventions.
-  
+
+  meanfile       = "dustkapmean.dat"
+  fitsfile       = "dustkappa.fits"
+
   ! ------------------------------------------------------------------------
   ! Allocate space for up to 12 different materials
   ! ------------------------------------------------------------------------
@@ -328,7 +330,6 @@ program optool
         write_scatter=.true.
      case('-radmc','-radmc3d')
         for_radmc = .true.
-        asciiext = ".inp"
         if (arg_is_value(i+1)) then
            i=i+1
            call getarg(i,radmclbl)
@@ -366,7 +367,10 @@ program optool
      write(*,*) '       would only reflect the final size bin.'
      stop
   endif
-
+  if (split .and. blendonly) then
+     write(*,*) 'ERROR: -d and -blendonly can cause problems with openmp'
+     stop
+  endif
 #ifndef USE_FITSIO
   if (write_fits) then
      write(*,*) 'ERROR: Support for writing FITS files needs to be compiled in'
@@ -403,9 +407,6 @@ program optool
   call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
        p_core,p_mantle,fmax,mat_mfr,mat_nm)
   
-  meanfile    = "dustkapmean.dat"
-  fitsfile    = "dustkappa.fits"
-
   ! ------------------------------------------------------------------
   ! Make a logarithmic lambda grid, unless read in from file
   ! ------------------------------------------------------------------
@@ -564,8 +565,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
 
   TYPE (PARTICLE)                :: p
 
-  integer                        :: i,j,k            ! counters for various loops
-  integer                        :: MAXMAT           ! maximum number of grain material
+  integer                        :: i,j              ! counters for various loops
+  integer                        :: mn_max           ! maximum number of grain material
   integer, parameter             :: n_ang = 180      ! number of angles FIXME let the user set this?
   integer                        :: na               ! Number of grains sizes between amin and amax
   integer                        :: nf,if            ! Number of DHS volume fractions
@@ -591,15 +592,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   real (kind=dp)                 :: csmie, cemie
   real (kind=dp)                 :: theta
 
-  real (kind=dp)                 :: aminlog, amaxlog
-  real (kind=dp)                 :: rad
-  real (kind=dp)                 :: r1
+  real (kind=dp)                 :: aminlog,amaxlog,pow
+  real (kind=dp)                 :: rad,r1,rcore
   real (kind=dp)                 :: tot,tot2,mtot,vtot
-  real (kind=dp)                 :: pow
-  real (kind=dp)                 :: mass
-  real (kind=dp)                 :: vol
+  real (kind=dp)                 :: mass,vol
   real (kind=dp)                 :: rho_av,rho_core,rho_mantle
-  real (kind=dp)                 :: rcore
   real (kind=dp)                 :: wvno
 
   ! Effective refractive index
@@ -608,28 +605,27 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   real (kind=dp), allocatable    :: e1blend(:), e2blend(:)
   real (kind=dp), allocatable    :: e1mantle(:),e2mantle(:)
   real (kind=dp), allocatable    :: vfrac(:)
+  complex (kind=dp), allocatable :: epsj(:),eps_eff
+  complex (kind=dp)              :: m,min
 
-  complex (kind=dp), allocatable :: epsj(:)
-  complex (kind=dp)              :: m       ! FIXME rename?
-  complex (kind=dp)              :: eps_eff
-  complex (kind=dp)              :: min
+  character (len=3)              :: meth   ! Method for computing opacities
 
-  character (len=3)              :: meth
-  character (len=500)            :: mantle
-
-  MAXMAT = nm0+1 ! Allocate one more, because vacuum will also be a material
   ns     = na    ! number of subgrains to compute
   meth   = 'DHS' !
 
+  ! ----------------------------------------------------------------------
+  ! Allecoate the necessary arrays.
+  ! ----------------------------------------------------------------------
+    mn_max = nm0+1 ! Allocate one more, because vacuum will also be a material
   allocate(Mief11(n_ang),Mief12(n_ang),Mief22(n_ang),Mief33(n_ang),Mief34(n_ang),Mief44(n_ang))
   allocate(mu(n_ang),M1(n_ang,2),M2(n_ang,2),S21(n_ang,2),D21(n_ang,2))
 
-  allocate(vfrac(MAXMAT),mfrac(MAXMAT),rho(MAXMAT))
-  allocate(epsj(MAXMAT))
+  allocate(vfrac(mn_max),mfrac(mn_max),rho(mn_max))
+  allocate(epsj(mn_max))
   allocate(f11(nlam,n_ang),f12(nlam,n_ang),f22(nlam,n_ang))
   allocate(f33(nlam,n_ang),f34(nlam,n_ang),f44(nlam,n_ang))
 
-  allocate(e1(MAXMAT,nlam),e2(MAXMAT,nlam))
+  allocate(e1(mn_max,nlam),e2(mn_max,nlam))
   allocate(e1blend(nlam),e2blend(nlam))
 
   ! Set the number of f values between 0 and fmax, for DHS
@@ -666,12 +662,16 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   i_mantle = 0
   if (trim(mat_loc(nm)).EQ."mantle") then
      ! Remember where the mantle information is
-     mfrac_mantle = mfrac(nm)   ! So this is now the correct mass fraction
-     mantle   = mat_lnk(nm)
-     i_mantle = nm
+     i_mantle     = nm
+     mfrac_mantle = mfrac(nm)
      ! Reduce the number of materials, so that the Bruggeman
-     ! rule is only applied to the other materials
+     ! rule is only applied to the core materials
      nm = nm-1
+  else
+     ! These are just to keep the compiler happy
+     vfrac_mantle = 0.d0
+     mfrac_mantle = 0.d0
+     rho_mantle   = 0.d0
   endif
 
   ! ------------------------------------------------------------------
@@ -702,6 +702,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   ! ------------------------------------------------------------------
   ! Copy the refractory index data for all materials into local arrays
   ! ------------------------------------------------------------------
+  ! We do this, because during mixing we overwrite some of the values
   do im=1,nm
      e1(im,1:nlam)    = mat_e1(im,1:nlam)
      e2(im,1:nlam)    = mat_e2(im,1:nlam)
@@ -792,6 +793,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
            call brugg(vfrac,nm,epsj,eps_eff)
         else
            ! The old Blender from OpacityTool.  Never fails, but not as good
+           ! ASKMICHIEL
            call Blender(vfrac,nm,epsj,eps_eff)
         endif
         e1blend(il) = dreal(cdsqrt(eps_eff))
@@ -827,7 +829,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   nm = 1
 
   ! ------------------------------------------------------------------
-  ! Write the derived n and k to a file, if that is all we are supposed to do.
+  ! Write the derived n and k to a file
   ! ------------------------------------------------------------------
   if (blendonly) then
      write(*,'("Writing the blended n and k to blended.lnk, and exiting")')
