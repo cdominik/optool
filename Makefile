@@ -9,6 +9,10 @@ ifeq ($(ifort),true)
   LINKER  = ifort
 endif
 
+ifneq ($(multi),false)
+	MULTICORE = -fopenmp
+endif
+
 # array checks for debugging
 ifeq ($(debug),true)
   ifeq ($(ifort),true)

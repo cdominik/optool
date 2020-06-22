@@ -83,8 +83,9 @@ end module Defs
 
 program optool
   use Defs
+  use omp_lib
   implicit none
-
+!  integer OMP_get_thread_num, OMP_get_num_threads
   integer         :: na              ! nr of sizes for size distribution
   real (kind=dp)  :: amin,amax       ! min and max size of grains
   real (kind=dp)  :: apow            ! power law index f(a) ~ a^(-apow)
@@ -440,49 +441,58 @@ program optool
      mat_e2(im,1:nlam)    = e2d(1:nlam)
   enddo
   deallocate(e1d,e2d)
-  
+
   ! ----------------------------------------------------------------------
   ! Loop for splitting the output into files by grain size
   ! ----------------------------------------------------------------------
   if (split) then
+     write(*,'("Computing opacities for ",I3," different grain size bins")') na
+     do i=1,na
+        write(*,'(".",$)')
+     enddo
+     write(*,*)
      nsub = nsubgrains
      if (mod(nsub,2).eq.0) nsub = nsub+1
      afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
 
+     !$ call OMP_set_num_threads(8)
+     !$OMP parallel do default(none)                                              &
+     !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)                &
+     !$OMP shared(amin,afact,afsub,nsub,apow,fmax,p_core,p_mantle,mat_mfr,mat_nm) &
+     !$OMP shared(lmin,lmax,write_scatter,for_radmc,write_fits,radmclbl)
      do ia=1,na
         asplit    = amin  *afact**real(ia-1+0.5)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
-
         write(label,'(I3.3)') ia
         write(fitsfile,'(A,"_",A,".fits")') "dustkappa",trim(label)
-        write(*,'("Computing grain size: ",f10.3," micron")') asplit
-
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,p_core,p_mantle, &
-             mat_mfr,mat_nm)
+             mat_mfr,mat_nm,.false.)
 
+        !$OMP critical
+        write(*,'(".",$)')
         if (write_fits) then
 #ifdef USE_FITSIO
            call write_fits_file(p,aminsplit,amaxsplit,apow,nsub, &
-                fmax,p_core,p_mantle, &
-                mat_nm,mat_mfr,fitsfile)
+                fmax,p_core,p_mantle,mat_nm,mat_mfr,fitsfile)
 #endif
-           continue
         else
            if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
            call write_ascii_file(p,aminsplit,amaxsplit,apow,nsub,lmin,lmax, &
                 fmax,p_core,p_mantle,mat_mfr,mat_nm, &
-                label,write_scatter,for_radmc)
+                label,write_scatter,for_radmc,.false.)
         endif
+        !$OMP end critical
      enddo
+     !$OMP end parallel DO
      stop
   endif
 
   ! ------------------------------------------------------------------
   ! Call the main routine to compute the opacities and scattering matrix
   ! ------------------------------------------------------------------
-  call ComputePart(p,amin,amax,apow,na,fmax,p_core,p_mantle,mat_mfr,nm)
+  call ComputePart(p,amin,amax,apow,na,fmax,p_core,p_mantle,mat_mfr,nm,.true.)
 
   ! ------------------------------------------------------------------
   ! Write the output
@@ -490,14 +500,13 @@ program optool
   if (write_fits) then
 #ifdef USE_FITSIO
      call write_fits_file(p,amin,amax,apow,nsub, &
-          fmax,p_core,p_mantle,&
-          mat_nm,mat_mfr,fitsfile)
+          fmax,p_core,p_mantle,mat_nm,mat_mfr,fitsfile)
 #endif
      continue
   else
      call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
           fmax,p_core,p_mantle,mat_mfr,mat_nm, &
-          radmclbl,write_scatter,for_radmc)
+          radmclbl,write_scatter,for_radmc,.true.)
   endif
 
   ! ------------------------------------------------------------------
@@ -530,7 +539,7 @@ end program optool
 ! ----------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------
 
-subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
+subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! ----------------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
   !
@@ -564,6 +573,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   real (kind=dp)                 :: mfrac_mantle     ! mass   fraction of mantle
 
   TYPE (PARTICLE)                :: p
+
+  logical                        :: progress
 
   integer                        :: i,j              ! counters for various loops
   integer                        :: mn_max           ! maximum number of grain material
@@ -877,7 +888,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   ! Start the main loop over all wavelengths
   ! ------------------------------------------------------------------
   do ilam = 1,nlam
-     call tellertje(ilam,nlam)
+     if (progress) call tellertje(ilam,nlam)
      csca     = 0d0
      cabs     = 0d0
      cext     = 0d0
@@ -1665,7 +1676,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
 end subroutine write_header
 
 subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
-     mfrac,nm,label,scatter,for_radmc)
+     mfrac,nm,label,scatter,for_radmc,progress)
   ! ----------------------------------------------------------------------
   ! Write an ASCII file with opacaties.
   ! The routine will include LABEL in the file name.  With the flag
@@ -1683,7 +1694,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
   character*(*) :: label
   character*(3) :: ext
   character*(23) :: ml
-  logical scatter,for_radmc
+  logical scatter,for_radmc,progress
   character*500                :: file1,file2
 
   if (for_radmc) then
@@ -1707,7 +1718,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
 
   if (.not. scatter) then
 
-     write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
+     if (progress) write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
           p_core,p_mantle,fmax,mfrac,nm)
