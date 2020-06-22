@@ -54,12 +54,12 @@ simple steps, using the GNU compiler [[https://gcc.gnu.org/wiki/GFortran][=gfort
 : make
 
 If you have the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]] or the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library
-installed, or if your system lacks multithreading support, these
-switches can modify the compilation:
+installed, or if you need more speed while using the *-d* switch, you
+can do all that with these switches:
 
-: make ifort=true         # compile using the Intel compiler
-: make fitsio=true        # add support for writing fits files with cfitsio
-: make multi=false        # do not multithread (default is to do it for -d)
+: make ifort=true         # compile using the Intel fortran compiler iFort
+: make fitsio=true        # add support for writing FITSg files with cfitsio
+: make multi=true         # enable multithread support for -d switch
 
 * Examples
 A simple grain made only of the default pyroxene

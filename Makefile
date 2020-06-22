@@ -1,6 +1,7 @@
 # makefile for OpTool
 #
 
+# The compiler and linker
 FC	  = gfortran
 LINKER	  = gfortran
 
@@ -9,17 +10,28 @@ ifeq ($(ifort),true)
   LINKER  = ifort
 endif
 
-ifneq ($(multi),false)
+# Multicore support
+ifeq ($(multi),true)
+    ifeq ($(ifort),true)
+	MULTICORE = -openmp -fp-model strict
+    else
 	MULTICORE = -fopenmp
+    endif
 endif
 
-# array checks for debugging
+# Debugging flags
 ifeq ($(debug),true)
   ifeq ($(ifort),true)
     DEBUGGING = -check all -traceback -check bounds -O0 -g -check -fpe1
   else	
     DEBUGGING = -fbounds-check -fbacktrace
   endif
+endif
+
+# CFITSIO support
+ifeq ($(fitsio),true)
+  FLAG_FITS		= -DUSE_FITSIO
+  LIBS_FITS		= -lcfitsio -L/usr/local/lib/
 endif
 
 # Platform specific compilation options
@@ -33,11 +45,7 @@ else
   FLAG_MAC      = -m64 -cpp
 endif
 
-ifeq ($(fitsio),true)
-  FLAG_FITS		= -DUSE_FITSIO
-  LIBS_FITS		= -lcfitsio -L/usr/local/lib/
-endif
-
+# Combine the flags
 FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
 LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
 LIBS    = $(LIBS_FITS)
@@ -48,8 +56,7 @@ OBJS	= optool.o \
 	  ref_ind.o \
 	  dmilay_f95.o
 
-
-# program name and install location
+# Program name and install location
 PROGRAM       = optool
 DEST	      = ${HOME}/bin
 
@@ -58,7 +65,7 @@ all:		$(PROGRAM)
 cleanoutput:;   rm -rf dustkap*
 clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i
 		make cleanoutput
-		rm -rf *~ \#* *.tex *.log auto notes.pdf notes.html 
+		rm -rf *~ \#* *.tex *.log auto notes.pdf notes.html optool.dSYM
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
 test:; 		echo Computing size-integrated opacities ...
@@ -83,15 +90,12 @@ quicktestdiv:;	echo computing size-dependant opacities ...
 		ipython -i optool.py
 
 # how to compile program 
-.SUFFIXES : .o .f .f90 .F
+.SUFFIXES : .o .f .f90
 
 .f.o:
 	$(FC) $(LDFLAGS) -c $<
 
 .f90.o:
-	$(FC) $(LDFLAGS) -c $<
-
-.F.o:
 	$(FC) $(LDFLAGS) -c $<
 
 $(PROGRAM):     $(OBJS)

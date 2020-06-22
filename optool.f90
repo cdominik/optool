@@ -456,7 +456,7 @@ program optool
      afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
 
-     !$ call OMP_set_num_threads(8)
+     ! Commented !$ call OMP_set_num_threads(8)
      !$OMP parallel do default(none)                                              &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)                &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,p_core,p_mantle,mat_mfr,mat_nm) &
