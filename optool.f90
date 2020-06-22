@@ -614,9 +614,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   meth   = 'DHS' !
 
   ! ----------------------------------------------------------------------
-  ! Allecoate the necessary arrays.
+  ! Allocate the necessary arrays
   ! ----------------------------------------------------------------------
-    mn_max = nm0+1 ! Allocate one more, because vacuum will also be a material
+  mn_max = nm0+1 ! Allocate one more, because vacuum will also be a material
   allocate(Mief11(n_ang),Mief12(n_ang),Mief22(n_ang),Mief33(n_ang),Mief34(n_ang),Mief44(n_ang))
   allocate(mu(n_ang),M1(n_ang,2),M2(n_ang,2),S21(n_ang,2),D21(n_ang,2))
 
