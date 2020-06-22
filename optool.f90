@@ -401,7 +401,7 @@ program optool
   ! Write a setup summary to the screen
   ! ------------------------------------------------------------------
   call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
-       p_core,p_mantle,fmax)
+       p_core,p_mantle,fmax,mat_mfr,mat_nm)
   
   meanfile    = "dustkapmean.dat"
   fitsfile    = "dustkappa.fits"
@@ -471,7 +471,7 @@ program optool
         else
            if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
            call write_ascii_file(p,aminsplit,amaxsplit,apow,nsub,lmin,lmax, &
-                fmax,p_core,p_mantle, &
+                fmax,p_core,p_mantle,mat_mfr,mat_nm, &
                 label,write_scatter,for_radmc)
         endif
      enddo
@@ -495,7 +495,7 @@ program optool
      continue
   else
      call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
-          fmax,p_core,p_mantle,&
+          fmax,p_core,p_mantle,mat_mfr,mat_nm, &
           radmclbl,write_scatter,for_radmc)
   endif
 
@@ -1622,18 +1622,18 @@ end subroutine read_lambda_grid
 ! ----------------------------------------------------------------------------
 
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
-     p_core,p_mantle,fmax)
+     p_core,p_mantle,fmax,mfrac,nm)
   ! ----------------------------------------------------------------------
   ! Write a header describing the full setup of the calculation
   ! CC is the comment character that should be added in front of each line
   ! ----------------------------------------------------------------------
   use Defs
   implicit none
-  integer :: unit
-  integer :: na,i
-  real (kind=dp) :: amin,amax,apow,lmin,lmax,p_core,p_mantle,fmax
+  integer        :: unit
+  integer        :: na,i,nm
+  real (kind=dp) :: amin,amax,apow,lmin,lmax,p_core,p_mantle,fmax,mfrac(nm)
   real (kind=dp) :: amean(3)
-  character*(*) cc
+  character*(*)  :: cc
   cc = trim(cc)
   call plmeans(amin,amax,apow,amean)
   write(unit,'(A,"============================================================================")') cc
@@ -1649,21 +1649,21 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
      ! This is the situation where we write to the screen.
      write(unit,'(A,"  Where   mfrac  rho   Material")') cc
      write(unit,'(A,"  -----   -----  ----  ----------------------------------------------------")') cc
-     do i=1,mat_nm
-        write(unit,'(A,"  ",A6,f7.3,f6.2,"  ",A)') cc,mat_loc(i), mat_mfr(i)/sum(mat_mfr(1:mat_nm)),mat_rho(i),trim(mat_lnk(i))
+     do i=1,nm
+        write(unit,'(A,"  ",A6,f7.3,f6.2,"  ",A)') cc,mat_loc(i), mfrac(i)/sum(mfrac(1:nm)),mat_rho(i),trim(mat_lnk(i))
      enddo
   else
      write(unit,'(A,"  Where   mfrac  Material")') cc
      write(unit,'(A,"  -----   -----  ----------------------------------------------------")') cc
-     do i=1,mat_nm
-        write(unit,'(A,"  ",A6,f7.3,"  ",A)') cc,mat_loc(i), mat_mfr(i)/sum(mat_mfr(1:mat_nm)),trim(mat_lnk(i))
+     do i=1,nm
+        write(unit,'(A,"  ",A6,f7.3,"  ",A)') cc,mat_loc(i), mfrac(i)/sum(mfrac(1:nm)),trim(mat_lnk(i))
      enddo
   endif
   write(unit,'(A,"============================================================================")') cc
 end subroutine write_header
 
 subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
-     label,scatter,for_radmc)
+     mfrac,nm,label,scatter,for_radmc)
   ! ----------------------------------------------------------------------
   ! Write an ASCII file with opacaties.
   ! The routine will include LABEL in the file name.  With the flag
@@ -1674,10 +1674,10 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
   ! ----------------------------------------------------------------------
   use Defs
   implicit none
-  real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
+  real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle,mfrac(nm)
   real (kind=dp) :: lmin,lmax,f
   type(particle) p
-  integer na,i,ilam,iang
+  integer na,i,ilam,iang,nm
   character*(*) :: label
   character*(3) :: ext
   character*(23) :: ml
@@ -1708,7 +1708,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
-          p_core,p_mantle,fmax)
+          p_core,p_mantle,fmax,mfrac,nm)
      write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
      write(20,'("#    iformat")')
      write(20,'("#    nlambda")')
@@ -1726,7 +1726,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      write(*,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
-          p_core,p_mantle,fmax)
+          p_core,p_mantle,fmax,mfrac,nm)
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
      else
