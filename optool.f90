@@ -605,8 +605,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0)
   real (kind=dp), allocatable    :: e1blend(:), e2blend(:)
   real (kind=dp), allocatable    :: e1mantle(:),e2mantle(:)
   real (kind=dp), allocatable    :: vfrac(:)
-  complex (kind=dp), allocatable :: epsj(:),eps_eff
-  complex (kind=dp)              :: m,min
+  complex (kind=dp), allocatable :: epsj(:)
+  complex (kind=dp)              :: m,min,eps_eff
 
   character (len=3)              :: meth   ! Method for computing opacities
 
