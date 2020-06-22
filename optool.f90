@@ -368,8 +368,8 @@ program optool
      stop
   endif
   if (split .and. blendonly) then
-     write(*,*) 'ERROR: -d and -blendonly can cause problems with openmp'
-     stop
+     write(*,*) 'WARNING: Turning off -s for -blendonly'
+     split = .false.
   endif
 #ifndef USE_FITSIO
   if (write_fits) then
