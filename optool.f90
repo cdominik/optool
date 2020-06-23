@@ -1020,7 +1020,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            cabs_ff = cabs_ff + wf(if)*nr(is)*(cemie-csmie)
            mass = mass + wf(if)*nr(is)*rho_av*4d0*pi*r1**3/3d0
            vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
-        enddo ! end loop "nf" over form factors
+        enddo    ! end loop "nf" over form factors
 
         ! Add the contribution of the current grains size to the overall sum
         cext = cext + cext_ff
@@ -1059,15 +1059,14 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      enddo
      p%g(ilam) = p%g(ilam)/tot
 
-     ! Check the normalization of F11  FIXME remove again.
-     tot  = 0d0
-     tot2 = 0d0
-     do j=1,n_ang
-        !                  F11                      (sin phi)                      d phi        2pi
-        tot  = tot +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(n_ang))) * (pi/180.d0) * (2.d0*pi)
-        tot2 = tot2 + sin(pi*(real(j)-0.5)/real(n_ang))*pi/180.d0*2.d0*pi
-     enddo
-     ! print *,tot,tot2,tot/tot2,csca,tot*csca,mass,tot/4/pi ! FIXME
+     ! Check the normalization of F11
+     !tot  = 0d0; tot2 = 0d0
+     !do j=1,n_ang
+     !   !                  F11                      (sin phi)                      d phi        2pi
+     !   tot  = tot +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(n_ang))) * (pi/180.d0) * (2.d0*pi)
+     !   tot2 = tot2 + sin(pi*(real(j)-0.5)/real(n_ang))*pi/180.d0*2.d0*pi
+     !enddo
+     !print *,tot,tot2,tot/4/pi
 
   enddo
   
