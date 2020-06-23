@@ -47,10 +47,5 @@ index measurements.
   on github]]), and code for computing Planck and Rosseland means
   opacities.
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for pointers to refractive index data.
-- I started working on =optool= as a little side project in 2019,
-  during a sabbatical in Heidelberg and Nice, made possible by
-  finantial support from the DFG and the Observatoire de la Côte
-  d'Azur in Nice. After a long hibernation, some free time during the
-  corona virus lockdown in 2020 enabled me to finish the project.
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
