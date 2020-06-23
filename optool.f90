@@ -69,6 +69,13 @@ module Defs
      real (kind=dp), allocatable :: g(:)           ! asymmetry, Henyey Greenstein
      TYPE(MUELLER),  allocatable :: F(:)           ! Mueller matrix elements
   end type particle
+  ! ------------------------------------------------------------------------
+  ! The output directory
+  ! ------------------------------------------------------------------------
+  character*500                  :: outdir = ''    ! Output directory 
+  ! ------------------------------------------------------------------------
+  ! Interfaces
+  ! ------------------------------------------------------------------------
 end module Defs
 
 ! ----------------------------------------------------------------------------
@@ -85,7 +92,6 @@ program optool
   use Defs
   use omp_lib
   implicit none
-!  integer OMP_get_thread_num, OMP_get_num_threads
   integer         :: na              ! nr of sizes for size distribution
   real (kind=dp)  :: amin,amax       ! min and max size of grains
   real (kind=dp)  :: apow            ! power law index f(a) ~ a^(-apow)
@@ -112,6 +118,7 @@ program optool
   logical         :: have_mantle
   logical         :: arg_is_value, arg_is_number  ! functions to test arguments
   character*500   :: fitsfile,meanfile            ! file names for output
+  character*500   :: make_file_path               ! Function
   character*50    :: radmclbl   = ""              ! file label for RADMC-3D compatible
   character*50    :: label                        ! for use in file names
 
@@ -147,9 +154,6 @@ program optool
   write_scatter  = .false.    ! Default is to not write scattering matrix
   write_mean_kap = .false.    ! Default is to not compute mean kappas
   for_radmc      = .false.    ! Default is to use optool conventions.
-
-  meanfile       = "dustkapmean.dat"
-  fitsfile       = "dustkappa.fits"
 
   ! ------------------------------------------------------------------------
   ! Allocate space for up to 12 different materials
@@ -327,6 +331,12 @@ program optool
         ! ------------------------------------------------------------------
         ! Various other switches
         ! ------------------------------------------------------------------
+     case('-o')
+        if (.not. arg_is_value(i+1)) then
+           print *,'ERROR: -o switch needs to be followed by a directory name'
+           stop
+        endif
+        i=i+1; call getarg(i,outdir)
      case('-s','-scatter','-scat')
         write_scatter=.true.
      case('-radmc','-radmc3d')
@@ -338,7 +348,7 @@ program optool
      case('-d')
         split = .true.
         if (arg_is_value(i+1)) then
-           i=i+1; call getarg(i,value); read(value,*) nsubgrains;
+           i=i+1; call getarg(i,value); read(value,*) nsubgrains
         endif
      case('-b','-blendonly','--blendonly')
         ! Write blended refractive index to file and exit
@@ -361,7 +371,7 @@ program optool
   enddo
 
   ! ------------------------------------------------------------------
-  ! Sanity checks
+  ! Sanity checks and preparations
   ! ------------------------------------------------------------------
   if (split .and. write_mean_kap) then
      write(*,*) 'ERROR: With both -d and -t options, the dustkapmean.dat file'
@@ -379,6 +389,11 @@ program optool
      stop
   endif
 #endif
+  if (trim(outdir) .ne. '') then
+     call make_directory(outdir)
+  endif
+  meanfile       = make_file_path(outdir,"dustkapmean.dat")
+  fitsfile       = make_file_path(outdir,"dustkappa.fits")
   
   ! ------------------------------------------------------------------
   ! Default grain composition if nothing is specified
@@ -465,15 +480,16 @@ program optool
         asplit    = amin  *afact**real(ia-1+0.5)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
-        write(label,'(I3.3)') ia
-        write(fitsfile,'(A,"_",A,".fits")') "dustkappa",trim(label)
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,p_core,p_mantle, &
              mat_mfr,mat_nm,.false.)
 
         !$OMP critical
         write(*,'(".",$)')
+        write(label,'(I3.3)') ia
         if (write_fits) then
 #ifdef USE_FITSIO
+           write(fitsfile,'(A,"_",A,".fits")') "dustkappa",trim(label)
+           fitsfile = make_file_path(outdir,fitsfile)
            call write_fits_file(p,aminsplit,amaxsplit,apow,nsub, &
                 fmax,p_core,p_mantle,mat_nm,mat_mfr,fitsfile)
 #endif
@@ -1689,13 +1705,14 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
   implicit none
   real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle,mfrac(nm)
   real (kind=dp) :: lmin,lmax,f
-  type(particle) p
-  integer na,i,ilam,iang,nm
-  character*(*) :: label
-  character*(3) :: ext
+  type(particle) :: p
+  integer        :: na,i,ilam,iang,nm
+  character*(*)  :: label
+  character*(3)  :: ext
   character*(23) :: ml
-  logical scatter,for_radmc,progress
-  character*500                :: file1,file2
+  logical        :: scatter,for_radmc,progress
+  character*500  :: file1,file2
+  character*500  :: make_file_path ! Function
 
   if (for_radmc) then
      ext = 'inp'
@@ -1712,6 +1729,8 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      file1 = "dustkappa_"      // trim(label) // '.' // ext
      file2 = "dustkapscatmat_" // trim(label) // '.' // ext
   endif
+  file1 = make_file_path(outdir,file1)
+  file2 = make_file_path(outdir,file2)
 
   call remove_file_if_exists(file1)
   call remove_file_if_exists(file2)
@@ -2138,5 +2157,40 @@ function bplanckdt(temp,nu)
   endif
   return
 end function bplanckdt
+
+function make_file_path(directory,file)
+  !
+  ! Concatenate directory and file, with sanity checks and fixes
+  !
+  character*(*) :: directory,file
+  character*500 :: dir,make_file_path
+  integer l
+  dir = trim(directory)
+  l = len_trim(dir)
+  do while ((l .gt. 1) .and. dir(l:l) .eq. '/')
+     dir(l:l) = ' '
+     l = len_trim(dir)
+  enddo
+  if (dir .eq. '') then
+     make_file_path = file
+  else
+     make_file_path = trim(trim(dir) // '/' // file)
+  endif
+  return
+end function make_file_path
+
+subroutine make_directory(dir)
+  !
+  ! Check if directory exists.  If not, create it.
+  !
+  character*(*) dir
+  logical dir_e
+  inquire(file=dir, exist=dir_e)
+  if (.not. dir_e) then
+     print *,'Creating directory: ',trim(dir)
+     call system('mkdir -p '//trim(dir))
+  endif
+end subroutine make_directory
+
 
 

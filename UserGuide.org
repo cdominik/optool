@@ -53,12 +53,13 @@ simple steps, using the GNU compiler [[https://gcc.gnu.org/wiki/GFortran][=gfort
 : cd optool
 : make
 
-If you have the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]] or the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library
-installed, or if you need more speed while using the *-d* switch, you
-can do all that with these switches:
+If prefer to use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]], if you have the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]]
+library installed and would like to write the opacities into FITS
+files instead of ASCII, or if you need more speed while using the *-d*
+switch, use one or more of these parameters during compilation:
 
-: make ifort=true         # compile using the Intel fortran compiler iFort
-: make fitsio=true        # add support for writing FITSg files with cfitsio
+: make ifort=true         # use the Intel fortran compiler iFort
+: make fitsio=true        # add support for writing FITS files
 : make multi=true         # enable multithread support for -d switch
 
 * Examples
@@ -87,7 +88,8 @@ distribution. Also, restrict the wavelength range to 10-100\mu{}m.
 : optool -c ice-w 1.0 -a 1 3 2.5 15 -l 10 100
 
 Represent the default dust model (DIANA) in 42 grain sizes, and
-produce input files with full scattering matrix for RADMC-3D.
+produce input files, one for each grain size, with full scattering
+matrix for RADMC-3D.
 
 : optool -na 42 -d -s -radmc
 
@@ -160,9 +162,14 @@ produce input files with full scattering matrix for RADMC-3D.
 ** Controlling the output
 
 The standard output is the file =dustkappa.dat=, with the opacities
-and the asymmetry parameter /g/. The following options lead to
-extended output.  See the section [[#output-files][Output files]] for details on the
+and the asymmetry parameter /g/. The following options control and
+extend output.  See the section [[#output-files][Output files]] for details on the
 files that can be produced.
+
++ =-o DIR= ::
+
+  Put the output files in directory =DIR= instead of the current
+  working directory.
 
 + =-s= , =-scat= ::
 
@@ -173,8 +180,8 @@ files that can be produced.
 + =-t [TMIN [TMAX [NT]]]= ::
   
   Compute mean opacities per g of dust mass, \kappa_Planck and
-  \kappa_Rosseland, in the given temperature interval, in =nt= steps,
-  and write them to the file =dustkapmean.dat=. The parameters
+  \kappa_Rosseland, in the given temperature interval, in =nt=
+  logarithmic steps, with output to =dustkapmean.dat=. The parameters
   default to 10K, 10000K, and 200, respectively.
 
 + =-d [NSUB]= ::
@@ -199,6 +206,7 @@ files that can be produced.
   this switch, the extension of the files will be changed to =.inp=,
   the normalization will be modified, and if you specify LABEL, it
   will be used in the file name(s).
+
 
 
 * Material properties
