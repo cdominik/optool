@@ -85,6 +85,18 @@ def opinspect():
     if scat:
         angfmt  = np.round(scatang,decimals=3)
 
+    if (path.exists('dustkapmean.dat')):
+        meanfile = 'dustkapmean.dat'
+        data = np.loadtxt(meanfile,skiprows=1)
+        temp = data[:,0]
+        kplanck = data[:,1]
+        kross = data[:,2]
+        plt.loglog(temp,kplanck)
+        plt.loglog(temp,kross)
+        plt.legend(('kappa_Planck', 'kappa_Ross'))
+        plt.show(block=False)
+
+
     if scat:
         # interactive plot of the scattering matric elements
         viewarr([f11,f12,f22,f33,f34,f44],index=2,ylabel=['f11','f12','f22','f33','f34','f44'],
