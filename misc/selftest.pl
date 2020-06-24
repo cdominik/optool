@@ -18,7 +18,7 @@ $dir = 'op_selftest';
 
 my $tests = [
   {name => 'quick',
-   prepare => "rm -f $dir/dustkapscatmat.dat"
+   prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -na 10 -nl 30 -s -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
    sha => "83cf962afca0d894fca831b01daa5fe504dd161c"},
@@ -26,7 +26,7 @@ my $tests = [
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -s -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => 'e6f6693e7c04288600be6034e92bf2cb42ee44e4'}
+   sha => 'e6f6693e7c04288600be6034e92bf2cb42ee44e4'},
   {name => 'radmc-in-42-parts',
    prepare => "rm -f $dir/dustkapscatmat_0{01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42}.inp",
    cmd  => "./optool -na 42 -nl 100 -s -d -radmc -o $dir",
@@ -36,6 +36,7 @@ my $tests = [
 
 foreach $test (@$tests) {
   print "Running test: $test->{name}....\n";
+  system($test->{prepare}) if $test->{prepare};
   system($test->{cmd});
   $file = $test->{file};
   $getsha = $test->{getsha};
