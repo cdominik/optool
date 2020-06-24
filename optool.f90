@@ -51,8 +51,8 @@ module Defs
   character*500,  allocatable  :: mat_lnk(:)   ! the lnk key of file path
   real (kind=dp), allocatable  :: mat_rho(:)   ! specific mass density of material
   real (kind=dp), allocatable  :: mat_mfr(:)   ! mass fraction of each component
-  real (kind=dp), allocatable  :: mat_e1(:,:)  ! Real      componont of ref index
-  real (kind=dp), allocatable  :: mat_e2(:,:)  ! Imaginary componont of ref index
+  real (kind=dp), allocatable  :: mat_e1(:,:)  ! Real      part of refractive index
+  real (kind=dp), allocatable  :: mat_e2(:,:)  ! Imaginary part of refractive index
   ! ------------------------------------------------------------------------
   ! Mueller matrix structure, records only non-zero elements of the matrix
   ! ------------------------------------------------------------------------
@@ -569,6 +569,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   !   p_m        The porosity of the mantle, if there is one
   !   mfrac0     An array of nm mass fraction for the various materials.
   !   nm0        The number of materials, also the size of the array mfrac
+  !   progress   When .true. give information about progress
   !
   ! OUTPUT
   !   p          A "particle" structure to return all the information in.
@@ -644,7 +645,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! Allocate the necessary arrays
   ! ----------------------------------------------------------------------
   mn_max = nm0+1 ! Allocate one more, because vacuum will also be a material
-  allocate(Mief11(n_ang),Mief12(n_ang),Mief22(n_ang),Mief33(n_ang),Mief34(n_ang),Mief44(n_ang))
+  allocate(Mief11(n_ang),Mief12(n_ang),Mief22(n_ang),Mief33(n_ang))
+  allocate(Mief34(n_ang),Mief44(n_ang))
   allocate(mu(n_ang),M1(n_ang,2),M2(n_ang,2),S21(n_ang,2),D21(n_ang,2))
 
   allocate(vfrac(mn_max),mfrac(mn_max),rho(mn_max))
@@ -1462,6 +1464,40 @@ subroutine remove_file_if_exists (file)
   endif
 end subroutine remove_file_if_exists
 
+function make_file_path(directory,file)
+  !
+  ! Concatenate directory and file, with sanity checks and fixes
+  !
+  character*(*) :: directory,file
+  character*500 :: dir,make_file_path
+  integer l
+  dir = trim(directory)
+  l = len_trim(dir)
+  do while ((l .gt. 1) .and. dir(l:l) .eq. '/')
+     dir(l:l) = ' '
+     l = len_trim(dir)
+  enddo
+  if (dir .eq. '') then
+     make_file_path = file
+  else
+     make_file_path = trim(trim(dir) // '/' // file)
+  endif
+  return
+end function make_file_path
+
+subroutine make_directory(dir)
+  !
+  ! Check if directory exists.  If not, create it.
+  !
+  character*(*) dir
+  logical dir_e
+  inquire(file=dir, exist=dir_e)
+  if (.not. dir_e) then
+     print *,'Creating directory: ',trim(dir)
+     call system('mkdir -p '//trim(dir))
+  endif
+end subroutine make_directory
+
 ! ----------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------
@@ -1904,9 +1940,9 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
 
   !  Write the array to the FITS file.
 
-  !------------------------------------------------------------------------------
+  ! ----------------------------------------------------------------
   ! HDU 0: opacities
-  !------------------------------------------------------------------------------
+  ! ----------------------------------------------------------------
 
   do i=1,nlam
      array(i,1,1)=lam(i)
@@ -1920,9 +1956,9 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
 
   deallocate(array)
 
-  !------------------------------------------------------------------------------
+  ! ----------------------------------------------------------------
   ! HDU 1: scattering matrix
-  !------------------------------------------------------------------------------
+  ! ----------------------------------------------------------------
   bitpix=-64
   naxis=3
   naxes(1)=nlam
@@ -2097,7 +2133,7 @@ subroutine mean_opacities(lambda,nlam,kabs,ksca,g,tmin,tmax,ntemp,file)
 end subroutine mean_opacities
 
 
-!----------------------------------------------------------------------------
+! ---------------------------------------------------------------------------
 !                THE BLACKBODY PLANCK FUNCTION B_nu(T)
 !
 !     This function computes the Blackbody function
@@ -2109,7 +2145,7 @@ end subroutine mean_opacities
 !     ARGUMENTS:
 !        nu    [Hz]            = Frequency
 !        temp  [K]             = Temperature
-!----------------------------------------------------------------------------
+! ---------------------------------------------------------------------------
 function bplanck(temp,nu)
   implicit none
   doubleprecision :: temp
@@ -2127,7 +2163,7 @@ function bplanck(temp,nu)
   return
 end function bplanck
 
-!----------------------------------------------------------------------------
+! --------------------------------------------------------------------------
 !           THE TEMPERATURE DERIVATIVE OF PLANCK FUNCTION
 !
 !      This function computes the temperature derivative of the
@@ -2140,7 +2176,7 @@ end function bplanck
 !      ARGUMENTS:
 !         nu    [Hz]            = Frequency
 !         temp  [K]             = Temperature
-!----------------------------------------------------------------------------
+!  -------------------------------------------------------------------------
 function bplanckdt(temp,nu)
   implicit none
   doubleprecision :: temp,nu
@@ -2156,40 +2192,5 @@ function bplanckdt(temp,nu)
   endif
   return
 end function bplanckdt
-
-function make_file_path(directory,file)
-  !
-  ! Concatenate directory and file, with sanity checks and fixes
-  !
-  character*(*) :: directory,file
-  character*500 :: dir,make_file_path
-  integer l
-  dir = trim(directory)
-  l = len_trim(dir)
-  do while ((l .gt. 1) .and. dir(l:l) .eq. '/')
-     dir(l:l) = ' '
-     l = len_trim(dir)
-  enddo
-  if (dir .eq. '') then
-     make_file_path = file
-  else
-     make_file_path = trim(trim(dir) // '/' // file)
-  endif
-  return
-end function make_file_path
-
-subroutine make_directory(dir)
-  !
-  ! Check if directory exists.  If not, create it.
-  !
-  character*(*) dir
-  logical dir_e
-  inquire(file=dir, exist=dir_e)
-  if (.not. dir_e) then
-     print *,'Creating directory: ',trim(dir)
-     call system('mkdir -p '//trim(dir))
-  endif
-end subroutine make_directory
-
 
 
