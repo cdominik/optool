@@ -1754,7 +1754,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
 
   else
 
-     write(*,'("Writing full scattering data to file: ",A)') trim(file2)
+     if (progress) write(*,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
           p_core,p_mantle,fmax,mfrac,nm)
