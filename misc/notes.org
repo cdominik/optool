@@ -40,7 +40,7 @@
 # + =-B= ::
 # 
 #   Use the old style Blender, for robustness
-** multicore
+** DONE multicore
 
 I did some tests on my 4 coures Macbook Pro, and on my 2 core Macbook
 pro.
@@ -56,6 +56,16 @@ pro.
 |   30 |  2:22 |  0:21 |  2:26 |  0:21 |
 | free |       |       |  1:48 |  1:09 |
 
+
+
+** TODO Mean opacities including Tstar and evaporation
+
+-c material mfrac tevap
+
+Then some internal magic
+
+Need to specify a dust to gas ratio, because these should be per g
+gas.  or per gicy region? or....?????
 
 ** TODO propagate rho to fits and write it there?
 ** TODO Does the angular grid have to be configurable?
