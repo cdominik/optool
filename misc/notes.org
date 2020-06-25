@@ -73,6 +73,14 @@ get a factor 6 or so, so this is pretty cool.
 |        |  7.30 |  6.13 |
 |        |       |       |
 #+TBLFM: @6$2=23::@6$3=129::@7$2=168/23;%.2f::@7$3=791/129;%.2f
+*** Testing results
+
+Everything seems to be OK with the -d switch.
+
+However, without it, when lambda is run in parallel, the resulds to
+differ, so apparently there is a problem there.  I need to go through
+it and check.
+
 ** TODO Mean opacities including Tstar and evaporation
 
 -c material mfrac tevap
