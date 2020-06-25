@@ -58,6 +58,21 @@ pro.
 
 
 
+Now I have two parallel plans.  Split runs, where we produce many
+files, makes the runs for each file parallel.  If we produce only a
+single file, then the wavelength loop is parallel.  In both cases we
+get a factor 6 or so, so this is pretty cool.
+
+|        | broad | split |
+| single |  2:48 | 13:11 |
+| multi  |  0:23 |  2:09 |
+|        |       |       |
+|--------+-------+-------|
+|        |   168 |   791 |
+|        |    23 |   129 |
+|        |  7.30 |  6.13 |
+|        |       |       |
+#+TBLFM: @6$2=23::@6$3=129::@7$2=168/23;%.2f::@7$3=791/129;%.2f
 ** TODO Mean opacities including Tstar and evaporation
 
 -c material mfrac tevap
