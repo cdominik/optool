@@ -38,6 +38,7 @@ module Defs
   logical, public                :: verbose   = .false. ! additional output
   logical, public                :: blendonly = .false. ! only blend materials and write result out
   logical, public                :: CLBlend   = .true.  ! use Charléne Lefévre's new blender
+  logical, public                :: split     = .false. ! split to many files
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
@@ -123,7 +124,6 @@ program optool
   character*50    :: radmclbl   = ""              ! file label for RADMC-3D compatible
   character*50    :: label                        ! for use in file names
 
-  logical         :: split=.false.
   real (kind=dp)  :: asplit,afact,afsub,amaxsplit,aminsplit
   integer         :: nsubgrains = 5,nsub
 
@@ -472,8 +472,9 @@ program optool
      afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
 
-     ! Commented !$ call OMP_set_num_threads(8)
-     !$OMP parallel do default(none)                                              &
+     !xxx!$ call OMP_set_num_threads(2)
+     !$OMP parallel do  if (split) &
+     !$OMP default(none)                                              &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)                &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,p_core,p_mantle,mat_mfr,mat_nm) &
      !$OMP shared(lmin,lmax,write_scatter,for_radmc,write_fits,radmclbl)
@@ -577,6 +578,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   !              See the module Defs for the definition.
   ! ----------------------------------------------------------------------
   use Defs
+  use omp_lib
   implicit none
 
   real (kind=dp)                 :: amin,amax,apow   ! min and max grain size, and power law exp
@@ -600,7 +602,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   integer                        :: na               ! Number of grains sizes between amin and amax
   integer                        :: nf,if            ! Number of DHS volume fractions
   integer                        :: ns,is            ! Number of grains sizes
-  integer                        :: ilam,il          ! Counter for wavelengths
+  integer                        :: ilam,il,ndone    ! Counter for wavelengths
   integer                        :: i_mantle         ! Index of mantle material, if any
   integer                        :: err,spheres,toolarge ! Error control for Mie routines
 
@@ -903,11 +905,28 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      wf(1) = 1d0
   endif
 
+  ndone = 0
   ! ----------------------------------------------------------------------
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
+  !xxx!$ call OMP_set_num_threads(8)
+  !$OMP parallel do  if (.not. split)      &
+  !$OMP default(none) &
+  !$OMP private(tot,tot2) &
+  !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
+  !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge) &
+  !$OMP private(r1) &
+  !$OMP private(m1,m2,rcore,d21,s21,m,wvno,f,rad,min) &
+  !$OMP private(f11,f12,f22,f33,f34,f44) &
+  !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44) &
+  !$OMP private(csca,cabs,cext,mass,vol,theta,mu) &
+  !$OMP shared(r,lam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,ndone,progress,nlam) &
+  !$OMP shared(split)
   do ilam = 1,nlam
+     !$OMP critical
+     ndone=ndone+1
      if (progress) call tellertje(ilam,nlam)
+     !$OMP end critical
      csca     = 0d0
      cabs     = 0d0
      cext     = 0d0
@@ -922,6 +941,19 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! ----------------------------------------------------------------------
      ! Start the main loop over all particle sizes
      ! ----------------------------------------------------------------------
+     !zzz!yyy! Commented !$ call OMP_set_num_threads(8)
+     !zzz!$OMP parallel do        &
+     !zzz!$OMP default(none) &
+     !zzz!$OMP private(tot,tot2) &
+     !zzz!$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
+     !zzz!$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge) &
+     !zzz!$OMP private(r1) &
+     !zzz!$OMP private(m1,m2,rcore,d21,s21,m,wvno,f,rad,min) &
+     !zzz!$OMP private(f11,f12,f22,f33,f34,f44) &
+     !zzz!$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44) &
+     !zzz!$OMP shared(csca,cabs,cext,mass,vol,theta,mu) &
+     !zzz!$OMP shared(ilam) &
+     !zzz!$OMP shared(r,lam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,ndone,progress,nlam)
      do is=1,ns
         r1       = r(is)
         err      = 0
@@ -1031,11 +1063,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         csca = csca + csca_ff
 
      enddo   ! end loop "is" over grain sizes
+     !zzz!$OMP end parallel DO
 
      ! ----------------------------------------------------------------------
      ! Set the cross sections
      ! ----------------------------------------------------------------------
-     p%rho  = mass/vol
+     if (ilam .eq.1) p%rho  = mass/vol
      p%Kext(ilam) = 1d4 * cext / mass
      p%Kabs(ilam) = 1d4 * cabs / mass
      p%Ksca(ilam) = 1d4 * csca / mass
@@ -1071,7 +1104,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      !enddo
      !print *,tot,tot2,tot/4/pi
 
-  enddo
+  enddo   ! end loop ilam over wavelength
+  !$OMP end parallel DO
+  if (progress) write(*,*)
+
   
   deallocate(e1,e2)
   deallocate(e1mantle,e2mantle)
@@ -1439,7 +1475,7 @@ subroutine tellertje(i,n)
      write(*,'(".",$)')
      call flush(6)
   endif
-  if(i.eq.n) write(*,*)
+!  if(i.eq.n) write(*,*)
   return
 end subroutine tellertje
 
@@ -1474,10 +1510,12 @@ function make_file_path(directory,file)
   integer l
   dir = trim(directory)
   l = len_trim(dir)
-  do while ((l .gt. 1) .and. dir(l:l) .eq. '/')
-     dir(l:l) = ' '
-     l = len_trim(dir)
-  enddo
+  if (l.gt.1) then
+     do while ((l .gt. 1) .and. dir(l:l) .eq. '/')
+        dir(l:l) = ' '
+        l = len_trim(dir)
+     enddo
+  endif
   if (dir .eq. '') then
      make_file_path = file
   else
