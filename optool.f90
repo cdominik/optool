@@ -469,7 +469,6 @@ program optool
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
      ndone = 0; call tellertje(ndone,na)
      
-     !! This is off, we use default N_threads !$ call OMP_set_num_threads(8)
      !$OMP parallel do if (split)                                                 &
      !$OMP default(none)                                                          &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,p_core,p_mantle,mat_mfr,mat_nm) &
@@ -823,7 +822,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            ! Charlène Lefévre's new blender
            call brugg(vfrac,nm,epsj,eps_eff)
         else
-           ! The old Blender from OpacityTool.  Never fails, but not as good
+           ! The old Blender from OpacityTool.
+           ! Never fails, but might not be converged
            ! ASKMICHIEL
            call Blender(vfrac,nm,epsj,eps_eff)
         endif
@@ -909,7 +909,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! ----------------------------------------------------------------------
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
-  !! This is off, we use default N_threads !$ call OMP_set_num_threads(8)
   !$OMP parallel do if (.not. split)                                   &
   !$OMP default(none)                                                  &
   !$OMP shared(f11,f12,f22,f33,f34,f44)                                &
@@ -924,7 +923,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   !$OMP private(tot,tot2)
   do ilam = 1,nlam
      !$OMP critical
-     ndone=ndone+1
+     ndone = ndone+1
      if (progress) call tellertje(ndone,nlam)
      !$OMP end critical
      csca     = 0d0
