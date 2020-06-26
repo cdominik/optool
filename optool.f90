@@ -473,7 +473,7 @@ program optool
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
 
      !xxx!$ call OMP_set_num_threads(2)
-     !$OMP parallel do  if (split) &
+     !$OMP parallel do if (.false.) &
      !$OMP default(none)                                              &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)                &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,p_core,p_mantle,mat_mfr,mat_nm) &
@@ -910,17 +910,17 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
   !xxx!$ call OMP_set_num_threads(8)
-  !$OMP parallel do  if (.not. split)      &
+  !$OMP parallel do if (.false.) &
   !$OMP default(none) &
   !$OMP private(tot,tot2) &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
   !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge) &
-  !$OMP private(r1) &
-  !$OMP private(m1,m2,rcore,d21,s21,m,wvno,f,rad,min) &
+  !$OMP private(r1,is,if) &
+  !$OMP private(m1,m2,rcore,d21,s21,m,wvno,rad,min) &
   !$OMP private(f11,f12,f22,f33,f34,f44) &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44) &
   !$OMP private(csca,cabs,cext,mass,vol,theta,mu) &
-  !$OMP shared(r,lam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,ndone,progress,nlam) &
+  !$OMP shared(r,lam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f,ndone,progress,nlam) &
   !$OMP shared(split)
   do ilam = 1,nlam
      !$OMP critical
@@ -933,7 +933,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      mass     = 0d0
      vol      = 0d0
 
-     do j=1,n_ang/2
+     do j=1,n_ang/2  ! FIXME could be outside of the loop!
         theta=(real(j)-0.5)/real(n_ang/2)*pi/2d0
         mu(j)=cos(theta)
      enddo
@@ -942,7 +942,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! Start the main loop over all particle sizes
      ! ----------------------------------------------------------------------
      !zzz!yyy! Commented !$ call OMP_set_num_threads(8)
-     !zzz!$OMP parallel do        &
+     !zzz!$OMP parallel do if (.false.)       &
      !zzz!$OMP default(none) &
      !zzz!$OMP private(tot,tot2) &
      !zzz!$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
@@ -1088,6 +1088,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! ----------------------------------------------------------------------
      ! FIXME: a regular angular grid is assumed for this computation
      tot = 0.0_dp
+     p%g(ilam) = 0.d0  !FIXME we never did this, why did this not cause problems???
      do i=1,180
         p%g(ilam) = p%g(ilam) + p%F(ilam)%F11(i)*cos(pi*(real(i)-0.5)/180d0) &
              *sin(pi*(real(i)-0.5)/180d0)
