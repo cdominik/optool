@@ -112,7 +112,7 @@ program optool
   integer         :: nm              ! nr of grain materials
 
   type(particle)  :: p
-  integer         :: i               ! counter
+  integer         :: i,ndone         ! counter
   integer         :: im,ia           ! for material, radius
   character*100   :: tmp
   character*100   :: value
@@ -463,21 +463,18 @@ program optool
   ! ----------------------------------------------------------------------
   if (split) then
      write(*,'("Computing opacities for ",I3," different grain size bins")') na
-     do i=1,na
-        write(*,'(".",$)')
-     enddo
-     write(*,*)
      nsub = nsubgrains
      if (mod(nsub,2).eq.0) nsub = nsub+1
      afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
-
-     !aaa!xxx!$ call OMP_set_num_threads(2)
-     !$OMP parallel do if (split) &
-     !$OMP default(none)                                              &
-     !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)                &
+     ndone = 0; call tellertje(ndone,na)
+     
+     !! This is off, we use default N_threads !$ call OMP_set_num_threads(8)
+     !$OMP parallel do if (split)                                                 &
+     !$OMP default(none)                                                          &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,p_core,p_mantle,mat_mfr,mat_nm) &
-     !$OMP shared(lmin,lmax,write_scatter,for_radmc,write_fits,radmclbl)
+     !$OMP shared(lmin,lmax,write_scatter,for_radmc,write_fits,radmclbl,ndone,na) &
+     !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
         asplit    = amin  *afact**real(ia-1+0.5)
         aminsplit = asplit*afsub**real(-nsub/2)
@@ -485,8 +482,10 @@ program optool
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,p_core,p_mantle, &
              mat_mfr,mat_nm,.false.)
 
+        ! We do not allow the output to be parallel
         !$OMP critical
-        write(*,'(".",$)')
+        ndone = ndone + 1
+        call tellertje(ndone,na)
         write(label,'(I3.3)') ia
         if (write_fits) then
 #ifdef USE_FITSIO
@@ -906,26 +905,27 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   endif
 
   ndone = 0
+  if (progress) call tellertje(ndone,nlam)
   ! ----------------------------------------------------------------------
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
-  !xxx!$ call OMP_set_num_threads(8)
-  !$OMP parallel do if (.not. split) &
-  !$OMP default(none) &
-  !$OMP private(tot,tot2) &
+  !! This is off, we use default N_threads !$ call OMP_set_num_threads(8)
+  !$OMP parallel do if (.not. split)                                   &
+  !$OMP default(none)                                                  &
+  !$OMP shared(f11,f12,f22,f33,f34,f44)                                &
+  !$OMP shared(r,lam,nlam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f) &
+  !$OMP shared(split,progress,ndone)                                   &
+  !$OMP private(r1,is,if,rcore,rad)                                    &
+  !$OMP private(csca,cabs,cext,mass,vol,theta,mu)                      &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
-  !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge) &
-  !$OMP private(r1,is,if) &
-  !$OMP private(m1,m2,rcore,d21,s21,m,wvno,rad,min) &
-  !$OMP shared(f11,f12,f22,f33,f34,f44) &
-  !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44) &
-  !$OMP private(csca,cabs,cext,mass,vol,theta,mu) &
-  !$OMP shared(r,lam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f,ndone,progress,nlam) &
-  !$OMP shared(split)
+  !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge)          &
+  !$OMP private(m1,m2,d21,s21,m,wvno,min)                              &
+  !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)             &
+  !$OMP private(tot,tot2)
   do ilam = 1,nlam
      !$OMP critical
      ndone=ndone+1
-     if (progress) call tellertje(ilam,nlam)
+     if (progress) call tellertje(ndone,nlam)
      !$OMP end critical
      csca     = 0d0
      cabs     = 0d0
@@ -941,19 +941,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! ----------------------------------------------------------------------
      ! Start the main loop over all particle sizes
      ! ----------------------------------------------------------------------
-     !zzz!yyy! Commented !$ call OMP_set_num_threads(8)
-     !zzz!$OMP parallel do       &
-     !zzz!$OMP default(none) &
-     !zzz!$OMP private(tot,tot2) &
-     !zzz!$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
-     !zzz!$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge) &
-     !zzz!$OMP private(r1) &
-     !zzz!$OMP private(m1,m2,rcore,d21,s21,m,wvno,f,rad,min) &
-     !zzz!$OMP private(f11,f12,f22,f33,f34,f44) &
-     !zzz!$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44) &
-     !zzz!$OMP shared(csca,cabs,cext,mass,vol,theta,mu) &
-     !zzz!$OMP shared(ilam) &
-     !zzz!$OMP shared(r,lam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,ndone,progress,nlam)
      do is=1,ns
         r1       = r(is)
         err      = 0
@@ -1063,7 +1050,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         csca = csca + csca_ff
 
      enddo   ! end loop "is" over grain sizes
-     !zzz!$OMP end parallel DO
 
      ! ----------------------------------------------------------------------
      ! Set the cross sections
@@ -1473,17 +1459,23 @@ subroutine tellertje(i,n)
   ! ----------------------------------------------------------------------
   ! Show a progress bar on STDOUT
   ! ----------------------------------------------------------------------
-  use Defs
   implicit none
-  integer :: i,n,f
-  if(i.eq.1) write(*,'("....................")')
-  f=int(20.0_dp*dble(i)/dble(n))
-  if(20.0_dp*real(i-1)/real(n) .lt. real(f) &
-       & .and. 20.0_dp*real(i+1)/real(n).GT.real(f)) then
-     write(*,'(".",$)')
-     call flush(6)
+  integer :: i,n,f,l,ndots,maxdots=20,mindots=20
+  ndots = max(mindots,min(n,maxdots))
+  if(i.eq.0) then
+     do l=1,ndots
+        write(*,'(".",$)')
+     enddo
+     write(*,*)
+  else
+     f = int(dble(ndots)*dble(i)/dble(n))
+     if(dble(ndots)*real(i-1)/real(n) .lt. real(f) &
+          & .and. dble(ndots)*real(i+1)/real(n).GT.real(f)) then
+        write(*,'(".",$)')
+        call flush(6)
+     endif
+     if(i.eq.n) write(*,*)
   endif
-!  if(i.eq.n) write(*,*)
   return
 end subroutine tellertje
 
