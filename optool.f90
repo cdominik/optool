@@ -472,8 +472,8 @@ program optool
      afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
 
-     !xxx!$ call OMP_set_num_threads(2)
-     !$OMP parallel do if (.false.) &
+     !aaa!xxx!$ call OMP_set_num_threads(2)
+     !$OMP parallel do if (split) &
      !$OMP default(none)                                              &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)                &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,p_core,p_mantle,mat_mfr,mat_nm) &
@@ -910,14 +910,14 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
   !xxx!$ call OMP_set_num_threads(8)
-  !$OMP parallel do if (.false.) &
+  !$OMP parallel do if (.not. split) &
   !$OMP default(none) &
   !$OMP private(tot,tot2) &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
   !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge) &
   !$OMP private(r1,is,if) &
   !$OMP private(m1,m2,rcore,d21,s21,m,wvno,rad,min) &
-  !$OMP private(f11,f12,f22,f33,f34,f44) &
+  !$OMP shared(f11,f12,f22,f33,f34,f44) &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44) &
   !$OMP private(csca,cabs,cext,mass,vol,theta,mu) &
   !$OMP shared(r,lam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f,ndone,progress,nlam) &
@@ -942,7 +942,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! Start the main loop over all particle sizes
      ! ----------------------------------------------------------------------
      !zzz!yyy! Commented !$ call OMP_set_num_threads(8)
-     !zzz!$OMP parallel do if (.false.)       &
+     !zzz!$OMP parallel do       &
      !zzz!$OMP default(none) &
      !zzz!$OMP private(tot,tot2) &
      !zzz!$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
@@ -1097,18 +1097,25 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      p%g(ilam) = p%g(ilam)/tot
 
      ! Check the normalization of F11
-     !tot  = 0d0; tot2 = 0d0
-     !do j=1,n_ang
-     !   !                  F11                      (sin phi)                      d phi        2pi
-     !   tot  = tot +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(n_ang))) * (pi/180.d0) * (2.d0*pi)
-     !   tot2 = tot2 + sin(pi*(real(j)-0.5)/real(n_ang))*pi/180.d0*2.d0*pi
-     !enddo
-     !print *,tot,tot2,tot/4/pi
+     tot  = 0d0; tot2 = 0d0
+     do j=1,n_ang
+        !                  F11                      (sin phi)                      d phi        2pi
+        tot  = tot +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(n_ang))) * (pi/180.d0) * (2.d0*pi)
+        tot2 = tot2 + sin(pi*(real(j)-0.5)/real(n_ang))*pi/180.d0*2.d0*pi
+     enddo
+ !    print *,tot,tot2,tot/4/pi,p%F(ilam)%F11(1),p%F(ilam)%F11(2),p%F(ilam)%F11(3)
 
+     ! do it again, using mu integration
+     tot  = 0d0; tot2 = 0d0
+     do j=1,n_ang-1
+        !                  F11                      (sin phi)                      d phi        2pi
+        tot  = tot +  2.d0*pi*p%F(ilam)%F11(j) * (cos(pi*(real(j)/real(n_ang))) - cos(pi*(real(j-1)/real(n_ang))))
+     enddo
+!     print *,'mu integration gives: ',tot,tot/4.d0/pi
+     
   enddo   ! end loop ilam over wavelength
   !$OMP end parallel DO
   if (progress) write(*,*)
-
   
   deallocate(e1,e2)
   deallocate(e1mantle,e2mantle)

@@ -11,7 +11,7 @@ ifeq ($(ifort),true)
 endif
 
 # Multicore support
-ifneq ($(multi),false)
+ifeq ($(multi),true)
     ifeq ($(ifort),true)
 	MULTICORE = -openmp -fp-model strict
     else
