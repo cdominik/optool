@@ -44,6 +44,10 @@ module Defs
   real (kind=dp), allocatable    :: lam(:)     ! wavelength array
   integer                        :: nlam       ! nr of wavelength points
   ! ----------------------------------------------------------------------
+  ! Number of angles to be considered
+  ! ----------------------------------------------------------------------
+  integer                        :: nang
+  ! ----------------------------------------------------------------------
   ! Material properties
   ! ----------------------------------------------------------------------
   integer                      :: mat_nm       ! number of materials specified
@@ -58,7 +62,7 @@ module Defs
   ! Mueller matrix structure, records only non-zero elements of the matrix
   ! ----------------------------------------------------------------------
   type mueller
-     real (kind=dp) :: F11(180),F12(180),F22(180),F33(180),F44(180),F34(180)
+     real (kind=dp),allocatable :: F11(:),F12(:),F22(:),F33(:),F44(:),F34(:)
   end type mueller
   ! ----------------------------------------------------------------------
   ! The particle structure, contains particle and scattering properties
@@ -138,6 +142,8 @@ program optool
   lmax           = 10000.0_dp ! micrometer
   nlam           = 300
 
+  nang           = 180        ! FIXME make configurable
+  
   tmin           = 10d0       ! K
   tmax           = 1d4        ! K
   nt             = 200
@@ -338,6 +344,9 @@ program optool
         endif
      case('-s','-scatter','-scat')
         write_scatter=.true.
+        if (arg_is_value(i+1)) then
+           i=i+1; call getarg(i,value); read(value,*) nang
+        endif
      case('-radmc','-radmc3d')
         for_radmc = .true.
         if (arg_is_value(i+1)) then
@@ -375,6 +384,10 @@ program optool
   if (split .and. blendonly) then
      write(*,*) 'WARNING: Turning off -s for -blendonly'
      split = .false.
+  endif
+  if (mod(nang,2) .eq. 1) then
+     write(*,*) 'ERROR: The number of angles in -s NANG must be even'
+     stop
   endif
 #ifndef USE_FITSIO
   if (write_fits) then
@@ -435,6 +448,11 @@ program optool
   allocate(p%Ksca(nlam))
   allocate(p%g(nlam))
   allocate(p%F(nlam))
+  do i=1,nlam
+     allocate(p%F(i)%F11(nang),p%F(i)%F12(nang),p%F(i)%F22(nang))
+     allocate(p%F(i)%F33(nang),p%F(i)%F34(nang),p%F(i)%F44(nang))
+  enddo
+  
 
   ! Allocate space for the refractive indices
   allocate(mat_e1(nm+1,nlam),mat_e2(nm+1,nlam))
@@ -528,6 +546,9 @@ program optool
   endif
   
   deallocate(mat_num,mat_loc,mat_lnk,mat_mfr,mat_rho)
+  do i=1,nlam
+     deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
+  enddo
   deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F)
 
 end program optool
@@ -583,7 +604,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
 
   integer                        :: i,j              ! counters for various loops
   integer                        :: mn_max           ! maximum number of grain material
-  integer, parameter             :: n_ang = 180      ! number of angles FIXME let the user set this?
   integer                        :: na               ! Number of grains sizes between amin and amax
   integer                        :: nf,if            ! Number of DHS volume fractions
   integer                        :: ns,is            ! Number of grains sizes
@@ -633,14 +653,14 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! Allocate the necessary arrays
   ! ----------------------------------------------------------------------
   mn_max = nm0+1 ! Allocate one more, because vacuum will also be a material
-  allocate(Mief11(n_ang),Mief12(n_ang),Mief22(n_ang),Mief33(n_ang))
-  allocate(Mief34(n_ang),Mief44(n_ang))
-  allocate(mu(n_ang),M1(n_ang,2),M2(n_ang,2),S21(n_ang,2),D21(n_ang,2))
+  allocate(Mief11(nang),Mief12(nang),Mief22(nang),Mief33(nang))
+  allocate(Mief34(nang),Mief44(nang))
+  allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
 
   allocate(vfrac(mn_max),mfrac(mn_max),rho(mn_max))
   allocate(epsj(mn_max))
-  allocate(f11(n_ang),f12(n_ang),f22(n_ang))
-  allocate(f33(n_ang),f34(n_ang),f44(n_ang))
+  allocate(f11(nang),f12(nang),f22(nang))
+  allocate(f33(nang),f34(nang),f44(nang))
 
   allocate(e1(mn_max,nlam),e2(mn_max,nlam))
   allocate(e1blend(nlam),e2blend(nlam))
@@ -871,9 +891,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! ----------------------------------------------------------------------
   ! Initialize mu
   ! ----------------------------------------------------------------------
-  do j=1,n_ang/2
-     theta=(real(j)-0.5)/real(n_ang/2)*pi/2d0
-     mu(j)=cos(theta)
+  do j=1,nang/2
+     theta = (real(j)-0.5)/real(nang/2)*pi/2d0  ! FIXME check, is this right?
+     mu(j) = cos(theta)
   enddo
   
   ! ----------------------------------------------------------------------
@@ -884,7 +904,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
   !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f) &
-  !$OMP shared(split,progress,ndone)                                      &
+  !$OMP shared(split,progress,ndone,nang)                                 &
   !$OMP private(r1,is,if,rcore,rad)                                       &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
@@ -897,7 +917,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! ----------------------------------------------------------------------
      ! Initialize the scattering matrix elements and summing variables
      ! ----------------------------------------------------------------------
-     do j=1,n_ang
+     do j=1,nang
         f11(j) = 0d0; f12(j) = 0d0; f22(j) = 0d0
         f33(j) = 0d0; f34(j) = 0d0; f44(j) = 0d0
      enddo
@@ -931,13 +951,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            else if (meth(1:3) .eq. 'DHS') then
               rcore = rad*f(if)**(1d0/3d0)
               call DMiLay(rcore, rad, wvno, m, min, mu, &
-                   n_ang/2, qext, qsca, qabs, gqsc, &
-                   m1, m2, s21, d21, n_ang ,err)
+                   nang/2, qext, qsca, qabs, gqsc, &
+                   m1, m2, s21, d21, nang ,err)
            else
               rcore = rad*0.999
               call DMiLay(rcore, rad, wvno, min, m, mu, &
-                   n_ang/2, qext, qsca, qabs, gqsc, &
-                   m1, m2, s21, d21, n_ang ,err)
+                   nang/2, qext, qsca, qabs, gqsc, &
+                   m1, m2, s21, d21, nang ,err)
            endif
            if (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1) then
               rad   = r1
@@ -949,10 +969,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
               if (err.eq.1 .or. if.eq.1) then
                  if (rmie/lmie.lt.5000d0) then
                     call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
-                         Mief11,Mief12,Mief33,Mief34,n_ang)
+                         Mief11,Mief12,Mief33,Mief34,nang)
                  else
                     call MeerhoffMie(rmie,rmie/5000d0,e1mie,e2mie,csmie,cemie, &
-                         Mief11,Mief12,Mief33,Mief34,n_ang)
+                         Mief11,Mief12,Mief33,Mief34,nang)
                  endif
               endif
 
@@ -962,21 +982,21 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            else
               cemie = qext * pi * rad**2
               csmie = qsca * pi * rad**2
-              do j=1,n_ang/2
-                 Mief11(j) = (M2(j,1) + M1(j,1))         / csmie/wvno**2*2d0*pi
-                 Mief12(j) = (M2(j,1) - M1(j,1))         / csmie/wvno**2*2d0*pi
-                 Mief22(j) = (M2(j,1) + M1(j,1))         / csmie/wvno**2*2d0*pi
-                 Mief33(j) = (S21(j,1))                  / csmie/wvno**2*2d0*pi
-                 Mief34(j) = (-D21(j,1))                 / csmie/wvno**2*2d0*pi
-                 Mief44(j) = (S21(j,1))                  / csmie/wvno**2*2d0*pi
+              do j=1,nang/2
+                 Mief11(j) = (M2(j,1) + M1(j,1))        / csmie/wvno**2*2d0*pi
+                 Mief12(j) = (M2(j,1) - M1(j,1))        / csmie/wvno**2*2d0*pi
+                 Mief22(j) = (M2(j,1) + M1(j,1))        / csmie/wvno**2*2d0*pi
+                 Mief33(j) = (S21(j,1))                 / csmie/wvno**2*2d0*pi
+                 Mief34(j) = (-D21(j,1))                / csmie/wvno**2*2d0*pi
+                 Mief44(j) = (S21(j,1))                 / csmie/wvno**2*2d0*pi
                  ! Here we use the assumption that the grid is regular.  An adapted
                  ! grid is not possible if it is not symmetric around pi/2.
-                 Mief11(n_ang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
-                 Mief12(n_ang-j+1) = (M2(j,2) - M1(j,2)) / csmie/wvno**2*2d0*pi
-                 Mief22(n_ang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
-                 Mief33(n_ang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
-                 Mief34(n_ang-j+1) = (-D21(j,2))         / csmie/wvno**2*2d0*pi
-                 Mief44(n_ang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
+                 Mief11(nang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
+                 Mief12(nang-j+1) = (M2(j,2) - M1(j,2)) / csmie/wvno**2*2d0*pi
+                 Mief22(nang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
+                 Mief33(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
+                 Mief34(nang-j+1) = (-D21(j,2))         / csmie/wvno**2*2d0*pi
+                 Mief44(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
               enddo
            endif
 
@@ -986,16 +1006,16 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            ! and you just want to be sure that things are right on your specific grid?
            tot  = 0d0
            tot2 = 0d0
-           do j=1,n_ang
+           do j=1,nang
               ! This integration assumes that the grid is regular (linear)
-              tot  = tot +  Mief11(j)*sin(pi*(real(j)-0.5)/real(n_ang))
-              tot2 = tot2 + sin(pi*(real(j)-0.5)/real(n_ang))
+              tot  = tot +  Mief11(j)*sin(pi*(real(j)-0.5)/real(nang))
+              tot2 = tot2 + sin(pi*(real(j)-0.5)/real(nang))
            enddo
-           Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5)/real(n_ang))
+           Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5)/real(nang))
            if (Mief11(1).lt.0d0) Mief11(1) = 0d0
 
            ! Add this contribution with the proper weights
-           do j=1,n_ang
+           do j=1,nang
               f11(j) = f11(j) + wf(if)*nr(is)*Mief11(j)*csmie
               f12(j) = f12(j) + wf(if)*nr(is)*Mief12(j)*csmie
               f22(j) = f22(j) + wf(if)*nr(is)*Mief22(j)*csmie
@@ -1028,12 +1048,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! ----------------------------------------------------------------------
      ! Set the elements of the scattering matrix
      ! ----------------------------------------------------------------------
-     p%F(ilam)%F11(1:180) = f11(1:180)/csca
-     p%F(ilam)%F12(1:180) = f12(1:180)/csca
-     p%F(ilam)%F22(1:180) = f22(1:180)/csca
-     p%F(ilam)%F33(1:180) = f33(1:180)/csca
-     p%F(ilam)%F34(1:180) = f34(1:180)/csca
-     p%F(ilam)%F44(1:180) = f44(1:180)/csca
+     p%F(ilam)%F11(1:nang) = f11(1:nang)/csca
+     p%F(ilam)%F12(1:nang) = f12(1:nang)/csca
+     p%F(ilam)%F22(1:nang) = f22(1:nang)/csca
+     p%F(ilam)%F33(1:nang) = f33(1:nang)/csca
+     p%F(ilam)%F34(1:nang) = f34(1:nang)/csca
+     p%F(ilam)%F44(1:nang) = f44(1:nang)/csca
 
      ! ----------------------------------------------------------------------
      ! Average ofver angles to compute asymmetry factor g
@@ -1041,10 +1061,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! FIXME: a regular angular grid is assumed for this computation
      tot = 0.0_dp
      p%g(ilam) = 0.d0  !FIXME we never did this, why did this not cause problems???
-     do i=1,180
-        p%g(ilam) = p%g(ilam) + p%F(ilam)%F11(i)*cos(pi*(real(i)-0.5)/180d0) &
-             *sin(pi*(real(i)-0.5)/180d0)
-        tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5)/180d0)
+     do i=1,nang
+        p%g(ilam) = p%g(ilam) + p%F(ilam)%F11(i)*cos(pi*(real(i)-0.5)/dble(nang)) &
+             *sin(pi*(real(i)-0.5)/dble(nang))
+        tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5)/dble(nang))
      enddo
      p%g(ilam) = p%g(ilam)/tot
      
@@ -1813,17 +1833,17 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
         write(20,*) 0    ! This is supposed to cause an error when RADMC-3D is reading it
      endif
 
-     write(20,*) nlam ! Number of wavelength points
-     write(20,*) 181  ! Number of angular points
-     write(20,*)      ! an empty line
+     write(20,*) nlam   ! Number of wavelength points
+     write(20,*) nang+1 ! Number of angular points
+     write(20,*)         ! an empty line
      ! The opacities as function of lambda
      do ilam=1,nlam
         write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
      enddo
      write(20,*)      ! an empty line
      ! The angular grid
-     do iang=0,180
-        write(20,'(f8.2)') real(iang)
+     do iang=0,nang
+        write(20,'(f11.5)') dble(iang)/dble(nang)*180
      enddo
      write(20,*)      ! an empty line
      ! Write the scattering matrix
@@ -1834,10 +1854,10 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
         else
            f = 1.d0
         endif
-        do iang=0,180
-           ! We have only computed 0-179, but RADMC needs 180 as well
-           ! We simply repeat the 179 value
-           i = 1 + min(iang,179)
+        do iang=0,nang
+           ! We have only computed 0..nang-1, but RADMC needs a value at
+           ! 180 degrees as well. We simply repeat the last value
+           i = 1 + min(iang,nang-1)
            write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
                 p%F(ilam)%F11(i)*f,p%F(ilam)%F12(i)*f,p%F(ilam)%F22(i)*f, &
                 p%F(ilam)%F33(i)*f,p%F(ilam)%F34(i)*f,p%F(ilam)%F44(i)*f
@@ -1954,10 +1974,10 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   naxis=3
   naxes(1)=nlam
   naxes(2)=6
-  naxes(3)=180
+  naxes(3)=nang
   nelements=naxes(1)*naxes(2)*naxes(3)
 
-  allocate(array(nlam,6,180))
+  allocate(array(nlam,6,nang))
 
   ! create new hdu
   call ftcrhd(unit, status)
@@ -1966,7 +1986,7 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   call ftphpr(unit,simple,bitpix,naxis,naxes,0,1,extend,status)
 
   do i=1,nlam
-     do j=1,180
+     do j=1,nang
         array(i,1,j)=p%F(i)%F11(j)
         array(i,2,j)=p%F(i)%F12(j)
         array(i,3,j)=p%F(i)%F22(j)

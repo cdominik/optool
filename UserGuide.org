@@ -176,11 +176,12 @@ files that can be produced.
   working directory. If you use =-o= without specifying a directory,
   =./output= will be used.
 
-+ =-s= , =-scat= ::
++ =-s [NANG]= ::
 
-  Include the full scattering matrix in the output. Without this
-  switch, the output is limited to just \kappa_abs, \kappa_sca, and
-  /g/, as a function of \lambda.
+  Include the full scattering matrix in the output. =NANG= can
+  optionally specify the number of equally-spaced steps to cover the
+  range of angles between 0 and 180 degrees.  The default for =NANG=
+  is 180.
 
 + =-d [NSUB]= ::
 
@@ -195,7 +196,7 @@ files that can be produced.
   scattering matrix elements, instead of ASCII output.  With the =-d=
   switch, =NA= such files will be written, one for each grain size.
 
-+ =-radmc [LABEL]= , =-radmc3d [LABEL]=  ::
++ =-radmc [LABEL]= ::
 
   The structure of the ASCII output of =optool= is already compatible
   with RADMC-3D. However, RADMC-3D uses a different normalization for
@@ -343,7 +344,7 @@ path/to/file.lnk 0.7 3.42=
   5. asymmetry factor /g/
 
   The second HDU block contains the scattering matrix elements. This
-  is a N_\lambda \times 6 \times 180 matrix. These are the 6
+  is a N_\lambda \times 6 \times N_ang matrix. These are the 6
   elements of the scattering matrix for 180 equidistant scattering
   angles from forward scattering (element 0) to backward scattering
   (element 179) for each wavelength value. The 6 elements stored are

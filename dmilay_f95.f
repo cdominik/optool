@@ -45,7 +45,7 @@ c     .. Parameters ..
 
       INTEGER   MXANG, LL, Err
       DOUBLE PRECISION ZERO, ONE, TWO
-      PARAMETER ( MXANG = 200, LL = 200000, ZERO = 0.0D0, ONE = 1.0D0,
+      PARAMETER ( MXANG = 1440, LL = 300000, ZERO = 0.0D0, ONE = 1.0D0,
      &            TWO = 2.0D0 )
 c     ..
 c     .. Scalar Arguments ..
@@ -578,7 +578,8 @@ c     .. Scalar Arguments ..
       INTEGER   MINVAL
 c     ..
 
-      WRITE( *, '(3A,I7)' ) ' ****  Symbolic dimension  ',
+      WRITE( *, '(4A,I7)' ) 'ERROR: In dmilay_f95.f: ',
+     & 'Symboloc dimension ',
      &   DIMNAM, '  should be increased to at least ', MINVAL
 
       WRTDIM = .TRUE.
