@@ -608,7 +608,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   real (kind=dp)                 :: cext_ff, csca_ff, cabs_ff
   real (kind=dp)                 :: qext, qsca, qabs, gqsc
 
-  real (kind=dp), allocatable    :: f11(:,:),  f12(:,:),  f22(:,:),  f33(:,:),  f34(:,:),  f44(:,:)
+  real (kind=dp), allocatable    :: f11(:),    f12(:),    f22(:),    f33(:),    f34(:),    f44(:)
   real (kind=dp), allocatable    :: Mief11(:), Mief12(:), Mief22(:), Mief33(:), Mief34(:), Mief44(:)
 
   real (kind=dp), allocatable    :: mu(:)
@@ -652,8 +652,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
 
   allocate(vfrac(mn_max),mfrac(mn_max),rho(mn_max))
   allocate(epsj(mn_max))
-  allocate(f11(nlam,n_ang),f12(nlam,n_ang),f22(nlam,n_ang))
-  allocate(f33(nlam,n_ang),f34(nlam,n_ang),f44(nlam,n_ang))
+  allocate(f11(n_ang),f12(n_ang),f22(n_ang))
+  allocate(f33(n_ang),f34(n_ang),f44(n_ang))
 
   allocate(e1(mn_max,nlam),e2(mn_max,nlam))
   allocate(e1blend(nlam),e2blend(nlam))
@@ -875,20 +875,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   endif
 
   ! ----------------------------------------------------------------------
-  ! Initialize the scattering matrix elements
-  ! ----------------------------------------------------------------------
-  do il=1,nlam
-     do j=1,n_ang
-        f11(il,j) = 0d0
-        f12(il,j) = 0d0
-        f22(il,j) = 0d0
-        f33(il,j) = 0d0
-        f34(il,j) = 0d0
-        f44(il,j) = 0d0
-     enddo
-  enddo
-
-  ! ----------------------------------------------------------------------
   ! Check how we are going to average over hollow sphere components
   ! ----------------------------------------------------------------------
   if (nf.gt.1 .and. fmax.gt.0.01e0) then
@@ -904,38 +890,41 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      wf(1) = 1d0
   endif
 
-  ndone = 0
-  if (progress) call tellertje(ndone,nlam)
+  ! ----------------------------------------------------------------------
+  ! Initialize mu
+  ! ----------------------------------------------------------------------
+  do j=1,n_ang/2
+     theta=(real(j)-0.5)/real(n_ang/2)*pi/2d0
+     mu(j)=cos(theta)
+  enddo
+  
   ! ----------------------------------------------------------------------
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
-  !$OMP parallel do if (.not. split)                                   &
-  !$OMP default(none)                                                  &
-  !$OMP shared(f11,f12,f22,f33,f34,f44)                                &
-  !$OMP shared(r,lam,nlam,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f) &
-  !$OMP shared(split,progress,ndone)                                   &
-  !$OMP private(r1,is,if,rcore,rad)                                    &
-  !$OMP private(csca,cabs,cext,mass,vol,theta,mu)                      &
-  !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc) &
-  !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge)          &
-  !$OMP private(m1,m2,d21,s21,m,wvno,min)                              &
-  !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)             &
+  ndone = 0; if (progress) call tellertje(ndone,nlam)
+  !$OMP parallel do if (.not. split)                                      &
+  !$OMP default(none)                                                     &
+  !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
+  !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f) &
+  !$OMP shared(split,progress,ndone)                                      &
+  !$OMP private(r1,is,if,rcore,rad)                                       &
+  !$OMP private(csca,cabs,cext,mass,vol)                                  &
+  !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
+  !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge)             &
+  !$OMP private(m1,m2,d21,s21,m,wvno,min)                                 &
+  !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)
   do ilam = 1,nlam
-     !$OMP critical
-     ndone = ndone+1
-     if (progress) call tellertje(ndone,nlam)
-     !$OMP end critical
-     csca     = 0d0
-     cabs     = 0d0
-     cext     = 0d0
-     mass     = 0d0
-     vol      = 0d0
 
-     do j=1,n_ang/2  ! FIXME could be outside of the loop!
-        theta=(real(j)-0.5)/real(n_ang/2)*pi/2d0
-        mu(j)=cos(theta)
+     ! ----------------------------------------------------------------------
+     ! Initialize the scattering matrix elements and summing variables
+     ! ----------------------------------------------------------------------
+     do j=1,n_ang
+        f11(j) = 0d0; f12(j) = 0d0; f22(j) = 0d0
+        f33(j) = 0d0; f34(j) = 0d0; f44(j) = 0d0
      enddo
+     csca = 0d0; cabs = 0d0; cext = 0d0
+     mass = 0d0; vol  = 0d0
 
      ! ----------------------------------------------------------------------
      ! Start the main loop over all particle sizes
@@ -1029,12 +1018,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
 
            ! Add this contribution with the proper weights
            do j=1,n_ang
-              f11(ilam,j) = f11(ilam,j) + wf(if)*nr(is)*Mief11(j)*csmie
-              f12(ilam,j) = f12(ilam,j) + wf(if)*nr(is)*Mief12(j)*csmie
-              f22(ilam,j) = f22(ilam,j) + wf(if)*nr(is)*Mief22(j)*csmie
-              f33(ilam,j) = f33(ilam,j) + wf(if)*nr(is)*Mief33(j)*csmie
-              f34(ilam,j) = f34(ilam,j) + wf(if)*nr(is)*Mief34(j)*csmie
-              f44(ilam,j) = f44(ilam,j) + wf(if)*nr(is)*Mief44(j)*csmie
+              f11(j) = f11(j) + wf(if)*nr(is)*Mief11(j)*csmie
+              f12(j) = f12(j) + wf(if)*nr(is)*Mief12(j)*csmie
+              f22(j) = f22(j) + wf(if)*nr(is)*Mief22(j)*csmie
+              f33(j) = f33(j) + wf(if)*nr(is)*Mief33(j)*csmie
+              f34(j) = f34(j) + wf(if)*nr(is)*Mief34(j)*csmie
+              f44(j) = f44(j) + wf(if)*nr(is)*Mief44(j)*csmie
            enddo
            cext_ff = cext_ff + wf(if)*nr(is)*cemie
            csca_ff = csca_ff + wf(if)*nr(is)*csmie
@@ -1061,12 +1050,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! ----------------------------------------------------------------------
      ! Set the elements of the scattering matrix
      ! ----------------------------------------------------------------------
-     p%F(ilam)%F11(1:180) = f11(ilam,1:180)/csca
-     p%F(ilam)%F12(1:180) = f12(ilam,1:180)/csca
-     p%F(ilam)%F22(1:180) = f22(ilam,1:180)/csca
-     p%F(ilam)%F33(1:180) = f33(ilam,1:180)/csca
-     p%F(ilam)%F34(1:180) = f34(ilam,1:180)/csca
-     p%F(ilam)%F44(1:180) = f44(ilam,1:180)/csca
+     p%F(ilam)%F11(1:180) = f11(1:180)/csca
+     p%F(ilam)%F12(1:180) = f12(1:180)/csca
+     p%F(ilam)%F22(1:180) = f22(1:180)/csca
+     p%F(ilam)%F33(1:180) = f33(1:180)/csca
+     p%F(ilam)%F34(1:180) = f34(1:180)/csca
+     p%F(ilam)%F44(1:180) = f44(1:180)/csca
 
      ! ----------------------------------------------------------------------
      ! Average ofver angles to compute asymmetry factor g
@@ -1080,28 +1069,14 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5)/180d0)
      enddo
      p%g(ilam) = p%g(ilam)/tot
-
-     ! Check the normalization of F11
-     tot  = 0d0; tot2 = 0d0
-     do j=1,n_ang
-        !                  F11                      (sin phi)                      d phi        2pi
-        tot  = tot +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(n_ang))) * (pi/180.d0) * (2.d0*pi)
-        tot2 = tot2 + sin(pi*(real(j)-0.5)/real(n_ang))*pi/180.d0*2.d0*pi
-     enddo
- !    print *,tot,tot2,tot/4/pi,p%F(ilam)%F11(1),p%F(ilam)%F11(2),p%F(ilam)%F11(3)
-
-     ! do it again, using mu integration
-     tot  = 0d0; tot2 = 0d0
-     do j=1,n_ang-1
-        !                  F11                      (sin phi)                      d phi        2pi
-        tot  = tot +  2.d0*pi*p%F(ilam)%F11(j) * (cos(pi*(real(j)/real(n_ang))) - cos(pi*(real(j-1)/real(n_ang))))
-     enddo
-!     print *,'mu integration gives: ',tot,tot/4.d0/pi
      
+     !$OMP atomic
+     ndone = ndone+1
+     if (progress) call tellertje(ndone,nlam)
+
   enddo   ! end loop ilam over wavelength
   !$OMP end parallel DO
-  if (progress) write(*,*)
-  
+
   deallocate(e1,e2)
   deallocate(e1mantle,e2mantle)
 
