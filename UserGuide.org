@@ -406,6 +406,7 @@ where the output files are located.
 Due to conventions in our field, the input and output of =optool= uses
 the following units
 - *microns* for grain sizes and wavelengths
+- *g/cm^3* for mass densities of materials
 - *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
 - *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
   see below.
