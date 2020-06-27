@@ -10,7 +10,7 @@ subroutine usage()
   write(*,'("-c ?                      List available materials")')
   write(*,'("-c KEY-or-FILE [Mfrac]    Add material with mass fraction to core")')
   write(*,'("-m KEY-or-FILE [Mfrac]    Set material and mass fraction of mantle")')
-  write(*,'("-p POROSITY [P_MANTLE]    Set porosity, possibly different for core and mantle")')
+  write(*,'("-p POROSITY [PMANTLE]     Set porosity, possibly different for core and mantle")')
   write(*,'("-fmax VHMAX               Maximum volume fraction of vacuum in DHS computation")')
   write(*,'("-a AMIN AMAX [APOW [NA]]  Set up grain radius radius grid (unit: micron)")')
   write(*,'("-l LMIN LMAX [NLAM]       Set up wavelength grid          (unit: micron)")')
@@ -51,7 +51,6 @@ module Defs
   ! Material properties
   ! ----------------------------------------------------------------------
   integer                      :: mat_nm       ! number of materials specified
-  integer,        allocatable  :: mat_num(:)   ! number associated to a component
   character*500,  allocatable  :: mat_loc(:)   ! either 'core' or 'mantle'
   character*500,  allocatable  :: mat_lnk(:)   ! the lnk key of file path
   real (kind=dp), allocatable  :: mat_rho(:)   ! specific mass density of material
@@ -98,7 +97,7 @@ program optool
   real (kind=dp)  :: amin,amax       ! min and max size of grains
   real (kind=dp)  :: apow            ! power law index f(a) ~ a^(-apow)
   real (kind=dp)  :: fmax            ! maximum fraction of vaccum for DHS
-  real (kind=dp)  :: p_core, p_mantle! porosity for core and mantle
+  real (kind=dp)  :: pcore, pmantle  ! porosity for core and mantle
 
   real (kind=dp)  :: lmin,lmax       ! min and max wavelength
 
@@ -149,8 +148,8 @@ program optool
   nt             = 200
 
   fmax           = 0.8_dp     ! maximum volume fraction DHS
-  p_core         = 0.0_dp     ! porosity core
-  p_mantle       = 0.0_dp     ! porosity mantle
+  pcore          = 0.0_dp     ! porosity core
+  pmantle        = 0.0_dp     ! porosity mantle
 
   nm             = 0          ! number of materials - zero to start with
 
@@ -162,7 +161,6 @@ program optool
   ! ----------------------------------------------------------------------
   ! Allocate space for up to 12 different materials
   ! ----------------------------------------------------------------------
-  allocate(mat_num(12))
   allocate(mat_loc(12))
   allocate(mat_lnk(12))
   allocate(mat_mfr(12))
@@ -195,7 +193,7 @@ program optool
         ! ----------------------------------------------------------------------
      case('-c','-m')
         i  = i+1
-        nm = nm+1; mat_num(nm) = nm
+        nm = nm+1;
 
         ! First value is the material key or refindex file path
         call getarg(i,value); read(value,'(A)') mat_lnk(nm)
@@ -307,11 +305,11 @@ program optool
         ! Grain geometry
         ! ----------------------------------------------------------------------
      case('-p','-porosity','--porosity')
-        i = i+1;  call getarg(i,value); read(value,*) p_core
+        i = i+1;  call getarg(i,value); read(value,*) pcore
         if (arg_is_value(i+1)) then
-           i=i+1; call getarg(i,value); read(value,*) p_mantle
+           i=i+1; call getarg(i,value); read(value,*) pmantle
         else
-           p_mantle = p_core
+           pmantle = pcore
         endif
      case('-fmax')
         i = i+1; call getarg(i,value); read(value,*) fmax
@@ -411,7 +409,7 @@ program optool
      nm = 2
      mat_lnk(1) = 'pyr-mg70' ; mat_loc(1)  = 'core' ; mat_mfr(1)     = 0.87d0
      mat_lnk(2) = 'c-z'      ; mat_loc(2)  = 'core' ; mat_mfr(2)     = 0.1301d0
-     p_core     = 0.25d0
+     pcore      = 0.25d0
   endif
   mat_nm   = nm
 
@@ -428,7 +426,7 @@ program optool
   ! Write a setup summary to the screen
   ! ----------------------------------------------------------------------
   call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
-       p_core,p_mantle,fmax,mat_mfr,mat_nm)
+       pcore,pmantle,fmax,mat_mfr,mat_nm)
   
   ! ----------------------------------------------------------------------
   ! Make a logarithmic lambda grid, unless read in from file
@@ -453,7 +451,6 @@ program optool
      allocate(p%F(i)%F33(nang),p%F(i)%F34(nang),p%F(i)%F44(nang))
   enddo
   
-
   ! Allocate space for the refractive indices
   allocate(mat_e1(nm+1,nlam),mat_e2(nm+1,nlam))
 
@@ -482,14 +479,14 @@ program optool
      
      !$OMP parallel do if (split)                                                 &
      !$OMP default(none)                                                          &
-     !$OMP shared(amin,afact,afsub,nsub,apow,fmax,p_core,p_mantle,mat_mfr,mat_nm) &
+     !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle,mat_mfr,mat_nm) &
      !$OMP shared(lmin,lmax,write_scatter,for_radmc,write_fits,radmclbl,ndone,na) &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
         asplit    = amin  *afact**real(ia-1+0.5)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
-        call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,p_core,p_mantle, &
+        call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,pcore,pmantle, &
              mat_mfr,mat_nm,.false.)
 
         ! Outout is done serially, to avoid file handle conflicts
@@ -502,12 +499,12 @@ program optool
            write(fitsfile,'(A,"_",A,".fits")') "dustkappa",trim(label)
            fitsfile = make_file_path(outdir,fitsfile)
            call write_fits_file(p,aminsplit,amaxsplit,apow,nsub, &
-                fmax,p_core,p_mantle,mat_nm,mat_mfr,fitsfile)
+                fmax,pcore,pmantle,mat_nm,mat_mfr,fitsfile)
 #endif
         else
            if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
            call write_ascii_file(p,aminsplit,amaxsplit,apow,nsub,lmin,lmax, &
-                fmax,p_core,p_mantle,mat_mfr,mat_nm, &
+                fmax,pcore,pmantle,mat_mfr,mat_nm, &
                 label,write_scatter,for_radmc,.false.)
         endif
         !$OMP end critical
@@ -520,7 +517,7 @@ program optool
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
-     call ComputePart(p,amin,amax,apow,na,fmax,p_core,p_mantle,mat_mfr,nm,.true.)
+     call ComputePart(p,amin,amax,apow,na,fmax,pcore,pmantle,mat_mfr,nm,.true.)
      
      ! ----------------------------------------------------------------------
      ! Write the output
@@ -528,12 +525,12 @@ program optool
      if (write_fits) then
 #ifdef USE_FITSIO
         call write_fits_file(p,amin,amax,apow,nsub, &
-             fmax,p_core,p_mantle,mat_nm,mat_mfr,fitsfile)
+             fmax,pcore,pmantle,mat_nm,mat_mfr,fitsfile)
 #endif
         continue
      else
         call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
-             fmax,p_core,p_mantle,mat_mfr,mat_nm, &
+             fmax,pcore,pmantle,mat_mfr,mat_nm, &
              radmclbl,write_scatter,for_radmc,.true.)
      endif
 
@@ -545,7 +542,7 @@ program optool
      endif
   endif
   
-  deallocate(mat_num,mat_loc,mat_lnk,mat_mfr,mat_rho)
+  deallocate(mat_loc,mat_lnk,mat_mfr,mat_rho)
   do i=1,nlam
      deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
   enddo
@@ -1697,7 +1694,7 @@ end subroutine read_lambda_grid
 ! ----------------------------------------------------------------------
 
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
-     p_core,p_mantle,fmax,mfrac,nm)
+     pcore,pmantle,fmax,mfrac,nm)
   ! ----------------------------------------------------------------------
   ! Write a header describing the full setup of the calculation
   ! CC is the comment character that should be added in front of each line
@@ -1706,7 +1703,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   implicit none
   integer        :: unit
   integer        :: na,i,nm
-  real (kind=dp) :: amin,amax,apow,lmin,lmax,p_core,p_mantle,fmax,mfrac(nm)
+  real (kind=dp) :: amin,amax,apow,lmin,lmax,pcore,pmantle,fmax,mfrac(nm)
   real (kind=dp) :: amean(3)
   character*(*)  :: cc
   cc = trim(cc)
@@ -1716,7 +1713,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   write(unit,'(A," Parameters:")') cc
   write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f10.2,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
   write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f10.2,"  nlam=",I5)') cc,lmin, lmax, nlam
-  write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"            DHS fmax=",g10.2)') cc,p_core,p_mantle,fmax
+  write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"            DHS fmax=",g10.2)') cc,pcore,pmantle,fmax
   write(unit,'(A," Composition:")') cc
 
   if (mat_rho(1).eq.0) then
@@ -1737,7 +1734,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   write(unit,'(A,"============================================================================")') cc
 end subroutine write_header
 
-subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
+subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      mfrac,nm,label,scatter,for_radmc,progress)
   ! ----------------------------------------------------------------------
   ! Write an ASCII file with opacaties.
@@ -1749,7 +1746,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
   ! ----------------------------------------------------------------------
   use Defs
   implicit none
-  real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle,mfrac(nm)
+  real (kind=dp) :: amin,amax,apow,fmax,pcore,pmantle,mfrac(nm)
   real (kind=dp) :: lmin,lmax,f
   type(particle) :: p
   integer        :: na,i,ilam,iang,nm
@@ -1786,7 +1783,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      if (progress) write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
-          p_core,p_mantle,fmax,mfrac,nm)
+          pcore,pmantle,fmax,mfrac,nm)
      write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
      write(20,'("#    iformat")')
      write(20,'("#    nlambda")')
@@ -1804,7 +1801,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,p_core,p_mantle,&
      if (progress) write(*,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
-          p_core,p_mantle,fmax,mfrac,nm)
+          pcore,pmantle,fmax,mfrac,nm)
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
      else
@@ -1869,7 +1866,7 @@ end subroutine write_ascii_file
 
 #ifdef USE_FITSIO
 subroutine write_fits_file(p,amin,amax,apow,na, &
-     fmax,p_core,p_mantle, &
+     fmax,pcore,pmantle, &
      nm,mfrac,fitsfile)
   ! ----------------------------------------------------------------------
   ! Routine to write a FITS file with all the information about
@@ -1878,7 +1875,7 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   ! ----------------------------------------------------------------------
   use Defs
   implicit none
-  real (kind=dp) :: amin,amax,apow,fmax,p_core,p_mantle
+  real (kind=dp) :: amin,amax,apow,fmax,pcore,pmantle
   real (kind=dp) :: mfrac(nm),rho(nm)
   logical blend
   character*6 word
@@ -1930,8 +1927,8 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
 !  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
 
-  call ftpkye(unit,'porosity',real(p_core),8,'[g/cm^3]',status)
-  call ftpkye(unit,'p_mantle',real(p_mantle),8,'[g/cm^3]',status)
+  call ftpkye(unit,'porosity',real(pcore),8,'[g/cm^3]',status)
+  call ftpkye(unit,'p_mantle',real(pmantle),8,'[g/cm^3]',status)
 
   do i=1,nm
      write(word,'("file",i0.2)') i
