@@ -9,17 +9,17 @@ my $tests = [
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -na 10 -nl 30 -s -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => "83cf962afca0d894fca831b01daa5fe504dd161c"},
+   sha => "eef3f6260dd4a242ef70d042317786d994a5f0e7"},
   {name => 'full_diana',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -s -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => 'e6f6693e7c04288600be6034e92bf2cb42ee44e4'},
+   sha => 'd4940b842854a53f47af4c9d7e25ffb6f62083a2'},
   {name => 'radmc-in-42-parts',
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -na 42 -nl 100 -s -d -radmc -o $dir",
    getsha => "cat $dir/dustkapscatmat_*.inp|shasum",
-   sha => '4a4bfe26ec344e4048dcf7d4f3ef8abb1f1999bc'}
+   sha => 'dcfdcc9c8d6ba971bdac3d3d93fe9fcdea581367'}
   ];
 
 foreach $test (@$tests) {
