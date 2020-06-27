@@ -35,7 +35,6 @@ module Defs
   ! ----------------------------------------------------------------------
   ! Some global switches
   ! ----------------------------------------------------------------------
-  logical, public                :: verbose   = .false. ! additional output
   logical, public                :: blendonly = .false. ! only blend materials and write result out
   logical, public                :: CLBlend   = .true.  ! use Charléne Lefévre's new blender
   logical, public                :: split     = .false. ! split to many files
@@ -62,22 +61,19 @@ module Defs
      real (kind=dp) :: F11(180),F12(180),F22(180),F33(180),F44(180),F34(180)
   end type mueller
   ! ----------------------------------------------------------------------
-  ! The particle structure, contains particle and scatteting properties
+  ! The particle structure, contains particle and scattering properties
   ! ----------------------------------------------------------------------
   type particle
      real (kind=dp)              :: rv,rvmin,rvmax ! grain radius with min and max
      real (kind=dp)              :: rho            ! mass density in g.cm^-3
      real (kind=dp), allocatable :: Kabs(:),Ksca(:),Kext(:) ! Opacities
-     real (kind=dp), allocatable :: g(:)           ! asymmetry, Henyey Greenstein
+     real (kind=dp), allocatable :: g(:)           ! asymmetry parameter
      TYPE(MUELLER),  allocatable :: F(:)           ! Mueller matrix elements
   end type particle
   ! ----------------------------------------------------------------------
   ! The output directory
   ! ----------------------------------------------------------------------
   character*500                  :: outdir = ''    ! Output directory 
-  ! ----------------------------------------------------------------------
-  ! Interfaces
-  ! ----------------------------------------------------------------------
 end module Defs
 
 ! ----------------------------------------------------------------------
@@ -114,15 +110,16 @@ program optool
   type(particle)  :: p
   integer         :: i,ndone         ! counter
   integer         :: im,ia           ! for material, radius
-  character*100   :: tmp
-  character*100   :: value
+  character*100   :: tmp,value       ! for processing args
 
-  logical         :: have_mantle
-  logical         :: arg_is_value, arg_is_number  ! functions to test arguments
-  character*500   :: fitsfile,meanfile            ! file names for output
-  character*500   :: make_file_path               ! Function
-  character*50    :: radmclbl   = ""              ! file label for RADMC-3D compatible
-  character*50    :: label                        ! for use in file names
+  logical         :: have_mantle     ! to enforce single mantle material
+  logical         :: arg_is_value    ! functions to test arguments
+  logical         :: arg_is_number   ! functions to test arguments
+  character*500   :: fitsfile        ! file name for FITS output
+  character*500   :: meanfile        ! file name for mean opacity output
+  character*500   :: make_file_path  ! function
+  character*50    :: radmclbl = ""   ! file label for RADMC-3D compatible
+  character*50    :: label           ! for use in file names
 
   real (kind=dp)  :: asplit,afact,afsub,amaxsplit,aminsplit
   integer         :: nsubgrains = 5,nsub
@@ -145,7 +142,7 @@ program optool
   tmax           = 1d4        ! K
   nt             = 200
 
-  fmax           = 0.8_dp     ! volume fraction DHS
+  fmax           = 0.8_dp     ! maximum volume fraction DHS
   p_core         = 0.0_dp     ! porosity core
   p_mantle       = 0.0_dp     ! porosity mantle
 
@@ -184,6 +181,9 @@ program optool
   do while(tmp.ne.' ')
      select case(tmp)
 
+     case('?','-h','--help','-help','help')
+        call usage(); stop
+
         ! ----------------------------------------------------------------------
         ! Definition of a material for the mix
         ! ----------------------------------------------------------------------
@@ -195,8 +195,7 @@ program optool
         call getarg(i,value); read(value,'(A)') mat_lnk(nm)
 
         if (value .eq. '?') then
-           call ListBuiltinMaterials()
-           stop
+           call ListBuiltinMaterials(); stop
         endif
         ! Second value is the volume fraction
         if (.not. arg_is_value(i+1)) then
@@ -244,8 +243,7 @@ program optool
         ! -a expects 2, 3, ro 4 values:  amin amax [na [apow]]
         ! ----------------------------------------------------------------------
         if (.not. arg_is_number(i+1) .or. .not. arg_is_number(i+2)) then
-           print *,"ERROR: -a needs 2-4 values: amin amax [na [apow]]"
-           stop
+           print *,"ERROR: -a needs 2-4 values: amin amax [na [apow]]"; stop
         endif
         i=i+1; call getarg(i,value); read(value,*) amin
         i=i+1; call getarg(i,value); read(value,*) amax
@@ -357,11 +355,6 @@ program optool
      case('-B')
         ! Use the old blender
         CLBlend = .false.
-     case('-v','-verbose','--verbose')
-        verbose = .true.
-     case('?','-h','--help','-help','help')
-        call usage()
-        stop
      case default
         write(*,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
         write(*,*) "For help, try: optool -h     ... or find the user guide OpTool.pdf"
@@ -481,7 +474,7 @@ program optool
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,p_core,p_mantle, &
              mat_mfr,mat_nm,.false.)
 
-        ! We do not allow the output to be parallel
+        ! Outout is done serially, to avoid file handle conflicts
         !$OMP critical
         ndone = ndone + 1
         call tellertje(ndone,na)
@@ -503,45 +496,39 @@ program optool
      enddo
      !$OMP end parallel DO
      stop
-  endif
 
-  ! ----------------------------------------------------------------------
-  ! Call the main routine to compute the opacities and scattering matrix
-  ! ----------------------------------------------------------------------
-  call ComputePart(p,amin,amax,apow,na,fmax,p_core,p_mantle,mat_mfr,nm,.true.)
-
-  ! ----------------------------------------------------------------------
-  ! Write the output
-  ! ----------------------------------------------------------------------
-  if (write_fits) then
-#ifdef USE_FITSIO
-     call write_fits_file(p,amin,amax,apow,nsub, &
-          fmax,p_core,p_mantle,mat_nm,mat_mfr,fitsfile)
-#endif
-     continue
   else
-     call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
-          fmax,p_core,p_mantle,mat_mfr,mat_nm, &
-          radmclbl,write_scatter,for_radmc,.true.)
-  endif
 
-  ! ----------------------------------------------------------------------
-  ! Produce and write mean opacities
-  ! ----------------------------------------------------------------------
-  if (write_mean_kap) then
-     call mean_opacities(lam,nlam,p%kabs,p%ksca,p%g,tmin,tmax,nt,meanfile)
-  endif
+     ! ----------------------------------------------------------------------
+     ! Call the main routine to compute the opacities and scattering matrix
+     ! ----------------------------------------------------------------------
+     call ComputePart(p,amin,amax,apow,na,fmax,p_core,p_mantle,mat_mfr,nm,.true.)
+     
+     ! ----------------------------------------------------------------------
+     ! Write the output
+     ! ----------------------------------------------------------------------
+     if (write_fits) then
+#ifdef USE_FITSIO
+        call write_fits_file(p,amin,amax,apow,nsub, &
+             fmax,p_core,p_mantle,mat_nm,mat_mfr,fitsfile)
+#endif
+        continue
+     else
+        call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
+             fmax,p_core,p_mantle,mat_mfr,mat_nm, &
+             radmclbl,write_scatter,for_radmc,.true.)
+     endif
 
-  deallocate(mat_num)
-  deallocate(mat_loc)
-  deallocate(mat_lnk)
-  deallocate(mat_mfr)
-  deallocate(mat_rho)
-  deallocate(p%Kabs)
-  deallocate(p%Kext)
-  deallocate(p%Ksca)
-  deallocate(p%g)
-  deallocate(p%F)
+     ! ----------------------------------------------------------------------
+     ! Produce and write mean opacities
+     ! ----------------------------------------------------------------------
+     if (write_mean_kap) then
+        call mean_opacities(lam,nlam,p%kabs,p%ksca,p%g,tmin,tmax,nt,meanfile)
+     endif
+  endif
+  
+  deallocate(mat_num,mat_loc,mat_lnk,mat_mfr,mat_rho)
+  deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F)
 
 end program optool
 
@@ -794,15 +781,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      endif
      rho_av        = rho_core / (1.d0 + mfrac_mantle*(rho_core/rho_mantle-1.d0))
      vfrac_mantle  = mfrac_mantle * rho_av / rho_mantle
-     if (verbose) then
-        write(*,*) 'Volume fractions: vfrac(1:i_mantle-1)*(1.d0-vfrac_mantle),vfrac_mantle'
-        write(*,*) 'Total: ',sum(vfrac(1:i_mantle-1)*(1.d0-vfrac_mantle))+vfrac_mantle
-        write(*,*) 'Core and Mantle porosities ',p_c,p_m
-     endif
-  endif
-
-  if (verbose) then
-     write(*,'("Average bulk density = ",f6.3, " g/cm3")') rho_av
   endif
 
   ! ----------------------------------------------------------------------
