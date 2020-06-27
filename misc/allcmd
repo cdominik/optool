@@ -1,12 +1,12 @@
 make clean
-rm -rf broad_single broad_multi split_single split_multi
-make multi=true
+rm -rf broad_single broad_multi split_single split_multi run1 run2
+make
 time ./optool -s -o broad_multi
 echo that was broad_multi
 time ./optool -s -d -o split_multi
 echo that was split_multi
 make clean
-make
+make multi=false
 time ./optool -s -o broad_single
 echo that was broad_single
 time ./optool -s -d -o split_single
@@ -23,7 +23,7 @@ echo that was broad_multi
 time ./optool -s -d -o split_multi
 echo that was split_multi
 make clean
-make
+make multi=false
 time ./optool -s -o broad_single
 echo that was broad_single
 time ./optool -s -d -o split_single
