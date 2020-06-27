@@ -88,6 +88,8 @@ quicktestdiv:;	echo computing size-dependant opacities ...
 		make
 		./optool -na 10 -nl 30 -d 3 -s
 		ipython -i optool.py
+selftest:;	make
+		misc/selftest.pl
 
 # how to compile program 
 .SUFFIXES : .o .f .f90
