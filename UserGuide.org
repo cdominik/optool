@@ -1,5 +1,7 @@
 
-#+TITLE: OpTool User Guide
+#+TITLE:  OpTool User Guide
+#+AUTHOR: C. Dominik
+#+DATE:   June 2020, version 0.9.5
 
 * Introduction
 
@@ -144,8 +146,8 @@ scattering matrix.
   Specify minimum and maximum grain radius, and optionally the size
   distribution powerlaw and the number of size bins.  You can also use
   options to set individual values with *-amin*, *-amax*, *-apow*,
-  *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, respectively,
-  and for =NA=, the default is 10 per size decade with a minimum of 5.
+  *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, and /10 per
+  size decade with a fixed minimum of 5/, respectively.
 
 ** Wavelength grid
 
@@ -446,9 +448,9 @@ because RADMC-3D requires it.
 Additional refractive index data tables can be compiled into the code.
 Here is how:
 
-1. Give your lnk file a name exactly like =pyr-mg70-Dorschner1995.lnk=, where
-   =pyr-mg70= is the key to access the material and =Dorschner1995= is
-   the reference.
+1. Give your =lnk= file a name exactly like
+   =pyr-mg70-Dorschner1995.lnk=, where =pyr-mg70= is the key to access
+   the material and =Dorschner1995= is the reference.
 2. Put this file into the =lnk_data= directory.
 3. Optionally edit =lnk_data/lnk-help.txt=, so that =optool -c ?= will
    list the new material.  Note that, in order to define generic keys,
@@ -486,7 +488,5 @@ Here is how:
 #+latex_header: \newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}
 
 #+OPTIONS: toc:nil num:nil ^:t
-#+AUTHOR: C. Dominik
-#+DATE: June 2020, version 0.9.4
 #+LATEX_CLASS: koma-article
 #+LATEX_CLASS_OPTIONS: [11pt,a4paper]
