@@ -135,7 +135,7 @@ program optool
   amin           = 0.05       ! micrometer
   amax           = 3000.      ! micrometer
   apow           = 3.50_dp    ! a minus sign will be added internally
-  na             = 50
+  na             = 0          ! will be computed to 10 per decade
 
   lmin           = 0.05_dp    ! micrometer
   lmax           = 10000.0_dp ! micrometer
@@ -244,29 +244,29 @@ program optool
         ! ----------------------------------------------------------------------
      case('-a')
         ! ----------------------------------------------------------------------
-        ! -a expects 2, 3, ro 4 values:  amin amax [na [apow]]
+        ! -a expects 2, 3, ro 4 values:  amin amax [apow [na]]
         ! ----------------------------------------------------------------------
         if (.not. arg_is_number(i+1) .or. .not. arg_is_number(i+2)) then
            print *,"ERROR: -a needs 2-4 values: amin amax [na [apow]]"; stop
         endif
         i=i+1; call getarg(i,value); read(value,*) amin
         i=i+1; call getarg(i,value); read(value,*) amax
-        ! Lets see if there is more, i.e. na
+        ! Lets see if there is more, we expect apow
         if (arg_is_value(i+1)) then
-           i=i+1; call getarg(i,value); read(value,*) na
-           ! Lets see if there is more, i.e. apow
+           i=i+1; call getarg(i,value); read(value,*) apow
+           ! Lets see if there is more, we expect na
            if (arg_is_value(i+1)) then
-              i=i+1; call getarg(i,value); read(value,*) apow
+              i=i+1; call getarg(i,value); read(value,*) na
            endif
         endif
      case('-amin','--amin')
         i = i+1; call getarg(i,value); read(value,*) amin
      case('-amax','--amax')
         i = i+1; call getarg(i,value); read(value,*) amax
-     case('-na')
-        i = i+1; call getarg(i,value); read(value,*) na
      case('-apow','--apow')
         i = i+1; call getarg(i,value); read(value,*) apow
+     case('-na')
+        i = i+1; call getarg(i,value); read(value,*) na
 
         ! ----------------------------------------------------------------------
         ! Wavelength setup
@@ -290,6 +290,7 @@ program optool
            ! We have 2 numbers, these are lmin and lmax
            i = i+1; call getarg(i,value); read(value,*) lmin
            i = i+1; call getarg(i,value); read(value,*) lmax
+           ! Lets see if there is more, we expect nlam
            if (arg_is_value(i+1)) then
               i=i+1; call getarg(i,value); if (value.ne.'') read(value,*) nlam
            endif
@@ -374,6 +375,10 @@ program optool
   ! ----------------------------------------------------------------------
   ! Sanity checks and preparations
   ! ----------------------------------------------------------------------
+  if (na .eq. 0) then
+     ! set sampling of the grain radius: 10 per decade, min 5
+     na = max(5,int((log10(amax)-log10(amin))*10d0+1d0))
+  endif
   if (split .and. write_mean_kap) then
      write(*,*) 'ERROR: With both -d and -t options, the dustkapmean.dat file'
      write(*,*) '       would only reflect the final size bin.'
@@ -1712,7 +1717,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   write(unit,'(A," Opacities computed by OpTool          <a^n>=",1p,3e9.2e1)') cc,amean
   write(unit,'(A," Parameters:")') cc
   write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f10.2,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
-  write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f10.2,"  nlam=",I5)') cc,lmin, lmax, nlam
+  write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f10.2,"  nlam=",I5,"    nang=",I6)') cc,lmin, lmax, nlam, nang
   write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"            DHS fmax=",g10.2)') cc,pcore,pmantle,fmax
   write(unit,'(A," Composition:")') cc
 

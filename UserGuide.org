@@ -139,13 +139,13 @@ scattering matrix.
 
 
 ** Grain size distribution
-+ =-a AMIN AMAX [NA [APOW]]= ::
++ =-a AMIN AMAX [APOW [NA]]= ::
 
-  Specify minimum and maximum grain radius, and optionally the number
-  of size bins and the size distribution powerlaw.  You can also use
-  options to set individual values with *-amin*, *-amax*, *-na*,
-  *-apow*.  The defaults are 0.05 \mu{}m, 3000 \mu{}m, 50, and 3.5,
-  respectively.
+  Specify minimum and maximum grain radius, and optionally the size
+  distribution powerlaw and the number of size bins.  You can also use
+  options to set individual values with *-amin*, *-amax*, *-apow*,
+  *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, respectively,
+  and for =NA=, the default is 10 per size decade with a minimum of 5.
 
 ** Wavelength grid
 
@@ -332,7 +332,7 @@ path/to/file.lnk 0.7 3.42=
 
 - dustkappa.fits ::
 
-  The fits-file (ending in ’.fits’) is written instead of the ASCII
+  The FITS-file (ending in ’.fits’) is written instead of the ASCII
   output when using the =-fits= switch. It has two HDU blocks. The first
   block contains the cross sections per unit mass. This is a N_\lambda
   \times 5 matrix with these columns:
@@ -366,8 +366,8 @@ To try out =optool= you could use one of these commands
 : make testdiv          # for opacities as a fuction of grain size
 
 The commands will run =optool= with the standard DIANA material
-properties, and then use the python script =optool.py= to plot the
-computed opacities.  You will get two plots.
+properties, and then use the python script =optool_plot.py= to plot
+the computed opacities.  You will get:
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
   as a function of wavelength, along with the asymmetry parameter /g/.
   Note that the red /g/ curve does not have its own scale, imagine the
@@ -379,10 +379,10 @@ computed opacities.  You will get two plots.
   through zero.
 
 If you want to run the plotter yourself, =ipython -i
-path/to/optool.py= is the correct command to do so, from the directory
-where the output files are located.
+path/to/optool_plot.py= is the correct command to do so, from the
+directory where the output files are located.
 
-#+CAPTION: Screenshot of the plots created by running =ipython -i optool.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to deal with range and sign issues.
+#+CAPTION: Screenshot of the plots created by running =ipython -i optool_plot.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to deal with range and sign issues.
 #+ATTR_LATEX: :width 15cm :options angle=0
 [[./misc/inspect.png]]
 
@@ -437,7 +437,7 @@ normalization, namely
 \oint_{(4\pi)} Z_{11}(\lambda,\Theta) d\Omega = \kappa_{\rm sca}(\lambda)
 \end{equation}
 
-Note that the output in the fits files contains 180 angles for the
+Note that the output in the FITS files contains 180 angles for the
 scattering matrix, from 0-179 degrees, because this is what Michiel
 Min's code produces.  For the ASCII files, we add a 180 degree point,
 because RADMC-3D requires it.
