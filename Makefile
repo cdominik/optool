@@ -62,10 +62,10 @@ DEST	      = ${HOME}/bin
 
 # make actions 
 all:		$(PROGRAM)
-cleanoutput:;   rm -rf dustkap*
+cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp
 clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i
 		make cleanoutput
-		rm -rf *~ \#* *.tex *.log auto notes.pdf notes.html optool.dSYM
+		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
 test:; 		echo Computing size-integrated opacities ...
