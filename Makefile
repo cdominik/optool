@@ -72,22 +72,22 @@ test:; 		echo Computing size-integrated opacities ...
 		make cleanoutput
 		make
 		./optool -s
-		ipython -i optool.py
+		ipython -i optool_plot.py
 testdiv:;	echo computing size-dependant opacities ...
 		make cleanoutput
 		make
 		./optool -d 3 -s
-		ipython -i optool.py
+		ipython -i optool_plot.py
 quicktest:;	echo Computing size-integrated opacities ...
 		make cleanoutput
 		make
 		./optool -na 10 -nl 30 -s -t
-		ipython -i optool.py
+		ipython -i optool_plot.py
 quicktestdiv:;	echo computing size-dependant opacities ...
 		make cleanoutput
 		make
 		./optool -na 10 -nl 30 -d 3 -s
-		ipython -i optool.py
+		ipython -i optool_plot.py
 selftest:;	make
 		misc/selftest.pl
 
