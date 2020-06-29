@@ -38,6 +38,7 @@ module Defs
   logical, public                :: blendonly = .false. ! only blend materials and write result out
   logical, public                :: CLBlend   = .true.  ! use Charléne Lefévre's new blender
   logical, public                :: split     = .false. ! split to many files
+  logical, public                :: quiet     = .true.  ! reduce output to STDOUT
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
@@ -363,6 +364,9 @@ program optool
      case('-B')
         ! Use the old blender
         CLBlend = .false.
+     case('-q')
+        ! Be less noisy
+        quiet = .true.
      case default
         write(*,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
         write(*,*) "For help, try: optool -h     ... or find the user guide OpTool.pdf"
@@ -430,8 +434,10 @@ program optool
   ! ----------------------------------------------------------------------
   ! Write a setup summary to the screen
   ! ----------------------------------------------------------------------
-  call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
-       pcore,pmantle,fmax,mat_mfr,mat_nm)
+  if (.not. quiet) then
+     call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
+          pcore,pmantle,fmax,mat_mfr,mat_nm)
+  endif
   
   ! ----------------------------------------------------------------------
   ! Make a logarithmic lambda grid, unless read in from file
@@ -482,10 +488,11 @@ program optool
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
      ndone = 0; call tellertje(ndone,na)
      
-     !$OMP parallel do if (split)                                                 &
-     !$OMP default(none)                                                          &
-     !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle,mat_mfr,mat_nm) &
-     !$OMP shared(lmin,lmax,write_scatter,for_radmc,write_fits,radmclbl,ndone,na) &
+     !$OMP parallel do if (split)                                      &
+     !$OMP default(none)                                               &
+     !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
+     !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm)                   &
+     !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
         asplit    = amin  *afact**real(ia-1+0.5)
@@ -504,7 +511,7 @@ program optool
            write(fitsfile,'(A,"_",A,".fits")') "dustkappa",trim(label)
            fitsfile = make_file_path(outdir,fitsfile)
            call write_fits_file(p,aminsplit,amaxsplit,apow,nsub, &
-                fmax,pcore,pmantle,mat_nm,mat_mfr,fitsfile)
+                fmax,pcore,pmantle,mat_nm,mat_mfr,mat_rho,fitsfile)
 #endif
         else
            if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
@@ -530,7 +537,7 @@ program optool
      if (write_fits) then
 #ifdef USE_FITSIO
         call write_fits_file(p,amin,amax,apow,nsub, &
-             fmax,pcore,pmantle,mat_nm,mat_mfr,fitsfile)
+             fmax,pcore,pmantle,mat_nm,mat_mfr,mat_rho,fitsfile)
 #endif
         continue
      else
@@ -1872,7 +1879,7 @@ end subroutine write_ascii_file
 #ifdef USE_FITSIO
 subroutine write_fits_file(p,amin,amax,apow,na, &
      fmax,pcore,pmantle, &
-     nm,mfrac,fitsfile)
+     nm,mfrac,rho,fitsfile)
   ! ----------------------------------------------------------------------
   ! Routine to write a FITS file with all the information about
   ! the opacities and scattering properties.
@@ -1905,16 +1912,16 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   blocksize = 1
   call ftinit(unit,fitsfile,blocksize,status)
 
-  simple=.true.
-  extend=.true.
-  group=1
-  fpixel=1
+  simple = .true.
+  extend = .true.
+  group  = 1
+  fpixel = 1
 
-  bitpix=-64
-  naxis=2
-  naxes(1)=nlam
-  naxes(2)=4
-  nelements=naxes(1)*naxes(2)
+  bitpix    = -64
+  naxis     = 2
+  naxes(1)  = nlam
+  naxes(2)  = 4
+  nelements = naxes(1)*naxes(2)
   allocate(array(nlam,4,1))
 
   ! Write the required header keywords.
@@ -1943,10 +1950,10 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
      write(word,'("frac",i0.2)') i
      call ftpkye(unit,word,real(mfrac(i)),8,'[mass fraction]',status)
   enddo
-!  do i=1,nm
-!     write(word,'("rho",i0.2)') i
-!     call ftpkye(unit,word,real(rho(i)),8,'[g/cm^3]',status)
-!  enddo
+  do i=1,nm
+     write(word,'("rho",i0.2)') i
+     call ftpkye(unit,word,real(rho(i)),8,'[g/cm^3]',status)
+  enddo
 
   call ftpkyj(unit,'n_radii',na,' ',status)
   call ftpkyj(unit,'n_mat',nm,' ',status)
@@ -1971,12 +1978,12 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   ! ----------------------------------------------------------------------
   ! HDU 1: scattering matrix
   ! ----------------------------------------------------------------------
-  bitpix=-64
-  naxis=3
-  naxes(1)=nlam
-  naxes(2)=6
-  naxes(3)=nang
-  nelements=naxes(1)*naxes(2)*naxes(3)
+  bitpix    = -64
+  naxis     = 3
+  naxes(1)  = nlam
+  naxes(2)  = 6
+  naxes(3)  = nang
+  nelements = naxes(1)*naxes(2)*naxes(3)
 
   allocate(array(nlam,6,nang))
 
@@ -1988,12 +1995,12 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
 
   do i=1,nlam
      do j=1,nang
-        array(i,1,j)=p%F(i)%F11(j)
-        array(i,2,j)=p%F(i)%F12(j)
-        array(i,3,j)=p%F(i)%F22(j)
-        array(i,4,j)=p%F(i)%F33(j)
-        array(i,5,j)=p%F(i)%F34(j)
-        array(i,6,j)=p%F(i)%F44(j)
+        array(i,1,j) = p%F(i)%F11(j)
+        array(i,2,j) = p%F(i)%F12(j)
+        array(i,3,j) = p%F(i)%F22(j)
+        array(i,4,j) = p%F(i)%F33(j)
+        array(i,5,j) = p%F(i)%F34(j)
+        array(i,6,j) = p%F(i)%F44(j)
      enddo
   enddo
 
