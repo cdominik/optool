@@ -399,7 +399,8 @@ program optool
 #ifndef USE_FITSIO
   if (write_fits) then
      write(*,*) 'ERROR: Support for writing FITS files needs to be compiled in'
-     write(*,*) '       Try: "make clean", and then "make fitsio=true"'
+     write(*,*) '       If you want FITS output, make sure cfitsio library is installed"'
+     write(*,*) '       Then recompile with: "make clean", and then "make fitsio=true"'
      stop
   endif
 #endif
