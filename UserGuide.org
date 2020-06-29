@@ -295,13 +295,12 @@ following format:
 - Then follow three columns of data: \lambda[\mu{}m], and the real and
   imaginary parts of the refractive index, $n$ and $k$.
 
-You can use any of the refractory index files provided by Charléne
-Lefévre's SIGMA package out of the box, or find other files, for
-example by using the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]]. Don't forget to add the line with
-$N_\lambda$ and \rho!  If for some reason it is not convenient to add
-that line to the file, =optool= will count the lines for you and you
-can specify the density after the mass fraction, like this: =optool -c
-path/to/file.lnk 0.7 3.42=
+You can find refractive index data in the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and
+associated with original papers in the literature. Don't forget to add
+the line with $N_\lambda$ and \rho!  If for some reason it is not
+convenient to add that line to the file, =optool= will count the lines
+for you and you can specify the density after the mass fraction, like
+this: =optool -c path/to/file.lnk 0.7 3.42=
 
 
 
@@ -337,20 +336,19 @@ path/to/file.lnk 0.7 3.42=
   The FITS-file (ending in ’.fits’) is written instead of the ASCII
   output when using the =-fits= switch. It has two HDU blocks. The first
   block contains the cross sections per unit mass. This is a N_\lambda
-  \times 5 matrix with these columns:
+  \times 4 matrix with these columns:
 
   1. wavelengths in [\mu{}m]
   2. mass extinction cross section \kappa_ext in [cm^2/g]
   3. mass absorption cross section \kappa_abs in [cm^2/g]
   4. mass scattering cross section \kappa_sca in [cm^2/g]
-  5. asymmetry factor /g/
 
-  The second HDU block contains the scattering matrix elements. This
-  is a N_\lambda \times 6 \times N_ang matrix. These are the 6
-  elements of the scattering matrix for 180 equidistant scattering
-  angles from forward scattering (element 0) to backward scattering
-  (element 179) for each wavelength value. The 6 elements stored are
-  F_11, F_12, F_22, F_33, F_34, F_44 respectively.
+  The second HDU block contains the scattering matrix elements. It is
+  a N_\lambda \times 6 \times N_ang matrix, containing the 6 elements
+  of the scattering matrix for N_ang equidistant scattering angles
+  from forward scattering (element 0) to backward scattering (element
+  N_ang-1), for each wavelength value. The stored are F_11, F_12,
+  F_22, F_33, F_34, and F_44.
 
 - dustkapmean.dat ::
 

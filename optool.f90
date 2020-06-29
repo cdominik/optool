@@ -1913,9 +1913,9 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   bitpix=-64
   naxis=2
   naxes(1)=nlam
-  naxes(2)=5
+  naxes(2)=4
   nelements=naxes(1)*naxes(2)
-  allocate(array(nlam,5,1))
+  allocate(array(nlam,4,1))
 
   ! Write the required header keywords.
   call ftphpr(unit,simple,bitpix,naxis,naxes,0,1,extend,status)
@@ -1962,7 +1962,6 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
      array(i,2,1)=p%Kext(i)
      array(i,3,1)=p%Kabs(i)
      array(i,4,1)=p%Ksca(i)
-     array(i,5,1)=p%g(i)
   enddo
 
   call ftpprd(unit,group,fpixel,nelements,array(1:nlam,1:4,1),status)
