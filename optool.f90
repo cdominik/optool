@@ -39,7 +39,6 @@ module Defs
   ! Some global switches
   ! ----------------------------------------------------------------------
   logical, public                :: blendonly = .false. ! only blend materials and write result out
-  logical, public                :: CLBlend   = .true.  ! use Charléne Lefévre's new blender
   logical, public                :: split     = .false. ! split to many files
   logical, public                :: quiet     = .true.  ! reduce output to STDOUT
   ! ----------------------------------------------------------------------
@@ -355,9 +354,6 @@ program optool
      case('-b','-blendonly','--blendonly')
         ! Write blended refractive index to file and exit
         blendonly = .true.
-     case('-B')
-        ! Use the old blender
-        CLBlend = .false.
      case('-q')
         ! Be less noisy
         quiet = .true.
@@ -637,7 +633,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   real (kind=dp), allocatable    :: e1blend(:), e2blend(:)
   real (kind=dp), allocatable    :: e1mantle(:),e2mantle(:)
   real (kind=dp), allocatable    :: vfrac(:)
-  complex (kind=dp), allocatable :: epsj(:)
+  complex (kind=dp), allocatable :: eps_in(:)
   complex (kind=dp)              :: m,min,eps_eff
 
   character (len=3)              :: meth   ! Method for computing opacities
@@ -654,7 +650,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
 
   allocate(vfrac(mn_max),mfrac(mn_max),rho(mn_max))
-  allocate(epsj(mn_max))
+  allocate(eps_in(mn_max))
   allocate(f11(nang),f12(nang),f22(nang))
   allocate(f33(nang),f34(nang),f44(nang))
 
@@ -810,17 +806,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      else
         ! Blend the core materials
         do im=1,nm
-           epsj(im) = ((dcmplx(e1(im,il),e2(im,il))))**2
+           eps_in(im) = ((dcmplx(e1(im,il),e2(im,il))))**2
         enddo
-        if (CLBlend) then
-           ! Charlène Lefévre's new blender
-           call brugg(vfrac,nm,epsj,eps_eff)
-        else
-           ! The old Blender from OpacityTool.
-           ! Never fails, but might not be converged
-           ! ASKMICHIEL
-           call Blender(vfrac,nm,epsj,eps_eff)
-        endif
+        ! The Blender from OpacityTool.
+        call Blender(vfrac,nm,eps_in,eps_eff)
         e1blend(il) = dreal(cdsqrt(eps_eff))
         e2blend(il) = dimag(cdsqrt(eps_eff))
      endif
@@ -830,18 +819,14 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            ! The mantle is porous
            vfrac(1) = 1.d0-p_m
            vfrac(2) = p_m
-           epsj(1)  = (dcmplx(e1mantle(il),e2mantle(il)))**2
-           epsj(2)  = (dcmplx(1.d0,0.d0))**2
-           if (CLBlend) then
-              call brugg(vfrac,2,epsj,eps_eff)
-           else
-              call Blender(vfrac,2,epsj,eps_eff)
-           endif
+           eps_in(1)  = (dcmplx(e1mantle(il),e2mantle(il)))**2
+           eps_in(2)  = (dcmplx(1.d0,0.d0))**2
+           call Blender(vfrac,2,eps_in,eps_eff)
            e1mantle(il) = dreal(cdsqrt(eps_eff))
            e2mantle(il) = dimag(cdsqrt(eps_eff))
         endif
         ! Now we have the mantle material ready - put it on the core
-        call maxgarn_2compo(e1blend(il),e2blend(il),e1mantle(il),e2mantle(il),vfrac_mantle, &
+        call maxgarn(e1blend(il),e2blend(il),e1mantle(il),e2mantle(il),vfrac_mantle, &
              e1mg,e2mg)
         e1blend(il) = e1mg
         e2blend(il) = e2mg
@@ -1078,7 +1063,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   deallocate(mu,M1,M2,S21,D21)
 
   deallocate(vfrac)
-  deallocate(epsj)
+  deallocate(eps_in)
   deallocate(f11,f12,f22,f33,f34,f44)
 
   deallocate(r,nr)
@@ -1089,113 +1074,6 @@ end subroutine ComputePart
 
 !!! **** Effective medium routines
 
-subroutine brugg(f, nm, e, epsavg)
-
-  !***********************************************************************
-  !  This subroutine calculates the average dielectric function.
-  !  It uses a generalized version of the Bruggeman dielectric mixing function.
-  !  This routine was first coded by:
-  !
-  !  July 2000 : Benjamin T. Johnson, Atmospheric and Oceanic Sciences Dept.
-  !              University of Wisconsin - Madison
-  !              jbenjam@aos.wisc.edu
-  !
-  !  Feb. 2002 : Modifications by Michael A. Walters, SSEC, UW-Madison
-  !              walters@rain.aos.wisc.edu
-  !              Rewritten to use complex variables in input/output.
-  !              Converted to Fortran 90
-  !
-  !  Jul 2018  : Modified by C. Lefèvre, IRAM, France
-  !              lefevre@iram.fr
-  !              Generalization to nm grain material and rewritten to accept complex arrays
-  !              Integrated to SIGMA code to compute dust properties
-  !
-  !  Jul 2019   : Generalization to n components by Michiel Min and Charlène Lefèvre
-  !  The subroutine will:
-  !  1. Accept the parameters f, eps, nm
-  !
-  !  2. Calculate the average or mixed dielectric constant (epsavg), and
-  !     return it back to the calling program.
-  !
-  !  Variable and parameter descriptions:
-  !     nm      = number of grain materials
-  !     f       = volume fraction of each component
-  !     e       = dielectric constant of each component
-  !     epsavg  = averaged dielectric constant, the return values
-  !**********************************************************************
-
-  use Defs
-  implicit none
-  integer           :: nm, i, k, l, m
-  integer           :: j(nm+1)
-  real(kind =dp)    :: f(nm)
-  COMPLEX (kind=dp) :: e(nm)
-  COMPLEX (kind=dp) :: epsavg
-  COMPLEX (kind=dp) :: c(nm+1)
-  COMPLEX (kind=dp) :: prod
-  COMPLEX (kind=dp) :: x(nm)
-  COMPLEX (kind=dp) :: roots(nm)
-  COMPLEX (kind=dp) :: total !to check the result of Bruggeman rule
-  logical           :: polish
-  polish = .false.
-
-  c = 0d0
-  do i=1,nm
-     x    = -e/2d0
-     x(i) = e(i)
-
-     c(nm+1) = c(nm+1)+f(i)
-     do k=1,nm
-        do l=1,k
-           j(l) = l
-        enddo
-        j(k+1) = nm+1
-1       continue
-        prod = 1.0_dp
-        do l=1,k
-           prod = prod*x(j(l))
-        enddo
-        c(nm-k+1) = c(nm-k+1) + f(i)*prod*(-1.0_dp)**k
-        do l=1,k
-           if((j(l)+1) .lt. j(l+1)) then
-              j(l) = j(l)+1
-              do m=1,l-1
-                 j(m) = m
-              enddo
-              goto 1
-           endif
-        enddo
-        continue
-     enddo
-  enddo
-
-  call zroots(c,nm,roots,polish)
-  do i=1,nm
-     if(real(roots(i)).gt.0d0 .and. dimag(roots(i)).gt.0d0) THEN
-        epsavg=roots(i)
-     else if (roots(i).eq.roots(1) .and. dimag(roots(i)).lt.0d0) then
-        write(*,*) "ERROR: Bruggeman rule did not converge: "
-        write(*,*) "       no positive solution for effective refractive index: "
-        write(*,*) roots(i)
-        write(*,*) "Please try with a restricted wavelength range"
-        write(*,FMT='(a,f6.1,a,f6.1)') "currently lmin = ", lam(1), ", lmax = ", lam(nlam)
-        stop
-     endif
-  enddo
-
-  total = 0.0_dp
-  do i = 1,nm
-     total = total + (e(i)-epsavg)/(e(i)+2.0_dp*epsavg)*f(i)
-  enddo
-
-  if (abs(dreal(total)).gt.1e-15_dp.or.abs(dimag(total)).gt.1e-15_dp) THEN
-     write(*,*) "ERROR Bruggeman rule did not converge"
-     write(*,*) total
-     stop
-  endif
-  return
-end subroutine brugg
-
 subroutine blender(abun,nm,e_in,e_out)
   ! ----------------------------------------------------------------------
   ! This is the original blender routine used in OpacityTool
@@ -1203,12 +1081,12 @@ subroutine blender(abun,nm,e_in,e_out)
   implicit none
   integer, parameter :: dp = selected_real_kind(P=15)
   integer            :: nm,j,iter
-  real (kind=dp)     ::abun(nm)
+  real (kind=dp)     :: abun(nm)
   complex (kind=dp)  :: e_in(nm),e_out
   complex (kind=dp)  :: mm,m(nm),me,sum
 
   mm = dcmplx(1d0,0d0)
-  m  = e_in
+  m  = cdsqrt(e_in)
   do iter=1,100
      sum = 0d0
      do j=1,nm
@@ -1216,141 +1094,25 @@ subroutine blender(abun,nm,e_in,e_out)
      enddo
      me = (2d0*sum+1d0)/(1d0-sum)
      me = mm*cdsqrt(me)
-     mm = me
+     mm = me       
   enddo
-  e_out = me
+  if ( abs(sum)/abs(mm).gt.1d-6 ) then
+     print *,'WARNING: Blender might not be converged (mm,sum)',mm,sum
+  endif
+  e_out = me**2
 end subroutine blender
 
-subroutine zroots(a,m,roots,polish)
-  ! Root finder for complex polynomials.  From Numerical Recipes.
-  use Defs
-  integer          :: m,MAXM
-  real(kind=dp)    :: EPS
-  complex(kind=dp) :: a(m+1),roots(m)
-  logical          :: polish
-  parameter (EPS=1.e-15,MAXM=101) ! A small number and maximum anticipated value of m+1.
-  ! USES laguer
-
-  ! Given the degree m and the complex coefficients a(1:m+1) of the
-  ! polynomial m+1 a(i)xi−1, i=1 this routine successively calls
-  ! laguer and finds all m complex roots. The logical variable polish
-  ! should be input as .true. if polishing (also by Laguerre’s method)
-  ! is desired, .false. if the roots will be subsequently polished by
-  ! other means.
-  integer j,jj,its
-  COMPLEX(kind=dp) ad(MAXM),x,b,c
-  do j=1,m+1
-     ad(j) = a(j)
-  enddo
-  ! Copy of coefficients for successive deflation.
-  do j=m,1,-1
-     ! Loop over each root to be found.
-     ! Start at zero to favor convergence to smallest remaining root.
-     x = cmplx(0.,0.)
-     call laguer(ad,j,x,its) !Find the root.
-     if(abs(aimag(x)).le.2.*EPS**2*abs(real(x))) x=cmplx(real(x),0.)
-     roots(j) = x
-     b        = ad(j+1)
-     do jj=j,1,-1
-        c      = ad(jj)
-        ad(jj) = b
-        b      = x*b+c
-     enddo
-  enddo
-
-  if (polish) then
-     do j=1,m
-        ! Polish the roots using the undeflated coefficients.
-        call laguer(a,m,roots(j),its)
-     enddo
-  endif
-  ! Adapted for SIGMA by Charlene Lefevre - only root with positive real part is kept
-  ! FIXME: this assumes that there is only one, and we keep the last one...
-  do j=1,m
-     if (dreal(roots(j)).gt.0.0_dp) roots(1)=roots(j)
-  enddo
-  return
-end subroutine zroots
-
-subroutine laguer(a,m,x,its)
-  ! Root finder for polynomial with complex coefficients
-  ! From Numerical Recipes
-  use Defs
-  integer m,its,MAXIT,MR,MT
-  real (kind=dp) EPSS
-  COMPLEX (kind=dp) a(m+1),x
-  parameter (EPSS=1.e-15_dp,MR=8,MT=10,MAXIT=MT*MR)
-  ! Given the degree m and the complex coefficients a(1:m+1) of the
-  ! polynomial and given a complex value x, this routine improves x by
-  ! Laguerre’s method until it con- verges, within the achievable
-  ! roundoff limit, to a root of the given polynomial. The number of
-  ! iterations taken is returned as its.  Parameters: EPSS is the
-  ! estimated fractional roundoff error. We try to break (rare) limit
-  ! cycles with MR different fractional values, once every MT steps,
-  ! for MAXIT total allowed iterations.
-  integer iter,j
-  real (kind=dp) abx,abp,abm,err,frac(MR)
-  COMPLEX (kind=dp) dx,x1,b,d,f,g,h,sq,gp,gm,g2
-  SAVE frac
-  DATA frac /.5,.25,.75,.13,.38,.62,.88,1./
-  do iter=1,MAXIT
-     its = iter
-     b   = a(m+1)
-     err = abs(b)
-     d   = cmplx(0.,0.)
-     f   = cmplx(0.,0.)
-     abx = abs(x)
-     do j=m,1,-1
-        f = x*f+d
-        d = x*d+b
-        b = x*b+a(j)
-        err = abs(b) + abx*err
-     enddo
-     err = EPSS*err
-     if(abs(b).le.err) then
-        return
-     else
-        ! Fractions used to break a limit cycle. Loop over iterations up to allowed maximum.
-        ! Efficient computation of the polynomial and its first two derivatives.
-        ! Estimate of roundoff error in evaluating polynomial. We are on the root.
-        ! The generic case: use Laguerre’s formula.
-        g   = d/b
-        g2  = g*g
-        h   = g2-2.*f/b
-        sq  = sqrt((m-1)*(m*h-g2))
-        gp  = g+sq
-        gm  = g-sq
-        abp = abs(gp)
-        abm = abs(gm)
-        if(abp.lt.abm) gp = gm
-        if (max(abp,abm).gt.0.) then
-           dx = m/gp
-        else
-           dx = exp(cmplx(log(1.+abx),float(iter)))
-        endif
-     endif
-     x1 = x-dx
-     if(x.eq.x1)return
-     if (mod(iter,MT).ne.0) then
-        x = x1
-     else
-        x = x - dx*frac(iter/MT)
-     endif
-  enddo
-  ! pause "too many iterations in laguer"
-end subroutine laguer
-
-subroutine maxgarn_2compo(e1in,e2in,e1mantle_in,e2mantle_in,abun,e1out,e2out)
+subroutine maxgarn(e1in,e2in,e1mantle_in,e2mantle_in,abun,e1out,e2out)
   ! 2 component Maxwell-Garnet mixing
   use Defs
   implicit none
   real (kind=dp) e1in,e2in,e1out,e2out,e1mantle_in,e2mantle_in,abun !up, down
   complex (kind=dp) m1,m2,me
 
-  ! Maxwell Garnet Rules is used
   m2 = dcmplx(e1mantle_in,e2mantle_in) ! mantle = coating material = matrix
   m1 = dcmplx(e1in,e2in)               ! inner core is the "inclusion"
-  ! For the abundance of the core, we have to use (1-abun_mantle)
+
+  ! The "abundance" of the core is 1-abun
   me = m2**2*( (2d0*m2**2+m1**2-2d0*(1d0-abun)*(m2**2-m1**2)) &
        /(2d0*m2**2+m1**2+(1d0-abun)*(m2**2-m1**2) ) )
   ! from Mukai & Kraetschmer 1986: Optical Constants of the Mixture of Ices
@@ -1361,7 +1123,7 @@ subroutine maxgarn_2compo(e1in,e2in,e1mantle_in,e2mantle_in,abun,e1out,e2out)
   e2out = dimag(me)
 
   return
-end subroutine maxgarn_2compo
+end subroutine maxgarn
 
 subroutine gauleg2(x1,x2,x,w,n)
   ! Gauss Legendre integration.  From Numerical Recipes

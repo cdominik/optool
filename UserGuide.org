@@ -7,11 +7,10 @@
 
 This tool allows to produce complex dust opacities right from the
 command line. It is derived from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] for the
-[[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program, and committed to its simplicity. For a more
-wide-ranging toolset to produce opacities, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]], the
-/Simple Icy Grain Model for Aggregates/[fn:1], by Lefévre et
-al. (2020), also derived from [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. =Optool= uses its effective
-medium mixing tool set, but is otherwise an independant development.
+[[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program, and committed to its simplicity. For another derivative
+of OpacityTool with a different set of applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]],
+the /Simple Icy Grain Model for Aggregates/[fn:1], by Lefévre et
+al. (2020).
 
 [fn:1] SIGMA supports non-powerlaw size distributions, size-dependent
 porosities, and adding independent grain types in a single run to
@@ -395,8 +394,8 @@ directory where the output files are located.
 - [[http://michielmin.nl/][Michiel Min]] for the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][DIANA OpacityTool]] and all the incredible work
   that went into it. =optool= is a direct derivative of that tool and
   resuses almost all of its code.
-- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]]. =Optool= uses the generalized Bruggeman
-  solver from SIGMA's code base.
+- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], from which suggested to use the
+  Maxwell-Garnett rule to add an ice mentle to particles.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
   on github]]), and code for computing Planck and Rosseland means
   opacities.

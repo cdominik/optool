@@ -27,13 +27,13 @@ my $tests = [
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -q -na 10 -nl 30 -s -d 3 -radmc -o $dir",
    getsha => "cat $dir/dustkapscatmat_*.inp|shasum",
-   sha => '529d87ef8b947530a93cf881e4abed278957a8aa'},
+   sha => '79f75953c67805209e1aaeb31174f8705b3a7b78'},
 
   {name => 'high-angular-resolution',
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -q -nl 10 -na 20 -s 720 -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => '66b3f0231927f96f09fd695746717508a9091cf9'},
+   sha => '790bc492a96d4d2f60a41d1582f09b561977d9c5'},
 
   {name => 'pure-ice-grain',
    prepare => "rm -f $dir/dust*",
