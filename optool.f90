@@ -1,3 +1,6 @@
+
+!!! **** The Usage routine and the module for shared variables
+
 subroutine usage()
   write(*,'("")')
   write(*,'("===============================================================================")')
@@ -80,16 +83,7 @@ module Defs
   character*500                  :: outdir = ''    ! Output directory 
 end module Defs
 
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-!
-!                         optool, the main program
-!
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-
+!!! **** Main program and ComputePart
 program optool
   use Defs
   use omp_lib
@@ -563,15 +557,7 @@ program optool
 
 end program optool
 
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-!
-!     ComputePart, the central routine avaraging properties over sizes
-!
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
+! **** ComputePart, the central routine avaraging properties over sizes
 
 subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! ----------------------------------------------------------------------
@@ -1101,15 +1087,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   return
 end subroutine ComputePart
 
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-!
-!                          Effective medium routines
-!
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
+!!! **** Effective medium routines
 
 subroutine brugg(f, nm, e, epsavg)
 
@@ -1419,15 +1397,7 @@ subroutine gauleg2(x1,x2,x,w,n)
   return
 end subroutine gauleg2
 
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-!
-!                      Helper functions and subroutines
-!
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
+!!! **** Helper functions and subroutines
 
 function cdlog10(x)
   ! Complex logarith base 10
@@ -1519,16 +1489,7 @@ subroutine make_directory(dir)
   endif
 end subroutine make_directory
 
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-!
-!         Functions to help with the extended command line syntax, where
-!                we allow a single switch to have several values.
-!
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
+!!! **** Extended command line argument syntax support
 
 function arg_is_value(i)
   ! Check if command line argument is a value. That means the arg is
@@ -1571,15 +1532,7 @@ function arg_is_number(i)
   endif
 end function arg_is_number
 
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-!
-!           Reading files and checking for some consistency
-!
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
+!!! **** Reading files and checking for some consistency
 
 function count_words (string)
   !
@@ -1696,15 +1649,7 @@ subroutine read_lambda_grid(file)
 end subroutine read_lambda_grid
 
 
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-!
-!                        Routines to write output files
-!
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
+!!! **** Routines to write output files
 
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
      pcore,pmantle,fmax,mfrac,nm)
@@ -1938,7 +1883,7 @@ subroutine write_fits_file(p,amin,amax,apow,na, &
   call plmeans(amin,amax,apow,amean)
   a1 = amean(1)
   call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
-!  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
+  !  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
 
   call ftpkye(unit,'porosity',real(pcore),8,'[g/cm^3]',status)
   call ftpkye(unit,'p_mantle',real(pmantle),8,'[g/cm^3]',status)
@@ -2041,15 +1986,7 @@ subroutine plmeans(a1,a2,p,amean)
   enddo
 end subroutine plmeans
 
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-!     Code to compute mean opacities kappa_Rosseland, kappa_Planck
-!
-!         Adapted from code provided by Kees Dullemond
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
-! ----------------------------------------------------------------------
+!!! **** Code to compute mean opacities kappa_Rosseland, kappa_Planck (from Kees Dullemond)
 
 subroutine mean_opacities(lambda,nlam,kabs,ksca,g,tmin,tmax,ntemp,file)
   ! ----------------------------------------------------------------------
@@ -2153,20 +2090,20 @@ subroutine mean_opacities(lambda,nlam,kabs,ksca,g,tmin,tmax,ntemp,file)
 end subroutine mean_opacities
 
 
-! ----------------------------------------------------------------------
-!                THE BLACKBODY PLANCK FUNCTION B_nu(T)
-!
-!     This function computes the Blackbody function
-!
-!                    2 h nu^3 / c^2
-!        B_nu(T)  = ------------------    [ erg / cm^2 s ster Hz ]
-!                   exp(h nu / kT) - 1
-!
-!     ARGUMENTS:
-!        nu    [Hz]            = Frequency
-!        temp  [K]             = Temperature
-! ----------------------------------------------------------------------
 function bplanck(temp,nu)
+  ! ----------------------------------------------------------------------
+  !                THE BLACKBODY PLANCK FUNCTION B_nu(T)
+  !
+  !     This function computes the Blackbody function
+  !
+  !                    2 h nu^3 / c^2
+  !        B_nu(T)  = ------------------    [ erg / cm^2 s ster Hz ]
+  !                   exp(h nu / kT) - 1
+  !
+  !     ARGUMENTS:
+  !        nu    [Hz]            = Frequency
+  !        temp  [K]             = Temperature
+  ! ----------------------------------------------------------------------
   implicit none
   doubleprecision :: temp
   doubleprecision :: nu
@@ -2183,22 +2120,22 @@ function bplanck(temp,nu)
   return
 end function bplanck
 
-! ----------------------------------------------------------------------
-!           THE TEMPERATURE DERIVATIVE OF PLANCK FUNCTION
-!
-!      This function computes the temperature derivative of the
-!      Blackbody function
-!
-!         dB_nu(T)     2 h^2 nu^4      exp(h nu / kT)        1
-!         --------   = ---------- ------------------------  ---
-!            dT          k c^2    [ exp(h nu / kT) - 1 ]^2  T^2
-!
-!      ARGUMENTS:
-!         nu    [Hz]            = Frequency
-!         temp  [K]             = Temperature
-! ----------------------------------------------------------------------
 
 function bplanckdt(temp,nu)
+  ! ----------------------------------------------------------------------
+  !           THE TEMPERATURE DERIVATIVE OF PLANCK FUNCTION
+  !
+  !      This function computes the temperature derivative of the
+  !      Blackbody function
+  !
+  !         dB_nu(T)     2 h^2 nu^4      exp(h nu / kT)        1
+  !         --------   = ---------- ------------------------  ---
+  !            dT          k c^2    [ exp(h nu / kT) - 1 ]^2  T^2
+  !
+  !      ARGUMENTS:
+  !         nu    [Hz]            = Frequency
+  !         temp  [K]             = Temperature
+  ! ----------------------------------------------------------------------
   implicit none
   doubleprecision :: temp,nu
   doubleprecision :: theexp,bplanckdt
@@ -2215,3 +2152,10 @@ function bplanckdt(temp,nu)
 end function bplanckdt
 
 
+!!! **** File Variables
+
+! Local Variables:
+! eval: (outline-minor-mode)
+! outline-regexp: "!!!\\|\\(program\\|subroutine\\|function\\|module\\)\\>"
+! outline-heading-alist: (("!!!" . 1) ("program" . 2) ("subroutine" . 2) ("module" . 2) ("function" . 2))
+! End:
