@@ -1,7 +1,6 @@
 MIT License
 
-OpTool:      Copyright (c) 2020 Carsten Dominik
-SIGMA:       Copyright (c) 2019 charlenelefevre
+OpTool:      Copyright (c) 2020 Carsten Dominik & Michiel Min
 OpacityTool: Copyright (c) 2015 Michiel Min
 
 Permission is hereby granted, free of charge, to any person obtaining
@@ -23,13 +22,4 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-If your work makes use of SIGMA or any modified version derived from
-SIGMA, please cite the following publications (BIBTEX):
 
-Lefèvre et al. 2020, SIGMA: Simple Icy Grain Model for Aggregates
-
-Woitke et al. 2016, Consistent dust and gas models for protoplanetary
-disks. I. Disk shape, dust settling, opacities, and PAHs
-
-Min et al. 2016, Multiwavelength optical properties of compact dust
-aggregates in protoplanetary disks

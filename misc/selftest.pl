@@ -21,19 +21,19 @@ my $tests = [
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -q -c pyr-mg70 0.87 -c c-z 0.13 -m ice-w 0.2 -p 0.25 -s -nl 30 -na 20 -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => '8d49dd45b2b5f0f8c46d451b4c9f2885ee1f07e4'},
+   sha => 'f5727768f8c26032f36684e2b408993f814ddf01'},
 
   {name => 'radmc-in-10-parts',
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -q -na 10 -nl 30 -s -d 3 -radmc -o $dir",
    getsha => "cat $dir/dustkapscatmat_*.inp|shasum",
-   sha => '79f75953c67805209e1aaeb31174f8705b3a7b78'},
+   sha => 'a126db8a452379f5ceb9a683a3733bccfcf0f685'},
 
   {name => 'high-angular-resolution',
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -q -nl 10 -na 20 -s 720 -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => '790bc492a96d4d2f60a41d1582f09b561977d9c5'},
+   sha => '27442ead37abde3578510bc8f4ab790663f914a2'},
 
   {name => 'pure-ice-grain',
    prepare => "rm -f $dir/dust*",

@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: C. Dominik
-#+DATE:   June 2020, version 0.9.5
+#+DATE:   June 2020, version 0.9.6
 
 * Introduction
 
@@ -9,36 +9,36 @@ This tool allows to produce complex dust opacities right from the
 command line. It is derived from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] for the
 [[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program, and committed to its simplicity. For another derivative
 of OpacityTool with a different set of applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]],
-the /Simple Icy Grain Model for Aggregates/[fn:1], by Lefévre et
-al. (2020).
+the /Simple Icy Grain Model for Aggregates/, by Lefévre et al. (2020).
 
-[fn:1] SIGMA supports non-powerlaw size distributions, size-dependent
-porosities, and adding independent grain types in a single run to
-produce combined opacities. It can reproduce and modify many classical
-dust models in a computationally efficient way.
 
 ** Capabilities
 
-- fully command line driven, no input files need to be edited
-- combining materials through mixing into a complex grain
-- built-in materials, but can also be used also external data
-- DHS to model shape effects and low-porosity aggregates
-- full scattering matrix output in a variety of formats and
-  normalizations.
+- stand-alone tool, fully command line driven, no input files need to
+  be edited
+- full scattering matrix output in various formats (including for
+  RADMC-3D)
+- combining materials through mixing into a complex grain with
+  porosity
+- DHS method to model shape effects and low-porosity aggregates
+- a useful collection of compiled-in materials for standard applications
+  in astronomy
+- an easy way to use externat refractive index data for more
+  specilized applications
+- multi-core support through OpenMP to make even complex computations
+  very fast
 
 ** Terms of use
 
 The code doing the real work of =optool= was adopted and modified from
-the publicly available versions of the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] and [[https://github.com/charlenelefevre/SIGMA][SIGMA]]. I
-focused on the interface, on simplicity, and a clean set of
-conventions. If you are using this tool, you should give credit to the
-papers describing the methods used to compute the opacities, as well
-as to the original laboratory papers that published the refractive
-index measurements.
+[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. I focused on the interface, on simplicity, and a clean
+set of conventions. If you are using this tool, you should give credit
+to the papers describing the methods used to compute the opacities, as
+well as to the original laboratory papers that published the
+refractive index measurements.
 
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
 - DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016]]
-- SIGMA: Lefévre, Min et al. 2020, A&A (submitted)
 - Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
 - References to [[#builtin-materials][refractive index data]] used in your particular
   application.
@@ -394,12 +394,12 @@ directory where the output files are located.
 - [[http://michielmin.nl/][Michiel Min]] for the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][DIANA OpacityTool]] and all the incredible work
   that went into it. =optool= is a direct derivative of that tool and
   resuses almost all of its code.
-- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], from which suggested to use the
-  Maxwell-Garnett rule to add an ice mentle to particles.
+- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a mantle using
+  the Maxwell-Garnett rule.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
   on github]]), and code for computing Planck and Rosseland means
   opacities.
-- [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for pointers to refractive index data.
+- [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
 
 * Appendix
 

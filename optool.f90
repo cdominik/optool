@@ -633,8 +633,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   real (kind=dp), allocatable    :: e1blend(:), e2blend(:)
   real (kind=dp), allocatable    :: e1mantle(:),e2mantle(:)
   real (kind=dp), allocatable    :: vfrac(:)
-  complex (kind=dp), allocatable :: eps_in(:)
-  complex (kind=dp)              :: m,min,eps_eff
+  complex (kind=dp), allocatable :: e_in(:)
+  complex (kind=dp)              :: m,min,e_out
 
   character (len=3)              :: meth   ! Method for computing opacities
 
@@ -650,7 +650,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
 
   allocate(vfrac(mn_max),mfrac(mn_max),rho(mn_max))
-  allocate(eps_in(mn_max))
+  allocate(e_in(mn_max))
   allocate(f11(nang),f12(nang),f22(nang))
   allocate(f33(nang),f34(nang),f44(nang))
 
@@ -806,12 +806,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      else
         ! Blend the core materials
         do im=1,nm
-           eps_in(im) = ((dcmplx(e1(im,il),e2(im,il))))**2
+           e_in(im) = dcmplx(e1(im,il),e2(im,il))
         enddo
         ! The Blender from OpacityTool.
-        call Blender(vfrac,nm,eps_in,eps_eff)
-        e1blend(il) = dreal(cdsqrt(eps_eff))
-        e2blend(il) = dimag(cdsqrt(eps_eff))
+        call Blender(vfrac,nm,e_in,e_out)
+        e1blend(il) = dreal(e_out)
+        e2blend(il) = dimag(e_out)
      endif
      if (i_mantle.gt.0) then
         ! We do have a mantle to add
@@ -819,11 +819,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            ! The mantle is porous
            vfrac(1) = 1.d0-p_m
            vfrac(2) = p_m
-           eps_in(1)  = (dcmplx(e1mantle(il),e2mantle(il)))**2
-           eps_in(2)  = (dcmplx(1.d0,0.d0))**2
-           call Blender(vfrac,2,eps_in,eps_eff)
-           e1mantle(il) = dreal(cdsqrt(eps_eff))
-           e2mantle(il) = dimag(cdsqrt(eps_eff))
+           e_in(1)  = dcmplx(e1mantle(il),e2mantle(il))
+           e_in(2)  = dcmplx(1.d0,0.d0)
+           call Blender(vfrac,2,e_in,e_out)
+           e1mantle(il) = dreal(e_out)
+           e2mantle(il) = dimag(e_out)
         endif
         ! Now we have the mantle material ready - put it on the core
         call maxgarn(e1blend(il),e2blend(il),e1mantle(il),e2mantle(il),vfrac_mantle, &
@@ -1063,7 +1063,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   deallocate(mu,M1,M2,S21,D21)
 
   deallocate(vfrac)
-  deallocate(eps_in)
+  deallocate(e_in)
   deallocate(f11,f12,f22,f33,f34,f44)
 
   deallocate(r,nr)
@@ -1086,7 +1086,7 @@ subroutine blender(abun,nm,e_in,e_out)
   complex (kind=dp)  :: mm,m(nm),me,sum
 
   mm = dcmplx(1d0,0d0)
-  m  = cdsqrt(e_in)
+  m  = e_in
   do iter=1,100
      sum = 0d0
      do j=1,nm
@@ -1099,7 +1099,7 @@ subroutine blender(abun,nm,e_in,e_out)
   if ( abs(sum)/abs(mm).gt.1d-6 ) then
      print *,'WARNING: Blender might not be converged (mm,sum)',mm,sum
   endif
-  e_out = me**2
+  e_out = me
 end subroutine blender
 
 subroutine maxgarn(e1in,e2in,e1mantle_in,e2mantle_in,abun,e1out,e2out)
@@ -1121,8 +1121,6 @@ subroutine maxgarn(e1in,e2in,e1mantle_in,e2mantle_in,abun,e1out,e2out)
   me    = cdsqrt(me)
   e1out = dreal(me)
   e2out = dimag(me)
-
-  return
 end subroutine maxgarn
 
 subroutine gauleg2(x1,x2,x,w,n)
