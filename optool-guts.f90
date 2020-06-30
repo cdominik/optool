@@ -242,14 +242,14 @@ subroutine devel(ncoef,nangle,u,w,F,coefs)
         !*             Adding paper Eq. (77) with m=0                           *
         !************************************************************************
         do i=1, nangle
-           P00(i,lold) = 1.D0
-           P00(i,lnew) = 0.D0
-           P02(i,lold) = 0.D0
-           P22(i,lold) = 0.D0
-           P2m2(i,lold)= 0.D0
-           P02(i,lnew) = 0.D0
-           P22(i,lnew) = 0.D0
-           P2m2(i,lnew)= 0.D0
+           P00(i,lold)  = 1.D0
+           P00(i,lnew)  = 0.D0
+           P02(i,lold)  = 0.D0
+           P22(i,lold)  = 0.D0
+           P2m2(i,lold) = 0.D0
+           P02(i,lnew)  = 0.D0
+           P22(i,lnew)  = 0.D0
+           P2m2(i,lnew) = 0.D0
         enddo
      else
         fac1 = (2.D0*l-1.d0)/dble(l)
@@ -268,12 +268,12 @@ subroutine devel(ncoef,nangle,u,w,F,coefs)
         !*             the recurrence Eqs. (81) and (82)                        *
         !************************************************************************
         do i=1, nangle
-           P02(i,lold) = qroot6*(1.D0-u(i)*u(i))
-           P22(i,lold) = 0.25D0*(1.D0+u(i))*(1.D0+u(i))
-           P2m2(i,lold)= 0.25D0*(1.D0-u(i))*(1.D0-u(i))
-           P02(i,lnew) = 0.D0
-           P22(i,lnew) = 0.D0
-           P2m2(i,lnew)= 0.D0
+           P02(i,lold)  = qroot6*(1.D0-u(i)*u(i))
+           P22(i,lold)  = 0.25D0*(1.D0+u(i))*(1.D0+u(i))
+           P2m2(i,lold) = 0.25D0*(1.D0-u(i))*(1.D0-u(i))
+           P02(i,lnew)  = 0.D0
+           P22(i,lnew)  = 0.D0
+           P2m2(i,lnew) = 0.D0
         enddo
         sql41 = 0.D0
      else if (l .gt. 2) then
@@ -543,28 +543,28 @@ subroutine gaulegCP(ndim,ngauss,a,b,x,w)
   parameter( eps = 1.d-14 )
   double precision x(ndim), w(ndim)
   double precision a,b,xm,xl,z,p1,p2,p3,pp,z1,pi
-  pi=4.D0*datan(1.D0)
-  m=(ngauss+1)/2
-  xm=0.5D0*(a+b)
-  xl=0.5D0*(b-a)
+  pi = 4.D0*datan(1.D0)
+  m  = (ngauss+1)/2
+  xm = 0.5D0*(a+b)
+  xl = 0.5D0*(b-a)
   do i=1,m
      !* THIS IS A REALLY CLEVER ESTIMATE :
-     z= dcos(pi*(dble(i)-0.25D0)/(dble(ngauss)+0.5D0))
+     z = dcos(pi*(dble(i)-0.25D0)/(dble(ngauss)+0.5D0))
 1    continue
-     p1=1.D0
-     p2=0.D0
+     p1 = 1.D0
+     p2 = 0.D0
      do j=1,ngauss
-        p3= p2
-        p2= p1
-        p1=((dble(2*j)-1.d0)*z*p2-(dble(j)-1.d0)*p3)/dble(j)
+        p3 = p2
+        p2 = p1
+        p1 = ((dble(2*j)-1.d0)*z*p2-(dble(j)-1.d0)*p3)/dble(j)
      enddo
-     pp=ngauss*(z*p1-p2)/(z*z-1.d0)
-     z1= z
-     z= z1-p1/pp
+     pp = ngauss*(z*p1-p2)/(z*z-1.d0)
+     z1 = z
+     z  = z1-p1/pp
      if (dabs(z-z1) .gt. eps) goto 1
-     x(i)= xm-xl*z
+     x(i) = xm-xl*z
      x(ngauss+1-i)= xm+xl*z
-     w(i)=2.D0*xl/((1.D0-z*z)*pp*pp)
+     w(i) = 2.D0*xl/((1.D0-z*z)*pp*pp)
      !******          write(7,*) ' gaulegCP: ',i,'  x=',x(i),' w=',w(i)
      w(ngauss+1-i)= w(i)
   enddo
@@ -588,28 +588,28 @@ subroutine gausspt(ndim,ngauss,a,b,x,w)
   !
   !                     find starting values
   !
-  gn=0.5D0/dble(ngauss)
-  extra=1.0D0/(.4D0*dble(ngauss)*dble(ngauss)+5.0D0)
-  xz=-gn
-  nt=0
-  nteken=0
-5 pnm2=1.0D0
-  pnm1= xz
+  gn     = 0.5D0/dble(ngauss)
+  extra  = 1.0D0/(.4D0*dble(ngauss)*dble(ngauss)+5.0D0)
+  xz     = -gn
+  nt     = 0
+  nteken = 0
+5 pnm2   = 1.0D0
+  pnm1   = xz
   do i=2,ngauss
-     pnm1xz= pnm1*xz
-     pn=2.0D0*pnm1xz-pnm2-(pnm1xz-pnm2)/dble(i)
-     pnm2= pnm1
-     pnm1= pn
+     pnm1xz = pnm1*xz
+     pn     = 2.0D0*pnm1xz-pnm2-(pnm1xz-pnm2)/dble(i)
+     pnm2   = pnm1
+     pnm1   = pn
   enddo
   mteken=1
   if (pn .le. 0.0D0) mteken=-1
   if ((mteken+nteken) .eq. 0) then
-     nt=nt+1
-     x(nt)= xz
+     nt    = nt+1
+     x(nt) = xz
   endif
-  nteken=mteken
+  nteken   = mteken
   if ((1.0D0-xz) .le. extra) go to 30
-  xz= xz+(1.D0-xz*xz)*gn+extra
+  xz = xz+(1.D0-xz*xz)*gn+extra
   go to 5
 30 continue
 
@@ -618,51 +618,51 @@ subroutine gausspt(ndim,ngauss,a,b,x,w)
   !                determine zero's and weights
 
   do i=1,nt
-     xz= x(i)
-     delta2=1.D0
-35   pnm2=1.0D0
-     pnm1= xz
-     pnm1af=1.0D0
-     z=.5D0+1.5D0*xz*xz
+     xz     = x(i)
+     delta2 = 1.D0
+35   pnm2   = 1.0D0
+     pnm1   = xz
+     pnm1af = 1.0D0
+     z      = .5D0 + 1.5D0*xz*xz
      do k=2,ngauss
-        pnm1xz= pnm1*xz
-        pn=2.0D0*pnm1xz-pnm2-(pnm1xz-pnm2)/dble(k)
-        pnaf= xz*pnm1af+k*pnm1
-        z= z+(dble(k)+0.5D0)*pn*pn
-        pnm2= pnm1
-        pnm1= pn
-        pnm1af= pnaf
+        pnm1xz = pnm1*xz
+        pn     = 2.0D0*pnm1xz-pnm2-(pnm1xz-pnm2)/dble(k)
+        pnaf   = xz*pnm1af+k*pnm1
+        z      = z+(dble(k)+0.5D0)*pn*pn
+        pnm2   = pnm1
+        pnm1   = pn
+        pnm1af = pnaf
      enddo
-     delta1= pn/pnaf
-     xz= xz-delta1
+     delta1    = pn/pnaf
+     xz        = xz-delta1
      if(delta1.lt.0.0D0) delta1=-delta1
-     if((delta1.ge.delta2).and.(delta2.lt.1.d-14)) go to 50
-     delta2= delta1
+     if( (delta1.ge.delta2) .and. (delta2.lt.1.d-14) ) go to 50
+     delta2 = delta1
      go to 35
-50   x(i)= xz
-     w(i)=1.0D0/z
+50   x(i) = xz
+     w(i) = 1.0D0/z
   enddo
 
   !     ***********************************************************
   !
   !                 transform to the interval [a,b]
 
-  nghalf=ngauss/2
-  ngp1=ngauss+1
-  ntp1=nt+1
-  apb= a+b
-  bmag2=(b-a)/2.0D0
+  nghalf = ngauss/2
+  ngp1   = ngauss+1
+  ntp1   = nt+1
+  apb    = a+b
+  bmag2  = (b-a)/2.0D0
   do i=1,nghalf
-     x(ngp1-i)= b-bmag2*(1.0D0-x(ntp1-i))
-     w(ngp1-i)= bmag2*w(ntp1-i)
+     x(ngp1-i) = b-bmag2*(1.0D0-x(ntp1-i))
+     w(ngp1-i) = bmag2*w(ntp1-i)
   enddo
   if (nghalf .ne. nt) then
-     x(nt)= apb/2.0D0
-     w(nt)= w(1)*bmag2
+     x(nt) = apb/2.0D0
+     w(nt) = w(1)*bmag2
   endif
   do i=1,nghalf
-     x(i)= apb-x(ngp1-i)
-     w(i)= w(ngp1-i)
+     x(i) = apb-x(ngp1-i)
+     w(i) = w(ngp1-i)
   enddo
   return
 end subroutine gausspt
@@ -2065,3 +2065,11 @@ logical function WrtDim( dimnam, minval )
   wrtdim = .true.
   
 end function WrtDim
+
+!!! **** File Variables
+
+! Local Variables:
+! eval: (outline-minor-mode)
+! outline-regexp: "!!!\\|\\(program\\|subroutine\\|function\\|module\\)\\>"
+! outline-heading-alist: (("!!!" . 1) ("program" . 2) ("subroutine" . 2) ("module" . 2) ("function" . 2))
+! End:
