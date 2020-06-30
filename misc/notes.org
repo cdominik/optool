@@ -91,7 +91,7 @@ Need to specify a dust to gas ratio, because these should be per g
 gas.  or per gicy region? or....?????
 
 ** TODO propagate rho to fits and write it there?
-** TODO Does the angular grid have to be configurable?
+** DONE Does the angular grid have to be configurable?
 Michiels code does assum that teh grid is regular in two places.
 1. DMieLay only computes from 0 to pi/2, and then the other half is
    constructed from what we already have
@@ -116,15 +116,34 @@ For now, I think we leave the angular grid alone - until the need
 arizes to change it.
 
 ** TODO Fix the FITS issues
-
+Python cannot read the headers.  I should check if Fortran actually can!?
 ** TODO Add an amorphous water ice
 ** TODO Add more materials
+what would be useful?
+- the T-dependant Forsterite stuff?
+  - Files are large, hey start only at 5um, I would have to mix the
+    three directions...
+- A few ices, maybe.
+  
 Only ones with good wavelength coverage.
 What does Christian Lammert use?
-** TODO Make the builtin carbon data smaller, the resolution is too high
-We can just use optool -b -l 0.05 3000 100 -c c-z
-to do the interpolation....
-** SDMB Improve the ingest script
-*** TODO Detect if rho and nlam are missing
-*** TODO Read Jena/St Petersburg standard files
-Careful, cgs lambda
+** TODO Make a comparison between the two blenders
+* Strategy
+** Read lnk data for all materials
+** Do the mixing, so that we end up with a single material
+** Loop over all lambda
+- Loop over particle sizes
+  - Loop over the DHS volumes
+    - Call DMiLay, get back qext,qsca,qabs,gqsc,m1,m2,s21,d21
+      From those, we construct the Mief's.  The larger angles come
+      from the smaller ones, with some kind of symmetry
+    - If the sphere is too large (2 pi a/lambda > 1e4, or if there is an error in DMiLay
+      - Call MeerhoffMie instead.
+      - However, if the grain is too large too large, fix the wavelength to be grain
+        radius/5000, and then call Meerhoffmie
+      - That gives all the Mief's directly, take it from there.
+    - Renormalize Mief11, just the 0 degrees value
+    - add wighted contribution to the matrix
+    - add weighted contribution to the cappas cext_ff etc
+  - Add contributions to the cappas cext
+  - Set the kappas and the finla scattering matrix for thet wavelength
