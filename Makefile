@@ -11,7 +11,7 @@ ifeq ($(ifort),true)
 endif
 
 # Multicore support
-ifneq ($(multi),false)
+ifeq ($(multi),true)
     ifeq ($(ifort),true)
 	MULTICORE = -openmp -fp-model strict
     else
@@ -29,6 +29,10 @@ ifeq ($(debug),true)
 endif
 
 # CFITSIO support
+ifeq ($(fits),true)
+  FLAG_FITS		= -DUSE_FITSIO
+  LIBS_FITS		= -lcfitsio -L/usr/local/lib/
+endif
 ifeq ($(fitsio),true)
   FLAG_FITS		= -DUSE_FITSIO
   LIBS_FITS		= -lcfitsio -L/usr/local/lib/
@@ -63,7 +67,7 @@ DEST	      = ${HOME}/bin
 # make actions 
 all:		$(PROGRAM)
 cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp
-clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i
+clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.o
 		make cleanoutput
 		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
 install:	$(PROGRAM)

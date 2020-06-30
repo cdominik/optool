@@ -57,16 +57,18 @@ simple steps, using the freely available GNU FORTRAN compiler
 : make
 
 The executable is called =optool=, and you should put it on your
-execution path.  If you prefer to use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]],
-if you have the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library installed and would like to write
-the opacities into FITS files instead of ASCII, or if you do not have
-working OpenMP installation and need to turn off parallel
-processing, then use one or more of these parameters during
-compilation:
+execution path.  To use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]], to use multiple
+cores[fn:2] for speed, or to be able to write FITS files[fn:3], use
+one or more of the following parameters during compilation:
 
-: make ifort=true         # use the Intel fortran compiler iFort
-: make fitsio=true        # add support for writing FITS files
-: make multi=false        # disable multithread support
+: make ifort=true        # use the Intel fortran compiler iFort
+: make multi=true        # enable multicore support
+: make  fits=true        # add support for writing FITS files
+
+[fn:2] If you do turn multicore support on, please also run "=make
+selftest=" to test if everything works properly.  I have had problems
+with the OpenMP setup of an older version of =gfortran=.
+[fn:3] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your system.
 
 * Examples
 A simple grain made only of the default pyroxene
