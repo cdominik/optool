@@ -1546,7 +1546,7 @@ subroutine DMiLay( rcore, rshell, wvno, rindsh, rindco, mu, &
 
   integer   mxang, ll, err
   double precision zero, one, two
-  parameter ( mxang = 200, ll = 200000, zero = 0.0d0, one = 1.0d0, &
+  parameter ( mxang = 1440, ll = 300000, zero = 0.0d0, one = 1.0d0, &
        two = 2.0d0 )
 
   ! Scalar Arguments
@@ -2058,10 +2058,10 @@ logical function WrtDim( dimnam, minval )
 
   character dimnam*( * )
   integer   minval
-  
+
   write( *, '(3A,I7)' ) ' ****  Symbolic dimension  ', &
        dimnam, '  should be increased to at least ', minval
-  
+  write (*,*) 'Take a look at subroutine dmilay()'
   wrtdim = .true.
   
 end function WrtDim
