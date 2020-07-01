@@ -111,16 +111,16 @@ scattering matrix.
 + =-c ?= :: List available built-in materials (the keys for the *-c* and
   *-m* options).
 
-+ =-c KEY-or-FILE [Mfrac]= ::
++ =-c KEY-or-FILE [MFRAC]= ::
 
   Specify a material to include into the grain.  =KEYorFILE= can be the
   [[#builtin-materials][key for a builtin material]], or the path to the correct
-  =lnk= file. =Mfrac= is the /mass/ fraction of the material. You can
+  =lnk= file. =MFRAC= is the /mass/ fraction of the material. You can
   give up to 10 *-c* switches to add the different contributions.  All
   materials will be mixed together using the Bruggeman rule, and
   vacuum can be included through the porosity.
 
-+ =-m KEY-or-FILE [Mfrac]= ::
++ =-m KEY-or-FILE [MFRAC]= ::
 
   Like *-c*, but use this material as a mantle material that will be
   mixed in using the Maxwell-Garnett rule instead of the Bruggeman
