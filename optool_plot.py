@@ -209,6 +209,16 @@ def readkapscatmat(file):
             f34[ilam,iang] = float(dum[4])
             f44[ilam,iang] = float(dum[5])
 
+    theta  = np.linspace(0,180,nang)
+    thetap = np.hstack([theta,[180]])
+    mu     = np.cos(thetap*np.pi/180)
+    dmu    = np.abs((mu[1:]-mu[:-1]))
+    wgt    = dmu
+    for ilam in range(nlam):
+        tot = (f11[ilam,:]*wgt).sum()
+        if (abs(tot-2.) >= 1e-4):
+            print('F11 normalization not perfect: ',ilam,tot,ksca[ilam])
+
     rfile.close()
     return [lam,kabs,ksca,phase_g,scatang,f11,f12,f22,f33,f34,f44]
 
