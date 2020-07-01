@@ -50,6 +50,7 @@ module Defs
   ! Number of angles to be considered
   ! ----------------------------------------------------------------------
   integer                        :: nang
+  real (kind=dp)                 :: chopangle
   ! ----------------------------------------------------------------------
   ! Material properties
   ! ----------------------------------------------------------------------
@@ -135,7 +136,8 @@ program optool
   lmax           = 10000.0_dp ! micrometer
   nlam           = 300
 
-  nang           = 180        ! FIXME make configurable
+  nang           = 180        ! Number of angular point, has to be even
+  chopangle      = 0.d0       ! Angle in degree to chop forward peak
   
   tmin           = 10d0       ! K
   tmax           = 1d4        ! K
@@ -334,6 +336,12 @@ program optool
         write_scatter=.true.
         if (arg_is_value(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) nang
+        endif
+     case('-chop')
+        if (.not. arg_is_value(i+1)) then
+           print *,'ERROR: -chop needs a number of degrees'
+        else
+           i=i+1; call getarg(i,value); read(value,*) chopangle
         endif
      case('-radmc','-radmc3d')
         for_radmc = .true.
@@ -632,6 +640,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
 
   character (len=3)              :: meth   ! Method for computing opacities
 
+  integer ichop
+  
   ns     = na    ! number of subgrains to compute
   meth   = 'DHS' !
 
@@ -1031,9 +1041,52 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      p%F(ilam)%F44(1:nang) = f44(1:nang)/csca
 
      ! ----------------------------------------------------------------------
-     ! Average ofver angles to compute asymmetry factor g
+     ! Chop off forward-scattering peak, adjust the scattering cross section
      ! ----------------------------------------------------------------------
-     ! FIXME: a regular angular grid is assumed for this computation
+     if (chopangle .gt. 0d0) then
+        ! Flatten the peak
+        ichop =  int( chopangle / (180.d0/nang) )
+        if (ichop .gt. 1) then
+           do i=1,ichop
+              p%F(ilam)%F11(i) = p%F(ilam)%F11(ichop+1)
+              p%F(ilam)%F12(i) = p%F(ilam)%F12(ichop+1)
+              p%F(ilam)%F22(i) = p%F(ilam)%F22(ichop+1)
+              p%F(ilam)%F33(i) = p%F(ilam)%F33(ichop+1)
+              p%F(ilam)%F34(i) = p%F(ilam)%F34(ichop+1)
+              p%F(ilam)%F44(i) = p%F(ilam)%F44(ichop+1)
+           enddo
+        endif
+        ! Integrate F11
+        tot = 0; tot2 = 0
+        do j=1,nang
+           tot  = tot  +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(nang))) * (pi/dble(nang)) * (2.d0*pi)
+           tot2 = tot2 +                      sin(pi*(real(j)-0.5)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
+        enddo
+        ! Scale the scattering matrix
+        do j=1,nang
+           p%F(ilam)%F11(j) = p%F(ilam)%F11(j) * tot2/tot
+           p%F(ilam)%F12(j) = p%F(ilam)%F12(j) * tot2/tot
+           p%F(ilam)%F22(j) = p%F(ilam)%F22(j) * tot2/tot
+           p%F(ilam)%F33(j) = p%F(ilam)%F33(j) * tot2/tot
+           p%F(ilam)%F34(j) = p%F(ilam)%F34(j) * tot2/tot
+           p%F(ilam)%F44(j) = p%F(ilam)%F44(j) * tot2/tot
+        enddo
+        ! Scale kappa_scat, and change kappa_ext accordingly
+        p%Ksca(ilam) = p%Ksca(ilam) * tot/tot2
+        p%Kext(ilam) = p%Ksca(ilam) + p%Ksca(ilam)
+        
+        !tot = 0; tot2 = 0
+        !do j=1,nang
+        !   tot  = tot  +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(nang))) * (pi/dble(nang)) * (2.d0*pi)
+        !   tot2 = tot2 +                      sin(pi*(real(j)-0.5)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
+        !enddo
+        !print *,'>',tot,tot2
+     endif
+
+     ! ----------------------------------------------------------------------
+     ! Average over angles to compute asymmetry factor g
+     ! ----------------------------------------------------------------------
+     ! A regular angular grid is assumed for this computation
      tot = 0.0_dp
      p%g(ilam) = 0.d0  !FIXME we never did this, why did this not cause problems???
      do i=1,nang
@@ -1461,7 +1514,9 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
   real (kind=dp) :: amin,amax,apow,fmax,pcore,pmantle,mfrac(nm)
   real (kind=dp) :: lmin,lmax,f
   type(particle) :: p
-  integer        :: na,i,ilam,iang,nm
+  integer        :: na,i,ilam,iang,nm,i1,i2
+  real (kind=dp) :: mu1,mu2,dmu,theta1,theta2,tot,tot2,f0
+  real (kind=dp),allocatable :: f11(:)
   character*(*)  :: label
   character*(3)  :: ext
   character*(23) :: ml
@@ -1469,6 +1524,8 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
   character*500  :: file1,file2
   character*500  :: make_file_path ! Function
 
+  allocate(f11(0:nang))
+  
   if (for_radmc) then
      ext = 'inp'
      ml = 'Z11 Z12 Z22 Z33 Z34 Z44'
@@ -1552,28 +1609,46 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      write(20,*)      ! an empty line
      ! The angular grid
      do iang=0,nang
-        write(20,'(f11.5)') dble(iang)/dble(nang)*180
+        write(20,'(f11.5)') dble(iang)/dble(nang)*180.d0
      enddo
      write(20,*)      ! an empty line
      ! Write the scattering matrix
      do ilam=1,nlam
+        ! Extra renormalization because of interpolation
+        do iang=0,nang
+           i1 = max(1,iang); i2=min(iang+1,nang)
+           f11(iang) = 0.5 * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) )
+        enddo
+        tot = 0.d0
+        do iang=1,nang
+           theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)  /dble(nang) * pi
+           mu1 = cos(theta1); mu2 = cos(theta2); dmu = mu1-mu2
+           tot = tot + 0.5 * (f11(iang-1)+f11(iang)) * dmu
+        enddo
+        f0 = 2.d0/tot
+        
         ! Set the scaling for the normalization
         if (for_radmc) then
-           f = p%ksca(ilam)/(4.d0*pi)
+           f = p%ksca(ilam)/(4.d0*pi) * f0
         else
-           f = 1.d0
+           f = 1.d0 * f0
         endif
         do iang=0,nang
            ! We have only computed 0..nang-1, but RADMC needs a value at
            ! 180 degrees as well. We simply repeat the last value
-           i = 1 + min(iang,nang-1)
+           i1 = max(1,iang); i2=min(iang+1,nang)
            write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
-                p%F(ilam)%F11(i)*f,p%F(ilam)%F12(i)*f,p%F(ilam)%F22(i)*f, &
-                p%F(ilam)%F33(i)*f,p%F(ilam)%F34(i)*f,p%F(ilam)%F44(i)*f
+                0.5 * f * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) ), &
+                0.5 * f * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) ), &
+                0.5 * f * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) ), &
+                0.5 * f * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) ), &
+                0.5 * f * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) ), &
+                0.5 * f * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
         enddo
      enddo
      close(20)
   endif
+  deallocate(f11)
 end subroutine write_ascii_file
 
 #ifdef USE_FITSIO

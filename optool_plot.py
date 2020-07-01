@@ -209,14 +209,15 @@ def readkapscatmat(file):
             f34[ilam,iang] = float(dum[4])
             f44[ilam,iang] = float(dum[5])
 
-    theta  = np.linspace(0,180,nang)
-    thetap = np.hstack([theta,[180]])
-    mu     = np.cos(thetap*np.pi/180)
-    dmu    = np.abs((mu[1:]-mu[:-1]))
-    wgt    = dmu
+    # Check the normalization
+    thetai = np.linspace(0,180,181)     # Angles at interface
+    mui    = np.cos(thetai*np.pi/180)   # mu at interfaces
+    dmu    = np.abs(mui[1:]-mui[:-1])   # dmu between interfaces
+
     for ilam in range(nlam):
-        tot = (f11[ilam,:]*wgt).sum()
-        if (abs(tot-2.) >= 1e-4):
+        fc     = 0.5*(f11[ilam,1:]+f11[ilam,:-1]) # value in ell center
+        tot = (fc*dmu).sum()  # integrate...
+        if (abs(tot-2.) >= 1e-6):
             print('F11 normalization not perfect: ',ilam,tot,ksca[ilam])
 
     rfile.close()
