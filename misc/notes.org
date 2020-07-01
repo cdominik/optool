@@ -40,6 +40,13 @@
 # + =-B= ::
 # 
 #   Use the old style Blender, for robustness
+** TODO Fixed to RADMC-3D output
+- The scattering matrix has to be given on interfaces, not on cell centers
+  - So we interpolate two values to get 179 values
+  - The we duplicate the first and last values and write that to a file.
+- We need a -chop DEGREE switch, that will chop off N degrees of the
+  scattering (set F11 constant there) and then recompute kappascat by integration.
+- The value of the chopping angle needs to go into the header.
 ** DONE multicore
 
 I did some tests on my 4 coures Macbook Pro, and on my 2 core Macbook
