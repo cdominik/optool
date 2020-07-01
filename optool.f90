@@ -34,7 +34,7 @@ module Defs
   ! ----------------------------------------------------------------------
   ! Physics and math constants
   ! ----------------------------------------------------------------------
-  real (kind=dp), public, parameter :: pi = 3.1415926535897932384_dp
+  real (kind=dp),public,parameter :: pi = 3.1415926535897932384_dp
   ! ----------------------------------------------------------------------
   ! Some global switches
   ! ----------------------------------------------------------------------
@@ -53,11 +53,11 @@ module Defs
   ! ----------------------------------------------------------------------
   ! Material properties
   ! ----------------------------------------------------------------------
-  integer                      :: mat_nm       ! number of materials specified
-  character*500,  allocatable  :: mat_loc(:)   ! either 'core' or 'mantle'
-  character*500,  allocatable  :: mat_lnk(:)   ! the lnk key of file path
-  real (kind=dp), allocatable  :: mat_rho(:)   ! specific mass density of material
-  real (kind=dp), allocatable  :: mat_mfr(:)   ! mass fraction of each component
+  integer         :: mat_nm       ! number of materials specified
+  character*500   :: mat_loc(21)  ! either 'core' or 'mantle'
+  character*500   :: mat_lnk(21)  ! the lnk key of file path
+  real (kind=dp)  :: mat_rho(21)  ! specific mass density of material
+  real (kind=dp)  :: mat_mfr(21)  ! mass fraction of each component
   real (kind=dp), allocatable  :: mat_e1(:,:)  ! Real      part of refractive index
   real (kind=dp), allocatable  :: mat_e2(:,:)  ! Imaginary part of refractive index
   ! ----------------------------------------------------------------------
@@ -153,18 +153,10 @@ program optool
   for_radmc      = .false.    ! Default is to use optool conventions.
 
   ! ----------------------------------------------------------------------
-  ! Allocate space for up to 12 different materials
-  ! ----------------------------------------------------------------------
-  allocate(mat_loc(12))
-  allocate(mat_lnk(12))
-  allocate(mat_mfr(12))
-  allocate(mat_rho(12))
-  have_mantle = .false.
-
-  ! ----------------------------------------------------------------------
   ! Initialize rho, because we need the fact that it has not been set
   ! to decide what to do with lnk files where it is missing
   ! ----------------------------------------------------------------------
+  have_mantle = .false.
   do im=1,12
      mat_rho(im) = 0.d0
   enddo
@@ -188,6 +180,9 @@ program optool
      case('-c','-m')
         i  = i+1
         nm = nm+1;
+        if (nm .gt. 20) then
+           print *,'ERROR: too many materials'; stop
+        endif
 
         ! First value is the material key or refindex file path
         call getarg(i,value); read(value,'(A)') mat_lnk(nm)
@@ -545,7 +540,6 @@ program optool
      endif
   endif
   
-  deallocate(mat_loc,mat_lnk,mat_mfr,mat_rho)
   do i=1,nlam
      deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
   enddo
