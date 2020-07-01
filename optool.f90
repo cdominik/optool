@@ -1523,8 +1523,6 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
   logical        :: scatter,for_radmc,progress
   character*500  :: file1,file2
   character*500  :: make_file_path ! Function
-
-  allocate(f11(0:nang))
   
   if (for_radmc) then
      ext = 'inp'
@@ -1600,55 +1598,70 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      endif
 
      write(20,*) nlam   ! Number of wavelength points
-     write(20,*) nang+1 ! Number of angular points
+     if (for_radmc) then
+        write(20,*) nang+1 ! Number of angular points
+     else
+        write(20,*) nang
+     endif
      write(20,*)         ! an empty line
      ! The opacities as function of lambda
      do ilam=1,nlam
         write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
      enddo
+
      write(20,*)      ! an empty line
      ! The angular grid
-     do iang=0,nang
-        write(20,'(f11.5)') dble(iang)/dble(nang)*180.d0
-     enddo
+     if (for_radmc) then
+        do iang=0,nang
+           write(20,'(f11.5)') dble(iang)/dble(nang)*180.d0
+        enddo
+     else
+        do iang=1,nang
+           write(20,'(f11.5)') dble(iang-0.5)/dble(nang)*180.d0
+        enddo
+     endif
+        
      write(20,*)      ! an empty line
      ! Write the scattering matrix
+     if (for_radmc) allocate(f11(0:nang))
      do ilam=1,nlam
-        ! Extra renormalization because of interpolation
-        do iang=0,nang
-           i1 = max(1,iang); i2=min(iang+1,nang)
-           f11(iang) = 0.5 * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) )
-        enddo
-        tot = 0.d0
-        do iang=1,nang
-           theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)  /dble(nang) * pi
-           mu1 = cos(theta1); mu2 = cos(theta2); dmu = mu1-mu2
-           tot = tot + 0.5 * (f11(iang-1)+f11(iang)) * dmu
-        enddo
-        f0 = 2.d0/tot
-        
-        ! Set the scaling for the normalization
         if (for_radmc) then
-           f = p%ksca(ilam)/(4.d0*pi) * f0
+           ! Extra renormalization because of interpolation
+           do iang=0,nang
+              i1 = max(1,iang); i2=min(iang+1,nang)
+              f11(iang) = 0.5 * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) )
+           enddo
+           tot = 0.d0
+           do iang=1,nang
+              theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)  /dble(nang) * pi
+              mu1 = cos(theta1); mu2 = cos(theta2); dmu = mu1-mu2
+              tot = tot + 0.5 * (f11(iang-1)+f11(iang)) * dmu
+           enddo
+           f0 = 2.d0/tot
+           f  = p%ksca(ilam)/(4.d0*pi) * f0
+           do iang=0,nang
+              ! We have only computed 0..nang-1, but RADMC needs a value at
+              ! 180 degrees as well. We simply repeat the last value
+              i1 = max(1,iang); i2=min(iang+1,nang)
+              write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
+                   0.5 * f * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) ), &
+                   0.5 * f * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) ), &
+                   0.5 * f * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) ), &
+                   0.5 * f * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) ), &
+                   0.5 * f * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) ), &
+                   0.5 * f * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
+           enddo
         else
-           f = 1.d0 * f0
+           do i=1,nang
+              write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
+                   p%F(ilam)%F11(i),p%F(ilam)%F12(i),p%F(ilam)%F22(i), &
+                   p%F(ilam)%F33(i),p%F(ilam)%F34(i),p%F(ilam)%F44(i)
+           enddo
         endif
-        do iang=0,nang
-           ! We have only computed 0..nang-1, but RADMC needs a value at
-           ! 180 degrees as well. We simply repeat the last value
-           i1 = max(1,iang); i2=min(iang+1,nang)
-           write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
-                0.5 * f * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) ), &
-                0.5 * f * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) ), &
-                0.5 * f * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) ), &
-                0.5 * f * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) ), &
-                0.5 * f * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) ), &
-                0.5 * f * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
-        enddo
-     enddo
+     enddo ! end do ilam=1,nlam
+     if (for_radmc) deallocate(f11)
      close(20)
-  endif
-  deallocate(f11)
+  endif   ! end if (not scatter)
 end subroutine write_ascii_file
 
 #ifdef USE_FITSIO
