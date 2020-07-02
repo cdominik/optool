@@ -220,8 +220,8 @@ def readkapscatmat(file):
 
         for ilam in range(nlam):
             fc     = 0.5*(f11[ilam,1:]+f11[ilam,:-1]) # value in ell center
-            tot = (fc*dmu).sum()  # integrate...
-            if (abs(tot-2.) >= 1e-6):
+            tot = 2.*3.1415926*(fc*dmu).sum()  # integrate...
+            if ((abs(tot-ksca[ilam])/ksca[ilam]) >= 1e-6):
                 print('F11 normalization not perfect: ',ilam,tot,ksca[ilam])
     else:
         print('center values')

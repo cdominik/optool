@@ -1636,8 +1636,9 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
               mu1 = cos(theta1); mu2 = cos(theta2); dmu = mu1-mu2
               tot = tot + 0.5 * (f11(iang-1)+f11(iang)) * dmu
            enddo
-           f0 = 2.d0/tot
-           f  = p%ksca(ilam)/(4.d0*pi) * f0
+           tot = 2.d0 * pi * tot
+           f = p%ksca(ilam)/tot
+           ! print *,tot,p%ksca(ilam),f
            do iang=0,nang
               ! We have only computed 0..nang-1, but RADMC needs a value at
               ! 180 degrees as well. We simply repeat the last value
