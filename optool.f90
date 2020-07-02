@@ -997,7 +997,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
               tot2 = tot2 + sin(pi*(real(j)-0.5)/real(nang))
            enddo
            Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5)/real(nang))
-           if (Mief11(1).lt.0d0) Mief11(1) = 0d0
+           if (Mief11(1) .lt. 0d0) Mief11(1) = 0d0
 
            ! Add this contribution with the proper weights
            do j=1,nang
@@ -1059,6 +1059,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         ! Integrate F11
         tot = 0; tot2 = 0
         do j=1,nang
+           !                    F11                         sin theta                  d theta
            tot  = tot  +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(nang))) * (pi/dble(nang)) * (2.d0*pi)
            tot2 = tot2 +                      sin(pi*(real(j)-0.5)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
         enddo
@@ -1073,7 +1074,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         enddo
         ! Scale kappa_scat, and change kappa_ext accordingly
         p%Ksca(ilam) = p%Ksca(ilam) * tot/tot2
-        p%Kext(ilam) = p%Ksca(ilam) + p%Ksca(ilam)
+        p%Kext(ilam) = p%Ksca(ilam) + p%Kabs(ilam)
         
         !tot = 0; tot2 = 0
         !do j=1,nang
