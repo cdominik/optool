@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: C. Dominik
-#+DATE:   June 2020, version 0.9.6
+#+DATE:   June 2020, version 0.9.7
 
 * Introduction
 
@@ -96,9 +96,9 @@ distribution. Also, restrict the wavelength range to 10-100\mu{}m.
 
 Represent the default dust model (DIANA) in 42 grain sizes, and
 produce input files for RADMC-3D, one for each grain size, with full
-scattering matrix.
+scattering matrix, chopping 3 degrees from the scattering peak.
 
-: optool -na 42 -d -s -radmc
+: optool -na 42 -d -s -radmc -chop 3
 
 
 * Command line options
