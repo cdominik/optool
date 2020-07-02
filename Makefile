@@ -67,7 +67,7 @@ DEST	      = ${HOME}/bin
 # make actions 
 all:		$(PROGRAM)
 cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp
-clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.o
+clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.o *.html
 		make cleanoutput
 		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
 install:	$(PROGRAM)
