@@ -175,15 +175,15 @@ extend the [[#output-files][output]].
 + =-o [DIR]= ::
 
   Put the output files in directory =DIR= instead of the current
-  working directory. If you use =-o= without specifying a directory,
-  =./output= will be used.
+  working directory. =./output= will be used if =DIR= is not
+  specified.
 
 + =-s [NANG]= ::
 
   Include the full scattering matrix in the output. =NANG= can
   optionally specify the number of equally-spaced [[#angular-grid][angular grid points]]
   to cover the range of angles between 0 and 180 degrees.  The default
-  for =NANG= is 180.
+  for =NANG= is 180 and should normally not be changed.
 
 + =-chop [NDEG]= ::
 
@@ -202,7 +202,7 @@ extend the [[#output-files][output]].
 
   Write =dustkappa.fits= with the absorption cross sections and
   scattering matrix elements, instead of ASCII output.  With the =-d=
-  switch, =NA= such files will be written, one for each grain size.
+  switch, =NA= files will be written.
 
 + =-radmc [LABEL]= ::
 
@@ -351,8 +351,8 @@ this: =optool -c path/to/file.lnk 0.7 3.42=
   a N_\lambda \times 6 \times N_ang matrix, containing the 6 elements
   of the scattering matrix for N_ang equidistant scattering angles
   from forward scattering (element 0) to backward scattering (element
-  N_ang-1), for each wavelength value. The stored are F_11, F_12,
-  F_22, F_33, F_34, and F_44.
+  N_ang-1), for each wavelength value. The stored matrix elements are
+  F_11, F_12, F_22, F_33, F_34, and F_44.
 
 - dustkapmean.dat ::
 
@@ -460,7 +460,7 @@ have an internal way to deal with this. An example would be [[http://exoclouds.c
 which has the =nspike= keyword for exactly this purpose.  Others, like
 RADMC-3D require this to be taken care of by the process that creates
 the opacity files.  This is the purpose of the =-chop= switch in
-optool. It specifies a number of degrees (for example 3 might be a
+=optool=. It specifies a number of degrees (for example 3 might be a
 good value) around the forward scattering direction. Inside that cone,
 the scattering matrix gets limited to the value at the edge of the
 cone.  To compensate and ensure energy conservation, the scattering
@@ -499,7 +499,8 @@ Here is how:
 
 1. Give your =lnk= file a name exactly like
    =pyr-mg70-Dorschner1995.lnk=, where =pyr-mg70= is the key to access
-   the material and =Dorschner1995= is the reference.
+   the material and =Dorschner1995= (the text after the final =-=) is
+   the reference.
 2. Put this file into the =lnk_data= directory.
 3. Optionally edit =lnk_data/lnk-help.txt=, so that =optool -c ?= will
    list the new material.  Note that, in order to define generic keys,
@@ -508,22 +509,21 @@ Here is how:
    material.
 5. Recompile and install the code.
 
-
 * Bibliography
-- Dorschner,J. et al. 1995, A&A 300, 503
+- Dorschner, J. et al. 1995, A&A 300, 503
 - Henning, Th. and Stognienko, R. 1996, A&A 311,291
 - Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
-- Jäger,C. et al. 1998, A&A 339, 904
-- Koike,C. et al. 1995, Icarus 114, 203
-- Lefèvre,C.; Min,M. et al. 2020, A&A (submitted)
-- Min,M. et al, 2005, A&A, 432, 909
-- Min,M. et al. 2016, A&A, 585, 13
-- Toon,O. & Ackerman,T. 1981, Applied Optics 20, 3657
-- Woitke,P.; Min,M. et al. 2016, A&A 586, 103
-- Preibisch,Th. et al. 1993, A&A 279, 577
-- Steyer,T. 1974, PhD Thesis, The University of Arizona
-- Warren,S. and Brandt,R. 2008, JGRD,113, D14220
-- Zubko,V. et al. 1996, MNRAS 282,1321
+- Jäger, C. et al. 1998, A&A 339, 904
+- Koike, C. et al. 1995, Icarus 114, 203
+- Lefèvre, C.; Min,M. et al. 2020, A&A (submitted)
+- Min, M. et al, 2005, A&A, 432, 909
+- Min, M. et al. 2016, A&A, 585, 13
+- Toon, O. & Ackerman,T. 1981, Applied Optics 20, 3657
+- Woitke, P.; Min, M. et al. 2016, A&A 586, 103
+- Preibisch, Th. et al. 1993, A&A 279, 577
+- Steyer, T. 1974, PhD Thesis, The University of Arizona
+- Warren, S. and Brandt,R. 2008, JGRD,113, D14220
+- Zubko, V. et al. 1996, MNRAS 282,1321
 
 
 # Start of Setup
