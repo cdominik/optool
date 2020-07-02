@@ -983,7 +983,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
                  Mief34(nang-j+1) = (-D21(j,2))         / csmie/wvno**2*2d0*pi
                  Mief44(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
               enddo
-           endif
+           endif    ! (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1)
 
            ! make sure the scattering matrix is properly normalized by adjusting the forward peak.
            ! ASKMICHIEL: You are only adjusting the one point a 0 degrees.
@@ -1082,7 +1082,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         !   tot2 = tot2 +                      sin(pi*(real(j)-0.5)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
         !enddo
         !print *,'>',tot,tot2
-     endif
+     endif   ! chopangle .gt. 0
 
      ! ----------------------------------------------------------------------
      ! Average over angles to compute asymmetry factor g
