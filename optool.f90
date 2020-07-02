@@ -852,7 +852,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      open(unit=20,file='blended.lnk')
      write(20,'(i5 f5.2)') nlam,rho_av
      do ilam=1,nlam
-        write(20,'(3e15.4)') lam(ilam),e1blend(ilam),e2blend(ilam)
+        write(20,'(1p,e15.4,1p,e15.4,1p,e15.4)') lam(ilam),e1blend(ilam),e2blend(ilam)
      enddo
      close(unit=20)
      stop
