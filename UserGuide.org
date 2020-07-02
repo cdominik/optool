@@ -1,7 +1,7 @@
 
-#+TITLE:  OpTool User Guide
+#+TITLE:  Op-Tool User Guide
 #+AUTHOR: C. Dominik
-#+DATE:   June 2020, version 0.9.7
+#+DATE:   July 2020, version 0.9.7
 
 * Introduction
 
@@ -23,8 +23,8 @@ the /Simple Icy Grain Model for Aggregates/, by Lefévre et al. (2020).
 - DHS method to model shape effects and low-porosity aggregates
 - a useful collection of compiled-in materials for standard applications
   in astronomy
-- an easy way to use externat refractive index data for more
-  specilized applications
+- an easy way to use external refractive index data for more
+  specialized applications
 - multi-core support through OpenMP to make even complex computations
   very fast
 
@@ -32,11 +32,12 @@ the /Simple Icy Grain Model for Aggregates/, by Lefévre et al. (2020).
 
 The code doing the real work of =optool= was adopted and modified from
 [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. I focused on the interface, on simplicity, and a clean
-set of conventions. If you are using this tool, you should give credit
-to the papers describing the methods used to compute the opacities, as
-well as to the original laboratory papers that published the
-refractive index measurements.
+set of conventions. If you are using this tool, you should point to
+the [[https://github.com/cdominik/optool.git][GitHub repository]] and give credit to the papers describing the
+methods used to compute the opacities, as well as to the original
+laboratory papers that published the refractive index measurements.
 
+- =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
 - DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016]]
 - Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
@@ -366,7 +367,7 @@ To try out =optool= you could use one of these commands
 
 : make test             # for a simple size-integrated opacity computation
 :     ... or ...
-: make testdiv          # for opacities as a fuction of grain size
+: make testdiv          # for opacities as a function of grain size
 
 The commands will run =optool= with the standard DIANA material
 properties, and then use the python script =optool_plot.py= to plot
@@ -395,7 +396,7 @@ directory where the output files are located.
 * Acknowledgments
 - [[http://michielmin.nl/][Michiel Min]] for the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][DIANA OpacityTool]] and all the incredible work
   that went into it. =optool= is a direct derivative of that tool and
-  resuses almost all of its code.
+  reuses almost all of its code.
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a grain mantle
   using the Maxwell-Garnett rule.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
@@ -480,17 +481,17 @@ degrees.  The full degrees are the cell /interfaces/ of that
 grid. =optool= computes the scattering matrix at the cell /midpoints/,
 i.e. at 0.5\deg, 1.5\deg etc to 179.5\deg, for a total of 180 values.
 The scattering matrix is normalized in this way, so that a numerical
-intregal gives the correct result.
+integral gives the correct result.
 
 However, if you are using =optool= to produce scattering cross
 sections of RADMC-3D, the conventions are different.  RADMC-3D
-requires the values of the scattering matrix on the cell /boudaries/,
+requires the values of the scattering matrix on the cell /boundaries/,
 so at 0\deg, 1\deg etc to 180\deg, for a total of 181 values.  So for
 for the input files for RADMC-3D, we interpolate and extend the
 computed values to the cell boundaries.  In strong forward-scattering
 grains, this does require a small renormalization to make sure the the
 full solid angle integration gives again accurate results. =optool= is
-handling this renormalization fully automactically.
+handling this renormalization fully automatically.
 
 ** How to ingest refractive index data for another material
 Additional refractive index data tables can be compiled into the code.
