@@ -210,15 +210,30 @@ def readkapscatmat(file):
             f44[ilam,iang] = float(dum[5])
 
     # Check the normalization
-    thetai = np.linspace(0,180,181)     # Angles at interface
-    mui    = np.cos(thetai*np.pi/180)   # mu at interfaces
-    dmu    = np.abs(mui[1:]-mui[:-1])   # dmu between interfaces
+    if (scatang[0]==0.):
+        print('interface values')
+        thetai = np.linspace(0,180,181)     # Angles at interface
+        thetai = scatang                    # Angles at interface
+        mui    = np.cos(thetai*np.pi/180)   # mu at interfaces
+        dmu    = np.abs(mui[1:]-mui[:-1])   # dmu between interfaces
 
-    for ilam in range(nlam):
-        fc     = 0.5*(f11[ilam,1:]+f11[ilam,:-1]) # value in ell center
-        tot = (fc*dmu).sum()  # integrate...
-        if (abs(tot-2.) >= 1e-6):
-            print('F11 normalization not perfect: ',ilam,tot,ksca[ilam])
+        for ilam in range(nlam):
+            fc     = 0.5*(f11[ilam,1:]+f11[ilam,:-1]) # value in ell center
+            tot = (fc*dmu).sum()  # integrate...
+            if (abs(tot-2.) >= 1e-6):
+                print('F11 normalization not perfect: ',ilam,tot,ksca[ilam])
+    else:
+        print('center values')
+        thetam = scatang                    # Angles at interface
+        thetai = np.hstack([(scatang-scatang[0]),[180]])
+        mui    = np.cos(thetai*np.pi/180)   # mu at interfaces
+        dmu    = np.abs(mui[1:]-mui[:-1])   # dmu between interfaces
+        
+        for ilam in range(nlam):
+            fc     = f11[ilam,:] # value in ell center
+            tot = (fc*dmu).sum()  # integrate...
+            if (abs(tot-2.) >= 1e-20):
+                print('F11 normalization not perfect: ',ilam,tot,ksca[ilam])
 
     rfile.close()
     return [lam,kabs,ksca,phase_g,scatang,f11,f12,f22,f33,f34,f44]
