@@ -9,7 +9,7 @@ my $tests = [
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -q -na 10 -nl 30 -s -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => "c944a1e62a56a067c238e18381d55665a8bc66a0"},
+   sha => 'c944a1e62a56a067c238e18381d55665a8bc66a0'},
 
   {name => 'full-diana-lowres',
    prepare => "rm -f $dir/dustkapscatmat.dat",
@@ -45,7 +45,13 @@ my $tests = [
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -q -na 10 -nl 30 -s -chop 4 -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => "36f3f949857d85bebbeb8542d3ba292a4fbc3352"}
+   sha => '36f3f949857d85bebbeb8542d3ba292a4fbc3352'},
+
+  {name => 'fits-output',
+   prepare => "rm -f $dir/dustkappa.fits",
+   cmd => "./optool -q -na 10 -nl 30 -s -fits -o $dir",
+   getsha => "shasum $dir/dustkappa.fits",
+   sha => '05cea43000033be968b1e2c0dbe6081760344a0b'}
   ];
 
 foreach $test (@$tests) {

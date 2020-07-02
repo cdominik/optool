@@ -391,8 +391,8 @@ program optool
   endif
 #ifndef USE_FITSIO
   if (write_fits) then
-     write(*,*) 'ERROR: Support for writing FITS files needs to be compiled in'
-     write(*,*) '       If you want FITS output, make sure cfitsio library is installed"'
+     write(*,*) 'ERROR: Support for writing FITS files needs to be compiled in.'
+     write(*,*) '       If you want FITS output, make sure cfitsio library is installed."'
      write(*,*) '       Then recompile with: "make clean", and then "make fitsio=true"'
      stop
   endif
@@ -530,7 +530,7 @@ program optool
      ! ----------------------------------------------------------------------
      if (write_fits) then
 #ifdef USE_FITSIO
-        call write_fits_file(p,amin,amax,apow,nsub, &
+        call write_fits_file(p,amin,amax,apow,na, &
              fmax,pcore,pmantle,mat_nm,mat_mfr,mat_rho,fitsfile)
 #endif
         continue
@@ -889,8 +889,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
   !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f) &
-  !$OMP shared(split,progress,ndone,nang)                                 &
-  !$OMP private(r1,is,if,rcore,rad)                                       &
+  !$OMP shared(split,progress,ndone,nang,chopangle)                       &
+  !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
   !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge)             &
