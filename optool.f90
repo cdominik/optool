@@ -339,7 +339,7 @@ program optool
         endif
      case('-chop')
         if (.not. arg_is_value(i+1)) then
-           print *,'ERROR: -chop needs a number of degrees'
+           chopangle = 2.
         else
            i=i+1; call getarg(i,value); read(value,*) chopangle
         endif
@@ -1478,9 +1478,8 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   write(unit,'(A," Parameters:")') cc
   write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f10.2,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
   write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f10.2,"  nlam=",I5,"    nang=",I6)') cc,lmin, lmax, nlam, nang
-  write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"            DHS fmax=",g10.2)') cc,pcore,pmantle,fmax
+  write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"  fmax=",g9.2,"chop=  ",f4.1)') cc,pcore,pmantle,fmax,chopangle
   write(unit,'(A," Composition:")') cc
-
   if (mat_rho(1).eq.0) then
      ! We don't have rho yet, so we don't put it into the header.
      ! This is the situation where we write to the screen.

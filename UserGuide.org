@@ -184,11 +184,11 @@ extend the [[#output-files][output]].
   to cover the range of angles between 0 and 180 degrees.  The default
   for =NANG= is 180.
 
-+ =-chop NDEG= ::
++ =-chop [NDEG]= ::
 
-  Cut out the first =NDEG= degrees of the [[#forward-scattering-peak][forward scattering peak]] and
-  compensate by a reduction in the scattering cross section.  See
-  [[#forward-scattering-peak][the Appendix]] for more details.
+  Cut out the first =NDEG= (2 if unspecified) degrees of the [[#forward-scattering-peak][forward
+  scattering peak]] and compensate by a reduction in the scattering
+  cross section.
 
 + =-d [NSUB]= ::
 
