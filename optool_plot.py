@@ -21,6 +21,7 @@ def opinspect():
     
     kabs=[]; ksca=[]; kext=[]; gg=[]
     f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
+    nfiles=0
     
     for i in range(500):
         if scat:
@@ -28,6 +29,7 @@ def opinspect():
         else:
             file = ("dustkappa_%03d.dat") % (i+1)
         if (not path.exists(file)): break
+        nfiles = nfiles+1
         if scat:
             x=readkapscatmat(file)
         else:
@@ -100,14 +102,13 @@ def opinspect():
     if scat:
         # interactive plot of the scattering matric elements
         viewarr([f11,f12,f22,f33,f34,f44],index=2,ylabel=['f11','f12','f22','f33','f34','f44'],
-                idxnames=['grain index','lambda [um]','angle'],idxvals=[range(10),lamfmt,angfmt])
+                idxnames=['grain index','lambda [um]','angle'],
+                idxvals=[np.array(range(nfiles))+1,lamfmt,angfmt])
 
     # interactive plot of kabs, ksca, kext, and g
     viewarr([ggscal,kext,ksca,kabs],index=1,ylabel=['gg','kext','ksca','kabs'],
-            idxvals=[range(10),llamfmt],idxnames=['grain index','log lambda [um]'])
-
-
-
+            idxnames=['grain index','log lambda [um]'],
+            idxvals=[np.array(range(nfiles))+1,llamfmt])
 
 def readkap(file):
 
@@ -232,7 +233,7 @@ def readkapscatmat(file):
         for ilam in range(nlam):
             fc     = f11[ilam,:] # value in ell center
             tot = (fc*dmu).sum()  # integrate...
-            if (abs(tot-2.) >= 1e-20):
+            if (abs(tot-2.) >= 1e-6):
                 print('F11 normalization not perfect: ',ilam,tot,ksca[ilam])
 
     rfile.close()
