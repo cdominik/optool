@@ -28,6 +28,7 @@ def read_lnk(file):
     return [lam,n,k]
 
 files = np.array(glob.glob('lnk_data/*.lnk'))
+nfiles = len(files)
 keys = []
 for x in files:
     y = re.match(r'lnk_data/(.*)-.*.lnk',x)
@@ -35,18 +36,36 @@ for x in files:
 print(files)
 print(keys)
 
-fig, axs = plt.subplots(4, 4, sharex='col', sharey='row',
-                        gridspec_kw={'hspace': 0, 'wspace': 0})
-#(ax1, ax2, ax3, ax4),(ax5, ax6, ax7, ax8),(ax9, ax10, ax11, ax12),(ax13, ax14, ax15, ax16) = axs
-
+if (nfiles <=4):
+    fig, axs = plt.subplots(2, 2, sharex='col', sharey='row', gridspec_kw={'hspace': 0, 'wspace': 0})
+elif (nfiles <=6):
+    fig, axs = plt.subplots(2, 3, sharex='col', sharey='row', gridspec_kw={'hspace': 0, 'wspace': 0})
+elif (nfiles <=9):
+    fig, axs = plt.subplots(3, 3, sharex='col', sharey='row', gridspec_kw={'hspace': 0, 'wspace': 0})
+elif (nfiles <=12):
+    fig, axs = plt.subplots(3, 4, sharex='col', sharey='row', gridspec_kw={'hspace': 0, 'wspace': 0})
+elif (nfiles <=16):
+    fig, axs = plt.subplots(4, 4, sharex='col', sharey='row', gridspec_kw={'hspace': 0, 'wspace': 0})
+elif (nfiles <=25):
+    fig, axs = plt.subplots(5, 5, sharex='col', sharey='row', gridspec_kw={'hspace': 0, 'wspace': 0})
+else:
+    print('too many lots')
+    exit()
+    
 for i in range(16):
     ax = axs.flat[i]
     data = read_lnk(files[i])
     lam = data[0]
     n = data[1]
     k = data[2]
-    ax.plot(np.log10(lam),n)
-    ax.plot(np.log10(lam),np.log10(k))
+    x = np.where(lam<1000)
+    n = n[x]
+    k = k[x]
+    lam = lam[x]
+    x=np.where(n<5)
+    ax.plot(np.log10(lam[x]),n[x])
+    x=np.where(k<5)
+    ax.plot(np.log10(lam[x]),k[x])
     ax.annotate(keys[i], (0.1, 0.5), textcoords='axes fraction', size=7)
     
 fig.show()
