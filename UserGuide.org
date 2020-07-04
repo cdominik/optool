@@ -16,8 +16,8 @@ the /Simple Icy Grain Model for Aggregates/, by Lefévre et al. (2020).
 
 - stand-alone tool, fully command line driven, no input files need to
   be edited
-- full scattering matrix output in various formats (including for
-  RADMC-3D)
+- full scattering matrix output in several formats, including for
+  RADMC-3D
 - combining materials through mixing into a complex grain with
   porosity
 - DHS method to model shape effects and low-porosity aggregates
@@ -263,6 +263,7 @@ even simpler generic key.
 |----------+------------+-------------------------+---------+----------+-------------+-------------+--------------+--------------+-----------------------------|
 | iron     | fe-c       | Fe                      | metal   |     7.87 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]   |              | [[file:lnk_data/fe-c-Henning1996.lnk][fe-c-Henning1996.lnk]]        |
 |          | fes        | FeS                     | metal   |     4.83 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]   |              | [[file:lnk_data/fes-Henning1996.lnk][fes-Henning1996.lnk]]         |
+|          | sic        | SiC                     | cryst   |     3.22 |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L][Draine93]]     |              | [[file:lnk_data/sic-Draine1993.lnk][sic-Draine1993.lnk]]          |
 |----------+------------+-------------------------+---------+----------+-------------+-------------+--------------+--------------+-----------------------------|
 | cor      | cor-c      | Al_{2}O_3               | cryst   |      4.0 |         0.5 |        *40* | [[https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K][Koike+95]]     |              | [[file:lnk_data/cor-c-Koike1995.lnk][cor-c-Koike1995.lnk]]         |
 
