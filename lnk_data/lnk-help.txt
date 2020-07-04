@@ -1,5 +1,5 @@
 # -*- mode: text; fill-column: 100;  -*-
-:                      *** LIST OF BUILT-IN MATERIALS ***                      :
+:                      *** LIST OF BUILT-IN MATERIALS ***                   x  :
 ================================================================================
 : amorphous pyroxenes  pyr-mg100/95/80/70/60/50/40                             :
 : amorphous olivines   ol-mg100/40                      (Dorschner95,Henning96):
