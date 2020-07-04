@@ -255,8 +255,8 @@ even simpler generic key.
 |----------+------------+-------------------------+---------+----------+-------------+-------------+--------------+--------------+-----------------------------|
 | c        | c-z        | C                       | amorph? |      1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z/abstract][Zubko+96]]     |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]           |
 |          | c-p        | C                       | amorph  |      1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P/abstract][Preibisch+93]] |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]       |
-| gra      | c-gra      | C graphite              | cryst   |    2.16? |       0.001 |        1000 | XXX+1900     |              |                             |
-|          | c-org      | CHON organics           | amorph  |      1.4 |         0.1 |         1e5 | Henning+1900 |              |                             |
+| gra      | c-gra      | C graphite              | cryst   |    2.16? |       0.001 |        1000 | XXX+1900     | FIXME        |                             |
+|          | c-org      | CHON organics           | amorph  |      1.4 |         0.1 |         1e5 | Henning+1900 | FIXME        |                             |
 |          | c-nano     | C nano-diamond          | cryst   |      2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]  |              | [[file:lnk_data/nano-diam-Mutschke2004.lnk][nano-diam-Mutschke2004.lnk]]  |
 |----------+------------+-------------------------+---------+----------+-------------+-------------+--------------+--------------+-----------------------------|
 | ice      | ice-w      | Water ice               | cryst   |     0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W/abstract][Warren+08]]    |              | [[file:lnk_data/ice-w-Warren2008.lnk][ice-w-Warren2008.lnk]]        |
