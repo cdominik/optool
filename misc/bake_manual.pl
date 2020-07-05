@@ -21,10 +21,15 @@ foreach (@lines) {
   } elsif (/^[[]/) {
     $skip = 1;
     next;
+  } elsif (/^Footnotes/) {
+    last;
   } else {
     chomp;
     if (length($_) >= 110) {
-      $_ = substr($_,0,109);
+      $_ = substr($_,2,65) . substr($_,91,14);
+      s/\*/ /g;
+      s/{//g;
+      s/}/  /g;
     }
     s/'/ /g;
     s/`/ /g;

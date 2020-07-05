@@ -177,7 +177,7 @@ program optool
      case('?','-h','--help','-help','help')
         call usage(); stop
 
-     case('??','-manual','--manual')
+     case('??','-man','--man','-manual','--manual')
         call manual(); stop
 
         ! ----------------------------------------------------------------------
