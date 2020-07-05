@@ -24,7 +24,7 @@ subroutine usage()
   write(*,'("-chop [NDEG]              Remove NDEG degrees from the forward-scattering peak")')
   write(*,'("-radmc [LABEL]; -fits     Special output options")')
   write(*,'("-o [DIRECTORY]            Output to DIRECTORY instead of current working dir")')
-  write(*,'("-h                        Show this message")')
+  write(*,'("-h; -man                  Show this message; Show the full manual")')
   write(*,'("===============================================================================")')
 end subroutine usage
 
@@ -176,6 +176,9 @@ program optool
 
      case('?','-h','--help','-help','help')
         call usage(); stop
+
+     case('??','-manual','--manual')
+        call manual(); stop
 
         ! ----------------------------------------------------------------------
         ! Definition of a material for the mix

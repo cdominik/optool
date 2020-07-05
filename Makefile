@@ -58,6 +58,7 @@ LIBS    = $(LIBS_FITS)
 OBJS	= optool.o \
 	  optool_extra.o \
 	  ref_ind.o \
+          optool_manual.o \
 	  dmilay_f95.o
 
 # Program name and install location
@@ -72,6 +73,10 @@ clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.o *.html
 		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
+manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org --batch -f org-ascii-export-to-ascii --kill
+		misc/bake_manual.pl > optool_manual.f90
+		rm UserGuide.txt
+pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l misc/bake_manual.el UserGuide.org --batch -f org-latex-export-to-pdf --kill
 test:; 		echo Computing size-integrated opacities ...
 		make cleanoutput
 		make

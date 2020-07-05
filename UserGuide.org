@@ -87,7 +87,7 @@ Add an ice mantle that is 20% of the core mass
 Like the previous example, but use ice refractive index data from a
 separate file.
 
-: optool -c pyr-mg70 0.87  -c c-z 0.13  -m ~/lnk/ice_hudgins_2.dat 0.2  -p 0.25
+: optool -c pyr-mg70 0.87  -c c-z 0.13  -m ice_hudgins.dat 0.2  -p 0.25
 
 Pure ice grains in a narrow size distribution from 1 to 3 microns,
 with 15 sample sizes following an $f(a)\propto a^{-2.5}$ powerlaw size
