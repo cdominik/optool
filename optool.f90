@@ -10,8 +10,8 @@ subroutine usage()
   write(*,'("opacities (Woitke,Min+ 2016). With arguments, set your composition and other")')
   write(*,'("parameters.")')
   write(*,'("")')
-  write(*,'("-c ?                      List available materials")')
-  write(*,'("-c KEY-or-FILE [Mfrac]    Add material with mass fraction to core")')
+  write(*,'("-c                        List available materials")')
+  write(*,'("-c KEY-or-FILE [Mfrac]    Add material with mass fraction. -c may be omitted")')
   write(*,'("-m KEY-or-FILE [Mfrac]    Set material and mass fraction of mantle")')
   write(*,'("-p POROSITY [PMANTLE]     Set porosity, possibly different for core and mantle")')
   write(*,'("-fmax VHMAX               Maximum volume fraction of vacuum in DHS computation")')
@@ -41,7 +41,8 @@ module Defs
   ! ----------------------------------------------------------------------
   logical, public                :: blendonly = .false. ! only blend materials and write result out
   logical, public                :: split     = .false. ! split to many files
-  logical, public                :: quiet     = .true.  ! reduce output to STDOUT
+  logical, public                :: quiet     = .false. ! reduce output to STDOUT
+  logical, public                :: debug     = .false. ! Additional infor to STDOUT
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
@@ -112,6 +113,8 @@ program optool
   character*100   :: tmp,value       ! for processing args
 
   logical         :: have_mantle     ! to enforce single mantle material
+  logical         :: arg_is_present  ! functions to test arguments
+  logical         :: arg_is_switch   ! functions to test arguments
   logical         :: arg_is_value    ! functions to test arguments
   logical         :: arg_is_number   ! functions to test arguments
   character*500   :: fitsfile        ! file name for FITS output
@@ -193,19 +196,19 @@ program optool
         ! First value is the material key or refindex file path
         call getarg(i,value); read(value,'(A)') mat_lnk(nm)
 
-        if (value .eq. '?') then
+        if ((value .eq. '?') .or. (value .eq. '')) then
            call ListBuiltinMaterials(); stop
         endif
-        ! Second value is the volume fraction
-        if (.not. arg_is_value(i+1)) then
-           print *, "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
+        ! Second value is the mass fraction
+        if (.not. arg_is_number(i+1)) then
+           if (.not. quiet) print *, "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
            mat_mfr(nm) = 1.0
         else
            i = i+1; call getarg(i,value); read(value,*) mat_mfr(nm)
         endif
 
         if (mat_mfr(nm).eq.0) then
-           print *, "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
+           if (.not. quiet) print *, "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
            nm = nm-1
         else
            ! Set the type, and make sure we have at most one mantle material
@@ -230,7 +233,7 @@ program optool
         endif
 
         ! There might be a density, as a third argument
-        if (arg_is_value(i+1)) then
+        if (arg_is_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) mat_rho(nm)
         endif
 
@@ -247,10 +250,10 @@ program optool
         i=i+1; call getarg(i,value); read(value,*) amin
         i=i+1; call getarg(i,value); read(value,*) amax
         ! Lets see if there is more, we expect apow
-        if (arg_is_value(i+1)) then
+        if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) apow
            ! Lets see if there is more, we expect na
-           if (arg_is_value(i+1)) then
+           if (arg_is_number(i+1)) then
               i=i+1; call getarg(i,value); read(value,*) na
            endif
         endif
@@ -278,7 +281,7 @@ program optool
            call check_for_file(trim(value))
            i=i+1
            call read_lambda_grid(trim(value))
-        else if (.not. arg_is_value(i+2)) then
+        else if (.not. arg_is_number(i+2)) then
            ! First arg was a number, this one is not.  Bad.
            print *,"ERROR: -l needs 2-3 values: lmin lmax [nlam]"; stop
         else
@@ -286,7 +289,7 @@ program optool
            i = i+1; call getarg(i,value); read(value,*) lmin
            i = i+1; call getarg(i,value); read(value,*) lmax
            ! Lets see if there is more, we expect nlam
-           if (arg_is_value(i+1)) then
+           if (arg_is_number(i+1)) then
               i=i+1; call getarg(i,value); if (value.ne.'') read(value,*) nlam
            endif
         endif
@@ -302,7 +305,7 @@ program optool
         ! ----------------------------------------------------------------------
      case('-p','-porosity','--porosity')
         i = i+1;  call getarg(i,value); read(value,*) pcore
-        if (arg_is_value(i+1)) then
+        if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) pmantle
         else
            pmantle = pcore
@@ -364,13 +367,26 @@ program optool
      case('-q')
         ! Be less noisy
         quiet = .true.
+     case('-debug')
+        ! More info to STDOUT
+        debug = .true.
      case default
-        write(*,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
-        write(*,*) "For help, try: optool -h     ... or find the user guide OpTool.pdf"
-        stop
+        if (arg_is_switch(i)) then
+           write(*,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
+           write(*,*) "For help, try: optool -h     ... or find the user guide OpTool.pdf"
+           stop
+        else
+           if (debug) print *,trim(tmp),' will be interpreted as a material'
+           tmp = 'FoRcE_-c_FoRcE'
+        endif
      end select
-     i = i+1
-     call getarg(i,tmp)   ! Get the next argument for the loop.
+     if (tmp .eq. 'FoRcE_-c_FoRcE') then
+        tmp = '-c'
+        i = i-1
+     else
+        i = i+1
+        call getarg(i,tmp)   ! Get the next argument for the loop.
+     endif
   enddo
 
   ! ----------------------------------------------------------------------
@@ -386,7 +402,7 @@ program optool
      stop
   endif
   if (split .and. blendonly) then
-     write(*,*) 'WARNING: Turning off -s for -blendonly'
+     if (.not. quiet) write(*,*) 'WARNING: Turning off -s for -blendonly'
      split = .false.
   endif
   if (mod(nang,2) .eq. 1) then
@@ -430,14 +446,6 @@ program optool
   enddo
 
   ! ----------------------------------------------------------------------
-  ! Write a setup summary to the screen
-  ! ----------------------------------------------------------------------
-  if (.not. quiet) then
-     call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
-          pcore,pmantle,fmax,mat_mfr,mat_nm)
-  endif
-  
-  ! ----------------------------------------------------------------------
   ! Make a logarithmic lambda grid, unless read in from file
   ! ----------------------------------------------------------------------
   if (allocated(lam)) then
@@ -475,6 +483,14 @@ program optool
   enddo
   deallocate(e1d,e2d)
 
+  ! ----------------------------------------------------------------------
+  ! Write a setup summary to the screen
+  ! ----------------------------------------------------------------------
+  if (.not. quiet) then
+     call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
+          pcore,pmantle,fmax,mat_mfr,mat_nm)
+  endif
+  
   ! ----------------------------------------------------------------------
   ! Loop for splitting the output into files by grain size
   ! ----------------------------------------------------------------------
@@ -1303,16 +1319,43 @@ end subroutine make_directory
 
 !!! **** Extended command line argument syntax support
 
-function arg_is_value(i)
-  ! Check if command line argument is a value. That means the arg is
-  ! there, and it is not a switch (starting with -)
-  ! Problems: This still gets it wrong for -.5
+function arg_is_present(i)
+  ! Check if command line argument is present.
+  implicit none
   integer i
-  logical arg_is_value
+  logical arg_is_present
   character*2 :: value
   call getarg(i,value)
-  if ((value.eq.'') .or. (len_trim(value).ge.2) .and. &
-       ((value(1:1).eq.'-') .and. ((value(2:2).lt.'0') .or. value(2:2).gt.'9'))) then
+  arg_is_present = (.not. (value .eq. ''))
+end function arg_is_present
+
+function arg_is_switch(i)
+  ! Check if command line argument is a switch. That means that
+  ! the arg is there, starts with dash, followed by a letter
+  implicit none
+  integer i
+  logical arg_is_switch
+  character*2 :: value
+  call getarg(i,value)
+  if ( (len_trim(value).ge.2) &
+       .and. (value(1:1).eq.'-') &
+       .and. ( ((value(2:2).ge.'a') .and. (value(2:2).le.'z')) &
+       .or.    ((value(2:2).ge.'A') .and. (value(2:2).le.'Z')) ) ) then
+     arg_is_switch = .true.
+  else
+     arg_is_switch = .false.
+  endif
+end function arg_is_switch
+
+function arg_is_value(i)
+  ! Check if command line argument is a value as oposed to being
+  ! a switch. That means the arg is there, and it is not a switch
+  implicit none
+  integer i
+  logical arg_is_value,arg_is_switch
+  character*2 :: value
+  call getarg(i,value)
+  if ((value.eq.'') .or. arg_is_switch(i)) then
      arg_is_value = .false.
   else
      arg_is_value = .true.
@@ -1320,27 +1363,24 @@ function arg_is_value(i)
 end function arg_is_value
 
 function arg_is_number(i)
-  ! Check if command line arg i is a number, i.e.
-  ! starts with [0-9] or .[0-9] or -[0-9]
-  ! Problems:
-  ! - We do not check for -.5
-  integer i
+  ! Check if command line arg i is a number, i.e. it is there and
+  ! starts with [0-9] or .[0-9] or -[0-9] or -.[0-9]
+  implicit none
+  integer i,ic
   logical arg_is_number
-  character*2 :: value
+  character*3 :: value
+  character*1 :: cc
   call getarg(i,value)
   arg_is_number = .false.
+  ic = 1
   if (len_trim(value).gt.0) then
-     if (len_trim(value).eq.1) then
-        if (value(1:1).ge.'0' .and. value(1:1).le.'9') then
-           arg_is_number = .true.
-        endif
-     else
-        if ((value(1:1).ge.'0' .and. value(1:1).le.'9') .or. &
-             (((value(1:1).eq.'.') .or. value(1:1).eq."-") .and. &
-             ((value(2:2).ge.'0' .and. value(2:2).le.'9')))) then
-           arg_is_number = .true.
-        endif
+     if (len_trim(value).eq.2) then
+        if ((value(ic:ic).eq.'-') .or. (value(ic:ic).eq.'.')) ic = 2
+     else ! 3 chars at least
+        if (value(ic:ic).eq.'-') ic = ic+1
+        if (value(ic:ic).eq.'.') ic = ic+1
      endif
+     arg_is_number = ((value(ic:ic).ge.'0') .and. (value(ic:ic).le.'9'))
   endif
 end function arg_is_number
 
@@ -1485,21 +1525,11 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f10.2,"  nlam=",I5,"    nang=",I6)') cc,lmin, lmax, nlam, nang
   write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"  fmax=",g9.2,"chop=  ",f4.1)') cc,pcore,pmantle,fmax,chopangle
   write(unit,'(A," Composition:")') cc
-  if (mat_rho(1).eq.0) then
-     ! We don't have rho yet, so we don't put it into the header.
-     ! This is the situation where we write to the screen.
-     write(unit,'(A,"  Where   mfrac  rho   Material")') cc
-     write(unit,'(A,"  -----   -----  ----  ----------------------------------------------------")') cc
-     do i=1,nm
-        write(unit,'(A,"  ",A6,f7.3,f6.2,"  ",A)') cc,mat_loc(i), mfrac(i)/sum(mfrac(1:nm)),mat_rho(i),trim(mat_lnk(i))
-     enddo
-  else
-     write(unit,'(A,"  Where   mfrac  Material")') cc
-     write(unit,'(A,"  -----   -----  ----------------------------------------------------")') cc
-     do i=1,nm
-        write(unit,'(A,"  ",A6,f7.3,"  ",A)') cc,mat_loc(i), mfrac(i)/sum(mfrac(1:nm)),trim(mat_lnk(i))
-     enddo
-  endif
+  write(unit,'(A,"  Where   mfrac  rho   Material")') cc
+  write(unit,'(A,"  -----   -----  ----  ----------------------------------------------------")') cc
+  do i=1,nm
+     write(unit,'(A,"  ",A6,f7.3,f6.2,"  ",A)') cc,mat_loc(i), mfrac(i)/sum(mfrac(1:nm)),mat_rho(i),trim(mat_lnk(i))
+  enddo
   write(unit,'(A,"============================================================================")') cc
 end subroutine write_header
 
