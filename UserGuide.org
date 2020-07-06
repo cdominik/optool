@@ -6,10 +6,12 @@
 * Introduction
 
 This tool allows to produce complex dust opacities right from the
-command line. It is derived from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] for the
-[[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program, and committed to its simplicity. For another derivative
-of OpacityTool with a different set of applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]],
-the /Simple Icy Grain Model for Aggregates/, by Lefévre et al. (2020).
+command line. It is derived[fn:1] from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] for the
+[[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program, and committed to its simplicity.
+
+[fn:1] For another derivative of OpacityTool with a different set of
+applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]], the /Simple Icy Grain Model for
+Aggregates/, by Lefévre et al. (2020).
 
 
 ** Capabilities
@@ -487,10 +489,10 @@ However, if you are using =optool= to produce scattering cross
 sections of RADMC-3D, the conventions are different.  RADMC-3D
 requires the values of the scattering matrix on the cell /boundaries/,
 so at 0\deg, 1\deg etc to 180\deg, for a total of 181 values.  So for
-for the input files for RADMC-3D, we interpolate and extend the
-computed values to the cell boundaries.  In strong forward-scattering
-grains, this does require a small renormalization to make sure the the
-full solid angle integration gives again accurate results. =optool= is
+the input files for RADMC-3D, we interpolate and extend the computed
+values to the cell boundaries.  In strong forward-scattering grains,
+this does require a small renormalization to make sure the the full
+solid angle integration gives again accurate results. =optool= is
 handling this renormalization fully automatically.
 
 ** How to ingest refractive index data for another material
