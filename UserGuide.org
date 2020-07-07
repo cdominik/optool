@@ -1,7 +1,7 @@
 
-#+TITLE:  Op-Tool User Guide
-#+AUTHOR: C. Dominik
-#+DATE:   July 2020, version 0.9.7
+#+TITLE:  OpTool User Guide
+#+AUTHOR: Carsten Dominik & Michiel Min
+#+DATE:   July 2020, version 0.9.8
 
 * Introduction
 
@@ -18,6 +18,8 @@ Aggregates/, by Lefévre et al. (2020).
 
 - stand-alone tool, fully command line driven, no input files need to
   be edited
+- flexible command line interface to specify input in a compact and
+  simple way
 - full scattering matrix output in several formats, including for
   RADMC-3D
 - combining materials through mixing into a complex grain with
@@ -72,7 +74,7 @@ Pure ice grains in a narrow size distribution from 1 to 3 microns,
 with 15 sample sizes following an $f(a)\propto a^{-2.5}$ powerlaw size
 distribution. Also, restrict the wavelength range to 10-100\mu{}m.
 
-: optool ice 1.0  -a 1 3 2.5 15  -l 10 100
+: optool ice -a 1 3 2.5 15  -l 10 100
 
 Represent the default dust model (DIANA, you also get this when you do
 not give any materials at all) in 42 grain sizes, and produce input
@@ -391,6 +393,10 @@ To try out =optool= you could use one of these commands
 :     ... or ...
 : make testdiv          # for opacities as a function of grain size
 
+#+CAPTION: Screenshot of the plots created by running =ipython -i optool_plot.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to deal with range and sign issues.
+#+ATTR_LATEX: :width 15cm :options angle=0
+[[./misc/inspect.png]]
+
 The commands will run =optool= with the standard DIANA material
 properties, and then use the python script =optool_plot.py= to plot
 the computed opacities.  You will get:
@@ -408,9 +414,6 @@ If you want to run the plotter yourself, =ipython -i
 path/to/optool_plot.py= is the correct command to do so, from the
 directory where the output files are located.
 
-#+CAPTION: Screenshot of the plots created by running =ipython -i optool_plot.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to deal with range and sign issues.
-#+ATTR_LATEX: :width 15cm :options angle=0
-[[./misc/inspect.png]]
 
 
 

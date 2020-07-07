@@ -488,7 +488,7 @@ program optool
   ! ----------------------------------------------------------------------
   if (.not. quiet) then
      call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
-          pcore,pmantle,fmax,mat_mfr,mat_nm)
+          pcore,pmantle,0.0,fmax,mat_mfr,mat_nm)
   endif
   
   ! ----------------------------------------------------------------------
@@ -1504,7 +1504,7 @@ end subroutine read_lambda_grid
 !!! **** Routines to write output files
 
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
-     pcore,pmantle,fmax,mfrac,nm)
+     pcore,pmantle,rho_av,fmax,mfrac,nm)
   ! ----------------------------------------------------------------------
   ! Write a header describing the full setup of the calculation
   ! CC is the comment character that should be added in front of each line
@@ -1513,7 +1513,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   implicit none
   integer        :: unit
   integer        :: na,i,nm
-  real (kind=dp) :: amin,amax,apow,lmin,lmax,pcore,pmantle,fmax,mfrac(nm)
+  real (kind=dp) :: amin,amax,apow,lmin,lmax,pcore,pmantle,fmax,mfrac(nm),rho_av
   real (kind=dp) :: amean(3)
   character*(*)  :: cc
   cc = trim(cc)
@@ -1530,6 +1530,14 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   do i=1,nm
      write(unit,'(A,"  ",A6,f7.3,f6.2,"  ",A)') cc,mat_loc(i), mfrac(i)/sum(mfrac(1:nm)),mat_rho(i),trim(mat_lnk(i))
   enddo
+  if (rho_av .gt. 0.d0) then
+     write(unit,'(A,"  - - -   - - -  -  -  - - - - - - - - - - - - - - - - - - - - - - - - -  -")') cc
+     if ( (pcore+pmantle) .gt. 0.d0) then
+        write(unit,'(A,"  ",A6,f7.3,f6.2,"  ","mixture of",i3," materials and vacuum")') cc,'grain  ', 1.0,rho_av,nm
+     else
+        write(unit,'(A,"  ",A6,f7.3,f6.2,"  ","mixture of",i3," materials")') cc,'grain  ', 1.0,rho_av,nm
+     endif
+  endif
   write(unit,'(A,"============================================================================")') cc
 end subroutine write_header
 
@@ -1584,7 +1592,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      if (progress) write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
-          pcore,pmantle,fmax,mfrac,nm)
+          pcore,pmantle,p%rho,fmax,mfrac,nm)
      write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
      write(20,'("#    iformat")')
      write(20,'("#    nlambda")')
@@ -1602,7 +1610,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      if (progress) write(*,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
-          pcore,pmantle,fmax,mfrac,nm)
+          pcore,pmantle,p%rho,fmax,mfrac,nm)
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
      else
