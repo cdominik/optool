@@ -34,12 +34,14 @@ Aggregates/, by Lefévre et al. (2020).
 
 ** Terms of use
 
-The code doing the real work of =optool= was adopted and modified from
-[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. I focused on the interface, on simplicity, and a clean
-set of conventions. If you are using this tool, you should point to
-the [[https://github.com/cdominik/optool.git][GitHub repository]] and give credit to the papers describing the
-methods used to compute the opacities, as well as to the original
-laboratory papers that published the refractive index measurements.
+=optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
+and redistributed freely.  The implemented physics is the same as in
+[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. In =optool=, I focused on the user interface, ease of
+use, and a clean set of conventions. As a reference for this tool,
+please point to the [[https://github.com/cdominik/optool.git][GitHub repository]]. If you use it to publish
+papers, cite the papers establishing the methods used, as well as to
+the original laboratory papers that published the refractive index
+measurements.
 
 - =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
@@ -52,17 +54,26 @@ laboratory papers that published the refractive index measurements.
 A simple grain made only of the default pyroxene, for the default
 grain size distribution ($a^{-3.5}$ powerlaw from 0.05 to 3000\mu{}m),
 on the default wavelength grid (0.05\mu{}m to 1cm).
+
 : optool pyr
+
+Include the scattering matrix in the produced output
+
+: optool pyr -s
 
 Reproduce the DIANA standard dust model, using a specific pyroxene
 (70% Mg) and carbon, in a mass ratio 0.87/0.13, and with a porosity of
 25%.
+
 : optool pyr-mg70 0.87  c 0.13  -p 0.25
 
+
 List the built-in materials
+
 : optool -c
 
 Add an ice mantle that is 20% of the core mass
+
 : optool pyr-mg70 0.87  c 0.13  -m ice-w 0.2  -p 0.25
 
 Like the previous example, but use ice refractive index data from a
@@ -89,7 +100,7 @@ using the wavelength grid given in one of those files
 
 : optool -b gra_x.lnk 0.33 gra_y.lnk 0.33 gra_z.lnk 0.33 -l gra_x.lnk
 
-\clearpage
+#+LATEX: \clearpage
 * Compiling =optool=
 :PROPERTIES:
 :CUSTOM_ID: compilation
@@ -125,22 +136,22 @@ with the OpenMP setup of an older version of =gfortran=.
 + =-c= :: List available built-in materials (the keys for the *-c* and
   *-m* options).
 
-+ =[-c] KEY-or-FILE1 [MFRAC] [KEY-or-FILE2 [MFRAC]] ...= ::
++ =[-c] KEY-or-FILE1 [MFRAC]= ::
 
   Specify a material to include into the grain.  =KEYorFILE= can be
   the [[#builtin-materials][key for a builtin material]], or the path to the correct =lnk=
-  file. =MFRAC= is the /mass/ fraction of the material. You can give
-  up to 10 materials to build up the grain.  All materials will be
-  mixed together using the Bruggeman rule, and vacuum can be included
-  through the porosity. A *-c* switch before each =KEY-or-FILE= is
-  optional.
+  file. =MFRAC= is the /mass/ fraction (default 1.0) of the
+  material. You can give up to 10 materials to build up the grain.
+  Mass fractions do not have to add up to one, they will be
+  renormalized.  All materials will be mixed together using the
+  /Bruggeman/ rule, and vacuum can be included through the porosity. A
+  *-c* switch before each =KEY-or-FILE= is optional.
 
 + =-m KEY-or-FILE [MFRAC]= ::
 
-  Like *-c*, but use this material as a mantle material that will be
-  mixed in using the Maxwell-Garnett rule instead of the Bruggeman
-  rule.  Only one *-m* switch is allowed, and it needs to come after
-  all *-c* specifications.
+  Like *-c*, but use this material as grain mantle that will be mixed
+  in using the /Maxwell-Garnett/ rule.  Only one *-m* switch is
+  allowed, and it needs to be the last material specified.
   
 + =-p POROSITY [P_MANTLE]= ::
 
@@ -234,12 +245,10 @@ extend the [[#output-files][output]].
   default to 10K, 10000K, and 200, respectively.
 
 
-
 ** Other options
 + =-b= ::
 
-  Only blend the materials using the Bruggeman rule and write the
-  output to =blended.lnk=.
+  Only blend the materials and write the output to =blended.lnk=.
 
 + =-q= ::
   Quiet. Reduce the amount of text written to STDOUT to a minimum.
@@ -279,8 +288,8 @@ even simpler generic key.
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+-----------------------------|
 | c        | c-z        | C                       | amorph? |    1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z/abstract][Zubko+96]]     |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]           |
 |          | c-p        | C                       | amorph  |    1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P/abstract][Preibisch+93]] |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]       |
-| gra      | c-gra      | C graphite              | cryst   |  2.16? |       0.001 |        1000 | XXX+1900     | FIXME        |                             |
-|          | c-org      | CHON organics           | amorph  |    1.4 |         0.1 |         1e5 | Henning+1900 | FIXME        |                             |
+| gra      | c-gra      | C graphite              | cryst   |  2.16? |       0.001 |        1000 | uncertain    | FIXME        |                             |
+|          | c-org      | CHON organics           | amorph  |    1.4 |         0.1 |         1e5 | uncertain    | FIXME        |                             |
 |          | c-nano     | C nano-diamond          | cryst   |    2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]  |              | [[file:lnk_data/nano-diam-Mutschke2004.lnk][nano-diam-Mutschke2004.lnk]]  |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+-----------------------------|
 | ice      | ice-w      | Water ice               | cryst   |   0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W/abstract][Warren+08]]    |              | [[file:lnk_data/ice-w-Warren2008.lnk][ice-w-Warren2008.lnk]]        |

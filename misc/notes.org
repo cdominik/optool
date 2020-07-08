@@ -39,7 +39,7 @@
 # + =-B= ::
 # 
 #   Use the old style Blender, for robustness
-** TODO Fixed to RADMC-3D output
+** DONE Fix the RADMC-3D output
 - The scattering matrix has to be given on interfaces, not on cell centers
   - So we interpolate two values to get 179 values
   - The we duplicate the first and last values and write that to a file.
@@ -97,6 +97,7 @@ Need to specify a dust to gas ratio, because these should be per g
 gas.  or per gicy region? or....?????
 
 ** TODO propagate rho to fits and write it there?
+** TODO Put rho_av into the output
 ** DONE Does the angular grid have to be configurable?
 Michiels code does assum that teh grid is regular in two places.
 1. DMieLay only computes from 0 to pi/2, and then the other half is
@@ -124,7 +125,7 @@ arizes to change it.
 ** TODO Fix the FITS issues
 Python cannot read the headers.  I should check if Fortran actually can!?
 ** TODO Add an amorphous water ice
-** TODO Add more materials
+** DONE Add more materials
 what would be useful?
 - the T-dependant Forsterite stuff?
   - Files are large, hey start only at 5um, I would have to mix the
@@ -133,7 +134,21 @@ what would be useful?
   
 Only ones with good wavelength coverage.
 What does Christian Lammert use?
-** TODO Make a comparison between the two blenders
+** CNCL Make a comparison between the two blenders
+** TODO Sort the materials to make sure the mantle is last
+I would like to drop the requirement that it has to be given last....
+
+This should be easy.  Since we are only allowing one mantle, this is
+about swapping that material with the last material in the input list.
+** How the command line reader works
+- options starting with a dash are looking for 0 or more arguments
+  given after them.  That search stops when another switch is met, or
+  of the type of the argument on the command line is not correct
+  (specifically, it it is not a number.
+- string arguments that are not preceeded by a switch are assumed to
+  be a KEY-or-FILE, for a material in the core.  A -c can be used, but
+  it is not required.
+- To identify the mantle material, a -m must be given.
 * Strategy
 ** Read lnk data for all materials
 ** Do the mixing, so that we end up with a single material
@@ -153,6 +168,7 @@ What does Christian Lammert use?
     - add weighted contribution to the cappas cext_ff etc
   - Add contributions to the cappas cext
   - Set the kappas and the finla scattering matrix for thet wavelength
+
 * Other internals worth having documented
 ** Extrapolation of refractive index data
 Not all refractive index tables cover a large wavelengths range.  In
