@@ -308,7 +308,7 @@ even simpler generic key.
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+-----------------------------|
 | iron     | fe-c       | Fe                      | metal   |   7.87 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]   |              | [[file:lnk_data/fe-c-Henning1996.lnk][fe-c-Henning1996.lnk]]        |
 |          | fes        | FeS                     | metal   |   4.83 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]   |              | [[file:lnk_data/fes-Henning1996.lnk][fes-Henning1996.lnk]]         |
-|          | sic        | SiC                     | cryst   |   3.22 |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L][Draine93]]     |              | [[file:lnk_data/sic-Draine1993.lnk][sic-Draine1993.lnk]]          |
+|          | sic        | SiC                     | cryst   |   3.22 |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L][Laor93]]       |              | [[file:lnk_data/sic-Draine1993.lnk][sic-Draine1993.lnk]]          |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+-----------------------------|
 | cor      | cor-c      | Al_{2}O_3               | cryst   |    4.0 |         0.5 |        *40* | [[https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K][Koike+95]]     |              | [[file:lnk_data/cor-c-Koike1995.lnk][cor-c-Koike1995.lnk]]         |
 
@@ -502,19 +502,19 @@ very significant fraction of the /scattered/ radiation is sent into
 just a few degrees around the forward direction (scattering angle
 zero).  This can be difficult to handle for radiative transfer codes
 which have limited angular resolution or limited sampling.  Some codes
-have an internal way to deal with this. An example would be [[http://exoclouds.com/Software/][MCMax3D]],
-which has the =nspike= keyword for exactly this purpose.  Others, like
-RADMC-3D require this to be taken care of by the process that creates
-the opacity files.  This is the purpose of the =-chop= switch in
+have an internal way to deal with this. [[http://exoclouds.com/Software/][MCMax3D]], for example, has the
+=nspike= keyword to deal with this issue. Others, like RADMC-3D
+require this to be taken care of by the process that creates the
+opacity files.  This is the purpose of the =-chop= switch in
 =optool=. It specifies a number of degrees (for example 3 might be a
 good value) around the forward scattering direction. Inside that cone,
 the scattering matrix gets limited to the value at the edge of the
 cone.  To compensate and ensure energy conservation, the scattering
 cross section will be reduced accordingly, and, depending on the
 chosen normalization, the scattering matrix itself may also have to be
-scaled.  As a result, in effect, the radiation that would be
-/scattered/ into this narrow range of angles will be treated as if it
-did have /no interaction at all/ with the grain.
+scaled.  As a result, the radiation that would be /scattered/ into
+this narrow range of angles will be treated as if it did have /no
+interaction at all/ with the grain.
 
 
 *** Angular grid
@@ -532,11 +532,11 @@ integral gives the correct result.
 However, if you are using =optool= to produce scattering cross
 sections of RADMC-3D, the conventions are different.  RADMC-3D
 requires the values of the scattering matrix on the cell /boundaries/,
-so at 0\deg, 1\deg etc to 180\deg, for a total of 181 values.  So for
-the input files for RADMC-3D, we interpolate and extend the computed
-values to the cell boundaries.  In strong forward-scattering grains,
-this does require a small renormalization to make sure the the full
-solid angle integration gives again accurate results. =optool= is
+so at 0\deg, 1\deg etc to 180\deg, for a total of 181 values.  For the
+input files for RADMC-3D, we interpolate and extend the computed
+values to the cell boundaries.  With strongly forward-scattering
+grains, this does require a small renormalization to make sure the the
+full solid angle integration gives again accurate results. =optool= is
 handling this renormalization fully automatically.
 
 ** How to ingest refractive index data for another material
@@ -561,9 +561,11 @@ Here is how:
 - Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
 - Jäger, C. et al. 1998, A&A 339, 904
 - Koike, C. et al. 1995, Icarus 114, 203
+- Laor, A. and Draine, B., ApJ 402, 441
 - Lefèvre, C.; Min,M. et al. 2020, A&A (submitted)
-- Min, M. et al, 2005, A&A, 432, 909
+- Min, M. et al. 2005, A&A, 432, 909
 - Min, M. et al. 2016, A&A, 585, 13
+- Mutschke, H. et al. 2004, A&A 423, 983
 - Toon, O. & Ackerman,T. 1981, Applied Optics 20, 3657
 - Woitke, P.; Min, M. et al. 2016, A&A 586, 103
 - Preibisch, Th. et al. 1993, A&A 279, 577
