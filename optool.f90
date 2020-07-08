@@ -239,20 +239,26 @@ program optool
         ! ----------------------------------------------------------------------
      case('-a')
         ! ----------------------------------------------------------------------
-        ! -a expects 2, 3, ro 4 values:  amin amax [apow [na]]
+        ! -a expects 1, 2, 3, ro 4 values:  amin [amax [apow [na]]]
         ! ----------------------------------------------------------------------
-        if (.not. arg_is_number(i+1) .or. .not. arg_is_number(i+2)) then
-           print *,"ERROR: -a needs 2-4 values: amin amax [na [apow]]"; stop
+        if (.not. arg_is_number(i+1)) then
+           print *,"ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
         endif
         i=i+1; call getarg(i,value); read(value,*) amin
-        i=i+1; call getarg(i,value); read(value,*) amax
-        ! Lets see if there is more, we expect apow
+        ! Let.s see if there is more, we expect amax
         if (arg_is_number(i+1)) then
-           i=i+1; call getarg(i,value); read(value,*) apow
-           ! Lets see if there is more, we expect na
+           i=i+1; call getarg(i,value); read(value,*) amax
+           ! Let.s see if there is more, we expect apow
            if (arg_is_number(i+1)) then
-              i=i+1; call getarg(i,value); read(value,*) na
+              i=i+1; call getarg(i,value); read(value,*) apow
+              ! Let.s see if there is more, we expect na
+              if (arg_is_number(i+1)) then
+                 i=i+1; call getarg(i,value); read(value,*) na
+              endif
            endif
+        else
+           ! there was only 1 number.  Set up single grain size computation
+           amax = amin; na = 1;
         endif
      case('-amin','--amin')
         i = i+1; call getarg(i,value); read(value,*) amin
@@ -268,7 +274,7 @@ program optool
         ! ----------------------------------------------------------------------
      case('-l')
         ! ----------------------------------------------------------------------
-        ! -l expects a file name, or 2-3 numbers: lmin lmax [nlam]
+        ! -l expects a file name, or 1-3 numbers: lmin [lmax [nlam]]
         ! ----------------------------------------------------------------------
         if (.not. arg_is_value(i+1)) then
            print *,"ERROR: -l needs a file or numbers as values"; stop
@@ -278,16 +284,19 @@ program optool
            call check_for_file(trim(value))
            i=i+1
            call read_lambda_grid(trim(value))
-        else if (.not. arg_is_number(i+2)) then
-           ! First arg was a number, this one is not.  Bad.
-           print *,"ERROR: -l needs 2-3 values: lmin lmax [nlam]"; stop
         else
-           ! We have 2 numbers, these are lmin and lmax
+           ! We have a number, should be lmin
            i = i+1; call getarg(i,value); read(value,*) lmin
-           i = i+1; call getarg(i,value); read(value,*) lmax
-           ! Lets see if there is more, we expect nlam
+           ! Let's see if there is more, we expect lmax
            if (arg_is_number(i+1)) then
-              i=i+1; call getarg(i,value); if (value.ne.'') read(value,*) nlam
+              i = i+1; call getarg(i,value); read(value,*) lmax
+              ! Let.s see if there is more, we expect nlam
+              if (arg_is_number(i+1)) then
+                 i=i+1; call getarg(i,value); if (value.ne.'') read(value,*) nlam
+              endif
+           else
+              ! only lmin was given, set up single lambda computation
+              lmax = lmin; nlam = 1;
            endif
         endif
      case('-lmin','--lmin')
@@ -389,16 +398,41 @@ program optool
   ! ----------------------------------------------------------------------
   ! Sanity checks and preparations
   ! ----------------------------------------------------------------------
+  ! *** Materials ***
   if (nm .ge. 10) then
      print *,'ERROR: Too many materials'; stop
   endif
   if ( (nm.eq.1) .and. (imant.gt.0) ) then
      print *,"ERROR: at least one core material must be specified"; stop
   endif
+  ! *** Grain size distribution ***
   if (na .eq. 0) then
      ! set sampling of the grain radius: 10 per decade, min 5
      na = max(5,int((log10(amax)-log10(amin))*10d0+1d0))
   endif
+  if ( (amin.le.0d0) .or. (amax.le.0d0) ) then
+     print *,'ERROR: Both amin and amax need to be positive numbers',amin,amax; stop
+  endif
+  if (amin .gt. amax) then
+     ! Swap min and max values
+     dum = amin; amin=amax; amax=dum
+  endif
+  ! *** Wavelength grid ***
+  if ( (lmin.le.0d0) .or. (lmax.le.0d0) ) then
+     print *,'ERROR: Both lmin and lmax need to be positive numbers',lmin,lmax; stop
+  endif
+  if (lmin .gt. lmax) then
+     ! Swap min and max values
+     dum = lmin; lmin=lmax; lmax=dum
+  endif
+  if ( (nlam.le.1) .and. (lmin.ne.lmax)) then
+     print *,'ERROR: More than one wavelength point needed to sample a range',lmin,lmax,nlam; stop
+  endif
+  if ( (lmin.eq.lmax) .and. (nlam.ne.1) ) then
+     print *,'WARNING: Setting nlam=1 because lmin=lmax'
+     nlam = 1
+  endif
+  ! *** Other checks
   if (split .and. write_mean_kap) then
      write(*,*) 'ERROR: With both -d and -t options, the dustkapmean.dat file'
      write(*,*) '       would only reflect the final size bin.'
@@ -408,10 +442,12 @@ program optool
      if (.not. quiet) write(*,*) 'WARNING: Turning off -s for -blendonly'
      split = .false.
   endif
+  ! *** Angular grid ***
   if (mod(nang,2) .eq. 1) then
      write(*,*) 'ERROR: The number of angles in -s NANG must be even'
      stop
   endif
+  ! *** Output files ***
 #ifndef USE_FITSIO
   if (write_fits) then
      write(*,*) 'ERROR: Support for writing FITS files needs to be compiled in.'
@@ -456,9 +492,13 @@ program optool
      continue
   else
      allocate(lam(nlam))
-     do i = 1,nlam
-        lam(i)=10.0_dp**(log10(lmin)+log10(lmax/lmin)*(i-1)/(nlam-1))
-     enddo
+     if (nlam.eq.1) then
+        lam(1) = lmin
+     else
+        do i = 1,nlam
+           lam(i)=10.0_dp**(log10(lmin)+log10(lmax/lmin)*(i-1)/(nlam-1))
+        enddo
+     endif
   endif
   ! Allocate all lambda-dependant arrays
   allocate(p%Kabs(nlam))
@@ -1526,9 +1566,9 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   write(unit,'(A,"============================================================================")') cc
   write(unit,'(A," Opacities computed by OpTool          <a^n>=",1p,3e9.2e1)') cc,amean
   write(unit,'(A," Parameters:")') cc
-  write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f10.2,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
-  write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f10.2,"  nlam=",I5,"    nang=",I6)') cc,lmin, lmax, nlam, nang
-  write(unit,'(A,"   porosity =",f11.3," p_mantle = ",f9.3,"  fmax=",g9.2,"chop=  ",f4.1)') cc,pcore,pmantle,fmax,chopangle
+  write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
+  write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f11.3,"  nlam=",I5,"    nang=",I6)') cc,lmin, lmax, nlam, nang
+  write(unit,'(A,"   porosity =",f11.3," p_mantle =",f11.3,"  fmax=",g9.2,"chop=  ",f4.1)') cc,pcore,pmantle,fmax,chopangle
   write(unit,'(A," Composition:")') cc
   write(unit,'(A,"  Where   mfrac  rho   Material")') cc
   write(unit,'(A,"  -----   -----  ----  ----------------------------------------------------")') cc
@@ -1864,16 +1904,20 @@ subroutine plmeans(a1,a2,p,amean)
   integer, parameter     :: dp = selected_real_kind(P=15)
   real (kind=dp) :: a1,a2,p,amean(3),e1,e2,e3
   integer :: n
-  do n=1,3
-     e1 = 1.d0-p+n
-     e2 = 1.d0-p
-     e3 = 1.d0/n
-     if (abs(e1).lt.1e-3) then
-        amean(n) = (  e2     * (log(a2)-log(a1)) / (a2**e2-a1**e2) )**e3
-     else
-        amean(n) = ( (e2/e1) * (a2**e1-a1**e1)   / (a2**e2-a1**e2) )**e3
-     endif
-  enddo
+  if (abs((a2-a1)/a1) .lt. 1d-6) then
+     amean(1) = a1; amean(2) = a1; amean(3) = a1
+  else 
+     do n=1,3
+        e1 = 1.d0-p+n
+        e2 = 1.d0-p
+        e3 = 1.d0/n
+        if (abs(e1).lt.1e-3) then
+           amean(n) = (  e2     * (log(a2)-log(a1)) / (a2**e2-a1**e2) )**e3
+        else
+           amean(n) = ( (e2/e1) * (a2**e1-a1**e1)   / (a2**e2-a1**e2) )**e3
+        endif
+     enddo
+  endif
 end subroutine plmeans
 
 !!! **** Code to compute mean opacities kappa_Rosseland, kappa_Planck (from Kees Dullemond)

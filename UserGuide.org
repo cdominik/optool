@@ -5,9 +5,12 @@
 
 * Introduction
 
-This tool allows to produce complex dust opacities right from the
-command line. It is derived[fn:1] from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] for the
-[[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program, and committed to its simplicity.
+This tool allows to produce complex dust particle opacities right from
+the command line. It is derived[fn:1] from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]
+for the [[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program. =optool= adds a much more flexible command line
+interface, a curated list of built-in materials, easy access to
+external material properties, more output options, and significant
+speed gains.
 
 [fn:1] For another derivative of OpacityTool with a different set of
 applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]], the /Simple Icy Grain Model for
@@ -36,16 +39,14 @@ Aggregates/, by Lefévre et al. (2020).
 
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
 and redistributed freely.  The implemented physics is the same as in
-[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. In =optool=, I focused on the user interface, ease of
-use, and a clean set of conventions. As a reference for this tool,
-please point to the [[https://github.com/cdominik/optool.git][GitHub repository]]. If you use it to publish
-papers, cite the papers establishing the methods used, as well as to
-the original laboratory papers that published the refractive index
-measurements.
+[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. As a reference for this tool, please point to the [[https://github.com/cdominik/optool.git][GitHub
+repository]]. If you use it to publish papers, please cite the papers
+establishing the methods used, as well as to the original laboratory
+papers that published the refractive index measurements.
 
 - =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
-- DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016]]
+- DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016, A&A 586, 103]]
 - Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
 - References to [[#builtin-materials][refractive index data]] used in your particular
   application.
@@ -67,25 +68,31 @@ Reproduce the DIANA standard dust model, using a specific pyroxene
 
 : optool pyr-mg70 0.87  c 0.13  -p 0.25
 
-
 List the built-in materials
 
 : optool -c
 
-Add an ice mantle that is 20% of the core mass
+Add an ice mantle (built-in data from Warren+08) that is 20% of the
+core mass
 
 : optool pyr-mg70 0.87  c 0.13  -m ice-w 0.2  -p 0.25
 
 Like the previous example, but use ice refractive index data from a
 separate file.
 
-: optool pyr-mg70 0.87  c 0.13  -p 0.25  -m lnkfiles/ice_hudgins.dat 0.2
+: optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
 
 Pure ice grains in a narrow size distribution from 1 to 3 microns,
 with 15 sample sizes following an $f(a)\propto a^{-2.5}$ powerlaw size
-distribution. Also, restrict the wavelength range to 10-100\mu{}m.
+distribution. Also, restrict the wavelength range to 10-100\mu{}m, and
+turn off DHS to get perfect spheres.
 
-: optool ice -a 1 3 2.5 15  -l 10 100
+: optool ice  -a 1 3 2.5 15  -l 10 100 -fmax 0
+
+For silicon carbide, compute the opacity of a single size (2.5\mu{}m)
+at a wavelength of 8.9\mu{}m.
+
+: optool -a 2.5 -l 8.9 sic
 
 Represent the default dust model (DIANA, you also get this when you do
 not give any materials at all) in 42 grain sizes, and produce input
@@ -127,9 +134,9 @@ selftest=" to test if everything works properly.  I have had problems
 with the OpenMP setup of an older version of =gfortran=.
 [fn:3] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your system.
 
-* Command line options
+* Command line arguments
 
-+ =-h= :: Show a compact help message about command line options.
++ =-h=   :: Show a compact help message about command line options.
 
 ** Grain composition and geometry
   
@@ -167,29 +174,35 @@ with the OpenMP setup of an older version of =gfortran=.
 
 
 ** Grain size distribution
-+ =-a AMIN AMAX [APOW [NA]]= ::
++ =-a AMIN [AMAX [APOW [NA]]]= ::
 
-  Specify minimum and maximum grain radius, and optionally the size
-  distribution powerlaw and the number of size bins.  You can also use
-  options to set individual values with *-amin*, *-amax*, *-apow*,
-  *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, and /10 per
-  size decade with a fixed minimum of 5/, respectively.
-
+  Specify (minimum) grain radius, and optionally maximum grain radius,
+  the size distribution powerlaw and the number of size bins.  You may
+  also use options to set individual values with *-amin*, *-amax*,
+  *-apow*, *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, and
+  /10 per size decade with a fixed minimum of 5/, respectively.  If
+  only a single size is specified with *-a*, then a_max=a_min and
+  n_a=1 are implied.
+  
 ** Wavelength grid
 
-+ =-l LMIN LMAX [NLAM]= ::
++ =-l LMIN [LMAX [NLAM]]= ::
 
-  Minimum and maximum wavelength and optionally the number of
-  wavelengths points for the construction of the wavelength grid.  The
-  default values are 0.05 \mu{}m, 10000 \mu{}m, and 300, respectively.
-  Use the options *-lmin*, *-lmax*, and *-nlam* (or *-nl*) to set
-  individual values.
+  Specifiy the (minimum) wavelength, and optionally the maximum
+  wavelength and the number of wavelengths points for the construction
+  of the wavelength grid.  The default values are 0.05 \mu{}m, 10000
+  \mu{}m, and 300, respectively.  You may also use the options
+  *-lmin*, *-lmax*, and *-nlam* (or *-nl*) to set individual values.
+  If only one wavelength is specified with *-l*, then
+  \lambda_max=\lambda_min and n_\lambda=1 are implied.
 
 + =-l FILE= ::
 
-  Read the wavelength grid from the first column of =FILE=.  The first
-  number in the file must be the number of grid points. So this could
-  be an [[#lnk-files][=lnk=]] file.
+  Read the wavelength grid from =FILE=.  The file may start with
+  comment lines, and the first non-comment line needs to contain the
+  number of wavelength values in the data block below it. In the data
+  block, the first column is expected to hold the wavelength
+  values, in \mu{}m. For example, an [[#lnk-files][=lnk=]] file could be used here.
 
 ** Controlling the output
 
@@ -244,13 +257,6 @@ extend the [[#output-files][output]].
   default to 10K, 10000K, and 200, respectively.
 
 
-** Other options
-+ =-b= ::
-
-  Only blend the materials and write the output to =blended.lnk=.
-
-+ =-q= ::
-  Quiet. Reduce the amount of text written to STDOUT to a minimum.
 
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
