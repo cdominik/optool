@@ -2,7 +2,7 @@
 * Introduction to optool
 
 This tool allows to produce complex dust particle opacities right from
-the command line. It is derived[fn:1] from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]
+the command line. It is derived from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]
 for the [[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program. =optool= adds a much more flexible command line
 interface, a curated list of built-in materials, easy access to
 external material properties, more output options, and significant
