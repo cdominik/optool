@@ -138,20 +138,19 @@ with the OpenMP setup of an older version of =gfortran=.
 
 + =[-c] KEY-or-FILE1 [MFRAC]= ::
 
-  Specify a material to include into the grain.  =KEYorFILE= can be
-  the [[#builtin-materials][key for a builtin material]], or the path to the correct =lnk=
+  Specify a material to include in the grain.  =KEYorFILE= can be the
+  [[#builtin-materials][key for a builtin material]], or the path to the correct =lnk=
   file. =MFRAC= is the /mass/ fraction (default 1.0) of the
   material. You can give up to 10 materials to build up the grain.
   Mass fractions do not have to add up to one, they will be
   renormalized.  All materials will be mixed together using the
-  /Bruggeman/ rule, and vacuum can be included through the porosity. A
+  /Bruggeman/ rule, and vacuum can be added through the porosity. A
   *-c* switch before each =KEY-or-FILE= is optional.
 
 + =-m KEY-or-FILE [MFRAC]= ::
 
-  Like *-c*, but use this material as grain mantle that will be mixed
-  in using the /Maxwell-Garnett/ rule.  Only one *-m* switch is
-  allowed, and it needs to be the last material specified.
+  Like *-c*, but use this material as grain mantle that will be added
+  using the /Maxwell-Garnett/ rule.  Only one *-m* switch is allowed.
   
 + =-p POROSITY [P_MANTLE]= ::
 

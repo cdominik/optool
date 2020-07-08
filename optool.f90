@@ -106,13 +106,13 @@ program optool
   integer         :: nt              ! number of temperature steps
 
   integer         :: nm              ! nr of grain materials
+  integer         :: imant           ! the index of the mantle material
 
   type(particle)  :: p
   integer         :: i,ndone         ! counter
   integer         :: im,ia           ! for material, radius
   character*100   :: tmp,value       ! for processing args
 
-  logical         :: have_mantle     ! to enforce single mantle material
   logical         :: arg_is_present  ! functions to test arguments
   logical         :: arg_is_switch   ! functions to test arguments
   logical         :: arg_is_value    ! functions to test arguments
@@ -123,6 +123,10 @@ program optool
   character*50    :: radmclbl = ""   ! file label for RADMC-3D compatible
   character*50    :: label           ! for use in file names
 
+  character*500   :: dumc            ! temporary storage
+  real (kind=dp)  :: dum             ! temporary storage
+
+  
   real (kind=dp)  :: asplit,afact,afsub,amaxsplit,aminsplit
   integer         :: nsubgrains = 5,nsub
 
@@ -162,7 +166,7 @@ program optool
   ! Initialize rho, because we need the fact that it has not been set
   ! to decide what to do with lnk files where it is missing
   ! ----------------------------------------------------------------------
-  have_mantle = .false.
+  imant = 0
   do im=1,12
      mat_rho(im) = 0.d0
   enddo
@@ -206,28 +210,22 @@ program optool
         else
            i = i+1; call getarg(i,value); read(value,*) mat_mfr(nm)
         endif
-
-        if (mat_mfr(nm).eq.0) then
+        print *,nm,mat_mfr(nm)
+        if (mat_mfr(nm).eq.0d0) then
            if (.not. quiet) print *, "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
            nm = nm-1
         else
            ! Set the type, and make sure we have at most one mantle material
            if (tmp.eq.'-m') then
               ! This is the mantle material
-              if (have_mantle) then
+              if (imant.gt.0) then
                  print *, "ERROR: Only one mantle material is allowed"; stop
               else
-                 if (nm.eq.1) then
-                    print *,"ERROR: at least one core material must be specified"; stop
-                 endif
                  mat_loc(nm) = 'mantle'
-                 have_mantle = .true.
+                 imant = nm
               endif
            else
               ! This is a core material.
-              if (have_mantle) then
-                 print *,"ERROR: Mantle material must be specified last"; stop
-              endif
               mat_loc(nm) = 'core'
            endif
         endif
@@ -392,6 +390,12 @@ program optool
   ! ----------------------------------------------------------------------
   ! Sanity checks and preparations
   ! ----------------------------------------------------------------------
+  if (nm .ge. 10) then
+     print *,'ERROR: Too many materials'; stop
+  endif
+  if ( (nm.eq.1) .and. (imant.gt.0) ) then
+     print *,"ERROR: at least one core material must be specified"; stop
+  endif
   if (na .eq. 0) then
      ! set sampling of the grain radius: 10 per decade, min 5
      na = max(5,int((log10(amax)-log10(amin))*10d0+1d0))
@@ -422,7 +426,6 @@ program optool
   endif
   meanfile       = make_file_path(outdir,"dustkapmean.dat")
   fitsfile       = make_file_path(outdir,"dustkappa.fits")
-  
   ! ----------------------------------------------------------------------
   ! Default grain composition if nothing is specified
   ! ----------------------------------------------------------------------
@@ -436,15 +439,16 @@ program optool
   endif
   mat_nm   = nm
 
-  if (nm .ge. 10) then
-     write(*,*) 'ERROR: Too many materials'
-     stop
+  ! ----------------------------------------------------------------------
+  ! Make sure the mantle material is last in the list
+  ! ----------------------------------------------------------------------
+  if ( (imant.gt.0) .and. (imant.ne.nm) ) then
+     dumc = mat_lnk(imant); mat_lnk(imant)=mat_lnk(nm); mat_lnk(nm)=dumc;
+     dumc = mat_loc(imant); mat_loc(imant)=mat_loc(nm); mat_loc(nm)=dumc;
+     dum  = mat_mfr(imant); mat_mfr(imant)=mat_mfr(nm); mat_mfr(nm)=dum;
+     dum  = mat_rho(imant); mat_rho(imant)=mat_rho(nm); mat_rho(nm)=dum;
   endif
-  do im = 1, nm
-     mat_loc(im) = trim(mat_loc(im))
-     mat_lnk(im) = trim(mat_lnk(im))
-  enddo
-
+  
   ! ----------------------------------------------------------------------
   ! Make a logarithmic lambda grid, unless read in from file
   ! ----------------------------------------------------------------------
@@ -490,7 +494,7 @@ program optool
      call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
           pcore,pmantle,0.0,fmax,mat_mfr,mat_nm)
   endif
-  
+
   ! ----------------------------------------------------------------------
   ! Loop for splitting the output into files by grain size
   ! ----------------------------------------------------------------------
@@ -827,6 +831,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   do il=1,nlam
      if (nm0.eq.1 .and. p_c.eq.0) then
         ! Solid core, single material, nothing to blend for the core
+        e1blend(il) = e1(1,il)
+        e2blend(il) = e2(1,il)
      else
         ! Blend the core materials
         do im=1,nm
