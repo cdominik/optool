@@ -39,7 +39,7 @@ my $tests = [
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -q -c ice-w 1.0 -a 1 3 2.5 15 -l 10 100 -s -o $dir",
    getsha => "shasum $dir/dustkapscatmat.dat",
-   sha => '8ac91d9a1d1240f9c10de65ae6acae431831c3df'},
+   sha => 'a713cf21d00034103d98a41a8b327fb89248dc4e'},
 
   {name => 'chop-peak',
    prepare => "rm -f $dir/dustkapscatmat.dat",
@@ -70,7 +70,7 @@ foreach $test (@$tests) {
     $result = "Test $test->{name} failed: resulting SHA1 $sha does not match\n";
     $r = sprintf "Test %-30s FAILED %s",$test->{name},$sha;
     # make selftest
-    system('say Ooops!')
+    # system('say Ooops!')
   }
   print "$result";
   push @results,$r;

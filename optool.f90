@@ -210,7 +210,6 @@ program optool
         else
            i = i+1; call getarg(i,value); read(value,*) mat_mfr(nm)
         endif
-        print *,nm,mat_mfr(nm)
         if (mat_mfr(nm).eq.0d0) then
            if (.not. quiet) print *, "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
            nm = nm-1
