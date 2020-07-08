@@ -64,6 +64,8 @@ OBJS	= optool.o \
 # Program name and install location
 PROGRAM       = optool
 DEST	      = ${HOME}/bin
+BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
+
 
 # make actions 
 all:		$(PROGRAM)
@@ -110,6 +112,30 @@ quicktestdivchop:;	echo computing size-dependant opacities ...
 selftest:;	make
 		misc/selftest.pl
 
+bin-mac:;	make clean
+		make
+		mv optool $(BINRELEASE)/optool-mac
+		make clean
+		make multi=true
+		mv optool $(BINRELEASE)/optool-mac-OpenMP
+		make clean
+		make fits=true
+		mv optool $(BINRELEASE)/optool-mac-fits
+		make clean
+		make multi=true fits=true
+		mv optool $(BINRELEASE)/optool-mac-fits-OpenMP
+bin-linx:;	make clean
+		make
+		mv optool $(BINRELEASE)/optool-linux
+		make clean
+		make multi=true
+		mv optool $(BINRELEASE)/optool-linux-OpenMP
+		make clean
+		make fits=true
+		mv optool $(BINRELEASE)/optool-linux-fits
+		make clean
+		make multi=true fits=true
+		mv optool $(BINRELEASE)/optool-linux-fits-OpenMP
 # how to compile program 
 .SUFFIXES : .o .f .f90
 

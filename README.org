@@ -1,18 +1,26 @@
 
 * Introduction to optool
 
-This tool allows to produce complex dust opacities right from the
-command line. It is derived from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] for the
-[[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program, and committed to its simplicity.  For another derivative
-of OpacityTool with a different set of applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]],
-the /Simple Icy Grain Model for Aggregates/, by Lefévre et al. (2020).
+This tool allows to produce complex dust particle opacities right from
+the command line. It is derived[fn:1] from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]
+for the [[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program. =optool= adds a much more flexible command line
+interface, a curated list of built-in materials, easy access to
+external material properties, more output options, and significant
+speed gains.
+
+For another derivative of OpacityTool with a different set of
+applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]], the /Simple Icy Grain Model for
+Aggregates/, by Lefévre et al. (2020).
 
 * Capabilities
 
+
 - stand-alone tool, fully command line driven, no input files need to
   be edited
-- full scattering matrix output in various formats (including for
-  RADMC-3D)
+- flexible command line interface to specify input in a compact and
+  simple way
+- full scattering matrix output in several formats, including for
+  RADMC-3D
 - combining materials through mixing into a complex grain with
   porosity
 - DHS method to model shape effects and low-porosity aggregates
@@ -38,6 +46,77 @@ refractive index measurements.
 - Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
 - References to [[#builtin-materials][refractive index data]] used in your particular
   application.
+
+
+=optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
+and redistributed freely.  The implemented physics is the same as in
+[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. As a reference for this tool, please point to the [[https://github.com/cdominik/optool.git][GitHub
+repository]]. If you use it to publish papers, please cite the papers
+establishing the methods used, as well as to the original laboratory
+papers that published the refractive index measurements.
+
+- =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
+- DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
+- DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016, A&A 586, 103]]
+- Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
+- References to [[#builtin-materials][refractive index data]] used in your particular
+  application.
+
+* Examples
+A simple grain made only of the default pyroxene, for the default
+grain size distribution ($a^{-3.5}$ powerlaw from 0.05 to 3000\mu{}m),
+on the default wavelength grid (0.05\mu{}m to 1cm).
+
+: optool pyr
+
+Include the scattering matrix in the produced output
+
+: optool pyr -s
+
+Reproduce the DIANA standard dust model, using a specific pyroxene
+(70% Mg) and carbon, in a mass ratio 0.87/0.13, and with a porosity of
+25%.
+
+: optool pyr-mg70 0.87  c 0.13  -p 0.25
+
+List the built-in materials
+
+: optool -c
+
+Add an ice mantle (built-in data from Warren+08) that is 20% of the
+core mass
+
+: optool pyr-mg70 0.87  c 0.13  -m ice-w 0.2  -p 0.25
+
+Like the previous example, but use ice refractive index data from a
+separate file.
+
+: optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
+
+Pure ice grains in a narrow size distribution from 1 to 3 microns,
+with 15 sample sizes following an $f(a)\propto a^{-2.5}$ powerlaw size
+distribution. Also, restrict the wavelength range to 10-100\mu{}m, and
+turn off DHS to get perfect spheres.
+
+: optool ice  -a 1 3 2.5 15  -l 10 100 -fmax 0
+
+For silicon carbide, compute the opacity of a single grains size (2.5\mu{}m)
+at \lambda=8.9\mu{}m.
+
+: optool -a 2.5 -l 8.9 sic
+
+Represent the default dust model (DIANA, you also get this when you do
+not give any materials at all) in 42 grain sizes, and produce input
+files for RADMC-3D, one for each grain size, with full scattering
+matrix, chopping 3 degrees from the scattering peak.
+
+: optool -na 42 -d -s -radmc -chop 3
+
+Use the Bruggeman rule to blend refractive index data of three
+orientations of a crystaline material, using the wavelength grid
+given in one of those files. Output to =blended.lnk=.
+
+: optool -b gra_x.lnk 0.33 gra_y.lnk 0.33 gra_z.lnk 0.33 -l gra_x.lnk
 
 * Acknowledgments
 - [[http://michielmin.nl/][Michiel Min]] for the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][DIANA OpacityTool]] and all the incredible work
