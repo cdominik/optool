@@ -258,7 +258,9 @@ program optool
            endif
         else
            ! there was only 1 number.  Set up single grain size computation
-           amax = amin; na = 1;
+           ! If na has already been set, do not change it.
+           amax = amin;
+           if (na.eq.0) na = 1;
         endif
      case('-amin','--amin')
         i = i+1; call getarg(i,value); read(value,*) amin
