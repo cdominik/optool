@@ -51,7 +51,7 @@ my $tests = [
    prepare => "rm -f $dir/dustkappa.fits",
    cmd => "./optool -q -na 10 -nl 30 -s -fits -o $dir",
    getsha => "shasum $dir/dustkappa.fits",
-   sha => '05cea43000033be968b1e2c0dbe6081760344a0b'}
+   sha => '5db1e1afef60ffdfd94b9e4cb7a9626790d7a501'}
   ];
 
 foreach $test (@$tests) {

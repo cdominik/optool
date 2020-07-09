@@ -1,0 +1,10 @@
+./optool pyr
+./optool pyr -s
+./optool pyr-mg70 0.87  c 0.13  -p 0.25
+./optool -c
+./optool pyr-mg70 0.87  c 0.13  -m ice-w 0.2  -p 0.25
+./optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
+./optool ice  -a 1 3 2.5 15  -l 10 100 -fmax 0
+./optool -a 2.5 -l 8.9 sic
+./optool -na 42 -d -s -radmc -chop 3
+./optool -b lnk_data/c-gra-XXX1900.lnk lnk_data/c-gra-XXX1900.lnk lnk_data/c-gra-XXX1900.lnk -l lnk_data/c-gra-XXX1900.lnk
