@@ -417,7 +417,10 @@ program optool
   endif
   if (amin .gt. amax) then
      ! Swap min and max values
-     dum = amin; amin=amax; amax=dum
+     dum = amin; amin = amax; amax = dum
+  endif
+  if (apow.lt.0d0) then
+     print *,'WARNING: Negative value for apow. apow=-3 means f(a)~a^(+3)'
   endif
   ! *** Wavelength grid ***
   if ( (lmin.le.0d0) .or. (lmax.le.0d0) ) then
@@ -425,7 +428,7 @@ program optool
   endif
   if (lmin .gt. lmax) then
      ! Swap min and max values
-     dum = lmin; lmin=lmax; lmax=dum
+     dum = lmin; lmin = lmax; lmax = dum
   endif
   if ( (nlam.le.1) .and. (lmin.ne.lmax)) then
      print *,'ERROR: More than one wavelength point needed to sample a range',lmin,lmax,nlam; stop
