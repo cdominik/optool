@@ -1902,20 +1902,26 @@ subroutine plmeans(a1,a2,p,amean)
   ! The results are returned in AMEAN, an array of three: <a>, <a^2>, <a^3>
   implicit none
   integer, parameter     :: dp = selected_real_kind(P=15)
-  real (kind=dp) :: a1,a2,p,amean(3),e1,e2,e3
+  real (kind=dp) :: a1,a2,p,amean(3),e1,e2,e3,numerator,denominator
   integer :: n
   if (abs((a2-a1)/a1) .lt. 1d-6) then
      amean(1) = a1; amean(2) = a1; amean(3) = a1
   else 
+     e2 = 1.d0-p
+     if (abs(e2).lt.1e-3) then
+        denominator = log(a2)-log(a1)
+     else
+        denominator = (a2**e2-a1**e2)/e2
+     endif
      do n=1,3
         e1 = 1.d0-p+n
-        e2 = 1.d0-p
         e3 = 1.d0/n
         if (abs(e1).lt.1e-3) then
-           amean(n) = (  e2     * (log(a2)-log(a1)) / (a2**e2-a1**e2) )**e3
+           numerator = log(a2)-log(a1)
         else
-           amean(n) = ( (e2/e1) * (a2**e1-a1**e1)   / (a2**e2-a1**e2) )**e3
+           numerator  = (a2**e1-a1**e1)/e1
         endif
+        amean(n) = (numerator/denominator)**e3
      enddo
   endif
 end subroutine plmeans
