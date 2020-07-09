@@ -39,6 +39,29 @@
 # + =-B= ::
 # 
 #   Use the old style Blender, for robustness
+** TODO Single sized grains
+When the user gives a single size, or amin=amax, then we can do 2
+things
+1. We can indeed make a computation of a single size.  if DHS is not
+   suppressed, then the resonances will be suppressed already, but if
+   DHS is suppressed, we do get a resonance pattern.
+2. we can implement a range, sat a/1.2 - a*1.2 and compute that.
+
+The question is, what does the user mean, and how to best serve them.
+
+One question is, which size distribution to use?  A factor 1.44 in
+radiuis is factor of three in mass.  So should we average
+
+I guess the middle grain should be the middle *mass*, because this is
+about opacity per mass.  So use apow = -3, den in each da it is the
+same mass.
+
+On the other hand, you could make the same argument for the geometric
+cross section.  Then use apow=-2, so da contains the same amound of
+cross section.
+
+
+Compromize: apow=-2,5
 ** DONE Fix the RADMC-3D output
 - The scattering matrix has to be given on interfaces, not on cell centers
   - So we interpolate two values to get 179 values
@@ -97,7 +120,7 @@ Need to specify a dust to gas ratio, because these should be per g
 gas.  or per gicy region? or....?????
 
 ** TODO propagate rho to fits and write it there?
-** TODO Put rho_av into the output
+** DONE Put rho_av into the output
 ** DONE Does the angular grid have to be configurable?
 Michiels code does assum that teh grid is regular in two places.
 1. DMieLay only computes from 0 to pi/2, and then the other half is
@@ -135,7 +158,7 @@ what would be useful?
 Only ones with good wavelength coverage.
 What does Christian Lammert use?
 ** CNCL Make a comparison between the two blenders
-** TODO Sort the materials to make sure the mantle is last
+** DONE Sort the materials to make sure the mantle is last
 I would like to drop the requirement that it has to be given last....
 
 This should be easy.  Since we are only allowing one mantle, this is
