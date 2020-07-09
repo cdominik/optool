@@ -882,7 +882,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         do im=1,nm
            e_in(im) = dcmplx(e1(im,il),e2(im,il))
         enddo
-        ! The Blender from OpacityTool.
         call Blender(vfrac,nm,e_in,e_out)
         e1blend(il) = dreal(e_out)
         e2blend(il) = dimag(e_out)
@@ -900,8 +899,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            e2mantle(il) = dimag(e_out)
         endif
         ! Now we have the mantle material ready - put it on the core
-        call maxgarn(e1blend(il),e2blend(il),e1mantle(il),e2mantle(il),vfrac_mantle, &
-             e1mg,e2mg)
+        call Blender_MG(e1blend(il),e2blend(il),e1mantle(il),e2mantle(il), &
+             vfrac_mantle,e1mg,e2mg)
         e1blend(il) = e1mg
         e2blend(il) = e2mg
      endif
@@ -1220,26 +1219,24 @@ subroutine blender(abun,nm,e_in,e_out)
   e_out = me
 end subroutine blender
 
-subroutine maxgarn(e1in,e2in,e1mantle_in,e2mantle_in,abun,e1out,e2out)
+subroutine Blender_MG(e1in,e2in,e1in_m,e2in_m,vf_m,e1out,e2out)
   ! 2 component Maxwell-Garnet mixing
+  ! vf_m is the volume fration of the mantle material
   use Defs
   implicit none
-  real (kind=dp) e1in,e2in,e1out,e2out,e1mantle_in,e2mantle_in,abun !up, down
-  complex (kind=dp) m1,m2,me
+  real (kind=dp) e1in,e2in,e1out,e2out,e1in_m,e2in_m,vf_m,vf_c
+  complex (kind=dp) m1,m2,me,sqme
 
-  m2 = dcmplx(e1mantle_in,e2mantle_in) ! mantle = coating material = matrix
-  m1 = dcmplx(e1in,e2in)               ! inner core is the "inclusion"
+  m2 = dcmplx(e1in_m,e2in_m) ! mantle = coating material = matrix
+  m1 = dcmplx(e1in,e2in)     ! inner core is the "inclusion"
+  vf_c = 1.d0-vf_m           ! the volume fraction of the core is 1-vf_m
+  
+  me = m2**2 * (  (2d0*m2**2 + m1**2 - 2d0*vf_c * (m2**2-m1**2) ) &
+       &        / (2d0*m2**2 + m1**2 +     vf_c * (m2**2-m1**2) ) )
 
-  ! The "abundance" of the core is 1-abun
-  me = m2**2*( (2d0*m2**2+m1**2-2d0*(1d0-abun)*(m2**2-m1**2)) &
-       /(2d0*m2**2+m1**2+(1d0-abun)*(m2**2-m1**2) ) )
-  ! from Mukai & Kraetschmer 1986: Optical Constants of the Mixture of Ices
-  ! Earth, Moon and Planets, Volume 36, Issue 2, pp.145-155
-
-  me    = cdsqrt(me)
-  e1out = dreal(me)
-  e2out = dimag(me)
-end subroutine maxgarn
+  sqme  = cdsqrt(me)
+  e1out = dreal(sqme); e2out = dimag(sqme)
+end subroutine Blender_MG
 
 subroutine gauleg2(x1,x2,x,w,n)
   ! Gauss Legendre integration.  From Numerical Recipes
