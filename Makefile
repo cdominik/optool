@@ -13,7 +13,7 @@ endif
 # Multicore support
 ifeq ($(multi),true)
     ifeq ($(ifort),true)
-	MULTICORE = -openmp -fp-model strict
+	MULTICORE = -qopenmp -fp-model strict
     else
 	MULTICORE = -fopenmp
     endif
@@ -24,7 +24,7 @@ ifeq ($(debug),true)
   ifeq ($(ifort),true)
     DEBUGGING = -check all -traceback -check bounds -O0 -g -check -fpe1
   else	
-    DEBUGGING = -fbounds-check -fbacktrace
+    DEBUGGING = -fbounds-check -fbacktrace -O0 -ffpe-trap=invalid,zero,overflow -fcheck=all
   endif
 endif
 

@@ -918,7 +918,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      write(*,'("Writing the blended n and k to blended.lnk, and exiting")')
      call remove_file_if_exists('blended.lnk')
      open(unit=20,file='blended.lnk')
-     write(20,'(i5 f5.2)') nlam,rho_av
+     write(20,'(i5,f5.2)') nlam,rho_av
      do ilam=1,nlam
         write(20,'(1p,e15.4,1p,e15.4,1p,e15.4)') lam(ilam),e1blend(ilam),e2blend(ilam)
      enddo
@@ -1563,7 +1563,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   real (kind=dp) :: amin,amax,apow,lmin,lmax,pcore,pmantle,fmax,mfrac(nm),rho_av
   real (kind=dp) :: amean(3)
   character*(*)  :: cc
-  cc = trim(cc)
+
   call plmeans(amin,amax,apow,amean)
   write(unit,'(A,"============================================================================")') cc
   write(unit,'(A," Opacities computed by OpTool          <a^n>=",1p,3e9.2e1)') cc,amean
