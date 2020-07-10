@@ -1648,7 +1648,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      write(20,*) 3  ! iformat
      write(20,*) nlam  ! number of lambda points
      do ilam=1,nlam
-        write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
+        write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
      enddo
      close(20)
 
@@ -1695,7 +1695,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      write(20,*)         ! an empty line
      ! The opacities as function of lambda
      do ilam=1,nlam
-        write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
+        write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
      enddo
 
      write(20,*)      ! an empty line
@@ -1733,7 +1733,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
               ! We have only computed 0..nang-1, but RADMC needs a value at
               ! 180 degrees as well. We simply repeat the last value
               i1 = max(1,iang); i2=min(iang+1,nang)
-              write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
+              write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') &
                    0.5 * f * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) ), &
                    0.5 * f * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) ), &
                    0.5 * f * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) ), &
@@ -1743,7 +1743,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
            enddo
         else
            do i=1,nang
-              write(20,'(1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8,1p,e19.8)') &
+              write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') &
                    p%F(ilam)%F11(i),p%F(ilam)%F12(i),p%F(ilam)%F22(i), &
                    p%F(ilam)%F33(i),p%F(ilam)%F34(i),p%F(ilam)%F44(i)
            enddo
