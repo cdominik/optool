@@ -14,7 +14,6 @@ Aggregates/, by Lefévre et al. (2020).
 
 * Capabilities
 
-
 - stand-alone tool, fully command line driven, no input files need to
   be edited
 - flexible command line interface to specify input in a compact and
@@ -32,21 +31,6 @@ Aggregates/, by Lefévre et al. (2020).
   very fast
 
 * Terms of use
-
-
-The code doing the real work of =optool= was adopted and modified from
-[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. I focused on the interface, on simplicity, and a clean
-set of conventions. If you are using this tool, you should give credit
-to the papers describing the methods used to compute the opacities, as
-well as to the original laboratory papers that published the
-refractive index measurements.
-
-- DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
-- DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016]]
-- Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
-- References to [[#builtin-materials][refractive index data]] used in your particular
-  application.
-
 
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
 and redistributed freely.  The implemented physics is the same as in
