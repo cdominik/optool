@@ -110,7 +110,7 @@ quicktestdivchop:;	echo computing size-dependant opacities ...
 			./optool -na 10 -nl 30 -d 3 -s -chop 10
 			ipython -i optool_plot.py
 selftest:;	make
-		misc/selftest.pl
+		misc/nselftest.pl
 
 bin-mac:;	make clean
 		make

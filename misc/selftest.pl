@@ -2,6 +2,8 @@
 
 # Run a few standard cases and compare the results to stored hashes.
 
+use Digest::SHA1 qw/ sha1_hex /;
+
 $dir = 'selftest_optool';
 
 my $tests = [
@@ -80,4 +82,6 @@ print "==========================================\n";
 print "     Summary of optool test results\n";
 print "==========================================\n";
 for (@results) {print "$_\n"}
+
+
 
