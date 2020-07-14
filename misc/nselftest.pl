@@ -2,7 +2,7 @@
 
 # Run a few standard cases and compare the results to stored hashes.
 
-use Digest::SHA1 qw/ sha1_hex /;
+use Digest::SHA qw/ sha1_hex /;
 use Getopt::Std;
 getopts('s');
 
@@ -87,6 +87,7 @@ foreach $test (@$tests) {
       print "$test->{name} :: $hashes\n";
     } else {
       $acc = &find_accuracy($test->{sha},@files);
+      #print "accuracy found is $acc\n";
       if ($acc == 1000) {
         $result = "Test $test->{name} passed.\n";
         $r = sprintf "Test %-30s passed",$test->{name};
@@ -95,7 +96,8 @@ foreach $test (@$tests) {
         $r = sprintf "Test %-30s FAILED %s",$test->{name},$sha;
       } else {
         $result = "Test $test->{name} passed qith $acc digits\n";
-        $r = sprintf "Test %-30s OK to $acc digits";
+        $acc = $1 if $acc =~ /([0-9]+):/;
+        $r = sprintf("Test %-30s OK to $acc digits",$test->{name})
       }
     }
   } else {
@@ -176,7 +178,7 @@ sub find_accuracy {
   $hashes = "::" . $hashes . "::";
   @goalhashes = split('::',$goalhashes);
   for $goal (@goalhashes) {
-    return $goal 
+    return $goal if $hashes =~ m/::${goal}::/;
   }
   return 0;
 }
