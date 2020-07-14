@@ -9,13 +9,6 @@ getopts('s');
 $dir = 'selftest_optool';
 
 my $tests = [
-  {name => 'debug',
-   prepare => "rm -f $dir/dustkapscatmat.dat",
-   cmd => "./optool -q -a 5 -l 5 -o $dir",
-   getsha => "accuracy",
-   glob => "$dir/dustkappa.dat",
-   sha => '1000:b091150667::10:bg91150660::9:b091250660::8:b091150660::7:b091150660::6:b091150660::5:96fb766711::4:a1197f1762::3:95b493b2dc::2:403568114f::1:82b235057c'},
-  
   {name => 'quick',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -q -na 10 -nl 30 -s -o $dir",
