@@ -135,8 +135,8 @@ program optool
   ! ----------------------------------------------------------------------
   ! Defaults values for parameters and switches
   ! ----------------------------------------------------------------------
-  amin           = 0.05       ! micrometer
-  amax           = 3000.      ! micrometer
+  amin           = 0.05_dp    ! micrometer
+  amax           = 3000._dp   ! micrometer
   apow           = 3.50_dp    ! a minus sign will be added internally
   na             = 0          ! will be computed to 10 per decade
 
@@ -206,7 +206,7 @@ program optool
         ! Second value is the mass fraction
         if (.not. arg_is_number(i+1)) then
            if (.not. quiet) print *, "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
-           mat_mfr(nm) = 1.0
+           mat_mfr(nm) = 1.0d0
         else
            i = i+1; call getarg(i,value); read(value,*) mat_mfr(nm)
         endif
@@ -354,7 +354,7 @@ program optool
         endif
      case('-chop')
         if (.not. arg_is_value(i+1)) then
-           chopangle = 2.
+           chopangle = 2.d0
         else
            i=i+1; call getarg(i,value); read(value,*) chopangle
         endif
@@ -536,7 +536,7 @@ program optool
   ! ----------------------------------------------------------------------
   if (.not. quiet) then
      call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
-          pcore,pmantle,0.0,fmax,mat_mfr,mat_nm)
+          pcore,pmantle,0.0d0,fmax,mat_mfr,mat_nm)
   endif
 
   ! ----------------------------------------------------------------------
@@ -557,7 +557,7 @@ program optool
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
-        asplit    = amin  *afact**real(ia-1+0.5)
+        asplit    = amin  *afact**real(ia-1d0+0.5d0)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,pcore,pmantle, &
@@ -796,7 +796,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      enddo
      ! normalize the grain numbers so that the total volume is 1
      do is=1,ns
-        nr(is)=1.*nr(is)/tot
+        nr(is)=1.d0*nr(is)/tot
      enddo
   endif
 
@@ -931,7 +931,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! ----------------------------------------------------------------------
   if (nf.gt.1 .and. fmax.gt.0.01e0) then
      ! Get the weights for Gauss-Legendre integration
-     call gauleg2(0.01e0,fmax,f(1:nf),wf(1:nf),nf)
+     call gauleg2(0.01d0,fmax,f(1:nf),wf(1:nf),nf)
   else if (fmax.eq.0e0) then
      ! Just a compact sphere, weight is 1
      f(1:nf)  = 0d0
@@ -946,7 +946,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! Initialize mu
   ! ----------------------------------------------------------------------
   do j=1,nang/2
-     theta = (real(j)-0.5)/real(nang/2)*pi/2d0  ! FIXME check, is this right?
+     theta = (real(j)-0.5d0)/real(nang/2)*pi/2d0  ! FIXME check, is this right?
      mu(j) = cos(theta)
   enddo
   
@@ -1008,7 +1008,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
                    nang/2, qext, qsca, qabs, gqsc, &
                    m1, m2, s21, d21, nang ,err)
            else
-              rcore = rad*0.999
+              rcore = rad*0.999d0
               call DMiLay(rcore, rad, wvno, min, m, mu, &
                    nang/2, qext, qsca, qabs, gqsc, &
                    m1, m2, s21, d21, nang ,err)
@@ -1062,10 +1062,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
            tot2 = 0d0
            do j=1,nang
               ! This integration assumes that the grid is regular (linear)
-              tot  = tot +  Mief11(j)*sin(pi*(real(j)-0.5)/real(nang))
-              tot2 = tot2 + sin(pi*(real(j)-0.5)/real(nang))
+              tot  = tot +  Mief11(j)*sin(pi*(real(j)-0.5d0)/real(nang))
+              tot2 = tot2 + sin(pi*(real(j)-0.5d0)/real(nang))
            enddo
-           Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5)/real(nang))
+           Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5d0)/real(nang))
            if (Mief11(1) .lt. 0d0) Mief11(1) = 0d0
 
            ! Add this contribution with the proper weights
@@ -1129,8 +1129,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         tot = 0; tot2 = 0
         do j=1,nang
            !                    F11                         sin theta                  d theta
-           tot  = tot  +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(nang))) * (pi/dble(nang)) * (2.d0*pi)
-           tot2 = tot2 +                      sin(pi*(real(j)-0.5)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
+           tot  = tot  +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5d0)/real(nang))) * (pi/dble(nang)) * (2.d0*pi)
+           tot2 = tot2 +                      sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
         enddo
         ! Scale the scattering matrix
         do j=1,nang
@@ -1147,8 +1147,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         
         !tot = 0; tot2 = 0
         !do j=1,nang
-        !   tot  = tot  +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5)/real(nang))) * (pi/dble(nang)) * (2.d0*pi)
-        !   tot2 = tot2 +                      sin(pi*(real(j)-0.5)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
+        !   tot  = tot  +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5d0)/real(nang))) * (pi/dble(nang)) * (2.d0*pi)
+        !   tot2 = tot2 +                      sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
         !enddo
         !print *,'>',tot,tot2
      endif   ! chopangle .gt. 0
@@ -1160,9 +1160,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      tot = 0.0_dp
      p%g(ilam) = 0.d0  !FIXME we never did this, why did this not cause problems???
      do i=1,nang
-        p%g(ilam) = p%g(ilam) + p%F(ilam)%F11(i)*cos(pi*(real(i)-0.5)/dble(nang)) &
-             *sin(pi*(real(i)-0.5)/dble(nang))
-        tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5)/dble(nang))
+        p%g(ilam) = p%g(ilam) + p%F(ilam)%F11(i)*cos(pi*(real(i)-0.5d0)/dble(nang)) &
+             *sin(pi*(real(i)-0.5d0)/dble(nang))
+        tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5d0)/dble(nang))
      enddo
      p%g(ilam) = p%g(ilam)/tot
      
@@ -1718,13 +1718,13 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
            ! Extra renormalization because of interpolation
            do iang=0,nang
               i1 = max(1,iang); i2=min(iang+1,nang)
-              f11(iang) = 0.5 * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) )
+              f11(iang) = 0.5d0 * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) )
            enddo
            tot = 0.d0
            do iang=1,nang
               theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)  /dble(nang) * pi
               mu1 = cos(theta1); mu2 = cos(theta2); dmu = mu1-mu2
-              tot = tot + 0.5 * (f11(iang-1)+f11(iang)) * dmu
+              tot = tot + 0.5d0 * (f11(iang-1)+f11(iang)) * dmu
            enddo
            tot = 2.d0 * pi * tot
            f = p%ksca(ilam)/tot
@@ -1734,12 +1734,12 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
               ! 180 degrees as well. We simply repeat the last value
               i1 = max(1,iang); i2=min(iang+1,nang)
               write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') &
-                   0.5 * f * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) ), &
-                   0.5 * f * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) ), &
-                   0.5 * f * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) ), &
-                   0.5 * f * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) ), &
-                   0.5 * f * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) ), &
-                   0.5 * f * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
+                   0.5d0 * f * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) ), &
+                   0.5d0 * f * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) ), &
+                   0.5d0 * f * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) ), &
+                   0.5d0 * f * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) ), &
+                   0.5d0 * f * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) ), &
+                   0.5d0 * f * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
            enddo
         else
            do i=1,nang
@@ -1953,7 +1953,7 @@ subroutine mean_opacities(lambda,nlam,kabs,ksca,g,tmin,tmax,ntemp,file)
   ! Make the temperature grid
   !
   do itemp=1,ntemp
-     temp(itemp) = tmin * (tmax/tmin)**((itemp-1.0)/(ntemp-1.0))
+     temp(itemp) = tmin * (tmax/tmin)**((itemp-1.0d0)/(ntemp-1.0d0))
   enddo
   !
   ! Loop over temperatures
