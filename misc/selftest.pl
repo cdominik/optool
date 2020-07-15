@@ -88,8 +88,8 @@ foreach $test (@$tests) {
         $result = "Test $test->{name} failed: resulting SHA1 $sha does not match\n";
         $r = sprintf "Test %-30s FAILED %s",$test->{name},$sha;
       } else {
-        $acc = $1 if $acc =~ /([0-9]+):/;
-        $result = "Test $test->{name} passed with $acc digits\n";
+        $acc = $1+1 if $acc =~ /([0-9]+):/;
+        $result = "Test $test->{name} passed with $acc significant digits\n";
         $r = sprintf("Test %-30s OK to $acc digits",$test->{name})
       }
     }
