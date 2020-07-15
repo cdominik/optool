@@ -5,7 +5,7 @@
 use Digest::SHA qw/ sha1_hex /;
 use Getopt::Std;
 getopts('s');
-$opt_s=1;
+#$opt_s=1;
 $dir = 'selftest_optool';
 
 my $tests = [
@@ -30,12 +30,12 @@ my $tests = [
    glob => "$dir/dustkapscatmat.dat",
    sha => '1000:4767575447::10:4767575447::9:4767575447::8:4767575447::7:4767575447::6:4767575447::5:38c6b004b3::4:c08c36c0f0::3:ce8b9ccc27::2:cbbee6c5b3::1:222eba0515'},
 
-  {name => 'radmc-in-10-parts',
+  {name => 'div-in-10-parts',
    prepare => "rm -f $dir/dust*",
-   cmd  => "./optool -q -na 10 -nl 30 -s -d 3 -o $dir",
+   cmd  => "./optool -q -na 10 -nl 30 -s -d 3 -radmc -o $dir",
    getsha => "accuracy",
    glob => "$dir/dustkapscatmat_*.dat",
-   sha => '1000:166fb6e527::10:166fb6e527::9:166fb6e527::8:166fb6e527::7:166fb6e527::6:166fb6e527::5:06535b616b::4:3f33db8f72::3:2050818458::2:c7a33f2081::1:260fbf285d'},
+   sha => '1000:da39a3ee5e::10:da39a3ee5e::9:da39a3ee5e::8:da39a3ee5e::7:da39a3ee5e::6:da39a3ee5e::5:da39a3ee5e::4:da39a3ee5e::3:da39a3ee5e::2:da39a3ee5e::1:da39a3ee5e'},
 
   {name => 'high-angular-resolution',
    prepare => "rm -f $dir/dust*",
