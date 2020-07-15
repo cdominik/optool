@@ -5,7 +5,7 @@
 use Digest::SHA qw/ sha1_hex /;
 use Getopt::Std;
 getopts('s');
-
+#$opt_s=1;
 $dir = 'selftest_optool';
 
 my $tests = [
@@ -32,10 +32,10 @@ my $tests = [
 
   {name => 'radmc-in-10-parts',
    prepare => "rm -f $dir/dust*",
-   cmd  => "./optool -q -na 10 -nl 30 -s -d 3 -radmc -o $dir",
+   cmd  => "./optool -q -na 10 -nl 30 -s -d 3 -o $dir",
    getsha => "accuracy",
    glob => "$dir/dustkapscatmat_*.inp",
-   sha => '1000:7b112cd80d::10:7b112cd80d::9:7b112cd80d::8:7b112cd80d::7:7b112cd80d::6:7b112cd80d::5:701b64659c::4:3835ca3160::3:91f654d39d::2:d02adeffc9::1:7f42e75dac'},
+   sha => '1000:da39a3ee5e::10:da39a3ee5e::9:da39a3ee5e::8:da39a3ee5e::7:da39a3ee5e::6:da39a3ee5e::5:da39a3ee5e::4:da39a3ee5e::3:da39a3ee5e::2:da39a3ee5e::1:da39a3ee5e'},
 
   {name => 'high-angular-resolution',
    prepare => "rm -f $dir/dust*",
