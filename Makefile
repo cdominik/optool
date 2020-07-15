@@ -55,7 +55,7 @@ LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
 LIBS    = $(LIBS_FITS)
 
 # Object files to link
-OBJS	= optool.o optool-guts.o optool_manual.o ref_ind.o
+OBJS	= optool.o optool_guts.o optool_manual.o ref_ind.o
 
 # Program name and install location
 PROGRAM       = optool
@@ -105,7 +105,7 @@ quicktestdivchop:;	echo computing size-dependant opacities ...
 			make	
 			./optool -na 10 -nl 30 -d 3 -s -chop 10
 			ipython -i optool_plot.py
-selftest:;	misc/nselftest.pl
+selftest:;	misc/selftest.pl
 
 bin-mac:;	make clean
 		make
