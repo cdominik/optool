@@ -5,7 +5,7 @@
 use Digest::SHA qw/ sha1_hex /;
 use Getopt::Std;
 getopts('s');
-$opt_s=1;
+#$opt_s=1;
 $dir = 'selftest_optool';
 
 my $tests = [
