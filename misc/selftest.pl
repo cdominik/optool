@@ -82,7 +82,7 @@ foreach $test (@$tests) {
       $acc = &find_accuracy($test->{sha},@files);
       #print "accuracy found is $acc\n";
       if ($acc == 1000) {
-        $result = "Test $test->{name} passed.\n";
+        $result = "Test $test->{name} perfect pass\n";
         $r = sprintf "Test %-30s passed",$test->{name};
       } elsif ($acc == 0) {
         $result = "Test $test->{name} failed: resulting SHA1 $sha does not match\n";
@@ -90,7 +90,7 @@ foreach $test (@$tests) {
       } else {
         $acc = $1+1 if $acc =~ /([0-9]+):/;
         $result = "Test $test->{name} passed with $acc significant digits\n";
-        $r = sprintf("Test %-30s OK to $acc digits",$test->{name})
+        $r = sprintf("Test %-30s OK to $acc significant digits",$test->{name})
       }
     }
   } else {
