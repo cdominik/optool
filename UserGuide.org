@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, based on work by Michiel Min
-#+DATE:   July 2020, version 1.0
+#+DATE:   July 2020, version 1.1
 
 * Introduction
 
@@ -137,7 +137,7 @@ selftest=" to test if everything works properly.  I have had problems
 with the OpenMP setup of an older version of =gfortran=.
 [fn:3] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your system.
 
-* command line arguments
+* Command line arguments
 
 + =-h=   :: Show a compact help message about command line options.
 
@@ -411,11 +411,10 @@ this: =optool -c path/to/file.lnk 0.7 3.42=
 To try out =optool= you could use one of these commands
 
 : make test             # for a simple size-integrated opacity computation
-:     ... or ...
 : make testdiv          # for opacities as a function of grain size
 
-#+CAPTION: Screenshot of the plots created by running =ipython -i optool_plot.py=. Note that we plot the logarithm of the absolute value of the scattering matrix, in order to deal with range and sign issues.
-#+ATTR_LATEX: :width 15cm :options angle=0
+#+CAPTION: Screenshot of the plots created by running =ipython -i optool_plot.py=.
+#+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./misc/inspect.png]]
 
 The commands will run =optool= with the standard DIANA material
@@ -426,17 +425,15 @@ the computed opacities.  You will get:
   Note that the red /g/ curve does not have its own scale, imagine the
   /y/ axis going from 0 to 1 for /g/.
 - a plot showing the scattering matrix elements as a function of
-  scattering angle, and with sliders to go through grain sizes and
-  wavelengths.  The /y/ axis of the plot is actually log_10(|F_ij|), so
-  the downward peaks are actually places where the matrix element goes
-  through zero.
+  scattering angle, with sliders to go through grain sizes and
+  wavelengths.  When interpreting the y axis, note that we plot the
+  positive/negative $\log_{10}$ of positive/negative matrix elements,
+  compressing the range from $10^{-2}$ to $10^2$ into a line (use the
+  grey lines as a guide, ignore the y-axis labels).
 
 If you want to run the plotter yourself, =ipython -i
 path/to/optool_plot.py= is the correct command to do so, from the
 directory where the output files are located.
-
-
-
 
 
 * Acknowledgments
