@@ -13,8 +13,8 @@ subroutine MeerhoffMie(rad,lam,e1,e2,Csca,Cext,F11,F12,F33,F34,na)
   develop = 0
   delta   = 1d-8
   cutoff  = 1d-8
-  thmin   = 180d0*(real(1)-0.5)/real(na)
-  thmax   = 180d0*(real(na)-0.5)/real(na)
+  thmin   = 180d0*(real(1)-0.5d0)/real(na)
+  thmax   = 180d0*(real(na)-0.5d0)/real(na)
   step    = (thmax-thmin)/real(na-1)
   wavel   = lam
   Rem     = e1
@@ -1939,7 +1939,7 @@ subroutine DMiLay( rcore, rshell, wvno, rindsh, rindco, mu, &
   qext   = t( 1 )*dqext
   qsca   = t( 1 )*dqsca
   gqsc   = two*t( 1 )*dgqsc
-  sback  = 0.5*sback
+  sback  = 0.5d0*sback
   qbs    = ( dble(sback)**2 + dimag(sback)**2 ) / (pinum*xshell**2)
   
   return
