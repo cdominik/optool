@@ -196,14 +196,14 @@ sub find_accuracy {
 __DATA__
 
 
-# HASHES set on Thu Jul 16 09:11:54 CEST 2020
+# HASHES set on Thu Jul 16 15:01:59 CEST 2020
 
 noscat:::1000:9986e04ef8::10:9986e04ef8::9:9986e04ef8::8:9986e04ef8::7:9986e04ef8::6:9986e04ef8::5:49cc8c16ec::4:9904743c57::3:ce63507d3d::2:78f49a2bea::1:365bce6134
-quick:::1000:cdad78747b::10:cdad78747b::9:cdad78747b::8:cdad78747b::7:cdad78747b::6:cdad78747b::5:a14ad9589a::4:e9ef03794a::3:531dac203f::2:5802a76398::1:b476fcc996
-full-diana-lowres:::1000:0104490cef::10:0104490cef::9:0104490cef::8:0104490cef::7:0104490cef::6:0104490cef::5:01c418d6db::4:af9432fac7::3:191b728fe2::2:20d180b628::1:cd346a089a
-diana-plus-ice-mantle:::1000:2757ae697a::10:2757ae697a::9:2757ae697a::8:2757ae697a::7:2757ae697a::6:2757ae697a::5:13d0904285::4:03b36e5280::3:f4b7410b9b::2:c6b8e3c758::1:fcfb84cd89
-div-in-10-parts:::1000:cd17c5bc1b::10:cd17c5bc1b::9:cd17c5bc1b::8:cd17c5bc1b::7:cd17c5bc1b::6:cd17c5bc1b::5:c45a2a8053::4:977f53617e::3:bf4568f553::2:3acab31a9b::1:ba5dca9111
-high-angular-resolution:::1000:b04bedda79::10:b04bedda79::9:b04bedda79::8:b04bedda79::7:b04bedda79::6:b04bedda79::5:8ebdf2b9db::4:0e297802ed::3:777126869c::2:a5409c1200::1:1bc24592ed
-pure-ice-grain:::1000:f84383bafd::10:f84383bafd::9:f84383bafd::8:f84383bafd::7:f84383bafd::6:f84383bafd::5:79e0002c89::4:5b2f49131d::3:7376b5bb80::2:f399ecd007::1:e684f669dd
-chop-peak:::1000:e24c1af384::10:e24c1af384::9:e24c1af384::8:e24c1af384::7:e24c1af384::6:e24c1af384::5:d1bd0e30ed::4:1c424605e5::3:0569f1ac2f::2:97c0cff974::1:2e9e145c3c
+quick:::1000:82107fad8f::10:82107fad8f::9:82107fad8f::8:82107fad8f::7:82107fad8f::6:82107fad8f::5:8cc7981f64::4:4d18873498::3:a41d0ae2b0::2:3332a4ce64::1:eadb28f49a
+full-diana-lowres:::1000:3fcc5e4bd5::10:3fcc5e4bd5::9:3fcc5e4bd5::8:3fcc5e4bd5::7:3fcc5e4bd5::6:3fcc5e4bd5::5:163988db06::4:533829c09f::3:fbdef663e4::2:c7ca93aeed::1:e80c5cd54e
+diana-plus-ice-mantle:::1000:24aa61b83e::10:24aa61b83e::9:24aa61b83e::8:24aa61b83e::7:24aa61b83e::6:24aa61b83e::5:ba5413e2e8::4:415de51fda::3:170e4fe503::2:bafb8434b3::1:395f758aa5
+div-in-10-parts:::1000:602d4017f0::10:602d4017f0::9:602d4017f0::8:602d4017f0::7:602d4017f0::6:602d4017f0::5:f1f2870b6e::4:bda149aba4::3:520f39a49c::2:ac6377093a::1:8b8add1ef2
+high-angular-resolution:::1000:c33d7acffe::10:c33d7acffe::9:c33d7acffe::8:c33d7acffe::7:c33d7acffe::6:c33d7acffe::5:ddd93ddbbb::4:df63e5a2f9::3:d9da438e92::2:6b6e8a0713::1:11d6de5140
+pure-ice-grain:::1000:15978ccd77::10:15978ccd77::9:15978ccd77::8:15978ccd77::7:15978ccd77::6:15978ccd77::5:cf12dc3c96::4:c92acd81de::3:e149f119ea::2:64238a18cd::1:988f53a934
+chop-peak:::1000:6e59cb668e::10:6e59cb668e::9:6e59cb668e::8:6e59cb668e::7:6e59cb668e::6:6e59cb668e::5:a969c783eb::4:52fb7fa334::3:11ae881b74::2:af44139c57::1:f4bb4058d5
 
