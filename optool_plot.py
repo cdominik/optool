@@ -73,13 +73,51 @@ def opinspect():
     # Extract the scattering matrix elements
     # We will plot the log of the absolute values
     if scat:
-        bottom = 1e-8
-        f11  = np.log10(abs(np.array(f11))+bottom)
-        f12  = np.log10(abs(np.array(f12))+bottom)
-        f22  = np.log10(abs(np.array(f22))+bottom)
-        f33  = np.log10(abs(np.array(f33))+bottom)
-        f34  = np.log10(abs(np.array(f34))+bottom)
-        f44  = np.log10(abs(np.array(f44))+bottom)
+        bottom = 1e-2
+        lb = np.log10(bottom)
+#        f11  = np.log10(abs(np.array(f11))+bottom)
+#        f12  = np.log10(abs(np.array(f12))+bottom)
+#        f22  = np.log10(abs(np.array(f22))+bottom)
+#        f33  = np.log10(abs(np.array(f33))+bottom)
+#        f34  = np.log10(abs(np.array(f34))+bottom)
+#        f44  = np.log10(abs(np.array(f44))+bottom)
+        f11  = np.array(f11)
+        a = np.where(f11>0)
+        b = np.where(f11<=0)
+        f11[a] = np.log10(f11[a]+bottom)   - lb
+        f11[b] = -np.log10(-f11[b]+bottom) + lb
+
+        f12  = np.array(f12)
+        a = np.where(f12>0)
+        b = np.where(f12<=0)
+        f12[a] = np.log10(f12[a]+bottom)   - lb
+        f12[b] = -np.log10(-f12[b]+bottom) + lb
+
+        f22  = np.array(f22)
+        a = np.where(f22>0)
+        b = np.where(f22<=0)
+        f22[a] = np.log10(f22[a]+bottom)   - lb
+        f22[b] = -np.log10(-f22[b]+bottom) + lb
+
+        f33  = np.array(f33)
+        a = np.where(f33>0)
+        b = np.where(f33<=0)
+        f33[a] = np.log10(f33[a]+bottom)   - lb
+        f33[b] = -np.log10(-f33[b]+bottom) + lb
+
+        f34  = np.array(f34)
+        a = np.where(f34>0)
+        b = np.where(f34<=0)
+        f34[a] = np.log10(f34[a]+bottom)   - lb
+        f34[b] = -np.log10(-f34[b]+bottom) + lb
+
+        f44  = np.array(f44)
+        a = np.where(f44>0)
+        b = np.where(f44<=0)
+        f44[a] = np.log10(f44[a]+bottom)   - lb
+        f44[b] = -np.log10(-f44[b]+bottom) + lb
+
+        f00 = f11*0.
     
     # Make version with fewer digits
     lamfmt  = np.round(lam,decimals=3)
@@ -101,7 +139,11 @@ def opinspect():
 
     if scat:
         # interactive plot of the scattering matric elements
-        viewarr([f11,f12,f22,f33,f34,f44],index=2,ylabel=['f11','f12','f22','f33','f34','f44'],
+#        viewarr([f11,f12,f22,f33,f34,f44],index=2,ylabel=['f11','f12','f22','f33','f34','f44'],
+#                idxnames=['grain index','lambda [um]','angle'],
+#                idxvals=[np.array(range(nfiles))+1,lamfmt,angfmt])
+        viewarr([f00,f00+2,f00-2,f00+4,f00-4,f11,f12,f22,f33,f34,f44],
+                index=2,ylabel=['<1e-2','±1','','±1e2','','f11','f12','f22','f33','f34','f44'],
                 idxnames=['grain index','lambda [um]','angle'],
                 idxvals=[np.array(range(nfiles))+1,lamfmt,angfmt])
 
@@ -365,7 +407,18 @@ def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,id
                 axmodel.append(axm0)
         else:
             for i in range(len(datatrans)):
-                axm0,  = ax.plot(x,x,label=ylabel[i])
+                if (len(datatrans)>4 and i==0):
+                    axm0,  = ax.plot(x,x,'-',color='0.9',linewidth=5,label=ylabel[i])
+                elif (len(datatrans)>4 and i==1): 
+                    axm0,  = ax.plot(x,x,'--',color='0.8',linewidth=2,label=ylabel[i])
+                elif (len(datatrans)>4 and i==2): 
+                    axm0,  = ax.plot(x,x,'--',color='0.8',linewidth=2,label=ylabel[i])
+                elif (len(datatrans)>4 and i==3): 
+                    axm0,  = ax.plot(x,x,':',color='0.6',linewidth=2,label=ylabel[i])
+                elif (len(datatrans)>4 and i==4): 
+                    axm0,  = ax.plot(x,x,':',color='0.6',linewidth=2,label=ylabel[i])
+                else:
+                    axm0,  = ax.plot(x,x,label=ylabel[i])
                 axmodel.append(axm0)
         ax.legend()
     else:
