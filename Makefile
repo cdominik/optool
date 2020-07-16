@@ -119,7 +119,7 @@ bin-mac:;	make clean
 		make clean
 		make multi=true fits=true
 		mv optool $(BINRELEASE)/optool-mac-fits-OpenMP
-bin-linx:;	make clean
+bin-linux:;	make clean
 		make
 		mv optool $(BINRELEASE)/optool-linux
 		make clean
