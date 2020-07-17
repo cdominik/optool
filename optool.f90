@@ -553,7 +553,7 @@ program optool
      !$OMP parallel do if (split)                                      &
      !$OMP default(none)                                               &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
-     !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm)                   &
+     !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm)           &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
