@@ -122,8 +122,8 @@ simple steps, using the freely available GNU FORTRAN compiler
 
 The executable is called =optool=, and you should put it on your
 execution path.  To use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]], to use multiple
-cores[fn:2] for speed, or to be able to write FITS files[fn:3], use
-one or more of the following parameters during compilation:
+cores for speed, or to be able to write FITS files[fn:2], use one or
+more of the following parameters during compilation:
 
 : make ifort=true        # use the Intel fortran compiler iFort
 : make multi=true        # enable multicore support
@@ -132,10 +132,8 @@ one or more of the following parameters during compilation:
 You can also find binaries for Mac and Linux at [[https://staff.fnwi.uva.nl/c.dominik/optool][my homepage]].
 
 
-[fn:2] If you do turn multicore support on, please also run "=make
-selftest=" to test if everything works properly.  I have had problems
-with the OpenMP setup of an older version of =gfortran=.
-[fn:3] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your system.
+[fn:2] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your
+system.
 
 * Command line arguments
 
