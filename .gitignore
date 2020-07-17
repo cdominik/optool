@@ -10,6 +10,9 @@ a.out
 dustkap*
 dustmean*
 output/*
+bin/optool*
+bin.zip
+libcfitsio
 *~
 *#
 .DS_Store

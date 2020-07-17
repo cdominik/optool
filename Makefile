@@ -31,11 +31,11 @@ endif
 # CFITSIO support
 ifeq ($(fits),true)
   FLAG_FITS		= -DUSE_FITSIO
-  LIBS_FITS		= -lcfitsio -L/usr/local/lib/
+  LIBS_FITS		= -lcfitsio -L/usr/local/lib/ -L.
 endif
 ifeq ($(fitsio),true)
   FLAG_FITS		= -DUSE_FITSIO
-  LIBS_FITS		= -lcfitsio -L/usr/local/lib/
+  LIBS_FITS		= -lcfitsio -L/usr/local/lib/ -L.
 endif
 
 # Platform specific compilation options
@@ -66,15 +66,19 @@ BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
 # make actions 
 all:		$(PROGRAM)
 cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp
-clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.o *.html
+cleanbin:;	rm -f bin/optool*
+clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.html bin.zip
 		make cleanoutput
 		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
+cclean:;	rm -f $(OBJS) $(PROGRAM)
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
 manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org --batch -f org-ascii-export-to-ascii --kill
 		misc/bake_manual.pl > optool_manual.f90
 		rm UserGuide.txt
 pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l misc/bake_manual.el UserGuide.org --batch -f org-latex-export-to-pdf --kill
+ingest:;	echo Compiling in datasets in lnk_data...
+		./misc/ingestlnk.pl lnk_data/*.lnk > ref_ind.f90
 test:; 		echo Computing size-integrated opacities ...
 		make cleanoutput
 		make
@@ -105,33 +109,34 @@ quicktestdivchop:;	echo computing size-dependant opacities ...
 			make	
 			./optool -na 10 -nl 30 -d 3 -s -chop 10
 			ipython -i optool_plot.py
-selftest:;	misc/selftest.pl
+binmac:;	make cclean
+		make
+		mv optool bin/optool-mac
+		make cclean
+		make multi=true
+		mv optool bin/optool-mac-OpenMP
+		make cclean
+		make fits=true
+		mv optool bin/optool-mac-fits
+		make cclean
+		make multi=true fits=true
+		mv optool bin/optool-mac-fits-OpenMP
+binlinux:;	make cclean
+		make
+		mv optool bin/optool-linux
+		make cclean
+		make multi=true
+		mv optool bin/optool-linux-OpenMP
+		make cclean
+		make fits=true
+		mv optool bin/optool-linux-fits
+		make cclean
+		make multi=true fits=true
+		mv optool bin/optool-linux-fits-OpenMP
+binzip:;	rm -f bin.zip
+		(cd bin; zip ../bin.zip optool*)
+binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
 
-bin-mac:;	make clean
-		make
-		mv optool $(BINRELEASE)/optool-mac
-		make clean
-		make multi=true
-		mv optool $(BINRELEASE)/optool-mac-OpenMP
-		make clean
-		make fits=true
-		mv optool $(BINRELEASE)/optool-mac-fits
-		make clean
-		make multi=true fits=true
-		mv optool $(BINRELEASE)/optool-mac-fits-OpenMP
-bin-linux:;	make clean
-		make
-		mv optool $(BINRELEASE)/optool-linux
-		make clean
-		make multi=true
-		mv optool $(BINRELEASE)/optool-linux-OpenMP
-		make clean
-		make fits=true
-		mv optool $(BINRELEASE)/optool-linux-fits
-		make clean
-		make multi=true fits=true
-		mv optool $(BINRELEASE)/optool-linux-fits-OpenMP
-# how to compile program 
 .SUFFIXES : .o .f .f90
 
 .f.o:
@@ -143,6 +148,4 @@ bin-linux:;	make clean
 $(PROGRAM):     $(OBJS)
 		$(LINKER) $(LDFLAGS) $(OBJS) $(LIBS) -o $(PROGRAM)
 
-ingest:
-	./misc/ingestlnk.pl lnk_data/*.lnk > ref_ind.f90
 
