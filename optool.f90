@@ -505,16 +505,6 @@ program optool
         enddo
      endif
   endif
-  ! Allocate all lambda-dependant arrays
-  allocate(p%Kabs(nlam))
-  allocate(p%Kext(nlam))
-  allocate(p%Ksca(nlam))
-  allocate(p%g(nlam))
-  allocate(p%F(nlam))
-  do i=1,nlam
-     allocate(p%F(i)%F11(nang),p%F(i)%F12(nang),p%F(i)%F22(nang))
-     allocate(p%F(i)%F33(nang),p%F(i)%F34(nang),p%F(i)%F44(nang))
-  enddo
   
   ! Allocate space for the refractive indices
   allocate(mat_e1(nm+1,nlam),mat_e2(nm+1,nlam))
@@ -553,10 +543,24 @@ program optool
      !$OMP parallel do if (split)                                      &
      !$OMP default(none)                                               &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
-     !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm)           &
+     !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
+
+        ! Allocate the particle structure
+        ! We do this inside the loop, because iFort in combination with
+        ! OpenMP crashes if we expect it to properly handle the composite
+        ! and dynamically allocated p as a private variable.
+        ! This is a bit wasteful in a non-parallel version of the code,
+        ! because the allocation/deallocation is then repeated na times,
+        ! unnecessarily.
+        allocate(p%Kabs(nlam),p%Kext(nlam),p%Ksca(nlam),p%g(nlam),p%F(nlam))
+        do i=1,nlam
+           allocate(p%F(i)%F11(nang),p%F(i)%F12(nang),p%F(i)%F22(nang))
+           allocate(p%F(i)%F33(nang),p%F(i)%F34(nang),p%F(i)%F44(nang))
+        enddo
+
         asplit    = amin  *afact**real(ia-1d0+0.5d0)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
@@ -582,12 +586,22 @@ program optool
                 label,write_scatter,for_radmc,.false.)
         endif
         !$OMP end critical
+        do i=1,nlam
+           deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
+        enddo
+        deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F)
      enddo
      !$OMP end parallel DO
      stop
 
   else
 
+     ! Allocate the particle structure
+     allocate(p%Kabs(nlam),p%Kext(nlam),p%Ksca(nlam),p%g(nlam),p%F(nlam))
+     do i=1,nlam
+        allocate(p%F(i)%F11(nang),p%F(i)%F12(nang),p%F(i)%F22(nang))
+        allocate(p%F(i)%F33(nang),p%F(i)%F34(nang),p%F(i)%F44(nang))
+     enddo
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
@@ -614,13 +628,15 @@ program optool
      if (write_mean_kap) then
         call mean_opacities(lam,nlam,p%kabs,p%ksca,p%g,tmin,tmax,nt,meanfile)
      endif
+
+     ! Deallocate the particle structure
+     do i=1,nlam
+        deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
+     enddo
+     deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F)
+     
   endif
   
-  do i=1,nlam
-     deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
-  enddo
-  deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F)
-
 end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
