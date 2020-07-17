@@ -122,12 +122,13 @@ simple steps, using the freely available GNU FORTRAN compiler
 
 The executable is called =optool=, and you should put it on your
 execution path.  To use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]], to use multiple
-cores for speed, or to be able to write FITS files[fn:2], use one or
-more of the following parameters during compilation:
+cores for speed (highly recommended), or to be able to write FITS
+files[fn:2], use one or more of the following parameters during
+compilation:
 
 : make ifort=true        # use the Intel fortran compiler iFort
 : make multi=true        # enable multicore support
-: make  fits=true        # add support for writing FITS files
+: make  fits=true        # add support for writing FITS files[2]
 
 You can also find binaries for Mac and Linux at [[https://staff.fnwi.uva.nl/c.dominik/optool][my homepage]].
 
