@@ -12,7 +12,7 @@ dustmean*
 output/*
 bin/optool*
 bin.zip
-libcfitsio
+libcfitsio*
 *~
 *#
 .DS_Store
