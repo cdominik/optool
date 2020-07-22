@@ -27,6 +27,7 @@ Aggregates/, by Lefévre et al. (2020).
   in astronomy
 - an easy way to use external refractive index data for more
   specialized applications
+- Python interface module for easy postprocessing and cross-tool use.
 - multi-core support through OpenMP to make even complex computations
   very fast
 

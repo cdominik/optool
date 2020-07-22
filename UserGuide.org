@@ -32,6 +32,7 @@ Aggregates/, by Lefévre et al. (2020).
   in astronomy
 - an easy way to use external refractive index data for more
   specialized applications
+- Python interface module for easy postprocessing and cross-tool use.
 - multi-core support through OpenMP to make even complex computations
   very fast
 
@@ -40,9 +41,8 @@ Aggregates/, by Lefévre et al. (2020).
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
 and redistributed freely.  The implemented physics is the same as in
 [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. As a reference for this tool, please point to the [[https://github.com/cdominik/optool.git][GitHub
-repository]]. If you use it to publish papers, please cite the papers
-establishing the methods used, as well as to the original laboratory
-papers that published the refractive index measurements.
+repository]]. If you use it to publish papers, please cite the following
+papers:
 
 - =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
@@ -393,62 +393,62 @@ this: =optool -c path/to/file.lnk 0.7 3.42=
 
 * Python interface
 
-=optool= comes with a python module =optool.py= that can run =optool=
-in the background[fn:3] and put all computed quantities conveniently
-into =numpy= arrays inside a python object.  This makes it very
-straight forward to produce input files for a wide range of radiative
-transfer tools or to inspect and further process the output. The
-interface is used like this:
+=optool= comes with a python module =optool.py= that runs =optool= in
+the background[fn:3] and puts all computed quantities as =numpy=
+arrays into a python object.  This makes it straight forward to
+produce input files for a wide range of radiative transfer tools or to
+inspect and further process the output. The interface is used like
+this:
 
 : import optool
 : p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
 
 The argument to =optool.particle()= must be a valid shell command to
-run =optool=.  Depending on the presence of the *-d* switch, the
-command will produce opacities either for =np=1= particle, of for
-=np=na= particles. Most of the attributes (with the exception of the
-global wavelenth and angular grids) will therefore be arrays with the
-first dimension equal to =np=.  This is true even if only 1 particle
-is computed. The object returned will have the following attributes:
+run =optool=, if necessary with the full path to the =optool= binary.
+Depending on the presence of the =optool='s *-d* switch, the command
+will produce opacities either for $n_p=1$ particle, of for $n_p=n_a$
+particles. Most of the attributes (with the exception of the global
+wavelength and angular grids) will therefore be arrays with the first
+dimension equal to $n_p$, even if $n_p=1$. The object returned will
+have the following attributes:
 
-#+ATTR_LATEX: :font \small\sf  :align llp{8cm}
-| *Attribute*      | *Type/Shape*        | *Quantity*                                              |
-|------------------+---------------------+---------------------------------------------------------|
-| cmd              | string              | The full command given in the particle() call           |
-|------------------+---------------------+---------------------------------------------------------|
-| radmc            | bool                | Output follows RADMC conventions                        |
-| scat             | bool                | Scattering matrix is available                          |
-|------------------+---------------------+---------------------------------------------------------|
-| nlam             | int                 | Number of wavelengths points                            |
-| lam              | float[nlam]         | The wavelength grid, same for all sizes                 |
-| nang             | int                 | Number of scattering angles                             |
-| scatang          | float[nang]         | The angular grid, same of all sizes                     |
-|------------------+---------------------+---------------------------------------------------------|
-| np               | int                 | Number of particles computed, either 1 or (with -d) n_a |
-|------------------+---------------------+---------------------------------------------------------|
-| fmax             | float[np]           | Maximum volume fraction of vacuum for DHS               |
-| pcore, pmantle   | float[np]           | Porosity of the core/mantle material                    |
-|------------------+---------------------+---------------------------------------------------------|
-| amin, amax       | float[np]           | min/max grain size used to compute the particle         |
-| nsub             | int                 | Number of sizes averaged to compute each particle.      |
-| apow             | float[np]           | Power law of size distribution between amin and amax    |
-| a1,a2,a3         | fload[np]           | Mean <a>, <a^2>, and <a^3> of the particle              |
-|------------------+---------------------+---------------------------------------------------------|
-| kabs, ksca, kext | float[np,nlam]      | Absorption,scattering/extinction cross section          |
-| gsca             | float[np,nlam]      | Asymmetry parameter                                     |
-|------------------+---------------------+---------------------------------------------------------|
-| f11,...,f44      | float[np,nlam,nang] | Scattering matrix element F_11 etc.                     |
-| chop             | float[np]           | Degrees chopped off forward scattering                  |
-|------------------+---------------------+---------------------------------------------------------|
-| plot()           | method              | Plot the crosssections and matrix elements              |
+#+ATTR_LATEX: :font \small  :align llp{8cm}
+| *Attribute*            | *Type/Shape*          | *Quantity*                                          |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =cmd=                  | =string=              | The full command given in the particle() call       |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =radmc=                | =boolean=             | Output follows RADMC conventions                    |
+| =scat=                 | =boolean=             | Scattering matrix is available                      |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =nlam=                 | =int=                 | Number of wavelength points                         |
+| =lam=                  | =float[nlam]=         | The wavelength grid, same for all particles         |
+| =nang=                 | =int=                 | Number of scattering angles                         |
+| =scatang=              | =float[nang]=         | The angular grid, same for all particles            |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =np=                   | =int=                 | Number of particles, either 1 or (with -d) n_a      |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =fmax=                 | =float[np]=           | Maximum volume fraction of vacuum for DHS           |
+| =pcore=, =pmantle=     | =float[np]=           | Porosity of the core/mantle material                |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =amin=, =amax=         | =float[np]=           | min/max grain size used to compute the particle     |
+| =nsub=                 | =int=                 | Number of sizes averaged to compute each particle.  |
+| =apow=                 | =float[np]=           | Negative size distribution power law (e.g. 3.5)     |
+| =a1=, =a2=, =a3=       | =fload[np]=           | Mean <a>, <a^2>, and <a^3> of the particle          |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =kabs=, =ksca=, =kext= | =float[np,nlam]=      | Absorption,scattering/extinction cross section      |
+| =gsca=                 | =float[np,nlam]=      | Asymmetry parameter                                 |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =f11=, ..., =f44=      | =float[np,nlam,nang]= | Scattering matrix element F_11 etc.                 |
+| =chop=                 | =float[np]=           | Degrees chopped off forward scattering              |
+|------------------------+-----------------------+-----------------------------------------------------|
+| =plot()=               | =method=              | Plot the cross sections and matrix elements          |
 
-The =optool.plot()= method will produce the follwong plots:
+The =optool.plot()= method will produce the following plots:
 
 #+CAPTION: Screenshot of the plots created by running =p.plot()= on an optool particle.
 #+ATTR_LATEX: :width 14.8cm :options angle=0
-[[./misc/inspect.png]]
+[[./maint/inspect.png]]
 
-You will get:
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
   as a function of wavelength, along with the asymmetry parameter /g/.
   Note that the red /g/ curve does not have its own scale, imagine the
@@ -461,10 +461,10 @@ You will get:
   grey lines as a guide, ignore the y-axis labels).
 
 [fn:3] The module runs the command as a subprocess, with output to a
-temporary subdirectory of the current working directory.  It then
+temporary subdirectory in the current working directory.  It then
 reads the output files and cleans up the temporary directory - unless
 is called with the =keep= keyword argument:
-=optool.particle('optool',keep=True)=
+=optool.particle('optool',keep=True)=.
 
 
 * Acknowledgments
@@ -474,8 +474,7 @@ is called with the =keep= keyword argument:
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a grain mantle
   using the Maxwell Garnett rule.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
-  on github]]), and code for computing Planck and Rosseland means
-  opacities.
+  on github]]).
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
 
 * Appendix
@@ -488,7 +487,6 @@ the following units
 - *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
 - *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
   see below.
-- *Kelvin* for temperatures
 
 
 ** Scattering Matrix: The fine print
