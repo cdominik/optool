@@ -251,13 +251,6 @@ extend the [[#output-files][output]].
   extension of the files will be changed to =.inp=, and if you specify
   =LABEL=, it will be used in the file name(s).
 
-+ =-t [TMIN [TMAX [NT]]]= ::
-  
-  Compute mean opacities per g of dust mass, \kappa_Planck and
-  \kappa_Rosseland, in the given temperature interval, in =nt=
-  logarithmic steps, with output to =dustkapmean.dat=. The parameters
-  default to 10K, 10000K, and 200, respectively.
-
 + =-b= ::
 
   Only write the refractive index data resulting the mixing process to
@@ -398,14 +391,6 @@ this: =optool -c path/to/file.lnk 0.7 3.42=
   n_ang-1), for each wavelength value. The stored matrix elements are
   F_11, F_12, F_22, F_33, F_34, and F_44.
 
-- dustkapmean.dat ::
-
-  This file will only be written with the =-t= switch. It contains 3
-  columns: (1) T [K], (2) \kappa_Planck, (3) \kappa_Ross, both in cm^2
-  per gram of /dust/. Note that dust evaporation is not considered,
-  and that a wide wavelengths coverage is needed for good results.
-
-
 * Python interface
 
 =optool= comes with a python module =optool.py= that can run =optool=
@@ -457,7 +442,6 @@ is computed. The object returned will have the following attributes:
 |------------------+---------------------+---------------------------------------------------------|
 | plot()           | method              | Plot the crosssections and matrix elements              |
 
-
 The =optool.plot()= method will produce the follwong plots:
 
 #+CAPTION: Screenshot of the plots created by running =p.plot()= on an optool particle.
@@ -475,8 +459,6 @@ You will get:
   positive/negative $\log_{10}$ of positive/negative matrix elements,
   compressing the range from $10^{-2}$ to $10^2$ into a line (use the
   grey lines as a guide, ignore the y-axis labels).
-
-
 
 [fn:3] The module runs the command as a subprocess, with output to a
 temporary subdirectory of the current working directory.  It then
