@@ -338,14 +338,14 @@ following format:
 - The file may start with several comment lines (lines starting with
   =!=, =#=, or =*=).
 - The next line contains two numbers, the number of
-  wavelengths $N_\lambda$ and the specific weight \rho of the material
+  wavelengths $n_\lambda$ and the specific weight \rho of the material
   in g/cm^3
 - Then follow three columns of data: \lambda[\mu{}m], and the real and
   imaginary parts of the refractive index, $n$ and $k$.
 
 You can find refractive index data in the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and
 associated with original papers in the literature. Don't forget to add
-the line with $N_\lambda$ and \rho!  If for some reason it is not
+the line with $n_\lambda$ and \rho!  If for some reason it is not
 convenient to add that line to the file, =optool= will count the lines
 for you and you can specify the density after the mass fraction, like
 this: =optool -c path/to/file.lnk 0.7 3.42=
@@ -383,7 +383,7 @@ this: =optool -c path/to/file.lnk 0.7 3.42=
 
   The FITS-file (ending in ’.fits’) is written instead of the ASCII
   output when using the =-fits= switch. It has two HDU blocks. The first
-  block contains the cross sections per unit mass. This is a N_\lambda
+  block contains the cross sections per unit mass. This is an n_\lambda
   \times 4 matrix with these columns:
 
   1. wavelengths in [\mu{}m]
@@ -392,10 +392,10 @@ this: =optool -c path/to/file.lnk 0.7 3.42=
   4. mass scattering cross section \kappa_sca in [cm^2/g]
 
   The second HDU block contains the scattering matrix elements. It is
-  a N_\lambda \times 6 \times N_ang matrix, containing the 6 elements
-  of the scattering matrix for N_ang equidistant scattering angles
+  a n_\lambda \times 6 \times n_ang matrix, containing the 6 elements
+  of the scattering matrix for n_ang equidistant scattering angles
   from forward scattering (element 0) to backward scattering (element
-  N_ang-1), for each wavelength value. The stored matrix elements are
+  n_ang-1), for each wavelength value. The stored matrix elements are
   F_11, F_12, F_22, F_33, F_34, and F_44.
 
 - dustkapmean.dat ::
@@ -409,11 +409,11 @@ this: =optool -c path/to/file.lnk 0.7 3.42=
 * Python interface
 
 =optool= comes with a python module =optool.py= that can run =optool=
-in the background and put all computed quantities conveniently into
-=numpy= arrays inside a python object.  This makes it very straight
-forward to produce input files for a wide range of radiative transfer
-tools or to inspect and further process the output. The interface is
-used like this:
+in the background[fn:3] and put all computed quantities conveniently
+into =numpy= arrays inside a python object.  This makes it very
+straight forward to produce input files for a wide range of radiative
+transfer tools or to inspect and further process the output. The
+interface is used like this:
 
 : import optool
 : p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
@@ -427,35 +427,35 @@ first dimension equal to =np=.  This is true even if only 1 particle
 is computed. The object returned will have the following attributes:
 
 #+ATTR_LATEX: :font \small\sf  :align llp{8cm}
-| *Attribute*      | *Type/Shape*        | *Quantity*                                             |
-|------------------+---------------------+--------------------------------------------------------|
-| cmd              | string              | The full command given in the particle() call          |
-|------------------+---------------------+--------------------------------------------------------|
-| radmc            | bool                | Output follows RADMC conventions                       |
-| scat             | bool                | Scattering matrix is available                         |
-|------------------+---------------------+--------------------------------------------------------|
-| nlam             | int                 | Number of wavelengths points                           |
-| lam              | float[nlam]         | The wavelength grid, same for all sizes                |
-| nang             | int                 | Number of scattering angles                            |
-| scatang          | float[nang]         | The angular grid, same of all sizes                    |
-|------------------+---------------------+--------------------------------------------------------|
-| np               | int                 | Number of particles computed, either 1 or na (with -d) |
-|------------------+---------------------+--------------------------------------------------------|
-| fmax             | float[np]           | Maximum volume fraction of vacuum for DHS              |
-| pcore, pmantle   | float[np]           | Porosity of the core/mantle material                   |
-|------------------+---------------------+--------------------------------------------------------|
-| amin, amax       | float[np]           | min/max grain size used to compute the particle        |
-| nsub             | int                 | Number of sizes averaged to compute each particle.     |
-| apow             | float[np]           | Power law of size distribution between amin and amax   |
-| a1,a2,a3         | fload[np]           | Mean <a>, <a^2>, and <a^3> of the particle             |
-|------------------+---------------------+--------------------------------------------------------|
-| kabs, ksca, kext | float[np,nlam]      | Absorption,scattering/extinction cross section         |
-| gsca             | float[np,nlam]      | Asymmetry parameter                                    |
-|------------------+---------------------+--------------------------------------------------------|
-| f11,...,f44      | float[np,nlam,nang] | Scattering matrix element F_11 etc.                    |
-| chop             | float[np]           | Degrees chopped off forward scattering                 |
-|------------------+---------------------+--------------------------------------------------------|
-| plot()           | method              | Plot the crosssections and matrix elements             |
+| *Attribute*      | *Type/Shape*        | *Quantity*                                              |
+|------------------+---------------------+---------------------------------------------------------|
+| cmd              | string              | The full command given in the particle() call           |
+|------------------+---------------------+---------------------------------------------------------|
+| radmc            | bool                | Output follows RADMC conventions                        |
+| scat             | bool                | Scattering matrix is available                          |
+|------------------+---------------------+---------------------------------------------------------|
+| nlam             | int                 | Number of wavelengths points                            |
+| lam              | float[nlam]         | The wavelength grid, same for all sizes                 |
+| nang             | int                 | Number of scattering angles                             |
+| scatang          | float[nang]         | The angular grid, same of all sizes                     |
+|------------------+---------------------+---------------------------------------------------------|
+| np               | int                 | Number of particles computed, either 1 or (with -d) n_a |
+|------------------+---------------------+---------------------------------------------------------|
+| fmax             | float[np]           | Maximum volume fraction of vacuum for DHS               |
+| pcore, pmantle   | float[np]           | Porosity of the core/mantle material                    |
+|------------------+---------------------+---------------------------------------------------------|
+| amin, amax       | float[np]           | min/max grain size used to compute the particle         |
+| nsub             | int                 | Number of sizes averaged to compute each particle.      |
+| apow             | float[np]           | Power law of size distribution between amin and amax    |
+| a1,a2,a3         | fload[np]           | Mean <a>, <a^2>, and <a^3> of the particle              |
+|------------------+---------------------+---------------------------------------------------------|
+| kabs, ksca, kext | float[np,nlam]      | Absorption,scattering/extinction cross section          |
+| gsca             | float[np,nlam]      | Asymmetry parameter                                     |
+|------------------+---------------------+---------------------------------------------------------|
+| f11,...,f44      | float[np,nlam,nang] | Scattering matrix element F_11 etc.                     |
+| chop             | float[np]           | Degrees chopped off forward scattering                  |
+|------------------+---------------------+---------------------------------------------------------|
+| plot()           | method              | Plot the crosssections and matrix elements              |
 
 
 The =optool.plot()= method will produce the follwong plots:
@@ -475,6 +475,15 @@ You will get:
   positive/negative $\log_{10}$ of positive/negative matrix elements,
   compressing the range from $10^{-2}$ to $10^2$ into a line (use the
   grey lines as a guide, ignore the y-axis labels).
+
+
+
+[fn:3] The module runs the command as a subprocess, with output to a
+temporary subdirectory of the current working directory.  It then
+reads the output files and cleans up the temporary directory - unless
+is called with the =keep= keyword argument:
+=optool.particle('optool',keep=True)=
+
 
 * Acknowledgments
 - [[http://michielmin.nl/][Michiel Min]] for the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][DIANA OpacityTool]] and all the incredible work

@@ -24,72 +24,75 @@ class particle:
             if (not bin):
                 print('ERROR: executable not found:',cmd[0])
                 return -1
-
-            # create a directory for the output and make sure it is empty
-            random.seed(a=None)
-            tmpdir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
-            os.system('rm -rf '+tmpdir)
-            os.system('mkdir '+tmpdir)
-            cmd.append('-o'); cmd.append(tmpdir)
-    
-            # Run optool to produce the opacities
-            cmd[0] = bin; subprocess.Popen(cmd).wait()
-
-            
-            # Check if there is output we can use
-            scat,ext = check_output(tmpdir)
-    
-            kabs=[]; ksca=[]; kext=[]; gg=[]
-            f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
-            nfiles=0; header=[];
-            
-            for i in range(500):
-                if scat:
-                    file = ("%s/dustkapscatmat_%03d.%s") % (tmpdir,(i+1),ext)
-                else:
-                    file = ("%s/dustkappa_%03d.%s") % (tmpdir,(i+1),ext)
-                if (not os.path.exists(file)): break
-                nfiles = nfiles+1
-                if scat:
-                    x=readkapscatmat(file)
-                else:
-                    x=readkap(file)
-                header.append(x[0])
-                lam = x[1]
-                kabs.append(x[2])
-                ksca.append(x[3])
-                kext.append(x[2]+x[3])
-                gg.append(x[4])
-                if scat:
-                    scatang = x[5]
-                    f11.append(x[6])
-                    f12.append(x[7])
-                    f22.append(x[8])
-                    f33.append(x[9])
-                    f34.append(x[10])
-                    f44.append(x[11])
-                    self.scat = scat
-                self = parse_headers(header,self)
-                self.nlam = len(lam)
-                self.kabs = np.array(kabs)
-                self.ksca = np.array(ksca)
-                self.kext = np.array(kext)
-                self.gsca = np.array(gg)
-                self.lam  = lam
-                if scat:
-                    self.nang = len(scatang)
-                    self.scatang = scatang
-                    self.f11  = np.array(f11)
-                    self.f12  = np.array(f12)
-                    self.f22  = np.array(f22)
-                    self.f33  = np.array(f33)
-                    self.f34  = np.array(f34)
-                    self.f44  = np.array(f44)
-                else:
-                    self.nang = 0
-            self.nsize = nfiles
-            if (not keep):
+            try:
+                # create a directory for the output and make sure it is empty
+                random.seed(a=None)
+                tmpdir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
                 os.system('rm -rf '+tmpdir)
+                os.system('mkdir '+tmpdir)
+                cmd.append('-o'); cmd.append(tmpdir)
+    
+                # Run optool to produce the opacities
+                cmd[0] = bin; subprocess.Popen(cmd).wait()
+            
+                # Check if there is output we can use
+                scat,ext = check_for_output(tmpdir)
+    
+                kabs=[]; ksca=[]; kext=[]; gg=[]
+                f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
+                nfiles=0; header=[];
+            
+                for i in range(500):
+                    if scat:
+                        file = ("%s/dustkapscatmat_%03d.%s") % (tmpdir,(i+1),ext)
+                    else:
+                        file = ("%s/dustkappa_%03d.%s") % (tmpdir,(i+1),ext)
+                    if (not os.path.exists(file)): break
+                    nfiles = nfiles+1
+                    if scat:
+                        x=readkapscatmat(file)
+                    else:
+                        x=readkap(file)
+                    header.append(x[0])
+                    lam = x[1]
+                    kabs.append(x[2])
+                    ksca.append(x[3])
+                    kext.append(x[2]+x[3])
+                    gg.append(x[4])
+                    if scat:
+                        scatang = x[5]
+                        f11.append(x[6])
+                        f12.append(x[7])
+                        f22.append(x[8])
+                        f33.append(x[9])
+                        f34.append(x[10])
+                        f44.append(x[11])
+                        self.scat = scat
+                    self = parse_headers(header,self)
+                    self.nlam = len(lam)
+                    self.kabs = np.array(kabs)
+                    self.ksca = np.array(ksca)
+                    self.kext = np.array(kext)
+                    self.gsca = np.array(gg)
+                    self.lam  = lam
+                    if scat:
+                        self.nang = len(scatang)
+                        self.scatang = scatang
+                        self.f11  = np.array(f11)
+                        self.f12  = np.array(f12)
+                        self.f22  = np.array(f22)
+                        self.f33  = np.array(f33)
+                        self.f34  = np.array(f34)
+                        self.f44  = np.array(f44)
+                    else:
+                        self.nang = 0
+                self.nsize = nfiles
+            finally:
+                if keep:
+                    print("Keeping the temporary directory for inspection: "+tmpdir)
+                else:
+                    print("Cleaning up temporary directory "+tmpdir)
+                    os.system('rm -rf '+tmpdir)
 
     def plot(self):
         # Extract the kappas and g
@@ -174,7 +177,7 @@ class particle:
                     idxnames=['grain index','log lambda [um]'],
                     idxvals=[np.array(range(self.nsize))+1,llamfmt])
 
-def check_output(tmpdir):
+def check_for_output(tmpdir):
     if (os.path.exists(tmpdir+'/dustkapscatmat_001.dat')):
         return True, 'dat'
     elif (os.path.exists(tmpdir+'/dustkappa_001.dat')):
@@ -201,9 +204,9 @@ def check_output(tmpdir):
 
 def parse_headers(headers,b):
     n = len(headers)
-    b.amin  = np.zeros(n); b.amax = np.zeros(n)
-    b.a1    = np.zeros(n); b.a2 = np.zeros(n); b.a3 = np.zeros(n); b.nsub   = np.zeros(n,dtype=np.int8)
-    b.apow  = np.zeros(n)
+    b.amin  = np.zeros(n); b.amax = np.zeros(n); b.apow  = np.zeros(n)
+    b.a1    = np.zeros(n); b.a2 = np.zeros(n); b.a3 = np.zeros(n);
+    b.nsub  = np.zeros(n,dtype=np.int8)
     b.pcore = np.zeros(n); b.pmantle = np.zeros(n); b.fmax = np.zeros(n);
     b.chop  = np.zeros(n);
 
@@ -262,7 +265,6 @@ def readkap(file):
     nlam = int(rfile.readline())
 
     # Prepare a few arrays
-    
     lam=np.zeros(n); kabs=np.zeros(n); ksca=np.zeros(n); phase_g=np.zeros(n);
     
     for ilam in range(nlam):
@@ -305,7 +307,6 @@ def readkapscatmat(file):
     nang = int(dum)
 
     # prepare a few arrays
-
     lam=np.zeros(nlam); kabs=np.zeros(nlam); ksca=np.zeros(nlam); phase_g=np.zeros(nlam)
     f11=np.zeros([nlam,nang]); f12=np.zeros([nlam,nang]); f22=np.zeros([nlam,nang])
     f33=np.zeros([nlam,nang]); f34=np.zeros([nlam,nang]); f44=np.zeros([nlam,nang])
@@ -341,7 +342,7 @@ def readkapscatmat(file):
 
     rfile.close()
     return [header,lam,kabs,ksca,phase_g,scatang,f11,f12,f22,f33,f34,f44]
-    
+
 def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,idxvals=None,idxformat=''):
     """
     For details about this function see https://github.com/dullemond/interactive_plot
