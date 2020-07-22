@@ -37,6 +37,7 @@ class particle:
             
                 # Check if there is output we can use
                 scat,ext = check_for_output(tmpdir)
+                self.scat = scat
     
                 kabs=[]; ksca=[]; kext=[]; gg=[]
                 f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
@@ -49,10 +50,7 @@ class particle:
                         file = ("%s/dustkappa_%03d.%s") % (tmpdir,(i+1),ext)
                     if (not os.path.exists(file)): break
                     nfiles = nfiles+1
-                    if scat:
-                        x=readkapscatmat(file)
-                    else:
-                        x=readkap(file)
+                    x = readoutputfile(file,scat)
                     header.append(x[0])
                     lam = x[1]
                     kabs.append(x[2])
@@ -95,6 +93,8 @@ class particle:
                     os.system('rm -rf '+tmpdir)
 
     def plot(self):
+        # Create interactive plots of the opacities in SELF.
+        
         # Extract the kappas and g
         kabs   = np.copy(self.kabs)
         ksca   = np.copy(self.ksca)
@@ -117,92 +117,64 @@ class particle:
         kmax   = np.amax(np.array([np.amax(kabs),np.amax(ksca),np.amax(kext)]))
         ggscal = gg*(kmax-kmin)+kmin
         
-        # Extract the scattering matrix elements
+        # Extract and plot the scattering matrix elements
         if self.scat:
             bottom = 1e-2
-            lb = np.log10(bottom)
-            f11  = np.copy(self.f11)
-            a = np.where(f11>0)
-            b = np.where(f11<=0)
-            f11[a] = np.log10(f11[a]+bottom)   - lb
-            f11[b] = -np.log10(-f11[b]+bottom) + lb
-
-            f12  = np.copy(self.f12)
-            a = np.where(f12>0)
-            b = np.where(f12<=0)
-            f12[a] = np.log10(f12[a]+bottom)   - lb
-            f12[b] = -np.log10(-f12[b]+bottom) + lb
-
-            f22  = np.copy(self.f22)
-            a = np.where(f22>0)
-            b = np.where(f22<=0)
-            f22[a] = np.log10(f22[a]+bottom)   - lb
-            f22[b] = -np.log10(-f22[b]+bottom) + lb
-
-            f33  = np.copy(self.f33)
-            a = np.where(f33>0)
-            b = np.where(f33<=0)
-            f33[a] = np.log10(f33[a]+bottom)   - lb
-            f33[b] = -np.log10(-f33[b]+bottom) + lb
-
-            f34  = np.copy(self.f34)
-            a = np.where(f34>0)
-            b = np.where(f34<=0)
-            f34[a] = np.log10(f34[a]+bottom)   - lb
-            f34[b] = -np.log10(-f34[b]+bottom) + lb
-
-            f44  = np.copy(self.f44)
-            a = np.where(f44>0)
-            b = np.where(f44<=0)
-            f44[a] = np.log10(f44[a]+bottom)   - lb
-            f44[b] = -np.log10(-f44[b]+bottom) + lb
-
+            f11 = logscale_with_sign(np.copy(self.f11),bottom)
+            f12 = logscale_with_sign(np.copy(self.f12),bottom)
+            f22 = logscale_with_sign(np.copy(self.f22),bottom)
+            f33 = logscale_with_sign(np.copy(self.f33),bottom)
+            f34 = logscale_with_sign(np.copy(self.f34),bottom)
+            f44 = logscale_with_sign(np.copy(self.f44),bottom)
             f00 = f11*0.
     
-            # Make version with fewer digits
+            # Make version of grid variables with fewer digits
             lamfmt  = np.round(self.lam,decimals=3)
-            llamfmt = np.round(np.log10(self.lam),decimals=3)
-            if self.scat:
-                angfmt  = np.round(self.scatang,decimals=3)
+            angfmt  = np.round(self.scatang,decimals=3)
 
-            if self.scat:
-                # interactive plot of the scattering matric elements
-                viewarr([f00,f00+2,f00-2,f00+4,f00-4,f11,f12,f22,f33,f34,f44],
-                        index=2,ylabel=['<1e-2','±1','','±1e2','','f11','f12','f22','f33','f34','f44'],
-                        idxnames=['grain index','lambda [um]','angle'],
-                        idxvals=[np.array(range(self.nsize))+1,lamfmt,angfmt])
+            # interactive plot of the scattering matric elements
+            viewarr([f00,f00+2,f00-2,f00+4,f00-4,f11,f12,f22,f33,f34,f44],
+                    index=2,ylabel=['<1e-2','±1','','±1e2','','f11','f12','f22','f33','f34','f44'],
+                    idxnames=['grain index','lambda [um]','angle'],
+                    idxvals=[np.array(range(self.nsize))+1,lamfmt,angfmt])
 
-            # interactive plot of kabs, ksca, kext, and g
-            viewarr([ggscal,kext,ksca,kabs],index=1,ylabel=['gg','kext','ksca','kabs'],
-                    idxnames=['grain index','log lambda [um]'],
-                    idxvals=[np.array(range(self.nsize))+1,llamfmt])
+        # interactive plot of kabs, ksca, kext, and g
+        llamfmt = np.round(np.log10(self.lam),decimals=3)
+        viewarr([ggscal,kext,ksca,kabs],index=1,ylabel=['gg','kext','ksca','kabs'],
+                idxnames=['grain index','log lambda [um]'],
+                idxvals=[np.array(range(self.nsize))+1,llamfmt])
+
+def logscale_with_sign(array,bottom):
+    # Take the log10 of the absolute value of ARRAY, but transfer the
+    # sign back onto the result.  Compress the region between
+    # -BOTTOM and +BOTTOM into zero, smoothly.
+    # This is a clever way to make a logarithmic plot of a variable
+    # that has positive and negative values covering more then
+    # one order of magnitude.
+    lb = np.log10(bottom)
+    a  =  np.where(array>0)
+    b  =  np.where(array<=0)
+    array[a] =  np.log10(array[a]+bottom)  - lb
+    array[b] = -np.log10(-array[b]+bottom) + lb
+    return array
 
 def check_for_output(tmpdir):
-    if (os.path.exists(tmpdir+'/dustkapscatmat_001.dat')):
-        return True, 'dat'
-    elif (os.path.exists(tmpdir+'/dustkappa_001.dat')):
-        return False, 'dat'
-    elif (os.path.exists(tmpdir+'/dustkapscatmat.dat')):
-        os.system('mv '+tmpdir+'/dustkapscatmat.dat '+tmpdir+'/dustkapscatmat_001.dat')
-        return True, 'dat'
-    elif (os.path.exists(tmpdir+'/dustkappa.dat')):
-        os.system('mv '+tmpdir+'/dustkappa.dat '+tmpdir+'/dustkappa_001.dat')
-        return False, 'dat'
-    elif (os.path.exists(tmpdir+'/dustkapscatmat_001.inp')):
-        return  True, 'inp'
-    elif (os.path.exists(tmpdir+'/dustkappa_001.inp')):
-        return False, 'inp'
-    elif (os.path.exists(tmpdir+'/dustkapscatmat.inp')):
-        os.system('mv '+tmpdir+'/dustkapscatmat.inp '+tmpdir+'/dustkapscatmat_001.inp')
-        return True, 'inp'
-    elif (os.path.exists(tmpdir+'/dustkappa.inp')):
-        os.system('mv '+tmpdir+'/dustkappa.inp '+tmpdir+'/dustkappa_001.inp')
-        return False, 'inp'
-    else:
-        print('ERROR: cannot find a usable output file')
-        return -1
+    # Check for and if necessary rename input files
+    for ext in['dat','inp']:
+        if (os.path.exists(tmpdir+'/dustkapscatmat_001.'+ext)):
+            return True, ext
+        elif (os.path.exists(tmpdir+'/dustkappa_001.'+ext)):
+            return False, ext
+        elif (os.path.exists(tmpdir+'/dustkapscatmat.'+ext)):
+            os.system('mv '+tmpdir+'/dustkapscatmat.'+ext+' '+tmpdir+'/dustkapscatmat_001.'+ext)
+            return True, ext
+        elif (os.path.exists(tmpdir+'/dustkappa.'+ext)):
+            os.system('mv '+tmpdir+'/dustkappa.'+ext+' '+tmpdir+'/dustkappa_001.'+ext)
+            return False, ext
+    raise RuntimeError('No valid OpTool output files found')
 
 def parse_headers(headers,b):
+    # Extract information on run parameters from headers
     n = len(headers)
     b.amin  = np.zeros(n); b.amax = np.zeros(n); b.apow  = np.zeros(n)
     b.a1    = np.zeros(n); b.a2 = np.zeros(n); b.a3 = np.zeros(n);
@@ -242,8 +214,9 @@ def parse_headers(headers,b):
 
     return b
 
-def readkap(file):
-
+def readoutputfile(file,scat):
+    # Read OpTool output file FILE.
+    # scat=True marks if the file contains a scattering matrix
     try:
         rfile = open(file, 'r')
     except:
@@ -263,85 +236,55 @@ def readkap(file):
 
     # Read the number of wavelengths in the file
     nlam = int(rfile.readline())
+
+    if scat:
+        # Read the scattering angular grid size
+        dum = rfile.readline()
+        while len(dum.strip())<2: dum = rfile.readline()
+        nang = int(dum)
 
     # Prepare a few arrays
-    lam=np.zeros(n); kabs=np.zeros(n); ksca=np.zeros(n); phase_g=np.zeros(n);
-    
-    for ilam in range(nlam):
-        dum      = rfile.readline()
-        while len(dum.strip())<2: dum = rfile.readline()
-        dum = dum.split()
-        lam[ilam]  = float(dum[0])
-        kabs[ilam] = float(dum[1])
-        ksca[ilam] = float(dum[2])
-        phase_g[ilam] = float(dum[3])
-
-    rfile.close()
-    return [header,lam,kabs,ksca,phase_g]
-
-def readkapscatmat(file):
-
-    try:
-        rfile = open(file, 'r')
-    except:
-        print('ERROR: file not found:',file)
-        return -1
-    print('Reading ',file,'...')
-
-    # Read the header/comment field
-    header = ''
-    dum = rfile.readline()
-    while dum.strip()[0]=='#':
-        header = header + dum
-        dum = rfile.readline()
-
-    # Read the file format
-    iformat = int(dum)
-
-    # Read the number of wavelengths in the file
-    nlam = int(rfile.readline())
-
-    # Read the scattering angular grid size
-    dum = rfile.readline()
-    while len(dum.strip())<2: dum = rfile.readline()
-    nang = int(dum)
-
-    # prepare a few arrays
     lam=np.zeros(nlam); kabs=np.zeros(nlam); ksca=np.zeros(nlam); phase_g=np.zeros(nlam)
-    f11=np.zeros([nlam,nang]); f12=np.zeros([nlam,nang]); f22=np.zeros([nlam,nang])
-    f33=np.zeros([nlam,nang]); f34=np.zeros([nlam,nang]); f44=np.zeros([nlam,nang])
-    scatang = np.zeros(nang)
+    if scat:
+        scatang = np.zeros(nang)
+        f11=np.zeros([nlam,nang]); f12=np.zeros([nlam,nang]); f22=np.zeros([nlam,nang])
+        f33=np.zeros([nlam,nang]); f34=np.zeros([nlam,nang]); f44=np.zeros([nlam,nang])
 
-    # Reading the opacities
+    # Read the opacities
     for ilam in range(nlam):
-        dum      = rfile.readline()
+        dum = rfile.readline()
         while len(dum.strip())<2: dum = rfile.readline()
-        dum = dum.split()
-        lam[ilam]  = float(dum[0])
-        kabs[ilam] = float(dum[1])
-        ksca[ilam] = float(dum[2])
+        dum           = dum.split()
+        lam[ilam]     = float(dum[0])
+        kabs[ilam]    = float(dum[1])
+        ksca[ilam]    = float(dum[2])
         phase_g[ilam] = float(dum[3])
 
-    # Reading the angular grid
-    for iang in range(nang):
-        dum        = rfile.readline()
-        while len(dum.strip())<2: dum = rfile.readline()
-        scatang[iang] = float(dum)
-
-    for ilam in range(nlam):
+    if scat:
+        # Read the angular grid
         for iang in range(nang):
-            dum = rfile.readline()
+            dum        = rfile.readline()
             while len(dum.strip())<2: dum = rfile.readline()
-            dum = dum.split()
-            f11[ilam,iang] = float(dum[0])
-            f12[ilam,iang] = float(dum[1])
-            f22[ilam,iang] = float(dum[2])
-            f33[ilam,iang] = float(dum[3])
-            f34[ilam,iang] = float(dum[4])
-            f44[ilam,iang] = float(dum[5])
+            scatang[iang] = float(dum)
+
+        # Read the scattering matrix
+        for ilam in range(nlam):
+            for iang in range(nang):
+                dum = rfile.readline()
+                while len(dum.strip())<2: dum = rfile.readline()
+                dum = dum.split()
+                f11[ilam,iang] = float(dum[0])
+                f12[ilam,iang] = float(dum[1])
+                f22[ilam,iang] = float(dum[2])
+                f33[ilam,iang] = float(dum[3])
+                f34[ilam,iang] = float(dum[4])
+                f44[ilam,iang] = float(dum[5])
 
     rfile.close()
-    return [header,lam,kabs,ksca,phase_g,scatang,f11,f12,f22,f33,f34,f44]
+    if scat:
+        return [header,lam,kabs,ksca,phase_g,scatang,f11,f12,f22,f33,f34,f44]
+    else:
+        return [header,lam,kabs,ksca,phase_g]
 
 def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,idxvals=None,idxformat=''):
     """
