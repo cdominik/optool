@@ -74,11 +74,11 @@ cclean:;	rm -f $(OBJS) $(PROGRAM)
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
 manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org --batch -f org-ascii-export-to-ascii --kill
-		misc/bake_manual.pl > optool_manual.f90
+		maint/bake_manual.pl > optool_manual.f90
 		rm UserGuide.txt
-pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l misc/bake_manual.el UserGuide.org --batch -f org-latex-export-to-pdf --kill
+pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l maint/bake_manual.el UserGuide.org --batch -f org-latex-export-to-pdf --kill
 ingest:;	echo Compiling in datasets in lnk_data...
-		./misc/ingestlnk.pl lnk_data/*.lnk > ref_ind.f90
+		./maint/ingestlnk.pl lnk_data/*.lnk > ref_ind.f90
 test:; 		echo Computing size-integrated opacities ...
 		make cleanoutput
 		make

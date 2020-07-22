@@ -29,7 +29,7 @@ while ($helpblock =~ /(\S+)\s*->\s*(\S+)/g) {
 # ------------------------------------------------------------------
 # Get the template for ref_ind.f90 into the code variable
 # ------------------------------------------------------------------
-open my $fh, '<', 'misc/ref_ind.template' or die "Can't open file $!";
+open my $fh, '<', 'maint/ref_ind.template' or die "Can't open file $!";
 $code = do { local $/; <$fh> };
 close $fh;
 

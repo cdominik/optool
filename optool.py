@@ -13,84 +13,89 @@ class particle:
         # Convert command string into list if necessary
         if (isinstance(cmd, str)):
             cmd = cmd.split()
-        
-            # Find the optool executable
-            try:
-                bin = find_executable(cmd[0])
-            except:
-                print('ERROR: executable not found:',cmd[0])
-                return -1
+
+        if cmd[0].startswith("~"):
+            cmd[0] = os.path.expanduser(cmd[0])
             
-            if (not bin):
-                print('ERROR: executable not found:',cmd[0])
-                return -1
-            try:
-                # create a directory for the output and make sure it is empty
-                random.seed(a=None)
-                tmpdir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
-                os.system('rm -rf '+tmpdir)
-                os.system('mkdir '+tmpdir)
-                cmd.append('-o'); cmd.append(tmpdir)
+        # Find the optool executable
+        try:
+            bin = find_executable(cmd[0])
+        except:
+            print('ERROR: executable not found:',cmd[0])
+            return -1
+            
+        if (not bin):
+            print('ERROR: executable not found:',cmd[0])
+            return -1
+
+        # Wrap the main part into try - finally to make sure we clean up
+        try:
+            # create a directory for the output and make sure it is empty
+            random.seed(a=None)
+            tmpdir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
+            os.system('rm -rf '+tmpdir)
+            os.system('mkdir '+tmpdir)
+            cmd.append('-o'); cmd.append(tmpdir)
     
-                # Run optool to produce the opacities
-                cmd[0] = bin; subprocess.Popen(cmd).wait()
+            # Run optool to produce the opacities
+            cmd[0] = bin; subprocess.Popen(cmd).wait()
             
-                # Check if there is output we can use
-                scat,ext = check_for_output(tmpdir)
-                self.scat = scat
+            # Check if there is output we can use
+            scat,ext = check_for_output(tmpdir)
+            self.scat = scat
     
-                kabs=[]; ksca=[]; kext=[]; gg=[]
-                f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
-                nfiles=0; header=[];
+            kabs=[]; ksca=[]; kext=[]; gg=[]
+            f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
+            nfiles=0; header=[];
             
-                for i in range(500):
-                    if scat:
-                        file = ("%s/dustkapscatmat_%03d.%s") % (tmpdir,(i+1),ext)
-                    else:
-                        file = ("%s/dustkappa_%03d.%s") % (tmpdir,(i+1),ext)
-                    if (not os.path.exists(file)): break
-                    nfiles = nfiles+1
-                    x = readoutputfile(file,scat)
-                    header.append(x[0])
-                    lam = x[1]
-                    kabs.append(x[2])
-                    ksca.append(x[3])
-                    kext.append(x[2]+x[3])
-                    gg.append(x[4])
-                    if scat:
-                        scatang = x[5]
-                        f11.append(x[6])
-                        f12.append(x[7])
-                        f22.append(x[8])
-                        f33.append(x[9])
-                        f34.append(x[10])
-                        f44.append(x[11])
-                        self.scat = scat
-                    self = parse_headers(header,self)
-                    self.nlam = len(lam)
-                    self.kabs = np.array(kabs)
-                    self.ksca = np.array(ksca)
-                    self.kext = np.array(kext)
-                    self.gsca = np.array(gg)
-                    self.lam  = lam
-                    if scat:
-                        self.nang = len(scatang)
-                        self.scatang = scatang
-                        self.f11  = np.array(f11)
-                        self.f12  = np.array(f12)
-                        self.f22  = np.array(f22)
-                        self.f33  = np.array(f33)
-                        self.f34  = np.array(f34)
-                        self.f44  = np.array(f44)
-                    else:
-                        self.nang = 0
-                self.nsize = nfiles
-            finally:
-                if keep:
-                    print("Keeping the temporary directory for inspection: "+tmpdir)
+            for i in range(500):
+                if scat:
+                    file = ("%s/dustkapscatmat_%03d.%s") % (tmpdir,(i+1),ext)
                 else:
-                    print("Cleaning up temporary directory "+tmpdir)
-                    os.system('rm -rf '+tmpdir)
+                    file = ("%s/dustkappa_%03d.%s") % (tmpdir,(i+1),ext)
+                if (not os.path.exists(file)): break
+                nfiles = nfiles+1
+                x = readoutputfile(file,scat)
+                header.append(x[0])
+                lam = x[1]
+                kabs.append(x[2])
+                ksca.append(x[3])
+                kext.append(x[2]+x[3])
+                gg.append(x[4])
+                if scat:
+                    scatang = x[5]
+                    f11.append(x[6])
+                    f12.append(x[7])
+                    f22.append(x[8])
+                    f33.append(x[9])
+                    f34.append(x[10])
+                    f44.append(x[11])
+                    self.scat = scat
+                self = parse_headers(header,self)
+                self.nlam = len(lam)
+                self.kabs = np.array(kabs)
+                self.ksca = np.array(ksca)
+                self.kext = np.array(kext)
+                self.gsca = np.array(gg)
+                self.lam  = lam
+                if scat:
+                    self.nang = len(scatang)
+                    self.scatang = scatang
+                    self.f11  = np.array(f11)
+                    self.f12  = np.array(f12)
+                    self.f22  = np.array(f22)
+                    self.f33  = np.array(f33)
+                    self.f34  = np.array(f34)
+                    self.f44  = np.array(f44)
+                else:
+                    self.nang = 0
+            self.nsize = nfiles
+        finally:
+            if keep:
+                print("Keeping the temporary directory for inspection: "+tmpdir)
+            else:
+                print("Cleaning up temporary directory "+tmpdir)
+                os.system('rm -rf '+tmpdir)
 
     def plot(self):
         # Create interactive plots of the opacities in SELF.
@@ -181,6 +186,7 @@ def parse_headers(headers,b):
     b.nsub  = np.zeros(n,dtype=np.int8)
     b.pcore = np.zeros(n); b.pmantle = np.zeros(n); b.fmax = np.zeros(n);
     b.chop  = np.zeros(n);
+    b.materials = []
 
     for i in range(n):
         m = re.search(r" amin \[um\]\s*=\s*(-?[0-9.]+)",headers[i])
@@ -194,16 +200,20 @@ def parse_headers(headers,b):
         b.a2[i]=float(m.group(2))
         b.a3[i]=float(m.group(3))
 
-        m = re.search(r" apow\s*=\s*(-?[0-9.]+)",headers[0])
-        b.apow[i]=float(m.group(1))
-        m = re.search(r" porosity\s*=\s*([0-9.]+)",headers[0])
-        b.pcore[i]=float(m.group(1))
-        m = re.search(r" p_mantle\s*=\s*(-?[0-9.]+)",headers[0])
-        b.pmantle[i]=float(m.group(1))
-        m = re.search(r" fmax\s*=\s*([0-9.]+)",headers[0])
-        b.fmax[i]=float(m.group(1))
-        m = re.search(r" chop\s*=\s*([0-9.]+)",headers[0])
-        b.chop[i]=float(m.group(1))
+    for m in re.finditer(r"^#\s+(core|mantle|grain)\s+([.0-9]+)\s+([.0-9]+)\s*(\S.*?)$",headers[0],re.MULTILINE):
+        b.materials.append([m.group(1),float(m.group(2)),float(m.group(3)),m.group(4)])
+    m = re.search(r" apow\s*=\s*(-?[0-9.]+)",headers[0])
+    b.apow[i]=float(m.group(1))
+    m = re.search(r" porosity\s*=\s*([0-9.]+)",headers[0])
+    b.pcore[i]=float(m.group(1))
+    m = re.search(r" p_mantle\s*=\s*(-?[0-9.]+)",headers[0])
+    b.pmantle[i]=float(m.group(1))
+    m = re.search(r" fmax\s*=\s*([0-9.]+)",headers[0])
+    b.fmax[i]=float(m.group(1))
+    m = re.search(r" chop\s*=\s*([0-9.]+)",headers[0])
+    b.chop[i]=float(m.group(1))
+
+        
     m = re.search(r" RADMC-3D",headers[0])
     if m:
         b.radmc = True
