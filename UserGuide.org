@@ -8,9 +8,9 @@
 This tool allows to produce complex dust particle opacities right from
 the command line. It is derived[fn:1] from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]
 for the [[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program. =optool= adds a much more flexible command line
-interface, a curated list of built-in materials, easy access to
-external material properties, more output options, and significant
-speed gains.
+interface, a curated list of built-in materials, easy access to external
+material properties, more output options, a Python interface, and
+significant speed gains.
 
 [fn:1] For another derivative of OpacityTool with a different set of
 applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]], the /Simple Icy Grain Model for
@@ -41,9 +41,7 @@ Aggregates/, by Lefévre et al. (2020).
 
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
 and redistributed freely.  The implemented physics is the same as in
-[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. As a reference for this tool, please point to the [[https://github.com/cdominik/optool.git][GitHub
-repository]]. If you use it to publish papers, please cite the following
-papers:
+[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. The relevant references for this tool are:
 
 - =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
@@ -341,8 +339,8 @@ You can find refractive index data in the [[https://www.astro.uni-jena.de/Labora
 associated with original papers in the literature. Don't forget to add
 the line with $n_\lambda$ and \rho!  If for some reason it is not
 convenient to add that line to the file, =optool= will count the lines
-for you and you can specify the density after the mass fraction, like
-this: =optool -c path/to/file.lnk 0.7 3.42=. See [[#ingest][the appendix]] for
+and you can specify the density after the mass fraction, like this:
+=optool -c path/to/file.lnk 0.7 3.42=. [[#ingest][The appendix]] contains
 information on how to compile frequently-used external materials into
 the program.
 
@@ -578,17 +576,19 @@ handling this renormalization fully automatically.
 :CUSTOM_ID: ingest
 :END:
 
-Additional refractive index data tables can be compiled into the code.
-Here is how:
+Using external refractive index data means that you have to keep track
+of where those files are.  It can be convenient to compile your
+favorite materials into =optool=, so that accessing them will be as
+simple as using the [[#builtin-materials][built-in materials]].  Here is how to do that:
 
 1. Give your =lnk= file a name exactly like
-   =pyr-mg70-Dorschner1995.lnk=, where =pyr-mg70= is the key to access
-   the material and =Dorschner1995= (the text after the final =-=) is
-   the reference.
+   =pyr-mg70-Dorschner1995.lnk=, where the start of the name
+   (=pyr-mg70=) is the key to access the material and =Dorschner1995=
+   (the text after the final =-=) is the reference.
 2. Put this file into the =lnk_data= directory.
-3. Optionally edit =lnk_data/lnk-help.txt=, so that =optool -c ?= will
+3. Optionally edit =lnk_data/lnk-help.txt=, so that =optool -c= will
    list the new material.  Note that, in order to define generic keys,
-   optool looks for pairs like =genkey -> fullkey= in this file.
+   optool looks for pairs that look like =genkey -> fullkey= in this file.
 4. Run =make ingest= to update =ref_ind.f90=, now including your new
    material.
 5. Recompile and install the code.
