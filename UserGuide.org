@@ -135,10 +135,16 @@ You can also find binaries for Mac and Linux at [[https://staff.fnwi.uva.nl/c.do
 system.
 
 * Command line arguments
+:PROPERTIES:
+:CUSTOM_ID: command-line-arguments
+:END:
 
 + =-h=   :: Show a compact help message about command line options.
 
 ** Grain composition and geometry
+:PROPERTIES:
+:CUSTOM_ID: composition
+:END:
   
 + =-c= :: List available built-in materials (the keys for the *-c* and
   *-m* options).
@@ -515,13 +521,17 @@ unity, i.e.
 \end{equation}
 
 See [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Hovenier (2004)]] for a discussion of this normalization.  =optool=
-can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] which uses a different
-normalization, namely
+can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] which uses
 
 \begin{equation}
 \label{eq:2}
 \oint_{(4\pi)} Z_{11}(\lambda,\Theta) d\Omega = \kappa_{\rm sca}(\lambda) \quad .
 \end{equation}
+
+The books by Bohren & Huffman and by Mishchenko use different
+normalizations again. As explained in RADMC-3D's manual, these
+conventions can be matched by scaling all matrix elements with simple
+factors involving dust mass and wavenumber $k=2\pi/\lambda$.
 
 *** Forward-scattering peak
 :PROPERTIES:
@@ -529,22 +539,18 @@ normalization, namely
 :END:
 
 Particles that are much larger than the wavelength of the considered
-radiation can show extreme forward scattering, to an extend that a
-very significant fraction of the /scattered/ radiation is sent into
-just a few degrees around the forward direction (scattering angle
-zero).  This can be difficult to handle for radiative transfer codes
-which have limited angular resolution or limited sampling.  Some codes
-have an internal way to deal with this. [[http://exoclouds.com/Software/][MCMax3D]], for example, has the
-=nspike= keyword to deal with this issue. Others, like RADMC-3D
-require this to be taken care of by the process that creates the
-opacity files.  This is the purpose of the =-chop= switch in
-=optool=. It specifies a number of degrees (for example 3 might be a
-good value) around the forward scattering direction. Inside that cone,
-the scattering matrix gets limited to the value at the edge of the
-cone.  To compensate and ensure energy conservation, the scattering
-cross section will be reduced accordingly, and, depending on the
-chosen normalization, the scattering matrix itself may also have to be
-scaled.  As a result, the radiation that would be /scattered/ into
+radiation can show extreme forward scattering, were much of the
+/scattered/ radiation is sent into just a few degrees around the
+forward direction.  This can be difficult to handle for radiative
+transfer codes which have limited angular resolution or limited
+sampling. [[http://exoclouds.com/Software/][MCMax3D]] has the =nspike= keyword to deal with this
+issue. Other tools (e.g. RADMC-3D) require this to be taken care of by
+the process that creates the opacity files.  The =-chop= switch
+specifies a number of degrees around the forward scattering
+direction. Inside that cone, the scattering matrix gets limited to the
+value at the edge of the cone. To compensate and ensure energy
+conservation, the scattering cross section will be reduced
+accordingly. As a result, the radiation that would be /scattered/ into
 this narrow range of angles will be treated as if it did have /no
 interaction at all/ with the grain.
 
@@ -561,15 +567,10 @@ i.e. at 0.5\deg, 1.5\deg etc to 179.5\deg, for a total of 180 values.
 The scattering matrix is normalized in this way, so that a numerical
 integral gives the correct result.
 
-However, if you are using =optool= to produce scattering cross
-sections of RADMC-3D, the conventions are different.  RADMC-3D
-requires the values of the scattering matrix on the cell /boundaries/,
-so at 0\deg, 1\deg etc to 180\deg, for a total of 181 values.  For the
-input files for RADMC-3D, we interpolate and extend the computed
-values to the cell boundaries.  With strongly forward-scattering
-grains, this does require a small renormalization to make sure the the
-full solid angle integration gives again accurate results. =optool= is
-handling this renormalization fully automatically.
+However, RADMC-3D requires the values of the scattering matrix on the
+cell /boundaries/, so at 0\deg, 1\deg etc to 180\deg, for a total of
+181 values.  For the input files for RADMC-3D, we interpolate and
+extend the computed values to the cell boundaries.
 
 ** How to ingest refractive index data for another material
 :PROPERTIES:
@@ -586,7 +587,7 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
    (=pyr-mg70=) is the key to access the material and =Dorschner1995=
    (the text after the final =-=) is the reference.
 2. Put this file into the =lnk_data= directory.
-3. Optionally edit =lnk_data/lnk-help.txt=, so that =optool -c= will
+3. Optionally edit =lnk_data/lnk-help.txt=, so that [[#composition][=optool -c=]] will
    list the new material.  Note that, in order to define generic keys,
    optool looks for pairs that look like =genkey -> fullkey= in this file.
 4. Run =make ingest= to update =ref_ind.f90=, now including your new
@@ -594,6 +595,8 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 5. Recompile and install the code.
 
 * Bibliography
+- Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
+  Light by Small Particles/, Wiley-VCH
 - Dorschner, J. et al. 1995, A&A 300, 503
 - Henning, Th. and Stognienko, R. 1996, A&A 311,291
 - Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
@@ -603,6 +606,8 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 - Lefèvre, C.; Min,M. et al. 2020, A&A (submitted)
 - Min, M. et al. 2005, A&A, 432, 909
 - Min, M. et al. 2016, A&A, 585, 13
+- Mishchenko, M. et al. 2002, /Scattering, absorption, and emission of
+  light by small particles/, Cambridge University Press 
 - Mutschke, H. et al. 2004, A&A 423, 983
 - Toon, O. & Ackerman,T. 1981, Applied Optics 20, 3657
 - Woitke, P.; Min, M. et al. 2016, A&A 586, 103
