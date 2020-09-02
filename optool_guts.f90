@@ -608,9 +608,9 @@ subroutine gausspt(ndim,ngauss,a,b,x,w)
      x(nt) = xz
   endif
   nteken   = mteken
-  if ((1.0D0-xz) .le. extra) go to 30
+  if ((1.0D0-xz) .le. extra) goto 30
   xz = xz+(1.D0-xz*xz)*gn+extra
-  go to 5
+  goto 5
 30 continue
 
   !     ***********************************************************
@@ -636,9 +636,9 @@ subroutine gausspt(ndim,ngauss,a,b,x,w)
      delta1    = pn/pnaf
      xz        = xz-delta1
      if(delta1.lt.0.0D0) delta1=-delta1
-     if( (delta1.ge.delta2) .and. (delta2.lt.1.d-14) ) go to 50
+     if( (delta1.ge.delta2) .and. (delta2.lt.1.d-14) ) goto 50
      delta2 = delta1
-     go to 35
+     goto 35
 50   x(i) = xz
      w(i) = 1.0D0/z
   enddo
@@ -1911,7 +1911,7 @@ subroutine DMiLay( rcore, rshell, wvno, rindsh, rindco, mu, &
      acoem1 = acoe
      bcoem1 = bcoe
 
-     go to 70
+     goto 70
 
   endif
 

@@ -110,8 +110,7 @@ given in one of those files. Output to =blended.lnk=.
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a mantle using
   the Maxwell-Garnett rule.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
-  on github]]), and code for computing Planck and Rosseland means
-  opacities.
+  on github]]).
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
