@@ -28,6 +28,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   REAL (KIND=dp) :: grid(n)
   REAL (KIND=dp) :: e1(n),e2(n),x0,y01,y02,x1,y11,y12,wp,gamma
   REAL (KIND=dp) :: rho,rho_in
+  REAL (KIND=dp) :: lgy11,lgy12,lgy01,lgy02,lgx0,lgx1,lggr
   integer i,j,n, n_line, iostatus, count_numbers, count_data_lines
   character*100 input
   character*500 line
@@ -177,9 +178,16 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   y11 = y1(i0)
   y12 = y2(i0)
 3 if(grid(i).le.x1.and.grid(i).gt.x0) then
-     ! linear interpolation betwwen points
-     e1(i) = y11 + (grid(i)-x1)*(y01-y11)/(x0-x1)
-     e2(i) = y12 + (grid(i)-x1)*(y02-y12)/(x0-x1)
+     ! loglog interpolation betwwen points
+
+     lgy11 = log10(y11); lgy12 = log10(y12)
+     lgy01 = log10(y01); lgy02 = log10(y02)
+     lgx0  = log10(x0) ; lgx1  = log10(x1)
+     lggr  = log10(grid(i))
+     
+     e1(i) = 10.d0**(lgy11 + (lggr-lgx1)*(lgy01-lgy11)/(lgx0-lgx1))
+     e2(i) = 10.d0**(lgy12 + (lggr-lgx1)*(lgy02-lgy12)/(lgx0-lgx1))
+
      i = i+1
      if(i.gt.n) goto 4
      goto 3
@@ -204,14 +212,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
         enddo
      else
         ! use loglog extrapolation
-        m0 = dcmplx(e1(i-2),e2(i-2))
-        m1 = dcmplx(e1(i-1),e2(i-1))
         do j=i,n
-           m=10d0**(cdlog10(m0)+ & 
-                cdlog10(m1/m0) * log10(grid(i-2)/grid(j)) &
-                /log10(grid(i-2)/grid(i-1)))
-           e1(j) = real(m)
-           e2(j) = dimag(m)
            e1(j) = 10d0**(log10(e1(i-2))+ &
                 log10(e1(i-1)/e1(i-2))*log10(grid(i-2)/grid(j)) &
                 /log10(grid(i-2)/grid(i-1)))
