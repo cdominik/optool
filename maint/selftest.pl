@@ -61,7 +61,7 @@ my $tests = [
    prepare => "rm -f $dir/dustkappa.fits",
    cmd => "./optool -q -na 10 -nl 30 -s -fits -o $dir",
    getsha => "shasum $dir/dustkappa.fits",
-   sha => '5db1e1afef60ffdfd94b9e4cb7a9626790d7a501'}
+   sha => 'd01cd49df1d790159d33ee9c83810393ecd1c896'}
   ];
 
 # Read the hashes
@@ -196,14 +196,14 @@ sub find_accuracy {
 __DATA__
 
 
-# HASHES set on Thu Jul 16 15:01:59 CEST 2020
+# HASHES set on Thu Sep 17 17:09:29 CEST 2020
 
-noscat:::1000:9986e04ef8::10:9986e04ef8::9:9986e04ef8::8:9986e04ef8::7:9986e04ef8::6:9986e04ef8::5:49cc8c16ec::4:9904743c57::3:ce63507d3d::2:78f49a2bea::1:365bce6134
-quick:::1000:82107fad8f::10:82107fad8f::9:82107fad8f::8:82107fad8f::7:82107fad8f::6:82107fad8f::5:8cc7981f64::4:4d18873498::3:a41d0ae2b0::2:3332a4ce64::1:eadb28f49a
-full-diana-lowres:::1000:3fcc5e4bd5::10:3fcc5e4bd5::9:3fcc5e4bd5::8:3fcc5e4bd5::7:3fcc5e4bd5::6:3fcc5e4bd5::5:163988db06::4:533829c09f::3:fbdef663e4::2:c7ca93aeed::1:e80c5cd54e
-diana-plus-ice-mantle:::1000:24aa61b83e::10:24aa61b83e::9:24aa61b83e::8:24aa61b83e::7:24aa61b83e::6:24aa61b83e::5:ba5413e2e8::4:415de51fda::3:170e4fe503::2:bafb8434b3::1:395f758aa5
-div-in-10-parts:::1000:602d4017f0::10:602d4017f0::9:602d4017f0::8:602d4017f0::7:602d4017f0::6:602d4017f0::5:f1f2870b6e::4:bda149aba4::3:520f39a49c::2:ac6377093a::1:8b8add1ef2
-high-angular-resolution:::1000:c33d7acffe::10:c33d7acffe::9:c33d7acffe::8:c33d7acffe::7:c33d7acffe::6:c33d7acffe::5:ddd93ddbbb::4:df63e5a2f9::3:d9da438e92::2:6b6e8a0713::1:11d6de5140
-pure-ice-grain:::1000:15978ccd77::10:15978ccd77::9:15978ccd77::8:15978ccd77::7:15978ccd77::6:15978ccd77::5:cf12dc3c96::4:c92acd81de::3:e149f119ea::2:64238a18cd::1:988f53a934
-chop-peak:::1000:6e59cb668e::10:6e59cb668e::9:6e59cb668e::8:6e59cb668e::7:6e59cb668e::6:6e59cb668e::5:a969c783eb::4:52fb7fa334::3:11ae881b74::2:af44139c57::1:f4bb4058d5
+noscat:::1000:437fd0cbbb::10:437fd0cbbb::9:437fd0cbbb::8:437fd0cbbb::7:437fd0cbbb::6:437fd0cbbb::5:3f1cdfd422::4:4f2ab0303a::3:b8bc5b7b2f::2:2770c726cd::1:ba0a251d6d
+quick:::1000:40fff50204::10:40fff50204::9:40fff50204::8:40fff50204::7:40fff50204::6:40fff50204::5:d187bad108::4:e1f092a2cd::3:484c4963a4::2:fd7053c741::1:1e5eb4cd04
+full-diana-lowres:::1000:fab73f0ef9::10:fab73f0ef9::9:fab73f0ef9::8:fab73f0ef9::7:fab73f0ef9::6:fab73f0ef9::5:90bcc41471::4:2729c6a315::3:33f704f6c1::2:40f81f8c59::1:b4a0309b1b
+diana-plus-ice-mantle:::1000:ae1eacc506::10:ae1eacc506::9:ae1eacc506::8:ae1eacc506::7:ae1eacc506::6:ae1eacc506::5:9f1d10e08d::4:619d313dd2::3:d5a9ab0913::2:3418a3339f::1:ebe28dc0e7
+div-in-10-parts:::1000:7d060860dc::10:7d060860dc::9:7d060860dc::8:7d060860dc::7:7d060860dc::6:7d060860dc::5:e1c328dded::4:fa5c241486::3:60c7e98ce9::2:e3325c65c2::1:8b72f81f6b
+high-angular-resolution:::1000:d3c2c9d45d::10:d3c2c9d45d::9:d3c2c9d45d::8:d3c2c9d45d::7:d3c2c9d45d::6:d3c2c9d45d::5:6c9a2e1cdd::4:38a07e19b3::3:298abaf281::2:1d5ab4bc8d::1:181c446430
+pure-ice-grain:::1000:2d84555200::10:2d84555200::9:2d84555200::8:2d84555200::7:2d84555200::6:2d84555200::5:cb211188fc::4:3da8fd6860::3:27b4f40057::2:6997193267::1:24e31ed1be
+chop-peak:::1000:1b66392fde::10:1b66392fde::9:1b66392fde::8:1b66392fde::7:1b66392fde::6:1b66392fde::5:ac04972e8e::4:cb09d8011c::3:062e6c41f0::2:95b046fce6::1:2b91d888a1
 
