@@ -178,7 +178,6 @@ system.
   The default is 0.8.  Zero means to use solid spheres, i.e. perfectly
   regular grains.
 
-
 ** Grain size distribution
 + =-a AMIN [AMAX [APOW [NA]]]= ::
 
@@ -500,7 +499,6 @@ the following units
 - *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
   see below.
 
-
 ** Scattering Matrix: The fine print
 
 
@@ -593,6 +591,13 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 4. Run =make ingest= to update =ref_ind.f90=, now including your new
    material.
 5. Recompile and install the code.
+
+** Comparison with other codes
+
+For a comparison with a simple Mie code like BHMIE, turn off DHS and
+set the porosity to zero, with these command line options: =-fmax 0 -p
+0=
+
 
 * Bibliography
 - Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
