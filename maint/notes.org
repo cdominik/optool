@@ -180,17 +180,17 @@ about swapping that material with the last material in the input list.
   - Loop over the DHS volumes
     - Call DMiLay, get back qext,qsca,qabs,gqsc,m1,m2,s21,d21
       From those, we construct the Mief's.  The larger angles come
-      from the smaller ones, with some kind of symmetry
-    - If the sphere is too large (2 pi a/lambda > 1e4, or if there is an error in DMiLay
+      from the smaller ones, using symmetry
+    - If the sphere is too large (2 pi a/lambda > 1e4), or if there is an error in DMiLay
       - Call MeerhoffMie instead.
       - However, if the grain is too large too large, fix the wavelength to be grain
-        radius/5000, and then call Meerhoffmie
+        radius/5000, and then call MeerhoffMie
       - That gives all the Mief's directly, take it from there.
     - Renormalize Mief11, just the 0 degrees value
-    - add wighted contribution to the matrix
+    - add weighted contribution to the matrix
     - add weighted contribution to the cappas cext_ff etc
   - Add contributions to the cappas cext
-  - Set the kappas and the finla scattering matrix for thet wavelength
+  - Set the kappas and the final scattering matrix for thet wavelength
 
 * Other internals worth having documented
 ** Extrapolation of refractive index data
