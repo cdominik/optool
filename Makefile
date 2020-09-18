@@ -69,7 +69,7 @@ cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_d
 cleanbin:;	rm -f bin/optool*
 clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.html bin.zip bin/optool*
 		make cleanoutput
-		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
+		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool tmp.py
 cclean:;	rm -f $(OBJS) $(PROGRAM)
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
@@ -82,33 +82,34 @@ ingest:;	echo Compiling in datasets in lnk_data...
 test:; 		echo Computing size-integrated opacities ...
 		make cleanoutput
 		make
-		./optool -s
-		ipython -i optool_plot.py
+		echo "import optool; import time;optool.particle('./optool -na 10 -nl 10 -s').plot();">tmp.py
+		ipython -i tmp.py
+
 testdiv:;	echo computing size-dependant opacities ...
 		make cleanoutput
 		make
-		./optool -d -na 20 -s
-		ipython -i optool_plot.py
+		echo "import optool; import time;optool.particle('./optool -d -na 20 -s').plot();">tmp.py
+		ipython -i tmp.py
 quicktest:;	echo Computing size-integrated opacities ...
 		make cleanoutput
 		make
-		./optool -na 10 -nl 30 -s
-		ipython -i optool_plot.py
+		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -s').plot();">tmp.py
+		ipython -i tmp.py
 quicktestchop:;	echo Computing size-integrated opacities ...
 		make cleanoutput
 		make
-		./optool -na 10 -nl 30 -s -chop 5
-		ipython -i optool_plot.py
+		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -s -chop 5').plot();">tmp.py
+		ipython -i tmp.py
 quicktestdiv:;	echo computing size-dependant opacities ...
 		make cleanoutput
 		make
-		./optool -na 10 -nl 30 -d 3 -s
-		ipython -i optool_plot.py
+		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -d 3 -s').plot();">tmp.py
+		ipython -i tmp.py
 quicktestdivchop:;	echo computing size-dependant opacities ...
 			make cleanoutput
-			make	
-			./optool -na 10 -nl 30 -d 3 -s -chop 10
-			ipython -i optool_plot.py
+			make
+		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -d 3 -s -chop 10').plot();">tmp.py
+		ipython -i tmp.py
 binmac:;	make cclean
 		make
 		mv optool bin/optool-mac
