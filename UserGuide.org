@@ -564,10 +564,10 @@ i.e. at 0.5\deg, 1.5\deg etc to 179.5\deg, for a total of 180 values.
 The scattering matrix is normalized in this way, so that a numerical
 integral gives the correct result.
 
-However, RADMC-3D requires the values of the scattering matrix on the
-cell /boundaries/, so at 0\deg, 1\deg etc to 180\deg, for a total of
-181 values.  For the input files for RADMC-3D, we interpolate and
-extend the computed values to the cell boundaries.
+RADMC-3D requires the values of the scattering matrix on the cell
+/boundaries/, so at 0\deg, 1\deg etc to 180\deg, for a total of 181
+values.  For the input files for RADMC-3D, we interpolate and extend
+the computed values to the cell boundaries.
 
 ** How to ingest refractive index data for another material
 :PROPERTIES:
