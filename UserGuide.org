@@ -149,7 +149,7 @@ system.
 + =-c= :: List available built-in materials (the keys for the *-c* and
   *-m* options).
 
-+ =[-c] KEY-or-FILE1 [MFRAC]= ::
++ =[-c] KEY-or-FILE [MFRAC]= ::
 
   Specify a material to include in the grain.  =KEYorFILE= can be the
   [[#builtin-materials][key for a builtin material]], or the path to the correct =lnk=
