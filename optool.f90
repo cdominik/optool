@@ -1631,7 +1631,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
      write(20,'("#    iformat")')
      write(20,'("#    nlambda")')
-     write(20,'("#    lambda[um]         kabs [cm^2/g]      ksca [cm^2/g]      g_asymmetry")')
+     write(20,'("#    lambda[um]  kabs [cm^2/g]  ksca [cm^2/g]    g_asymmetry")')
      write(20,'("#============================================================================")')
      write(20,*) 3  ! iformat
      write(20,*) nlam  ! number of lambda points
