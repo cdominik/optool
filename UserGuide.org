@@ -458,9 +458,9 @@ The =optool.plot()= method will produce the following plots:
 [[./maint/inspect.png]]
 
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
-  as a function of wavelength, along with the asymmetry parameter /g/.
-  Note that the red /g/ curve does not have its own scale, imagine the
-  /y/ axis going from 0 to 1 for /g/.
+  as a function of wavelength, along with the asymmetry parameter /g/
+  (on a linear y-scale).  Note that the blue /g/ curve does not have
+  its own axis, imagine the full /y/ axis going from 0 to 1 for /g/.
 - a plot showing the scattering matrix elements as a function of
   scattering angle, with sliders to go through grain sizes and
   wavelengths.  When interpreting the y axis, note that we plot the
