@@ -328,7 +328,7 @@ program optool
         endif
      case('-s','-scatter','-scat')
         write_scatter=.true.
-        if (arg_is_value(i+1)) then
+        if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) nang
         endif
      case('-chop')
