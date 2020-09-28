@@ -54,7 +54,7 @@ while ($file = shift) {
   while (<$fh>) {
     $line_number++;
     last unless /^\s*[#!*]/;
-    s/^\s*[#!*]/        !/;
+    s/^\s*[#!*]/  !/;
     $comments .= $_;
   }
 
@@ -96,7 +96,7 @@ while ($file = shift) {
 
 subroutine ${sbrname}(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting $file
-  COMMENTS
+COMMENTS
   IMPLICIT NONE
   integer nlam,j
   real*8 l_lnk(*),n_lnk(*),k_lnk(*)

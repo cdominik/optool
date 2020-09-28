@@ -238,8 +238,8 @@ end subroutine GetAndRegridLNK
 
 subroutine c_gra(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/c-gra-XXX1900.lnk
-          ! Graphite, mixed from 3 axis-dependant files
-        ! Reference, still needs to be found.
+  ! Graphite, mixed from 3 axis-dependant files
+  ! Reference, still needs to be found.
 
   IMPLICIT NONE
   integer nlam,j
@@ -863,7 +863,8 @@ end subroutine c_gra
 
 subroutine c_nano(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/c-nano-Mutschke2004.lnk
-          ! Meteoritic Diamond, Mutschke+2004.  Density measurement from Lewis+1987
+  ! Meteoritic Diamond, Mutschke+2004, A&A 423, 983.
+  ! Density measurement from Lewis+1987, Nature 326, 160
 
   IMPLICIT NONE
   integer nlam,j
@@ -912,7 +913,7 @@ end subroutine c_nano
 
 subroutine c_org(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/c-org-Henning1900.lnk
-          ! Secretive organic stuff
+  ! Secretive organic stuff
 
   IMPLICIT NONE
   integer nlam,j
@@ -1002,8 +1003,8 @@ end subroutine c_org
 
 subroutine c_p(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/c-p-Preibisch1993.lnk
-          ! Material:  Carbon, amorphous
-        ! Reference: Preibisch 1993,  A&A 279,577
+  ! Material:  Carbon, amorphous
+  ! Reference: Preibisch 1993,  A&A 279,577
 
   IMPLICIT NONE
   integer nlam,j
@@ -1051,8 +1052,8 @@ end subroutine c_p
 
 subroutine c_z(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/c-z-Zubko1996.lnk
-          ! Material:  Carbon, amorphous
-        ! Reference: Zubko 1996, MNRAS 282, 1321
+  ! Material:  Carbon, amorphous
+  ! Reference: Zubko 1996, MNRAS 282, 1321
 
   IMPLICIT NONE
   integer nlam,j
@@ -2309,7 +2310,7 @@ end subroutine c_z
 
 subroutine cor_c(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/cor-c-Koike1995.lnk
-          ! Crystalline Corundum, Koike et al 1995, Icarun 114, 203
+  ! Crystalline Corundum, Koike et al 1995, Icarus 114, 203
 
   IMPLICIT NONE
   integer nlam,j
@@ -2465,8 +2466,8 @@ end subroutine cor_c
 
 subroutine fe_c(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/fe-c-Henning1996.lnk
-          ! Material:  Iron, metallic crystalline
-        ! Reference: Henning 1996, A&A 311, 291
+  ! Material:  Iron, metallic crystalline
+  ! Reference: Henning 1996, A&A 311, 291
 
   IMPLICIT NONE
   integer nlam,j
@@ -2556,7 +2557,8 @@ end subroutine fe_c
 
 subroutine fes(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/fes-Henning1996.lnk
-  
+  ! FeS, Henning & Stognienko 1996, A&A 311,291
+
   IMPLICIT NONE
   integer nlam,j
   real*8 l_lnk(*),n_lnk(*),k_lnk(*)
@@ -2645,8 +2647,8 @@ end subroutine fes
 
 subroutine ice_w(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ice-w-Warren2008.lnk
-          ! Material:  Water ice, crystalline?
-        ! Reference: Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
+  ! Material:  Water ice, crystalline?
+  ! Reference: Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
 
   IMPLICIT NONE
   integer nlam,j
@@ -2961,8 +2963,8 @@ end subroutine ice_w
 
 subroutine ol_c_mg100(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ol-c-mg100-Steyer1974.lnk
-          ! Material:  Fosterite, crystalline
-        ! Reference: Steyer 1974,  PhD Thesis
+  ! Material:  Fosterite, crystalline
+  ! Reference: Steyer 1974,  PhD Thesis
 
   IMPLICIT NONE
   integer nlam,j
@@ -3085,8 +3087,8 @@ end subroutine ol_c_mg100
 
 subroutine ol_mg40(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ol-mg40-Dorschner1995.lnk
-          ! Material:  Mg0.8Fe1.2SiO4, amorphous
-        ! Reference: Dorschner 1995, A&A 300,503
+  ! Material:  Mg0.8Fe1.2SiO4, amorphous
+  ! Reference: Dorschner 1995, A&A 300, 503
 
   IMPLICIT NONE
   integer nlam,j
@@ -3154,8 +3156,8 @@ end subroutine ol_mg40
 
 subroutine ol_mg50(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ol-mg50-Dorschner1995.lnk
-          ! Material:  MgFeSiO4, amorphous
-        ! Reference: Dorschner 1995, A&A 300,503
+  ! Material:  MgFeSiO4, amorphous
+  ! Reference: Dorschner 1995, A&A 300,503
 
   IMPLICIT NONE
   integer nlam,j
@@ -3223,8 +3225,8 @@ end subroutine ol_mg50
 
 subroutine pyr_c_mg96(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-c-mg96-Jaeger1998.lnk
-          ! Material:  Mg_0.96 Fe_0.04 SiO3, crystalline
-        ! Reference: Jaeger 1998, A&A, 339, 904
+  ! Material:  Mg_0.96 Fe_0.04 SiO3, crystalline
+  ! Reference: Jaeger 1998, A&A, 339, 904
 
   IMPLICIT NONE
   integer nlam,j
@@ -3650,8 +3652,8 @@ end subroutine pyr_c_mg96
 
 subroutine pyr_mg100(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg100-Dorschner1995.lnk
-          ! Material:  MgSiO3, amorphous
-        ! Reference: Dorschner et al 1995, A&A 300, 503
+  ! Material:  MgSiO3, amorphous
+  ! Reference: Dorschner et al 1995, A&A 300, 503
 
   IMPLICIT NONE
   integer nlam,j
@@ -3719,8 +3721,8 @@ end subroutine pyr_mg100
 
 subroutine pyr_mg40(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg40-Dorschner1995.lnk
-          ! Material:  Mg0.4 Fe0.6 SiO3, amorphous
-        ! Reference: Dorschner et al 1995, A&A 300, 503
+  ! Material:  Mg0.4 Fe0.6 SiO3, amorphous
+  ! Reference: Dorschner et al 1995, A&A 300, 503
 
   IMPLICIT NONE
   integer nlam,j
@@ -3787,8 +3789,8 @@ end subroutine pyr_mg40
 
 subroutine pyr_mg50(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg50-Dorschner1995.lnk
-          ! Material:  Mg Fe SiO3, amorphous
-        ! Reference: Dorschner et al 1995, A&A 300, 503
+  ! Material:  Mg Fe SiO3, amorphous
+  ! Reference: Dorschner et al 1995, A&A 300, 503
 
   IMPLICIT NONE
   integer nlam,j
@@ -3855,8 +3857,8 @@ end subroutine pyr_mg50
 
 subroutine pyr_mg60(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg60-Dorschner1995.lnk
-          ! Material:  Mg0.6 Fe0.4 SiO3, amorphous
-        ! Reference: Dorschner et al 1995, A&A 300, 503
+  ! Material:  Mg0.6 Fe0.4 SiO3, amorphous
+  ! Reference: Dorschner et al 1995, A&A 300, 503
 
   IMPLICIT NONE
   integer nlam,j
@@ -3923,8 +3925,8 @@ end subroutine pyr_mg60
 
 subroutine pyr_mg70(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg70-Dorschner1995.lnk
-          ! Material:  Mg0.7 Fe0.3 SiO3, amorphous
-        ! Reference: Dorschner et al 1995, A&A 300, 503
+  ! Material:  Mg0.7 Fe0.3 SiO3, amorphous
+  ! Reference: Dorschner et al 1995, A&A 300, 503
 
   IMPLICIT NONE
   integer nlam,j
@@ -3992,8 +3994,8 @@ end subroutine pyr_mg70
 
 subroutine pyr_mg80(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg80-Dorschner1995.lnk
-          ! Material:  Mg0.8 Fe0.2 SiO3, amorphous
-        ! Reference: Dorschner et al 1995, A&A 300, 503
+  ! Material:  Mg0.8 Fe0.2 SiO3, amorphous
+  ! Reference: Dorschner et al 1995, A&A 300, 503
 
   IMPLICIT NONE
   integer nlam,j
@@ -4061,8 +4063,8 @@ end subroutine pyr_mg80
 
 subroutine pyr_mg95(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg95-Dorschner1995.lnk
-          ! Material:  Mg0.95 Fe0.05 SiO3, amorphous
-        ! Reference: Dorschner et al 1995, A&A 300, 503
+  ! Material:  Mg0.95 Fe0.05 SiO3, amorphous
+  ! Reference: Dorschner et al 1995, A&A 300, 503
 
   IMPLICIT NONE
   integer nlam,j
@@ -4130,8 +4132,8 @@ end subroutine pyr_mg95
 
 subroutine sic(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/sic-Draine1993.lnk
-          ! Alpha SiC
-        ! Laor & Draine 1993, ApJ 402, 441
+  ! Alpha SiC
+  ! Laor & Draine 1993, ApJ 402, 441
 
   IMPLICIT NONE
   integer nlam,j
