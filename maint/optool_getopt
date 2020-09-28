@@ -1,0 +1,34 @@
+# file: UseGetOpt-optool
+# optool parameter-completion
+
+_UseGetOpt-optool ()   #  By convention, the function name
+{                 #+ starts with an underscore.
+  local cur
+  # Pointer to current completion word.
+  # By convention, it's named "cur" but this isn't strictly necessary.
+
+  COMPREPLY=()   # Array variable storing the possible completions.
+  cur=${COMP_WORDS[COMP_CWORD]}
+
+  case "$cur" in
+    -*)
+    COMPREPLY=( $( compgen -W '-h -help -man -c -m \
+                               -a -amin -amax -apow -na \
+                               -l -lmin -lmax -nl \
+                               -p -fmax -o -s -chop \
+                               -radmc -d -b -q -debug' -- $cur ) );;
+    -c )
+    COMPREPLY=( $( compgen -W 'pyr pyr-mg70' -- $cur ) );;
+
+
+#   Generate the completion matches and load them into $COMPREPLY array.
+#   xx) May add more cases here.
+#   yy)
+#   zz)
+  esac
+
+  return 0
+}
+
+complete -F _UseGetOpt-optool -o filenames optool
+#        ^^ ^^^^^^^^^^^^  Invokes the function _UseGetOpt-2.
