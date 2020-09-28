@@ -7,7 +7,7 @@ subroutine ListBuiltinMaterials()
   write(*,'(": amorphous olivines    ol-mg100/40                    (Dorschner95,Henning96) :")')
   write(*,'(": crystalline pyr/ol    pyr-c-mg96     ol-c-mg100           (Jäger96,Steyer74) :")')
   write(*,'(": amorphous carbon      c-z    c-p                       (Zubko96,Preibisch93) :")')
-  write(*,'(": graphite,special      c-gra  c-nano  c-org            (Mutschke04,Henning??) :")')
+  write(*,'(": graphite,special      c-gra  c-nano  c-org            (Mutschke04,Henning96) :")')
   write(*,'(": H2O ice               ice-w                                       (Warren08) :")')
   write(*,'(": corundum              cor-c                                        (Koike95) :")')
   write(*,'(": iron/sulfide          fe-c   fes                                 (Henning96) :")')
@@ -16,7 +16,7 @@ subroutine ListBuiltinMaterials()
   write(*,'(": *** ABBREVIATIONS AND GENERIC KEYS FOR QUICK ACCESS ***                      :")')
   write(*,'(": pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      ice  -> ice-w     :")')
   write(*,'(": ol   -> ol-mg50      gra  -> c-gra       cor  -> cor-c                       :")')
-  write(*,'(": for  -> ol-c-mg100                                                           :")')
+  write(*,'(": for  -> ol-c-mg100   org  -> c-org                                           :")')
   write(*,'(": ens  -> pyr-c-mg96                                                           :")')
   write(*,'("================================================================================")')
 
@@ -69,7 +69,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
      call c_gra(x,y1,y2,n0,rho)
   case('c-nano')
      call c_nano(x,y1,y2,n0,rho)
-  case('c-org')
+  case('c-org','org')
      call c_org(x,y1,y2,n0,rho)
   case('c-p')
      call c_p(x,y1,y2,n0,rho)
@@ -237,9 +237,9 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
 end subroutine GetAndRegridLNK
 
 subroutine c_gra(l_lnk,n_lnk,k_lnk,nlam,rho)
-  ! Created by ingesting lnk_data/c-gra-XXX1900.lnk
+  ! Created by ingesting lnk_data/c-gra-Draine2003.lnk
   ! Graphite, mixed from 3 axis-dependant files
-  ! Reference, still needs to be found.
+  ! Reference: Draine 2003, ApJ 598, 1026
 
   IMPLICIT NONE
   integer nlam,j
@@ -912,8 +912,10 @@ end subroutine c_nano
 
 
 subroutine c_org(l_lnk,n_lnk,k_lnk,nlam,rho)
-  ! Created by ingesting lnk_data/c-org-Henning1900.lnk
-  ! Secretive organic stuff
+  ! Created by ingesting lnk_data/c-org-Henning1996.lnk
+  ! Organic stuff
+  ! Recomputed.  Originally, this was from Pollack et al 1994, but the
+  ! data we have here is from Henning & Stognienko 1996, A&A 311,291
 
   IMPLICIT NONE
   integer nlam,j

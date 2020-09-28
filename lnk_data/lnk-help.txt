@@ -5,7 +5,7 @@
 : amorphous olivines    ol-mg100/40                    (Dorschner95,Henning96) :
 : crystalline pyr/ol    pyr-c-mg96     ol-c-mg100           (Jäger96,Steyer74) :
 : amorphous carbon      c-z    c-p                       (Zubko96,Preibisch93) :
-: graphite,special      c-gra  c-nano  c-org            (Mutschke04,Henning??) :
+: graphite,special      c-gra  c-nano  c-org            (Mutschke04,Henning96) :
 : H2O ice               ice-w                                       (Warren08) :
 : corundum              cor-c                                        (Koike95) :
 : iron/sulfide          fe-c   fes                                 (Henning96) :
@@ -14,6 +14,6 @@
 : *** ABBREVIATIONS AND GENERIC KEYS FOR QUICK ACCESS ***                      :
 : pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      ice  -> ice-w     :
 : ol   -> ol-mg50      gra  -> c-gra       cor  -> cor-c                       :
-: for  -> ol-c-mg100                                                           :
+: for  -> ol-c-mg100   org  -> c-org                                           :
 : ens  -> pyr-c-mg96                                                           :
 ================================================================================

@@ -295,9 +295,9 @@ even simpler generic key.
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+-----------------------------|
 | c        | c-z        | C                       | amorph? |    1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z/abstract][Zubko+96]]     |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]           |
 |          | c-p        | C                       | amorph  |    1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P/abstract][Preibisch+93]] |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]       |
-| gra      | c-gra      | C graphite              | cryst   |  2.16? |       0.001 |        1000 | uncertain    | FIXME        |                             |
-|          | c-org      | CHON organics           | amorph  |    1.4 |         0.1 |         1e5 | uncertain    | FIXME        |                             |
-|          | c-nano     | C nano-diamond          | cryst   |    2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]  |              | [[file:lnk_data/nano-diam-Mutschke2004.lnk][nano-diam-Mutschke2004.lnk]]  |
+| gra      | c-gra      | C graphite              | cryst   |  2.16? |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D/abstract][Draine+03]]    |              | [[file:lnk_data/c-gra-Draine2003.lnk][c-gra-Draine2003.lnk]]        |
+| org      | c-org      | CHON organics           | amorph  |    1.4 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H/abstract][Henning+96]]   |              | [[file:lnk_data/c-org-Henning1996.lnk][c-org-Henning1996.lnk]]       |
+|          | c-nano     | C nano-diamond          | cryst   |    2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]  |              | [[file:lnk_data/c-nano-Mutschke2004.lnk][c-nano-Mutschke2004.lnk]]     |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+-----------------------------|
 | ice      | ice-w      | Water ice               | cryst   |   0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W/abstract][Warren+08]]    |              | [[file:lnk_data/ice-w-Warren2008.lnk][ice-w-Warren2008.lnk]]        |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+-----------------------------|
@@ -601,6 +601,7 @@ set the porosity to zero, with these command line options: =-fmax 0 -p
 * Bibliography
 - Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
   Light by Small Particles/, Wiley-VCH
+- Draine, B, 2003, ApJ 598, 1026
 - Dorschner, J. et al. 1995, A&A 300, 503
 - Henning, Th. and Stognienko, R. 1996, A&A 311,291
 - Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
