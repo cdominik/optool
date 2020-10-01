@@ -213,12 +213,24 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
      else
         ! use loglog extrapolation
         do j=i,n
-           e1(j) = 10d0**(log10(e1(i-2))+ &
-                log10(e1(i-1)/e1(i-2))*log10(grid(i-2)/grid(j)) &
-                /log10(grid(i-2)/grid(i-1)))
-           e2(j) = 10d0**(log10(e2(i-2))+ &
-                log10(e2(i-1)/e2(i-2))*log10(grid(i-2)/grid(j)) &
-                /log10(grid(i-2)/grid(i-1)))
+           if (i .le. 2) then
+              ! wow, we are entirely outside of the measured grid
+              ! Use the last two tabulated values to extrapolate
+              e1(j) = 10d0**(log10(y1(n0-1))+ &
+                   log10(y1(n0)/y1(n0-1))*log10(x(n0-1)/grid(j)) &
+                   /log10(x(n0-1)/x(n0)))
+              e2(j) = 10d0**(log10(y2(n0-1))+ &
+                   log10(y2(n0)/y2(n0-1))*log10(x(n0-1)/grid(j)) &
+                   /log10(x(n0-1)/x(n0)))
+           else
+              ! OK, we already have interpolated grid points we should use
+              e1(j) = 10d0**(log10(e1(i-2))+ &
+                   log10(e1(i-1)/e1(i-2))*log10(grid(i-2)/grid(j)) &
+                   /log10(grid(i-2)/grid(i-1)))
+              e2(j) = 10d0**(log10(e2(i-2))+ &
+                   log10(e2(i-1)/e2(i-2))*log10(grid(i-2)/grid(j)) &
+                   /log10(grid(i-2)/grid(i-1)))
+           endif
         enddo
      endif
   else
