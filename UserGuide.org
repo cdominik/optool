@@ -597,6 +597,49 @@ For a comparison with a pure Mie code like [[https://onlinelibrary.wiley.com/doi
 set the porosity to zero, with these command line options: =-fmax 0 -p
 0=
 
+** COMMENT Internals
+This appendix describes the internal workings of the code.
+
+- Refractive Index Data :: Measured refractive index data is obtained
+  from data compiled into the code, or read-in from a file.  That data
+  is then interpolated and extrapolated onto the wavelengths grid
+  requested for the computation. Extrapolation toward short
+  wavelengths is done keeping the refractive indices constant.
+  Extrapolation toward long wavelength assumes that the last two
+  measured data points define a powerlaw. Interpolation in the
+  measured grid is done using double-logarithmic interpolation.
+
+- Mixing :: Once the refractive index for all involved materials is
+  available, the core and the mantle mixtures are put together using
+  the Bruggeman rule.  Mass fractions are converted into volume
+  fractions, and porosity is implemented using vacuum as an additional
+  material.  The subroutine doing the mixing uses an iterative
+  procedure that is very stable, also for a large number of different
+  components.\\
+  If there is a mantle, the refractive index computation is rounded
+  off by applying the Maxwell Garnett rule with the core beeing
+  treated an inclusion inside a mantle matrix.
+
+- Scattering Computation ::
+  The computation of the opacities and scattering matrix elements then
+  follows this structure:\\
+  - Loop over all wavelengths \lambda
+    - Loop over all particle sizes $a$
+      - Loop over a range of DHS vacuum fractions from 0 to $f_{\rm max}$
+        - Call DMiLay (layerd sphere), to get back cross sections and
+          the information to construct the scattering matrix elements.
+        - If the sphere is too large ($2 \pi a/\lambda > 10^4$), do a
+          normal Mie computation instead, skipping DHS and limiting the
+          size parameter to 5000.
+        - compute the weighted contribution of the current DHS
+          volume to the scattering matrix and the opacities and add
+          them to a summing buffer
+      - compute the contributions of the current particle size and add
+        it to a summing variable.
+    - Sum the contributions of all particle sizes to compute the
+      opacities and scattering matrix elements at this wavelength.
+
+
 
 * Bibliography
 - Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
