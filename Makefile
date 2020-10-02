@@ -65,6 +65,7 @@ BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
 
 # make actions 
 all:		$(PROGRAM)
+full:;		make multi=true fits=true
 cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_dir_*
 cleanbin:;	rm -f bin/optool*
 clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.html bin.zip bin/optool*
