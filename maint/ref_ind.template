@@ -10,6 +10,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   REAL (KIND=dp) :: grid(n)
   REAL (KIND=dp) :: e1(n),e2(n),x0,y01,y02,x1,y11,y12,wp,gamma
   REAL (KIND=dp) :: rho,rho_in
+  REAL (KIND=dp) :: slope1,sect1,slope2,sect2,dist
   REAL (KIND=dp) :: lgy11,lgy12,lgy01,lgy02,lgx0,lgx1,lggr
   integer i,j,n, n_line, iostatus, count_numbers, count_data_lines
   character*100 input
@@ -124,34 +125,24 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   ! ------------------------------------------------------------------
   if(loglog) then
      m0 = dcmplx(e1(i-1),e2(i-1))
-     if(abs(m0).gt.2d0.and..false.) then
+     if(abs(m0).gt.2d0 .and. .false.) then
+        !                    ^^^^^^^
         ! don't use the conducting extrapolation since it is not very accurate
         do j=i,n
-           m = m0*sqrt(grid(j)/grid(i-1))
+           m = m0 * sqrt(grid(j)/grid(i-1))
            e1(j) = real(m)
            e2(j) = dimag(m)
         enddo
      else
         ! use loglog extrapolation
+        slope1 = log10(y1(n0)/y1(n0-1)) / log10(x(n0)/x(n0-1))
+        sect1  = log10(y1(n0-1))
+        slope2 = log10(y2(n0)/y2(n0-1)) / log10(x(n0)/x(n0-1))
+        sect2  = log10(y2(n0-1))
         do j=i,n
-           if (i .le. 2) then
-              ! wow, we are entirely outside of the measured grid
-              ! Use the last two tabulated values to extrapolate
-              e1(j) = 10d0**(log10(y1(n0-1))+ &
-                   log10(y1(n0)/y1(n0-1))*log10(x(n0-1)/grid(j)) &
-                   /log10(x(n0-1)/x(n0)))
-              e2(j) = 10d0**(log10(y2(n0-1))+ &
-                   log10(y2(n0)/y2(n0-1))*log10(x(n0-1)/grid(j)) &
-                   /log10(x(n0-1)/x(n0)))
-           else
-              ! OK, we already have interpolated grid points we should use
-              e1(j) = 10d0**(log10(e1(i-2))+ &
-                   log10(e1(i-1)/e1(i-2))*log10(grid(i-2)/grid(j)) &
-                   /log10(grid(i-2)/grid(i-1)))
-              e2(j) = 10d0**(log10(e2(i-2))+ &
-                   log10(e2(i-1)/e2(i-2))*log10(grid(i-2)/grid(j)) &
-                   /log10(grid(i-2)/grid(i-1)))
-           endif
+           dist  = log10(grid(j)/x(n0-1))
+           e1(j) = 10d0**(slope1*dist + sect1)
+           e2(j) = 10d0**(slope2*dist + sect2)
         enddo
      endif
   else
