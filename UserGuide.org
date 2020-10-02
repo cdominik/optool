@@ -597,8 +597,9 @@ For a comparison with a pure Mie code like [[https://onlinelibrary.wiley.com/doi
 set the porosity to zero, with these command line options: =-fmax 0 -p
 0=
 
-** COMMENT Internals
-This appendix describes the internal workings of the code.
+** Internals
+This appendix describes some key aspects of the internal workings of
+the code.
 
 - Refractive Index Data :: Measured refractive index data is obtained
   from data compiled into the code, or read-in from a file.  That data
@@ -614,32 +615,35 @@ This appendix describes the internal workings of the code.
   the Bruggeman rule.  Mass fractions are converted into volume
   fractions, and porosity is implemented using vacuum as an additional
   material.  The subroutine doing the mixing uses an iterative
-  procedure that is very stable, also for a large number of different
+  procedure that is very stable, also for a large number of
   components.\\
-  If there is a mantle, the refractive index computation is rounded
-  off by applying the Maxwell Garnett rule with the core beeing
-  treated an inclusion inside a mantle matrix.
+  If there is a mantle, the Maxwell Garnett rule is applied with the
+  core being treated an inclusion inside a mantle matrix.
 
-- Scattering Computation ::
-  The computation of the opacities and scattering matrix elements then
-  follows this structure:\\
-  - Loop over all wavelengths \lambda
-    - Loop over all particle sizes $a$
-      - Loop over a range of DHS vacuum fractions from 0 to $f_{\rm max}$
-        - Call DMiLay (layerd sphere), to get back cross sections and
-          the information to construct the scattering matrix elements.
-        - If the sphere is too large ($2 \pi a/\lambda > 10^4$), do a
-          normal Mie computation instead, skipping DHS and limiting the
-          size parameter to 5000.
-        - compute the weighted contribution of the current DHS
-          volume to the scattering matrix and the opacities and add
-          them to a summing buffer
-      - compute the contributions of the current particle size and add
-        it to a summing variable.
-    - Sum the contributions of all particle sizes to compute the
-      opacities and scattering matrix elements at this wavelength.
+- DHS :: In order to simulate irregularities in grains (irregular
+  shapes, or the properties of low-porosity aggregates, =optool=
+  averages the opacities of grains with an inner empty region, over a
+  range of volume fractions of this inner region between 0 and $f_{\rm
+  max}$.  The subroutine used to compute the opacities and scattering
+  matrix elements for these structures is =DMiLay= (Toon & Ackerman
+  1981).  However, when the size parameter $x=2 \pi a/\lambda$ exceeds
+  a value of 10^4, then no DHS averaging is used.  A standard Mie
+  calculation is performed , using the routine =MeerhoffMie=
+  (reference missing), for a fixed size parameter of 5000, with proper
+  scaling to the actual size of the particle.
 
+- Computational Structure :: The computation of opacities and matrix
+  elements follows this structure.  Additional information can be
+  obtained by reading the code.
+  :  ,- Loop over all wavelengths lambda
+  :  |  ,- Loop over all particle sizes a
+  :  |  |  ,- Loop over all DHS volume ratios f
+  :  |  |  |   - Call DMiLay or (for large x) MeerhoffMie
+  :  |  |  `- Sum the weighted contributions of each DHS volume
+  :  |  `- Sum weighted contributions of all particle sizes
+  :  `- Store the results for the current wavelength
 
+  
 
 * Bibliography
 - Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
@@ -675,7 +679,7 @@ This appendix describes the internal workings of the code.
 #+latex_header: \usepackage{array}
 #+latex_header: \newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}
 
-#+OPTIONS: toc:nil num:nil ^:t
+#+OPTIONS: toc:nil num:2 ^:t
 #+LATEX_CLASS: koma-article
 #+LATEX_CLASS_OPTIONS: [11pt,a4paper]
 
