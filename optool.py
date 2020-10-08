@@ -6,6 +6,52 @@ import subprocess
 from distutils.spawn import find_executable
 import random
 
+
+class lnktable:
+    def __init__(self,file):
+        self.filename = file
+        try:
+            rfile = open(file, 'r')
+        except:
+            print('ERROR: file not found:',file)
+            return -1
+        print('Reading lnk file ',file,'...')
+
+        # Read the header/comment field
+        header = ''
+        dum = rfile.readline()
+        while dum.strip()[0]=='#':
+            header = header + dum
+            dum = rfile.readline()
+        self.header = header
+
+        # Extract the number of wavelengths points, and the material density
+        dum = dum.split()
+        self.nlam = int(dum[0])
+        self.rho  = float(dum[1])
+
+        # Prepare the arrays
+        self.lam = np.zeros(self.nlam)
+        self.n   = np.zeros(self.nlam)
+        self.k   = np.zeros(self.nlam)
+
+        # Fill the arrays
+        for ilam in range(self.nlam):
+            dum = rfile.readline()
+            dum = dum.split()
+            self.lam[ilam] = float(dum[0])
+            self.n[ilam]   = float(dum[1])
+            self.k[ilam]   = float(dum[2])
+        rfile.close()
+
+    def write(file):
+        # Write the table to a file
+        print("Hello world")
+
+    def plot():
+        # Plot the optical properties
+        print("Hello world")
+        
 class particle:
     def __init__(self,cmd,keep=False):
         self.cmd = cmd
@@ -766,4 +812,3 @@ def interactive_curve(t, func, params, xmin=None, xmax=None, ymin=None, ymax=Non
     if returnipar:
         return mcb.ipar
 
-    
