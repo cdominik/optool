@@ -1,44 +1,12 @@
 * Actions and Ideas
-** COMMENT Stuff that is parked
-
-# Blend the refractive indices of three orientations of a material and
-# write the result to =particle-blend.lnk=, usng the wavelength grid
-# given in o1.lnk.
-#
-# : optool -blendonly -c o1.lnk .33 -c o2.lnk .33 -c o3.lnk .33 -l o1.lnk
-
-# - particle-blend.lnk ::
-#
-#  When =optool= is called with the =-blendonly= switch, the resulting
-#  optical properties of the full mix including mantle and porosity are
-#  written to this =lnk= file.
-
-# + =-mmf [D_FRACTAL [A_MONO]]=
-#
-#  Use Modified Mean Field theory (Tazaki & Tanaka 2008) to correct
-#  absorption and scattering cross sections for very porous
-#  aggregates.  The optional parameters are the fractal dimension and
-#  the monomer size, with default values of 3.0 and 0.1 [micron],
-#  respectively.
-
-
-# + =-lunit UNIT= ::
-#
-#  =optool= uses *microns* as the unit for wavelengths and grain sizes,
-#  in line with Michiel Min's original conventions.  With this switch,
-#  use =-lunit cm= or =-lunit m= to assume for wavelengths and grain
-#  sizes on the command line, in =lnk= files read by the program and
-#  output files produced. Note that cross sections are always cm^2/g.
-
-#
-# + =-b, -blendonly= :: 
-#
-#  Only blend the material properties and write the result to a new
-#  =lnk= file, =particle_blend.lnk=.
-
-# + =-B= ::
-# 
-#   Use the old style Blender, for robustness
+** TODO Bohren-Huffman output. command-line-switch -bh
+** TODO Implement Ryo's MMT
+Problems: the scattering matrix will not be right, only the cross
+sections.  BUt it would still be cool to have this.
+** TODO Allow more than one number of mantle materials
+The qustion is then:
+- multiple mantles, so multiple applications of MG?
+- Or first mix with Bruggeman, and then apply a single
 ** TODO Single sized grains
 When the user gives a single size, or amin=amax, then we can do 2
 things
@@ -172,6 +140,46 @@ about swapping that material with the last material in the input list.
   be a KEY-or-FILE, for a material in the core.  A -c can be used, but
   it is not required.
 - To identify the mantle material, a -m must be given.
+** COMMENT Stuff that is parked
+
+# Blend the refractive indices of three orientations of a material and
+# write the result to =particle-blend.lnk=, usng the wavelength grid
+# given in o1.lnk.
+#
+# : optool -blendonly -c o1.lnk .33 -c o2.lnk .33 -c o3.lnk .33 -l o1.lnk
+
+# - particle-blend.lnk ::
+#
+#  When =optool= is called with the =-blendonly= switch, the resulting
+#  optical properties of the full mix including mantle and porosity are
+#  written to this =lnk= file.
+
+# + =-mmf [D_FRACTAL [A_MONO]]=
+#
+#  Use Modified Mean Field theory (Tazaki & Tanaka 2008) to correct
+#  absorption and scattering cross sections for very porous
+#  aggregates.  The optional parameters are the fractal dimension and
+#  the monomer size, with default values of 3.0 and 0.1 [micron],
+#  respectively.
+
+
+# + =-lunit UNIT= ::
+#
+#  =optool= uses *microns* as the unit for wavelengths and grain sizes,
+#  in line with Michiel Min's original conventions.  With this switch,
+#  use =-lunit cm= or =-lunit m= to assume for wavelengths and grain
+#  sizes on the command line, in =lnk= files read by the program and
+#  output files produced. Note that cross sections are always cm^2/g.
+
+#
+# + =-b, -blendonly= :: 
+#
+#  Only blend the material properties and write the result to a new
+#  =lnk= file, =particle_blend.lnk=.
+
+# + =-B= ::
+# 
+#   Use the old style Blender, for robustness
 * Strategy
 ** Read lnk data for all materials
 ** Do the mixing, so that we end up with a single material
