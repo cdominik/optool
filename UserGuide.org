@@ -162,8 +162,9 @@ system.
 
 + =-m KEY-or-FILE [MFRAC]= ::
 
-  Like *-c*, but use this material as grain mantle that will be added
-  using the /Maxwell-Garnett/ rule.  Only one *-m* switch is allowed.
+  Like *-c*, but place this material into the grain mantle. Multiple
+  mantle materials will be mixed using the Bruggeman rule, and than
+  that mix will be added to the core using the /Maxwell-Garnett/ rule.
   
 + =-p POROSITY [P_MANTLE]= ::
 
@@ -611,12 +612,12 @@ the code.
   measured grid is done using double-logarithmic interpolation.
 
 - Mixing :: Once the refractive index for all involved materials is
-  available, the core and the mantle mixtures are put together using
-  the Bruggeman rule.  Mass fractions are converted into volume
-  fractions, and porosity is implemented using vacuum as an additional
-  material.  The subroutine doing the mixing uses an iterative
-  procedure that is very stable, also for a large number of
-  components.\\
+  available, the core and the mantle mixtures are created
+  independantly, using the Bruggeman rule.  Mass fractions are
+  converted into volume fractions, and porosity is implemented using
+  vacuum as an additional material.  The subroutine doing the mixing
+  uses an iterative procedure that is very stable, also for a large
+  number of components.\\
   If there is a mantle, the Maxwell Garnett rule is applied with the
   core being treated an inclusion inside a mantle matrix.
 

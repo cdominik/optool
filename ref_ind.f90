@@ -30,13 +30,13 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   REAL (KIND=dp) :: rho,rho_in
   REAL (KIND=dp) :: slope1,sect1,slope2,sect2,dist
   REAL (KIND=dp) :: lgy11,lgy12,lgy01,lgy02,lgx0,lgx1,lggr
-  integer i,j,n, n_line, iostatus, count_numbers, count_data_lines
+  integer i,j,n, iostatus, count_numbers, count_data_lines
   character*100 input
   character*500 line
   real (KIND=dp),allocatable :: x(:),y1(:),y2(:)
   integer n0,i0,nn,nd
   logical loglog
-  COMPLEX (KIND=dp) :: m,m0,m1,cdlog10
+  COMPLEX (KIND=dp) :: m,m0
 
   external c_gra
   external c_nano

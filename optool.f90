@@ -56,6 +56,8 @@ module Defs
   ! Material properties
   ! ----------------------------------------------------------------------
   integer         :: mat_nm       ! number of materials specified
+  integer         :: mat_nmc      ! number of core materials specified
+  integer         :: mat_nmm      ! number of mantle materials specified
   character*500   :: mat_loc(21)  ! either 'core' or 'mantle'
   character*500   :: mat_lnk(21)  ! the lnk key of file path
   real (kind=dp)  :: mat_rho(21)  ! specific mass density of material
@@ -103,7 +105,8 @@ program optool
   logical         :: for_radmc       ! Should the scattering matrix use RADME-3D convention?
 
   integer         :: nm              ! nr of grain materials
-  integer         :: imant           ! the index of the mantle material
+  integer         :: nmant           ! nr of mantle materials
+  integer         :: it,il
 
   type(particle)  :: p
   integer         :: i,ndone         ! counter
@@ -149,6 +152,7 @@ program optool
   pmantle        = 0.0_dp     ! porosity mantle
 
   nm             = 0          ! number of materials - zero to start with
+  nmant          = 0          ! number of mantle materials - zero to start with
 
   write_fits     = .false.    ! Default is to write ASCII output
   write_scatter  = .false.    ! Default is to not write scattering matrix
@@ -159,7 +163,6 @@ program optool
   ! Initialize rho, because we need the fact that it has not been set
   ! to decide what to do with lnk files where it is missing
   ! ----------------------------------------------------------------------
-  imant = 0
   do im=1,12
      mat_rho(im) = 0.d0
   enddo
@@ -210,12 +213,8 @@ program optool
            ! Set the type, and make sure we have at most one mantle material
            if (tmp.eq.'-m') then
               ! This is the mantle material
-              if (imant.gt.0) then
-                 print *, "ERROR: Only one mantle material is allowed"; stop
-              else
-                 mat_loc(nm) = 'mantle'
-                 imant = nm
-              endif
+              mat_loc(nm) = 'mantle'
+              nmant = nmant+1
            else
               ! This is a core material.
               mat_loc(nm) = 'core'
@@ -383,7 +382,7 @@ program optool
   if (nm .ge. 10) then
      print *,'ERROR: Too many materials'; stop
   endif
-  if ( (nm.eq.1) .and. (imant.gt.0) ) then
+  if ( (nm.eq.nmant) .and. (nm.gt.0) ) then
      print *,"ERROR: at least one core material must be specified"; stop
   endif
   ! *** Grain size distribution ***
@@ -459,14 +458,23 @@ program optool
   mat_nm   = nm
 
   ! ----------------------------------------------------------------------
-  ! Make sure the mantle material is last in the list
+  ! Sort the materials to make sure that core materials come first
   ! ----------------------------------------------------------------------
-  if ( (imant.gt.0) .and. (imant.ne.nm) ) then
-     dumc = mat_lnk(imant); mat_lnk(imant)=mat_lnk(nm); mat_lnk(nm)=dumc;
-     dumc = mat_loc(imant); mat_loc(imant)=mat_loc(nm); mat_loc(nm)=dumc;
-     dum  = mat_mfr(imant); mat_mfr(imant)=mat_mfr(nm); mat_mfr(nm)=dum;
-     dum  = mat_rho(imant); mat_rho(imant)=mat_rho(nm); mat_rho(nm)=dum;
-  endif
+  it  = nm  ! target: where to move the next mantle material
+  mat_nmc = nm; mat_nmm = 0
+  do il = nm,1,-1 ! il loops down, checking all materials
+     if (mat_loc(il).eq.'mantle') then
+        mat_nmc = mat_nmc-1
+        mat_nmm = mat_nmm+1
+        if (il.lt.it) then
+           dumc = mat_lnk(il); mat_lnk(il)=mat_lnk(it); mat_lnk(it)=dumc;
+           dumc = mat_loc(il); mat_loc(il)=mat_loc(it); mat_loc(it)=dumc;
+           dum  = mat_mfr(il); mat_mfr(il)=mat_mfr(it); mat_mfr(it)=dum;
+           dum  = mat_rho(il); mat_rho(il)=mat_rho(it); mat_rho(it)=dum;
+           it = it-1
+        endif
+     endif
+  enddo
   
   ! ----------------------------------------------------------------------
   ! Make a logarithmic lambda grid, unless read in from file
@@ -613,7 +621,7 @@ end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
 
-subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
+subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   ! ----------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
   !
@@ -626,7 +634,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   !   p_c        The porosity of the core, volume fraction of vacuum
   !   p_m        The porosity of the mantle, if there is one
   !   mfrac0     An array of nm mass fraction for the various materials.
-  !   nm0        The number of materials, also the size of the array mfrac
+  !   nm        The number of materials, also the size of the array mfrac
   !   progress   When .true. give information about progress
   !
   ! OUTPUT
@@ -641,9 +649,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   real (kind=dp)                 :: fmax             ! maximum fraction of vaccum for DHS
   real (kind=dp)                 :: p_c,p_m          ! porosity, core and mantle
 
-  integer                        :: nm0,nm,im        ! nr of grain materials in a composite grain
+  integer                        :: nm,im            ! nr of grain materials in a composite grain
   real (kind=dp),allocatable     :: rho(:)           ! specific material dnesities
-  real (kind=dp)                 :: mfrac0(nm0)      ! mass fractions, input
+  real (kind=dp)                 :: mfrac0(nm)       ! mass fractions, input
   real (kind=dp),allocatable     :: mfrac(:)         ! mass fractions, modified
   real (kind=dp)                 :: vfrac_mantle     ! volume fraction of mantle
   real (kind=dp)                 :: mfrac_mantle     ! mass   fraction of mantle
@@ -653,12 +661,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   logical                        :: progress
 
   integer                        :: i,j              ! counters for various loops
-  integer                        :: mn_max           ! maximum number of grain material
   integer                        :: na               ! Number of grains sizes between amin and amax
   integer                        :: nf,if            ! Number of DHS volume fractions
   integer                        :: ns,is            ! Number of grains sizes
   integer                        :: ilam,il,ndone    ! Counter for wavelengths
-  integer                        :: i_mantle         ! Index of mantle material, if any
   integer                        :: err,spheres,toolarge ! Error control for Mie routines
 
   real (kind=dp)                 :: cext, csca, cabs
@@ -704,17 +710,16 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! ----------------------------------------------------------------------
   ! Allocate the necessary arrays
   ! ----------------------------------------------------------------------
-  mn_max = nm0+1 ! Allocate one more, because vacuum will also be a material
   allocate(Mief11(nang),Mief12(nang),Mief22(nang),Mief33(nang))
   allocate(Mief34(nang),Mief44(nang))
   allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
 
-  allocate(vfrac(mn_max),vfm(mn_max),mfrac(mn_max),rho(mn_max))
-  allocate(e_in(mn_max))
+  allocate(vfrac(nm),vfm(nm),mfrac(nm),rho(nm))
+  allocate(e_in(nm))
   allocate(f11(nang),f12(nang),f22(nang))
   allocate(f33(nang),f34(nang),f44(nang))
 
-  allocate(e1(mn_max,nlam),e2(mn_max,nlam))
+  allocate(e1(nm,nlam),e2(nm,nlam))
   allocate(e1blend(nlam),e2blend(nlam))
 
   ! Set the number of f values between 0 and fmax, for DHS
@@ -732,36 +737,20 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! Make copies of arrays and numbers we want to change in this routine
   ! without affecting values in the calling routine
   ! ----------------------------------------------------------------------
-  nm          = nm0
   mfrac(1:nm) = mfrac0(1:nm)
   rho(1:nm)   = mat_rho(1:nm)
   
   ! ----------------------------------------------------------------------
   ! Normalize the mass fractions
   ! ----------------------------------------------------------------------
-  tot = 0.0_dp
+  tot  = 0.0_dp
+  tot2 = 0.0_dp
   do im=1,nm
      tot=tot+mfrac(im)
+     if (mat_loc(im).eq.'mantle') tot2 = tot2 + mfrac(im)
   enddo
   mfrac = mfrac/tot
-
-  ! ----------------------------------------------------------------------
-  ! Identify the mantle material and take it out of the main list
-  ! ----------------------------------------------------------------------
-  i_mantle = 0
-  if (trim(mat_loc(nm)).EQ."mantle") then
-     ! Remember where the mantle information is
-     i_mantle     = nm
-     mfrac_mantle = mfrac(nm)
-     ! Reduce the number of materials, so that the Bruggeman
-     ! rule is only applied to the core materials
-     nm = nm-1
-  else
-     ! These are just to keep the compiler happy
-     vfrac_mantle = 0.d0
-     mfrac_mantle = 0.d0
-     rho_mantle   = 0.d0
-  endif
+  mfrac_mantle = tot2/tot
 
   ! ----------------------------------------------------------------------
   ! Create the size distribution
@@ -796,45 +785,51 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      e1(im,1:nlam)    = mat_e1(im,1:nlam)
      e2(im,1:nlam)    = mat_e2(im,1:nlam)
   enddo
-  if (i_mantle.gt.0) then
-     e1mantle(1:nlam) = mat_e1(i_mantle,1:nlam)
-     e2mantle(1:nlam) = mat_e2(i_mantle,1:nlam)
-     rho_mantle       = rho(i_mantle)
-  endif
 
   ! ----------------------------------------------------------------------
-  ! Turn the mass fractions into volume fractions and compute rho_core
+  ! Core: Turn mass fractions into volume fractions, compute rho_core
   ! ----------------------------------------------------------------------
   mtot = 0.d0
   vtot = 0.d0
-  do im = 1,nm
+  do im = 1,mat_nmc
      mtot = mtot + mfrac(im)
      vfrac(im) = mfrac(im)/rho(im)
      vtot      = vtot+vfrac(im)
   enddo
   rho_core  = mtot/vtot  ! No porosity included yet, will be done below
   ! Normalize the volume fractions of the core
-  vfrac(1:nm) = vfrac(1:nm)/vtot
+  vfrac(1:mat_nmc) = vfrac(1:mat_nmc)/vtot
+  if (p_c .gt. 0.d0) then
+     vfrac(1:mat_nmc) = vfrac(1:mat_nmc)*(1.0_dp-p_c)
+     rho_core         = rho_core        *(1.0_dp-p_c)
+  endif
 
   ! ----------------------------------------------------------------------
-  ! Add vacuum as an extra material, to model porosity
+  ! Mantle: Turn mass fractions into volume fractions, compute rho_mantle
   ! ----------------------------------------------------------------------
-  nm = nm+1
-  e1(nm,1:nlam)     = 1.0_dp
-  e2(nm,1:nlam)     = 0.0_dp
-  rho(nm)           = 0.0_dp
-  vfrac(nm)         = p_c
-  vfrac(1:nm-1)     = vfrac(1:nm-1)*(1.0_dp-p_c) ! renormalize to 1
-  rho_core          = rho_core * (1.d0-p_c)
+  if (mat_nmm .gt. 0) then
+     ! we do have mantle stuff
+     mtot = 0.d0
+     vtot = 0.d0
+     do im = mat_nmc+1,nm
+        mtot = mtot + mfrac(im)
+        vfrac(im) = mfrac(im)/rho(im)
+        vtot      = vtot+vfrac(im)
+     enddo
+     rho_mantle = mtot/vtot  ! No porosity included yet, will be done below
+     ! Normalize the volume fractions of the core
+     vfrac(mat_nmc+1:nm) = vfrac(mat_nmc+1:nm)/vtot
+     if (p_m .gt. 0.d0) then
+        vfrac(mat_nmc+1:nm) = vfrac(mat_nmc+1:nm)*(1.0_dp-p_m)
+        rho_mantle = rho_mantle *(1.0_dp-p_m)
+     endif
+  endif
 
   ! ----------------------------------------------------------------------
-  ! A this point, the core is properly normalized, including the
-  ! porosity. Note that the mantle is no longer in the normalization
-  ! mix at this point.
-  ! We now compute the average density.
+  ! Compute the average densities of the whole grain
   ! ----------------------------------------------------------------------
 
-  if (i_mantle.eq.0) then
+  if (mat_nmm.eq.0) then
      ! No mantle, rho is already correct
      rho_av = rho_core
   else
@@ -847,10 +842,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      !
      ! Given mfrac_m, rho_c, and rho_m, we solve for rho and vfrac_m
      !
-     if (p_m.gt.0d0) then
-        ! reduce the density of the mantle material because it is porous as well.
-        rho_mantle = rho_mantle * (1.d0-p_m)
-     endif
      rho_av        = rho_core / (1.d0 + mfrac_mantle*(rho_core/rho_mantle-1.d0))
      vfrac_mantle  = mfrac_mantle * rho_av / rho_mantle
   endif
@@ -861,31 +852,43 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
 
   ! Loop over wavelengths
   do il=1,nlam
-     if (nm0.eq.1 .and. p_c.eq.0) then
+     ! ----------------
+     ! Core
+     ! ----------------
+     if (nm.eq.1 .and. p_c.eq.0) then
         ! Solid core, single material, nothing to blend for the core
         e1blend(il) = e1(1,il)
         e2blend(il) = e2(1,il)
      else
         ! Blend the core materials
-        do im=1,nm
+        do im=1,mat_nmc
            e_in(im) = dcmplx(e1(im,il),e2(im,il))
         enddo
-        call Blender(vfrac,nm,e_in,e_out)
+        call Blender_vac(vfrac,mat_nmc,e_in,e_out)
         e1blend(il) = dreal(e_out)
         e2blend(il) = dimag(e_out)
      endif
-     if (i_mantle.gt.0) then
+     ! ----------------
+     ! Mantle
+     ! ----------------
+     if (mat_nmm.gt.0) then
         ! We do have a mantle to add
-        if (p_m.gt.0d0) then
-           ! The mantle is porous
-           vfm(1)   = 1.d0-p_m
-           vfm(2)   = p_m
-           e_in(1)  = dcmplx(e1mantle(il),e2mantle(il))
-           e_in(2)  = dcmplx(1.d0,0.d0)
-           call Blender(vfm,2,e_in,e_out)
+        if ( (mat_nmm.eq.1) .and. (p_m.eq.0) ) then
+           ! No Blending needed inside the mantle - just copy e1 and e2
+           ! Since it is onyl one material, we know it is index nm
+           e1mantle(il) = e1(nm,il)
+           e2mantle(il) = e2(nm,il)
+        else
+           ! Blend the mantle materials
+           do im=1,mat_nmm
+              e_in(im) = dcmplx(e1(im+mat_nmc,il),e2(im+mat_nmc,il))
+              vfm(im)  = vfrac(im+mat_nmc)
+           enddo
+           call Blender_vac(vfm,mat_nmm,e_in,e_out)
            e1mantle(il) = dreal(e_out)
            e2mantle(il) = dimag(e_out)
         endif
+
         ! Now we have the mantle material ready - put it on the core
         call Blender_MG(e1blend(il),e2blend(il),e1mantle(il),e2mantle(il), &
              vfrac_mantle,e1mg,e2mg)
@@ -893,11 +896,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         e2blend(il) = e2mg
      endif
   enddo ! end of wavelength loop over il
-
-  ! ----------------------------------------------------------------------
-  ! We are done with all the blending, so from now on we have ony one material
-  ! ----------------------------------------------------------------------
-  nm = 1
 
   ! ----------------------------------------------------------------------
   ! Write the derived n and k to a file
@@ -934,7 +932,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   ! Initialize mu
   ! ----------------------------------------------------------------------
   do j=1,nang/2
-     theta = (real(j)-0.5d0)/real(nang/2)*pi/2d0  ! FIXME check, is this right?
+     theta = (real(j)-0.5d0)/real(nang/2)*pi/2d0
      mu(j) = cos(theta)
   enddo
   
@@ -1146,7 +1144,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
      ! ----------------------------------------------------------------------
      ! A regular angular grid is assumed for this computation
      tot = 0.0_dp
-     p%g(ilam) = 0.d0  !FIXME we never did this, why did this not cause problems???
+     p%g(ilam) = 0.d0
      do i=1,nang
         p%g(ilam) = p%g(ilam) + p%F(ilam)%F11(i)*cos(pi*(real(i)-0.5d0)/dble(nang)) &
              *sin(pi*(real(i)-0.5d0)/dble(nang))
@@ -1206,6 +1204,52 @@ subroutine blender(abun,nm,e_in,e_out)
   endif
   e_out = me
 end subroutine blender
+
+subroutine Blender_vac(abun,nm,e_in,e_out)
+  ! ----------------------------------------------------------------------
+  ! Blend the materials using the Bruggeman rule.
+  ! If the abundances do not add up to 1.0, fill the rest with vacuum.
+  ! ----------------------------------------------------------------------
+  implicit none
+  integer, parameter :: dp = selected_real_kind(P=15)
+  integer            :: nm,j,iter
+  real (kind=dp)     :: abun(nm),abunvac
+  complex (kind=dp)  :: e_in(nm),e_out,mvac
+  complex (kind=dp)  :: mm,m(nm),me,tot
+
+  ! Compute the volume of vacuum, with sanity check
+  abunvac = 1.d0 - sum(abun(1:nm))
+  mvac = dcmplx(1d0,0d0)
+  if (abunvac .lt. 0.d0) then
+     if (abs(abunvac).lt.1d-5) then
+        ! Just a rounding error, fix it
+        abunvac = 0.d0
+     else
+        ! Abundances have not been normalized properly, this is bad
+        print *,"ERROR: Abundances not normalized in routine blender_vac"
+        print *,abun
+        print *,abunvac
+        stop
+     endif
+  endif
+
+  ! Do the blending iteratively
+  mm   = mvac
+  m    = e_in
+  do iter=1,100
+     tot = ((mvac**2-mm**2)/(mvac**2+2d0*mm**2))*abunvac
+     do j=1,nm
+        tot = tot + ((m(j)**2-mm**2)/(m(j)**2+2d0*mm**2))*abun(j)
+     enddo
+     me = (2d0*tot+1d0)/(1d0-tot)
+     me = mm*cdsqrt(me)
+     mm = me       
+  enddo
+  if ( abs(tot)/abs(mm).gt.1d-6 ) then
+     print *,'WARNING: Blender might not be converged (mm,tot)',mm,tot
+  endif
+  e_out = me
+end subroutine Blender_vac
 
 subroutine Blender_MG(e1in,e2in,e1in_m,e2in_m,vf_m,e1out,e2out)
   ! 2 component Maxwell-Garnet mixing
@@ -1404,7 +1448,6 @@ function arg_is_number(i)
   integer i,ic
   logical arg_is_number
   character*3 :: value
-  character*1 :: cc
   call getarg(i,value)
   arg_is_number = .false.
   ic = 1
@@ -1592,7 +1635,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
   real (kind=dp) :: lmin,lmax,f
   type(particle) :: p
   integer        :: na,i,ilam,iang,nm,i1,i2
-  real (kind=dp) :: mu1,mu2,dmu,theta1,theta2,tot,tot2,f0
+  real (kind=dp) :: mu1,mu2,dmu,theta1,theta2,tot
   real (kind=dp),allocatable :: f11(:)
   character*(*)  :: label
   character*(3)  :: ext

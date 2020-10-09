@@ -44,7 +44,7 @@ papers that published the refractive index measurements.
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
 - DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016, A&A 586, 103]]
 - Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
-- References to [[#builtin-materials][refractive index data]] used in your particular
+- References to refractive index data used in your particular
   application.
 
 * Examples
@@ -114,3 +114,15 @@ given in one of those files. Output to =blended.lnk=.
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
+* Important changes
+- Release 1.4 ::
+  - The restriction that there can be only one material in the mantle
+    (and, therefore, only one *-m* switch) has been dropped.  If there
+    are several mantle materials, these will be mixed using the
+    Bruggeman rule before the mantle is added to the grain.
+- Release 1.3 ::
+  - Improved extrapolation of refractive indices
+  - New python interface.  The interface is now a proper module that
+    greatly simplifies working with the output of optool.
+- Release 1.2 ::
+  - Internal and external testing of the code.
