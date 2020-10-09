@@ -690,7 +690,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   real (kind=dp), allocatable    :: e1(:,:),    e2(:,:)
   real (kind=dp), allocatable    :: e1blend(:), e2blend(:)
   real (kind=dp), allocatable    :: e1mantle(:),e2mantle(:)
-  real (kind=dp), allocatable    :: vfrac(:)
+  real (kind=dp), allocatable    :: vfrac(:),vfm(:)
   complex (kind=dp), allocatable :: e_in(:)
   complex (kind=dp)              :: m,min,e_out
 
@@ -709,7 +709,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   allocate(Mief34(nang),Mief44(nang))
   allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
 
-  allocate(vfrac(mn_max),mfrac(mn_max),rho(mn_max))
+  allocate(vfrac(mn_max),vfm(mn_max),mfrac(mn_max),rho(mn_max))
   allocate(e_in(mn_max))
   allocate(f11(nang),f12(nang),f22(nang))
   allocate(f33(nang),f34(nang),f44(nang))
@@ -878,11 +878,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
         ! We do have a mantle to add
         if (p_m.gt.0d0) then
            ! The mantle is porous
-           vfrac(1) = 1.d0-p_m
-           vfrac(2) = p_m
+           vfm(1)   = 1.d0-p_m
+           vfm(2)   = p_m
            e_in(1)  = dcmplx(e1mantle(il),e2mantle(il))
            e_in(2)  = dcmplx(1.d0,0.d0)
-           call Blender(vfrac,2,e_in,e_out)
+           call Blender(vfm,2,e_in,e_out)
            e1mantle(il) = dreal(e_out)
            e2mantle(il) = dimag(e_out)
         endif
@@ -1167,7 +1167,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm0,progress)
   deallocate(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)
   deallocate(mu,M1,M2,S21,D21)
 
-  deallocate(vfrac)
+  deallocate(vfrac,vfm)
   deallocate(e_in)
   deallocate(f11,f12,f22,f33,f34,f44)
 
