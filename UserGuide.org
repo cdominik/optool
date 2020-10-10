@@ -165,7 +165,7 @@ system.
   Like *-c*, but place this material into the grain mantle. Multiple
   mantle materials will be mixed using the Bruggeman rule, and than
   that mix will be added to the core using the /Maxwell-Garnett/ rule.
-  
+  The *-m* is /not/ optional, it must be present.
 + =-p POROSITY [P_MANTLE]= ::
 
   Porosity, the /volume/ fraction of vacuum, a number smaller than 1.
