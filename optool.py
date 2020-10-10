@@ -20,7 +20,7 @@ class lnktable:
         # Read the header/comment field
         header = ''
         dum = rfile.readline()
-        while dum.strip()[0]=='#':
+        while ((dum.strip()[0]=='#') or (dum.strip()[0]=='*') or (dum.strip()[0]=='!')):
             header = header + dum
             dum = rfile.readline()
         self.header = header
@@ -44,14 +44,30 @@ class lnktable:
             self.k[ilam]   = float(dum[2])
         rfile.close()
 
-    def write(file):
-        # Write the table to a file
-        print("Hello world")
-
-    def plot():
-        # Plot the optical properties
-        print("Hello world")
+    def plot(self):
+        plt.loglog(self.lam,self.n,label='n')
+        plt.loglog(self.lam,self.k,label='k')
+        plt.title(self.filename)
+        plt.xlabel(r"log $\lambda$ [$\mu$m]")
+        plt.ylabel(r'log $n$   &  log $k$')
+        plt.legend()
+        plt.show(block=False)
         
+    def write(self,file):
+        # Write the table to a file
+        try:
+            wfile = open(file, 'w')
+        except:
+            print('ERROR: Cannot write to file: ',file)
+            return -1
+        wfile.write(self.header)
+        wfile.write("  %d  %g\n" % (self.nlam,self.rho))
+        for i in range(self.nlam):
+            wfile.write("  %16.6e %16.6e %16.6e\n" % (self.lam[i],self.n[i],self.k[i]))
+            
+        wfile.close()
+
+
 class particle:
     def __init__(self,cmd,keep=False):
         self.cmd = cmd

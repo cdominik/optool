@@ -140,6 +140,12 @@ about swapping that material with the last material in the input list.
   be a KEY-or-FILE, for a material in the core.  A -c can be used, but
   it is not required.
 - To identify the mantle material, a -m must be given.
+** lnktable method
+*** What else would be niche to have?
+Bruggemann rule and interpolation to a different wavelength grid,
+mirroring the interpolation that we have in optool  This would be noce
+to prepare and check materials where different orientations need to be
+averaged.
 ** COMMENT Stuff that is parked
 
 # Blend the refractive indices of three orientations of a material and
