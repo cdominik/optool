@@ -41,6 +41,7 @@ module Defs
   logical, public                :: blendonly = .false. ! only blend materials and write result out
   logical, public                :: split     = .false. ! split to many files
   logical, public                :: quiet     = .false. ! reduce output to STDOUT
+  logical, public                :: justnum   = .false. ! Only give opacities on STDOUT 
   logical, public                :: debug     = .false. ! Additional infor to STDOUT
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
@@ -353,6 +354,9 @@ program optool
      case('-q')
         ! Be less noisy
         quiet = .true.
+     case ('-n')
+        quiet   = .true.
+        justnum = .true.
      case('-debug')
         ! More info to STDOUT
         debug = .true.
@@ -449,7 +453,9 @@ program optool
   ! ----------------------------------------------------------------------
   if (nm.eq.0) then
      ! Set default composition will set a default composition here, the DIANA opacities
-     write(*,'("No materials specified, using DIANA standard")')
+     if (.not. quiet) then
+        write(*,'("No materials specified, using DIANA standard")')
+     endif
      nm = 2
      mat_lnk(1) = 'pyr-mg70' ; mat_loc(1)  = 'core' ; mat_mfr(1)     = 0.87d0
      mat_lnk(2) = 'c-z'      ; mat_loc(2)  = 'core' ; mat_mfr(2)     = 0.1301d0
@@ -525,13 +531,14 @@ program optool
      if (mod(nsub,2).eq.0) nsub = nsub+1
      afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
-     ndone = 0; call tellertje(ndone,na)
+     ndone = 0; call tellertje(ndone,na,quiet)
      
      !$OMP parallel do if (split)                                      &
      !$OMP default(none)                                               &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
+     !$OMP shared(quiet)                                               &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
 
@@ -557,7 +564,7 @@ program optool
         ! Outout is done serially, to avoid file handle conflicts
         !$OMP critical
         ndone = ndone + 1
-        call tellertje(ndone,na)
+        call tellertje(ndone,na,quiet)
         write(label,'(I3.3)') ia
         if (write_fits) then
 #ifdef USE_FITSIO
@@ -604,9 +611,15 @@ program optool
 #endif
         continue
      else
-        call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
-             fmax,pcore,pmantle,mat_mfr,mat_nm, &
-             radmclbl,write_scatter,for_radmc,.true.)
+        if (justnum) then
+           do i=1,nlam
+              write(6,'(1p,5e12.3)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
+           enddo
+        else
+           call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
+                fmax,pcore,pmantle,mat_mfr,mat_nm, &
+                radmclbl,write_scatter,for_radmc,.true.)
+        endif
      endif
 
      ! Deallocate the particle structure
@@ -939,12 +952,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   ! ----------------------------------------------------------------------
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
-  ndone = 0; if (progress) call tellertje(ndone,nlam)
+  ndone = 0; if (progress) call tellertje(ndone,nlam,quiet)
   !$OMP parallel do if (.not. split)                                      &
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
   !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f) &
   !$OMP shared(split,progress,ndone,nang,chopangle)                       &
+  !$OMP shared(quiet)                                                     &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
@@ -1154,7 +1168,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
      
      !$OMP atomic
      ndone = ndone+1
-     if (progress) call tellertje(ndone,nlam)
+     if (progress) call tellertje(ndone,nlam,quiet)
 
   enddo   ! end loop ilam over wavelength
   !$OMP end parallel DO
@@ -1314,14 +1328,17 @@ function cdlog10(x)
   return
 end function cdlog10
 
-subroutine tellertje(i,n)
+subroutine tellertje(i,n,quiet)
   ! ----------------------------------------------------------------------
   ! Show a progress bar on STDOUT
   ! ----------------------------------------------------------------------
   implicit none
   integer :: i,n,f,l,ndots,maxdots=20,mindots=20
+  logical :: quiet
   ndots = max(mindots,min(n,maxdots))
-  if(i.eq.0) then
+  if (quiet) then
+     ! do nothong
+  else if(i.eq.0) then
      do l=1,ndots
         write(*,'(".",$)')
      enddo
