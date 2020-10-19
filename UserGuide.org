@@ -1,20 +1,13 @@
 
 #+TITLE:  OpTool User Guide
-#+AUTHOR: Carsten Dominik, based on work by Michiel Min
-#+DATE:   October 2020, version 1.4
+#+AUTHOR: Carsten Dominik, Michiel Min and Ryo Tazaki
+#+DATE:   December 2020, version 1.5
 
 * Introduction
 
-This tool allows to produce complex dust particle opacities right from
-the command line. It is derived[fn:1] from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]
-for the [[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program. =optool= adds a much more flexible command line
-interface, a curated list of built-in materials, easy access to external
-material properties, more output options, a Python interface, and
-significant speed gains.
-
-[fn:1] For another derivative of OpacityTool with a different set of
-applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]], the /Simple Icy Grain Model for
-Aggregates/, by Lefévre et al. (2020).
+This tool produces complex dust particle opacities right from the
+command line. It is derived from Michiel Min's DHS [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] and
+also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 
 
 ** Capabilities
@@ -27,24 +20,27 @@ Aggregates/, by Lefévre et al. (2020).
   RADMC-3D
 - combining materials through mixing into a complex grain with
   porosity
-- DHS method to model shape effects and low-porosity aggregates
 - a useful collection of compiled-in materials for standard applications
   in astronomy
 - an easy way to use external refractive index data for more
   specialized applications
+- Standard Mie solver for spherical grains
+- DHS (Distribution of Hollow Spheres) for shape effects and low-porosity aggregates
+- MMF (Modified Mean Field) method to model high-porosity and fractal
+  aggregates
 - =Python= interface module for easy postprocessing and cross-tool
   use.
-- multi-core support through OpenMP to make even complex computations
-  very fast
 
 ** Terms of use
 
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
-and redistributed freely.  The implemented physics is the same as in
-[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. The relevant references for this tool are:
+and redistributed freely. The relevant references for this tool are
+listed below.  Depending on which parts of =optool= you are using,
+please reference the corresponding papers.
 
 - =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
+- MMF model for aggregates: [[https://ui.adsabs.harvard.edu/abs/2018ApJ...860...79T][Tazaki & Tanaka 2018, ApJ 860, 79]]
 - DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016, A&A 586, 103]]
 - Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
 - References to [[#builtin-materials][refractive index data]] used in your particular
@@ -100,11 +96,12 @@ matrix, chopping 3 degrees from the scattering peak.
 
 : optool -na 42 -d -s -radmc -chop 3
 
-Use the Bruggeman rule to blend refractive index data of three
-orientations of a crystaline material, using the wavelength grid
-given in one of those files. Output to =blended.lnk=.
+Use MMF to compute the opacities of dust aggregates made of pyroxene
+monomers.  Use a monomer radius of 2.5 microns to construct aggregates
+with radii of gyration in the range between 1 and 3 cm, and a filling
+factor of 5% (i.e. a porosity of 0.95)
 
-: optool -b gra_x.lnk 0.33 gra_y.lnk 0.33 gra_z.lnk 0.33 -l gra_x.lnk
+: optool pyr  -a 1e4 3e4  -mmf 2.5  -p 0.95 
 
 #+LATEX: \clearpage
 * Compiling =optool=
@@ -141,7 +138,7 @@ system.
 
 + =-h=   :: Show a compact help message about command line options.
 
-** Grain composition and geometry
+** Grain composition
 :PROPERTIES:
 :CUSTOM_ID: composition
 :END:
@@ -166,18 +163,45 @@ system.
   mantle materials will be mixed using the Bruggeman rule, and than
   that mix will be added to the core using the /Maxwell-Garnett/ rule.
   The *-m* is /not/ optional, it must be present.
+
+
+** Grain geometry
+
 + =-p POROSITY [P_MANTLE]= ::
 
   Porosity, the /volume/ fraction of vacuum, a number smaller than 1.
   The default is 0.  A single value will apply to both core and
   mantle, but a second value will be specific for the mantle (and may
   be 0).
-  
-+ =-fmax VHMAX= ::
 
-  Maximum /volume/ fraction of the inner hole for the DHS approach.
-  The default is 0.8.  Zero means to use solid spheres, i.e. perfectly
-  regular grains.
++ =-dhs [FMAX]= ::
+
+  Use the /Distribution of Hollow Spheres/ (DHS, Min 2005) approach to
+  model deviations from prefect sphericity and low-porosity
+  aggregates.  *This is the default method*.  Spheres with inner holes
+  with volume fractions between 0 and f_max (default 0.8) are
+  averaged.  f_max=0 means to use solid spheres (Mie theory),
+  i.e. perfectly regular grains.
+
++ =-fmax FMAX= :: Alternative way to set f_max, since DHS is the
+  default method. 
+
++ =-mmf [AMONO]= ::
+
+  Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute the
+  opacities of highly porous or fractal aggregates.  Particles will
+  then be aggregates with the characteristic radius given by the *-a*
+  switch.  The volume filling factor $f=1-p$ is specified through the
+  /porosity/ (*-p*), and a fractal dimension will be chosen
+  appropriately. a_mono is the monomer radius, with default 1\mu{}m.
+  Monomers will have the composition given by the *-c* and *-m*
+  switches. For details, see the [[#internals][appendix]].
+
++ =-mie= ::
+
+  Do a standard Mie calculation.  This is equivalent to *-fmax 0* or
+  *-dhs 0*.
+
 
 ** Grain size distribution
 + =-a AMIN [AMAX [APOW [NA]]]= ::
@@ -254,11 +278,6 @@ extend the [[#output-files][output]].
   [[#normalization][scattering matrix]], so the output has to be adapted for it.  The
   extension of the files will be changed to =.inp=, and if you specify
   =LABEL=, it will be used in the file name(s).
-
-+ =-b= ::
-
-  Only write the refractive index data resulting from the mixing process to
-  =blended.lnk=.
 
 
 * Material properties
@@ -480,9 +499,6 @@ whitespace, or, for example if the path to the binary contains
 whitespace, in list form =['/path/to my/command','arg1','arg2',...]=.
 
 * Acknowledgments
-- [[http://michielmin.nl/][Michiel Min]] for the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][DIANA OpacityTool]] and all the incredible work
-  that went into it. =optool= is a direct derivative of that tool and
-  reuses almost all of its code.
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a grain mantle
   using the Maxwell Garnett rule.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
@@ -599,6 +615,9 @@ set the porosity to zero, with these command line options: =-fmax 0 -p
 0=
 
 ** Internals
+:PROPERTIES:
+:CUSTOM_ID: internals
+:END:
 This appendix describes some key aspects of the internal workings of
 the code.
 
@@ -633,6 +652,8 @@ the code.
   (reference missing), for a fixed size parameter of 5000, with proper
   scaling to the actual size of the particle.
 
+- MMF ::  FIXME: Document here the details of MMF 
+  
 - Computational Structure :: The computation of opacities and matrix
   elements follows this structure.  Additional information can be
   obtained by reading the code.
@@ -662,6 +683,8 @@ the code.
 - Mishchenko, M. et al. 2002, /Scattering, absorption, and emission of
   light by small particles/, Cambridge University Press 
 - Mutschke, H. et al. 2004, A&A 423, 983
+- Tazaki, R. et al. 2016, ApJ 823, 70
+- Tazaki, R. & Tanaka, H. 2018, ApJ 860,79
 - Toon, O. & Ackerman,T. 1981, Applied Optics 20, 3657
 - Woitke, P.; Min, M. et al. 2016, A&A 586, 103
 - Preibisch, Th. et al. 1993, A&A 279, 577
