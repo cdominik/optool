@@ -681,7 +681,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   integer                        :: err,spheres,toolarge ! Error control for Mie routines
 
   real (kind=dp)                 :: cext, csca, cabs
-  real (kind=dp)                 :: cext_ff, csca_ff, cabs_ff
   real (kind=dp)                 :: qext, qsca, qabs, gqsc
 
   real (kind=dp), allocatable    :: f11(:),    f12(:),    f22(:),    f33(:),    f34(:),    f44(:)
@@ -962,7 +961,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
-  !$OMP private(cext_ff,cabs_ff,csca_ff,err,spheres,toolarge)             &
+  !$OMP private(err,spheres,toolarge)                                     &
   !$OMP private(m1,m2,d21,s21,m,wvno,min)                                 &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)
@@ -989,7 +988,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
         ! ----------------------------------------------------------------------
         ! Start the loop over the DHS f factors
         ! ----------------------------------------------------------------------
-        cext_ff = 0.d0; cabs_ff = 0.d0; csca_ff = 0.d0
         min = dcmplx(1d0,0d0)
         do if=1,nf
            rad  = r1 / (1d0-f(if))**(1d0/3d0)
@@ -1077,17 +1075,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
               f34(j) = f34(j) + wf(if)*nr(is)*Mief34(j)*csmie
               f44(j) = f44(j) + wf(if)*nr(is)*Mief44(j)*csmie
            enddo
-           cext_ff = cext_ff + wf(if)*nr(is)*cemie
-           csca_ff = csca_ff + wf(if)*nr(is)*csmie
-           cabs_ff = cabs_ff + wf(if)*nr(is)*(cemie-csmie)
+           cext = cext + wf(if)*nr(is)*cemie
+           csca = csca + wf(if)*nr(is)*csmie
+           cabs = cabs + wf(if)*nr(is)*(cemie-csmie)
            mass = mass + wf(if)*nr(is)*rho_av*4d0*pi*r1**3/3d0
            vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
         enddo    ! end loop "nf" over form factors
-
-        ! Add the contribution of the current grains size to the overall sum
-        cext = cext + cext_ff
-        cabs = cabs + cabs_ff
-        csca = csca + csca_ff
 
      enddo   ! end loop "is" over grain sizes
 
