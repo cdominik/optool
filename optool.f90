@@ -612,9 +612,7 @@ program optool
         continue
      else
         if (justnum) then
-           do i=1,nlam
-              write(6,'(1p,5e12.3)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
-           enddo
+           call write_to_sdtout(p)
         else
            call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
                 fmax,pcore,pmantle,mat_mfr,mat_nm, &
@@ -1590,6 +1588,20 @@ end subroutine read_lambda_grid
 
 
 !!! **** Routines to write output files
+
+subroutine write_to_sdtout(p)
+  ! ----------------------------------------------------------------------
+  ! Just write the most important numbers to STDOUT
+  ! Each line has lambda kabs ksca kext g
+  ! ----------------------------------------------------------------------
+  use Defs
+  implicit none
+  type(particle) :: p
+  integer i
+  do i=1,nlam
+     write(6,'(1p,5e12.3)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
+  enddo
+end subroutine write_to_sdtout
 
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
      pcore,pmantle,rho_av,fmax,mfrac,nm)
