@@ -84,7 +84,9 @@ module Defs
   ! ----------------------------------------------------------------------
   ! The output directory
   ! ----------------------------------------------------------------------
-  character*500                  :: outdir = ''    ! Output directory 
+  character*500                  :: outdir = ''    ! Output directory
+  character*3                    :: method         ! DHS or MMF
+
 end module Defs
 
 !!! **** Main program and ComputePart
@@ -133,6 +135,10 @@ program optool
 
   real (kind=dp), allocatable :: e1d(:),e2d(:)
 
+  ! MMF implementation
+  real(kind=dp)   :: mmf_a0
+  
+
   ! ----------------------------------------------------------------------
   ! Defaults values for parameters and switches
   ! ----------------------------------------------------------------------
@@ -155,6 +161,8 @@ program optool
   nm             = 0          ! number of materials - zero to start with
   nmant          = 0          ! number of mantle materials - zero to start with
 
+  method         = 'DHS'      ! method to compute the opacities
+  
   write_fits     = .false.    ! Default is to write ASCII output
   write_scatter  = .false.    ! Default is to not write scattering matrix
   write_mean_kap = .false.    ! Default is to not compute mean kappas
@@ -302,7 +310,7 @@ program optool
         i = i+1; call getarg(i,value); read(value,*) nlam
 
         ! ----------------------------------------------------------------------
-        ! Grain geometry
+        ! Grain geometry, including method DHS versus MMF
         ! ----------------------------------------------------------------------
      case('-p','-porosity','--porosity')
         i = i+1;  call getarg(i,value); read(value,*) pcore
@@ -311,11 +319,22 @@ program optool
         else
            pmantle = pcore
         endif
-     case('-fmax')
-        i = i+1; call getarg(i,value); read(value,*) fmax
-
-     case('-fits')
-        write_fits = .true.
+     case('-dhs','-fmax','-mie')
+        method = 'DHS'
+        if (tmp.eq.'-mie') then
+           fmax = 0.
+        else if (arg_is_number(i+1)) then
+           i = i+1; call getarg(i,value); read(value,*) fmax
+        else
+           fmax = 0.8
+        endif
+     case('-mmf')
+        method = 'MMF'
+        if (arg_is_number(i+1)) then
+           i=i+1; call getarg(i,value); read(value,*) mmf_a0
+        else
+           mmf_a0 = 1d0
+        endif
 
         ! ----------------------------------------------------------------------
         ! Various other switches
@@ -343,6 +362,8 @@ program optool
            i=i+1
            call getarg(i,radmclbl)
         endif
+     case('-fits')
+        write_fits = .true.
      case('-d')
         split = .true.
         if (arg_is_value(i+1)) then
@@ -712,12 +733,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   complex (kind=dp), allocatable :: e_in(:)
   complex (kind=dp)              :: m,min,e_out
 
-  character (len=3)              :: meth   ! Method for computing opacities
 
   integer ichop
   
   ns     = na    ! number of subgrains to compute
-  meth   = 'DHS' !
 
   ! ----------------------------------------------------------------------
   ! Allocate the necessary arrays
@@ -955,7 +974,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   !$OMP parallel do if (.not. split)                                      &
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
-  !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,meth,nf,ns,rho_av,wf,f) &
+  !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method,nf,ns,rho_av,wf,f) &
   !$OMP shared(split,progress,ndone,nang,chopangle)                       &
   !$OMP shared(quiet)                                                     &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
@@ -985,102 +1004,112 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
         err      = 0
         spheres  = 0
         toolarge = 0
+        cext_ff = 0.d0; cabs_ff = 0.d0; csca_ff = 0.d0
         ! ----------------------------------------------------------------------
         ! Start the loop over the DHS f factors
         ! ----------------------------------------------------------------------
-        min = dcmplx(1d0,0d0)
-        do if=1,nf
-           rad  = r1 / (1d0-f(if))**(1d0/3d0)
-           m    = dcmplx(e1blend(ilam),-e2blend(ilam))
-           wvno = 2d0*pi / lam(ilam)
-
-           if (f(if) .eq. 0d0) then
-              ! solid sphere
-              spheres = 1
-           else if (r1*wvno.gt.10000d0) then
-              ! Sphere is too large
-              toolarge = 1
-           else if (meth(1:3) .eq. 'DHS') then
-              rcore = rad*f(if)**(1d0/3d0)
-              call DMiLay(rcore, rad, wvno, m, min, mu, &
-                   nang/2, qext, qsca, qabs, gqsc, &
-                   m1, m2, s21, d21, nang ,err)
-           else
-              rcore = rad*0.999d0
-              call DMiLay(rcore, rad, wvno, min, m, mu, &
-                   nang/2, qext, qsca, qabs, gqsc, &
-                   m1, m2, s21, d21, nang ,err)
-           endif
-           if (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1) then
-              rad   = r1
-              rcore = rad
-              rmie  = rad
-              lmie  = lam(ilam)
-              e1mie = e1blend(ilam)
-              e2mie = e2blend(ilam)
-              if (err.eq.1 .or. if.eq.1) then
-                 if (rmie/lmie.lt.5000d0) then
-                    call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
-                         Mief11,Mief12,Mief33,Mief34,nang)
-                 else
-                    call MeerhoffMie(rmie,rmie/5000d0,e1mie,e2mie,csmie,cemie, &
-                         Mief11,Mief12,Mief33,Mief34,nang)
-                 endif
+        if (method .eq. 'DHS') then
+           min = dcmplx(1d0,0d0)
+           do if=1,nf
+              rad  = r1 / (1d0-f(if))**(1d0/3d0)
+              m    = dcmplx(e1blend(ilam),-e2blend(ilam))
+              wvno = 2d0*pi / lam(ilam)
+              
+              if (f(if) .eq. 0d0) then
+                 ! solid sphere
+                 spheres = 1
+              else if (r1*wvno.gt.10000d0) then
+                 ! Sphere is too large
+                 toolarge = 1
+              else if (method(1:3) .eq. 'DHS') then 
+                 rcore = rad*f(if)**(1d0/3d0)
+                 call DMiLay(rcore, rad, wvno, m, min, mu, &
+                      nang/2, qext, qsca, qabs, gqsc, &
+                      m1, m2, s21, d21, nang ,err)
+              else
+                 rcore = rad*0.999d0
+                 call DMiLay(rcore, rad, wvno, min, m, mu, &
+                      nang/2, qext, qsca, qabs, gqsc, &
+                      m1, m2, s21, d21, nang ,err)
               endif
-
-              Mief22 = Mief11
-              Mief44 = Mief33
-
-           else
-              cemie = qext * pi * rad**2
-              csmie = qsca * pi * rad**2
-              do j=1,nang/2
-                 Mief11(j) = (M2(j,1) + M1(j,1))        / csmie/wvno**2*2d0*pi
-                 Mief12(j) = (M2(j,1) - M1(j,1))        / csmie/wvno**2*2d0*pi
-                 Mief22(j) = (M2(j,1) + M1(j,1))        / csmie/wvno**2*2d0*pi
-                 Mief33(j) = (S21(j,1))                 / csmie/wvno**2*2d0*pi
-                 Mief34(j) = (-D21(j,1))                / csmie/wvno**2*2d0*pi
-                 Mief44(j) = (S21(j,1))                 / csmie/wvno**2*2d0*pi
-                 ! Here we use the assumption that the grid is regular.  An adapted
-                 ! grid is not possible if it is not symmetric around pi/2.
-                 Mief11(nang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
-                 Mief12(nang-j+1) = (M2(j,2) - M1(j,2)) / csmie/wvno**2*2d0*pi
-                 Mief22(nang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
-                 Mief33(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
-                 Mief34(nang-j+1) = (-D21(j,2))         / csmie/wvno**2*2d0*pi
-                 Mief44(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
+              if (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1) then
+                 rad   = r1
+                 rcore = rad
+                 rmie  = rad
+                 lmie  = lam(ilam)
+                 e1mie = e1blend(ilam)
+                 e2mie = e2blend(ilam)
+                 if (err.eq.1 .or. if.eq.1) then
+                    if (rmie/lmie.lt.5000d0) then
+                       call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
+                            Mief11,Mief12,Mief33,Mief34,nang)
+                    else
+                       call MeerhoffMie(rmie,rmie/5000d0,e1mie,e2mie,csmie,cemie, &
+                            Mief11,Mief12,Mief33,Mief34,nang)
+                    endif
+                 endif
+                 
+                 Mief22 = Mief11
+                 Mief44 = Mief33
+                 
+              else
+                 cemie = qext * pi * rad**2
+                 csmie = qsca * pi * rad**2
+                 do j=1,nang/2
+                    Mief11(j) = (M2(j,1) + M1(j,1))        / csmie/wvno**2*2d0*pi
+                    Mief12(j) = (M2(j,1) - M1(j,1))        / csmie/wvno**2*2d0*pi
+                    Mief22(j) = (M2(j,1) + M1(j,1))        / csmie/wvno**2*2d0*pi
+                    Mief33(j) = (S21(j,1))                 / csmie/wvno**2*2d0*pi
+                    Mief34(j) = (-D21(j,1))                / csmie/wvno**2*2d0*pi
+                    Mief44(j) = (S21(j,1))                 / csmie/wvno**2*2d0*pi
+                    ! Here we use the assumption that the grid is regular.  An adapted
+                    ! grid is not possible if it is not symmetric around pi/2.
+                    Mief11(nang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
+                    Mief12(nang-j+1) = (M2(j,2) - M1(j,2)) / csmie/wvno**2*2d0*pi
+                    Mief22(nang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
+                    Mief33(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
+                    Mief34(nang-j+1) = (-D21(j,2))         / csmie/wvno**2*2d0*pi
+                    Mief44(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
+                 enddo
+              endif    ! (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1)
+              
+              ! make sure the scattering matrix is properly normalized by adjusting the forward peak.
+              ! ASKMICHIEL: You are only adjusting the one point a 0 degrees.
+              ! So that means that the basic normalization is already in place at this point,
+              ! and you just want to be sure that things are right on your specific grid?
+              tot  = 0d0
+              tot2 = 0d0
+              do j=1,nang
+                 ! This integration assumes that the grid is regular (linear)
+                 tot  = tot +  Mief11(j)*sin(pi*(real(j)-0.5d0)/real(nang))
+                 tot2 = tot2 + sin(pi*(real(j)-0.5d0)/real(nang))
               enddo
-           endif    ! (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1)
-
-           ! make sure the scattering matrix is properly normalized by adjusting the forward peak.
-           ! ASKMICHIEL: You are only adjusting the one point a 0 degrees.
-           ! So that means that the basic normalization is already in place at this point,
-           ! and you just want to be sure that things are right on your specific grid?
-           tot  = 0d0
-           tot2 = 0d0
-           do j=1,nang
-              ! This integration assumes that the grid is regular (linear)
-              tot  = tot +  Mief11(j)*sin(pi*(real(j)-0.5d0)/real(nang))
-              tot2 = tot2 + sin(pi*(real(j)-0.5d0)/real(nang))
-           enddo
-           Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5d0)/real(nang))
-           if (Mief11(1) .lt. 0d0) Mief11(1) = 0d0
-
-           ! Add this contribution with the proper weights
-           do j=1,nang
-              f11(j) = f11(j) + wf(if)*nr(is)*Mief11(j)*csmie
-              f12(j) = f12(j) + wf(if)*nr(is)*Mief12(j)*csmie
-              f22(j) = f22(j) + wf(if)*nr(is)*Mief22(j)*csmie
-              f33(j) = f33(j) + wf(if)*nr(is)*Mief33(j)*csmie
-              f34(j) = f34(j) + wf(if)*nr(is)*Mief34(j)*csmie
-              f44(j) = f44(j) + wf(if)*nr(is)*Mief44(j)*csmie
-           enddo
-           cext = cext + wf(if)*nr(is)*cemie
-           csca = csca + wf(if)*nr(is)*csmie
-           cabs = cabs + wf(if)*nr(is)*(cemie-csmie)
-           mass = mass + wf(if)*nr(is)*rho_av*4d0*pi*r1**3/3d0
-           vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
-        enddo    ! end loop "nf" over form factors
+              Mief11(1) = Mief11(1) + (tot2-tot)/sin(pi*(0.5d0)/real(nang))
+              if (Mief11(1) .lt. 0d0) Mief11(1) = 0d0
+              
+              ! Add this contribution with the proper weights
+              do j=1,nang
+                 f11(j) = f11(j) + wf(if)*nr(is)*Mief11(j)*csmie
+                 f12(j) = f12(j) + wf(if)*nr(is)*Mief12(j)*csmie
+                 f22(j) = f22(j) + wf(if)*nr(is)*Mief22(j)*csmie
+                 f33(j) = f33(j) + wf(if)*nr(is)*Mief33(j)*csmie
+                 f34(j) = f34(j) + wf(if)*nr(is)*Mief34(j)*csmie
+                 f44(j) = f44(j) + wf(if)*nr(is)*Mief44(j)*csmie
+              enddo
+              cext = cext + wf(if)*nr(is)*cemie
+              csca = csca + wf(if)*nr(is)*csmie
+              cabs = cabs + wf(if)*nr(is)*(cemie-csmie)
+              mass = mass + wf(if)*nr(is)*rho_av*4d0*pi*r1**3/3d0
+              vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
+           enddo    ! end loop "nf" over form factors
+        else if (method .eq. 'MMF') then
+           !! FIXME: Here we do the MMF magic
+           !! We need to fill cext, csca, cabs, mass,vol,f11 ... f44
+           !! Make use of nr(is), to be sure
+           !! Use equations to compute d_f and k0 from a and p
+        else
+           print *,"ERROR: invalid method ", method
+        endif
 
      enddo   ! end loop "is" over grain sizes
 

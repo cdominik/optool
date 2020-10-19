@@ -115,6 +115,10 @@ given in one of those files. Output to =blended.lnk=.
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
+- Release 1.5 ::
+  - An implementation of the Modified Mean Field Theory (MMF, Tazaki &
+    Tanaka 2018) to treat opacities of very porous or fractal
+    aggregates has been added.
 - Release 1.4 ::
   - The restriction that there can be only one material in the mantle
     (and, therefore, only one *-m* switch) has been dropped.  If there
