@@ -1002,6 +1002,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
         err      = 0
         spheres  = 0
         toolarge = 0
+        cext_ff = 0.d0; cabs_ff = 0.d0; csca_ff = 0.d0
         ! ----------------------------------------------------------------------
         ! Start the loop over the DHS f factors
         ! ----------------------------------------------------------------------
