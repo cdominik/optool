@@ -55,7 +55,7 @@ LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
 LIBS    = $(LIBS_FITS)
 
 # Object files to link
-OBJS	= optool.o optool_guts.o optool_manual.o ref_ind.o
+OBJS	= optool.o optool_guts.o optool_manual.o ref_ind.o optool_mmf.o optool_guts2.o
 
 # Program name and install location
 PROGRAM       = optool
