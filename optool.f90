@@ -731,6 +731,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   complex (kind=dp), allocatable :: e_in(:)
   complex (kind=dp)              :: m,min,e_out
 
+  ! MMF variables
+  real (kind=dp)                 :: mmf_a0
+  integer                        :: mmf_iqsca,mmf_iqcor,mmf_nang
+  real (kind=dp)                 :: mmf_lmd,mmf_R0,mmf_PN,mmf_DF,mmf_k0
+  real (kind=dp)                 :: mmf_Cext,mmf_Csca,mmf_Cabsp,mmf_Gsca
+  complex(kind=dp)               :: mmf_ref
+  real (kind=dp), allocatable    :: mmf_Smat(:,:)
 
   integer ichop
   
@@ -743,6 +750,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   allocate(Mief34(nang),Mief44(nang))
   allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
 
+  allocate(mmf_Smat(1:4,1:nang+1)) ! FIXME: Check if we did this right, needs to be 181!
+  
   allocate(vfrac(nm),vfm(nm),mfrac(nm),rho(nm))
   allocate(e_in(nm))
   allocate(f11(nang),f12(nang),f22(nang))
@@ -981,7 +990,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   !$OMP private(err,spheres,toolarge)                                     &
   !$OMP private(m1,m2,d21,s21,m,wvno,min)                                 &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
-  !$OMP private(tot,tot2)
+  !$OMP private(tot,tot2)                                                 &
+  !$OMP shared(mmf_a0)                                                    &
+  !$OMP private(mmf_iqsca,mmf_iqcor,mmf_nang)                             &
+  !$OMP private(mmf_lmd,mmf_R0,mmf_PN,mmf_DF,mmf_k0)                      &
+  !$OMP private(mmf_Cext,mmf_Csca,mmf_Cabsp,mmf_Gsca)                     &
+  !$OMP private(mmf_ref,mmf_Smat)
+  
   do ilam = 1,nlam
 
      ! ----------------------------------------------------------------------
@@ -1104,6 +1119,21 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
            !! We need to fill cext, csca, cabs, mass,vol,f11 ... f44
            !! Make use of nr(is), to be sure
            !! Use equations to compute d_f and k0 from a and p
+
+           mmf_iqsca = 3
+           mmf_iqcor = 1
+           mmf_lmd   = lam(ilam)    ! also in um, great.
+           mmf_R0    = mmf_a0
+           mmf_PN    = 1024
+           mmf_DF    = 1.9d0
+           mmf_k0    = 1.03
+           mmf_ref   = dcmplx(e1blend(ilam),-e2blend(ilam))
+
+           mmf_nang  = int(nang/2)+1      ! FIXME: internally, Ryo used only half
+
+           call meanscatt(mmf_lmd,mmf_R0,mmf_PN,mmf_Df,mmf_k0,mmf_ref,mmf_iqsca,mmf_iqcor,mmf_nang,&
+                mmf_Cext,mmf_Csca,mmf_Cabsp,mmf_Gsca,mmf_Smat)
+           
         else
            print *,"ERROR: invalid method ", method
         endif
