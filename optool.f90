@@ -559,7 +559,7 @@ program optool
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
-     !$OMP shared(quiet)                                               &
+     !$OMP shared(quiet,mmf_a0)                                        &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
 
@@ -580,7 +580,7 @@ program optool
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,pcore,pmantle, &
-             mat_mfr,mat_nm,.false.)
+             mat_mfr,mat_nm,mmf_a0,.false.)
 
         ! Outout is done serially, to avoid file handle conflicts
         !$OMP critical
@@ -620,7 +620,7 @@ program optool
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
-     call ComputePart(p,amin,amax,apow,na,fmax,pcore,pmantle,mat_mfr,nm,.true.)
+     call ComputePart(p,amin,amax,apow,na,fmax,pcore,pmantle,mat_mfr,nm,mmf_a0,.true.)
      
      ! ----------------------------------------------------------------------
      ! Write the output
@@ -653,7 +653,7 @@ end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
 
-subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
+subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progress)
   ! ----------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
   !
@@ -733,11 +733,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
 
   ! MMF variables
   real (kind=dp)                 :: mmf_a0
-  integer                        :: mmf_iqsca,mmf_iqcor,mmf_nang
-  real (kind=dp)                 :: mmf_lmd,mmf_R0,mmf_PN,mmf_DF,mmf_k0
-  real (kind=dp)                 :: mmf_Cext,mmf_Csca,mmf_Cabsp,mmf_Gsca
-  complex(kind=dp)               :: mmf_ref
-  real (kind=dp), allocatable    :: mmf_Smat(:,:)
+  integer                        :: iqsca,iqcor,nang2
+  real (kind=dp)                 :: m_mono,m_agg,nmono,Dfrac,k0frac
+  real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
+  real (kind=dp), allocatable    :: Smat_mmf(:,:)
 
   integer ichop
   
@@ -750,7 +749,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   allocate(Mief34(nang),Mief44(nang))
   allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
 
-  allocate(mmf_Smat(1:4,1:nang+1)) ! FIXME: Check if we did this right, needs to be 181!
+  allocate(Smat_mmf(1:4,1:nang+1)) ! FIXME: Check if we did this right, needs to be 181!
   
   allocate(vfrac(nm),vfm(nm),mfrac(nm),rho(nm))
   allocate(e_in(nm))
@@ -981,7 +980,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   !$OMP parallel do if (.not. split)                                      &
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
-  !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method,nf,ns,rho_av,wf,f) &
+  !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method,nf,ns,p_c,rho_av,wf,f) &
   !$OMP shared(split,progress,ndone,nang,chopangle)                       &
   !$OMP shared(quiet)                                                     &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
@@ -992,10 +991,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
   !$OMP shared(mmf_a0)                                                    &
-  !$OMP private(mmf_iqsca,mmf_iqcor,mmf_nang)                             &
-  !$OMP private(mmf_lmd,mmf_R0,mmf_PN,mmf_DF,mmf_k0)                      &
-  !$OMP private(mmf_Cext,mmf_Csca,mmf_Cabsp,mmf_Gsca)                     &
-  !$OMP private(mmf_ref,mmf_Smat)
+  !$OMP private(iqsca,iqcor,nang2)                             &
+  !$OMP private(m_mono,m_agg,nmono,Dfrac,k0frac)                      &
+  !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)              &
+  !$OMP private(Smat_mmf)
   
   do ilam = 1,nlam
 
@@ -1115,25 +1114,41 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
               vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
            enddo    ! end loop "nf" over form factors
         else if (method .eq. 'MMF') then
-           !! FIXME: Here we do the MMF magic
-           !! We need to fill cext, csca, cabs, mass,vol,f11 ... f44
-           !! Make use of nr(is), to be sure
-           !! Use equations to compute d_f and k0 from a and p
 
-           mmf_iqsca = 3
-           mmf_iqcor = 1
-           mmf_lmd   = lam(ilam)    ! also in um, great.
-           mmf_R0    = mmf_a0
-           mmf_PN    = 1024
-           mmf_DF    = 1.9d0
-           mmf_k0    = 1.03
-           mmf_ref   = dcmplx(e1blend(ilam),-e2blend(ilam))
-
-           mmf_nang  = int(nang/2)+1      ! FIXME: internally, Ryo used only half
-
-           call meanscatt(mmf_lmd,mmf_R0,mmf_PN,mmf_Df,mmf_k0,mmf_ref,mmf_iqsca,mmf_iqcor,mmf_nang,&
-                mmf_Cext,mmf_Csca,mmf_Cabsp,mmf_Gsca,mmf_Smat)
+           ! The following computation uses Ryo's memo to derive Df and k0
+           ! from the number of monomets and the fillingfactor f = 1-p
+           m_mono = 4.*pi/3. * mmf_a0**3 * rho_av
+           m_agg  = 4.*pi/3. * r1**3     * rho_av * p_c
+           nmono  = m_agg / m_mono
+           Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c))
+           k0frac = (5.d0/3.d0)**(Dfrac/2.)
+           print *,"Using r1,N,D,k = ",r1,nmono,Dfrac,k0frac
            
+           iqsca  = 3            ! Selects MMF instead of MF or RGD
+           iqcor  = 1            ! Gaussian cutoff of aggregate
+           m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! FIXME: What is right???? -e2, or +e2?????
+           nang2  = int(nang/2)+1 ! FIXME: As a parameter, Ryo needs 91, but he returns the full 181 matrix
+
+           call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
+                cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
+           
+           ! F = 4 * pi * S / (k^2*Csca)
+           factor = 4.d0*pi / wvno**2 / csca_mmf
+           do j=1,nang
+              f11(j) = f11(j) + nr(is)*Smat_mmf(1,j) * factor
+              f12(j) = f12(j) + nr(is)*Smat_mmf(2,j) * factor
+              f22(j) = f22(j) + nr(is)*Smat_mmf(1,j) * factor ! F22 = F11
+              f33(j) = f33(j) + nr(is)*Smat_mmf(3,j) * factor
+              f34(j) = f34(j) + nr(is)*Smat_mmf(4,j) * factor
+              f44(j) = f44(j) + nr(is)*Smat_mmf(3,j) * factor ! F44 = F33
+           enddo
+           ! FIXME: need rhoav and r1 here, need to check these parts.
+           ! Rho_av should comr froma as r_charac and the filling factor.
+           cext = cext + nr(is) * cext_mmf
+           csca = csca + nr(is) * csca_mmf
+           cabs = cabs + nr(is) * cabs_mmf
+           mass = mass + nr(is) * rho_av *4d0*pi*r1**3/3d0
+           vol  = vol  + nr(is) *         4d0*pi*r1**3/3d0
         else
            print *,"ERROR: invalid method ", method
         endif
@@ -1143,7 +1158,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
      ! ----------------------------------------------------------------------
      ! Set the cross sections
      ! ----------------------------------------------------------------------
-     if (ilam .eq.1) p%rho  = mass/vol
+     if (ilam .eq.1) p%rho  = mass/vol  ! FIXME: Is this correct with the aggretages?
      p%Kext(ilam) = 1d4 * cext / mass
      p%Kabs(ilam) = 1d4 * cabs / mass
      p%Ksca(ilam) = 1d4 * csca / mass
@@ -1227,7 +1242,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,progress)
 
   deallocate(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)
   deallocate(mu,M1,M2,S21,D21)
-
+  deallocate(Smat_mmf)
+  
   deallocate(vfrac,vfm)
   deallocate(e_in)
   deallocate(f11,f12,f22,f33,f34,f44)
