@@ -734,7 +734,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   ! MMF variables
   real (kind=dp)                 :: mmf_a0
   integer                        :: iqsca,iqcor,nang2
-  real (kind=dp)                 :: m_mono,m_agg,nmono,Dfrac,k0frac
+  real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,k0frac
   real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
   real (kind=dp), allocatable    :: Smat_mmf(:,:)
 
@@ -749,6 +749,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   allocate(Mief34(nang),Mief44(nang))
   allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
 
+  print *,'allocating ',nang+1
   allocate(Smat_mmf(1:4,1:nang+1)) ! FIXME: Check if we did this right, needs to be 181!
   
   allocate(vfrac(nm),vfm(nm),mfrac(nm),rho(nm))
@@ -992,12 +993,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   !$OMP private(tot,tot2)                                                 &
   !$OMP shared(mmf_a0)                                                    &
   !$OMP private(iqsca,iqcor,nang2)                             &
-  !$OMP private(m_mono,m_agg,nmono,Dfrac,k0frac)                      &
+  !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,k0frac)                      &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)              &
   !$OMP private(Smat_mmf)
   
   do ilam = 1,nlam
 
+     wvno = 2d0*pi / lam(ilam)
      ! ----------------------------------------------------------------------
      ! Initialize the scattering matrix elements and summing variables
      ! ----------------------------------------------------------------------
@@ -1113,27 +1115,34 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
               mass = mass + wf(if)*nr(is)*rho_av*4d0*pi*r1**3/3d0
               vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
            enddo    ! end loop "nf" over form factors
+
         else if (method .eq. 'MMF') then
 
            ! The following computation uses Ryo's memo to derive Df and k0
            ! from the number of monomets and the fillingfactor f = 1-p
            m_mono = 4.*pi/3. * mmf_a0**3 * rho_av
-           m_agg  = 4.*pi/3. * r1**3     * rho_av * p_c
+           V_agg  = 4.*pi/3. * r1**3
+           m_agg  = V_agg * rho_av * (1.d0 - p_c) ! FIXME: check
            nmono  = m_agg / m_mono
-           Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c))
+           Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c)) ! FIXME: check
            k0frac = (5.d0/3.d0)**(Dfrac/2.)
-           print *,"Using r1,N,D,k = ",r1,nmono,Dfrac,k0frac
+           print *,"Using r1,N,D,k = ",r1,nmono,Dfrac,k0frac,p_c
            
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
-           m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! FIXME: What is right???? -e2, or +e2?????
-           nang2  = int(nang/2)+1 ! FIXME: As a parameter, Ryo needs 91, but he returns the full 181 matrix
+           m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! FIXME: What is right? -e2, or +e2? Should be plus
+           nang2  = int(nang/2)+1 ! This is what Ryo needs as an input parameter.
 
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
+           print *,nang2
+           ! This is the call exactly as done int the example I got from Ryo
+           !           call meanscatt(0.1,0.1,1024.,1.9,1.03,cmplx(1.4d0,0.01d0),iqsca,iqcor,nang2,&
+           !                cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
            
-           ! F = 4 * pi * S / (k^2*Csca)
+           ! Relation between Fij and Sij: F = 4 * pi * S / (k^2*Csca)
            factor = 4.d0*pi / wvno**2 / csca_mmf
+           print *,'factor is ', factor,wvno
            do j=1,nang
               f11(j) = f11(j) + nr(is)*Smat_mmf(1,j) * factor
               f12(j) = f12(j) + nr(is)*Smat_mmf(2,j) * factor
@@ -1142,13 +1151,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
               f34(j) = f34(j) + nr(is)*Smat_mmf(4,j) * factor
               f44(j) = f44(j) + nr(is)*Smat_mmf(3,j) * factor ! F44 = F33
            enddo
-           ! FIXME: need rhoav and r1 here, need to check these parts.
-           ! Rho_av should comr froma as r_charac and the filling factor.
+           ! FIXME: I think this is correct now
            cext = cext + nr(is) * cext_mmf
            csca = csca + nr(is) * csca_mmf
            cabs = cabs + nr(is) * cabs_mmf
-           mass = mass + nr(is) * rho_av *4d0*pi*r1**3/3d0
-           vol  = vol  + nr(is) *         4d0*pi*r1**3/3d0
+           mass = mass + nr(is) * m_agg
+           vol  = vol  + nr(is) * V_agg
         else
            print *,"ERROR: invalid method ", method
         endif
@@ -1158,7 +1166,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
      ! ----------------------------------------------------------------------
      ! Set the cross sections
      ! ----------------------------------------------------------------------
-     if (ilam .eq.1) p%rho  = mass/vol  ! FIXME: Is this correct with the aggretages?
+     if (ilam .eq.1) p%rho  = mass/vol  ! FIXME: I think this is correct now
      p%Kext(ilam) = 1d4 * cext / mass
      p%Kabs(ilam) = 1d4 * cabs / mass
      p%Ksca(ilam) = 1d4 * csca / mass
