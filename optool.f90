@@ -748,9 +748,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   allocate(Mief11(nang),Mief12(nang),Mief22(nang),Mief33(nang))
   allocate(Mief34(nang),Mief44(nang))
   allocate(mu(nang),M1(nang,2),M2(nang,2),S21(nang,2),D21(nang,2))
-
-  print *,'allocating ',nang+1
-  allocate(Smat_mmf(1:4,1:nang+1)) ! FIXME: Check if we did this right, needs to be 181!
+  allocate(Smat_mmf(1:4,1:nang+1))
   
   allocate(vfrac(nm),vfm(nm),mfrac(nm),rho(nm))
   allocate(e_in(nm))
@@ -992,9 +990,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
   !$OMP shared(mmf_a0)                                                    &
-  !$OMP private(iqsca,iqcor,nang2)                             &
-  !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,k0frac)                      &
-  !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)              &
+  !$OMP private(iqsca,iqcor,nang2)                                        &
+  !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,k0frac)                    &
+  !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
   !$OMP private(Smat_mmf)
   
   do ilam = 1,nlam
@@ -1122,27 +1120,26 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
            ! from the number of monomets and the fillingfactor f = 1-p
            m_mono = 4.*pi/3. * mmf_a0**3 * rho_av
            V_agg  = 4.*pi/3. * r1**3
-           m_agg  = V_agg * rho_av * (1.d0 - p_c) ! FIXME: check
+           m_agg  = V_agg * rho_av * (1.d0 - p_c)
            nmono  = m_agg / m_mono
-           Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c)) ! FIXME: check
+           Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c))
            k0frac = (5.d0/3.d0)**(Dfrac/2.)
-           print *,"Using r1,N,D,k = ",r1,nmono,Dfrac,k0frac,p_c
-           
+           if (ilam.eq.1) then
+              write(*,'("r1,p = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,p_c,nmono,Dfrac,k0frac
+           endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
-           m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! FIXME: What is right? -e2, or +e2? Should be plus
-           nang2  = int(nang/2)+1 ! This is what Ryo needs as an input parameter.
+           m      = dcmplx(e1blend(ilam),e2blend(ilam))
+           nang2  = int(nang/2)+1 ! This is what Ryo needs as an input parameter. FIXME:
 
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
-           print *,nang2
            ! This is the call exactly as done int the example I got from Ryo
            !           call meanscatt(0.1,0.1,1024.,1.9,1.03,cmplx(1.4d0,0.01d0),iqsca,iqcor,nang2,&
            !                cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
            
            ! Relation between Fij and Sij: F = 4 * pi * S / (k^2*Csca)
            factor = 4.d0*pi / wvno**2 / csca_mmf
-           print *,'factor is ', factor,wvno
            do j=1,nang
               f11(j) = f11(j) + nr(is)*Smat_mmf(1,j) * factor
               f12(j) = f12(j) + nr(is)*Smat_mmf(2,j) * factor
