@@ -1398,7 +1398,7 @@ subroutine tellertje(i,n,quiet)
   ! Show a progress bar on STDOUT
   ! ----------------------------------------------------------------------
   implicit none
-  integer :: i,n,f,l,ndots,maxdots=20,mindots=20
+  integer :: i,n,f,l,ndots,maxdots=20,mindots=5
   logical :: quiet
   ndots = max(mindots,min(n,maxdots))
   if (quiet) then
