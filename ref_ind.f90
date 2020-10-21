@@ -170,6 +170,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
      e1(i) = y01
      e2(i) = y02
      i = i+1
+     if (i.gt.n) goto 9 ! All requested lambda are before first data point
      goto 5
   endif
   
@@ -231,6 +232,8 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
         e2(j) = e2(i-1)*grid(i-1)/grid(j)
      enddo
   endif
+
+9 continue
   
   deallocate(x)
   deallocate(y1)
