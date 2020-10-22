@@ -41,10 +41,12 @@ endif
 # Platform specific compilation options
 ifeq ($(ifort),true)
   FLAG_ALL      = -O3 -g -extend-source -zero -prec-div $(DEBUGGING) $(MULTICORE)
+  FLAG_ALL_NM   = -O3 -g -extend-source -zero -prec-div $(DEBUGGING)
   FLAG_LINUX    = -xHOST -fpp
   FLAG_MAC      = -xHOST -opt-prefetch -static-intel -fpp
 else
   FLAG_ALL      = -O3 -g -fdefault-double-8 -fdefault-real-8 $(DEBUGGING) $(MULTICORE)
+  FLAG_ALL_NM   = -O3 -g -fdefault-double-8 -fdefault-real-8 $(DEBUGGING)
   FLAG_LINUX    = -cpp
   FLAG_MAC      = -m64 -cpp
 endif
@@ -138,6 +140,12 @@ binlinux:;	make cclean
 binzip:;	rm -f bin.zip
 		(cd bin; zip ../bin.zip optool*)
 binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
+
+
+# MMF leasds to segmentation faults if I compile with OpenMP support.
+# So we use a special rule for it.
+optool_mmf.o: optool_mmf.f90
+	$(FC) $(FLAG_ALL_NM) $(FLAG_LINUX) $(FLAG_FITS) -c optool_mmf.f90
 
 .SUFFIXES : .o .f .f90
 
