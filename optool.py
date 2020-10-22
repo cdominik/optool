@@ -211,6 +211,17 @@ class particle:
                 idxnames=['grain index','log lambda [um]'],
                 idxvals=[np.array(range(self.nsize))+1,llamfmt])
 
+    def checknorm(self):
+        # Check the nromalization of the scattering matrix
+        nlam = self.nlam
+        nang = self.nang
+        ang = self.scatang
+        radmc = self.radmc
+        scat = self.scat
+        f11 = self.f11
+        mu = sin(ang*np.pi/180.)
+        dmu = np.hstack(((mu[1:] - mu[0:-1]),[0]))
+
 def logscale_with_sign(array,bottom):
     # Take the log10 of the absolute value of ARRAY, but transfer the
     # sign back onto the result.  Compress the region between
