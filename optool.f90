@@ -554,7 +554,7 @@ program optool
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
      ndone = 0; call tellertje(ndone,na,quiet)
      
-     !$OMP parallel do if (split)                                      &
+     !$OMP parallel do if (split .and. (method.ne.'MMF'))              &
      !$OMP default(none)                                               &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
@@ -976,7 +976,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
   ndone = 0; if (progress) call tellertje(ndone,nlam,quiet)
-  !$OMP parallel do if (.not. split)                                      &
+  !$OMP parallel do if ((.not. split) .and. (method.ne.'MMF'))            &
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
   !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method,nf,ns,p_c,rho_av,wf,f) &
@@ -1126,29 +1126,41 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
            k0frac = (5.d0/3.d0)**(Dfrac/2.)
            if (ilam.eq.1) then
               write(*,'("r1,p = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,p_c,nmono,Dfrac,k0frac
+           else
+              print *,ilam
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
            m      = dcmplx(e1blend(ilam),e2blend(ilam))
-           nang2  = int(nang/2)+1 ! This is what Ryo needs as an input parameter. FIXME:
+           nang2  = int(nang/2)+1 ! This is what meanscat needs as input
 
+           !$OMP critical
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
-           ! This is the call exactly as done int the example I got from Ryo
-           !           call meanscatt(0.1,0.1,1024.,1.9,1.03,cmplx(1.4d0,0.01d0),iqsca,iqcor,nang2,&
-           !                cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
+           !$OMP end critical
            
-           ! Relation between Fij and Sij: F = 4 * pi * S / (k^2*Csca)
-           factor = 4.d0*pi / wvno**2 / csca_mmf
+                      ! This is the call exactly as done int the example I got from Ryo
+           !call meanscatt(0.1d0,0.1d0,1024.d0,1.9d0,1.03d0,dcmplx(1.4d0,0.01d0),iqsca,iqcor,nang2,&
+            !    cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
+
+           ! Relation between F_ij and S_ij: F = 4 * pi * S / (k^2*Csca)
+           ! csca is still needed as weight, will be devided out later
+           factor = 4.d0*pi / wvno**2
            do j=1,nang
-              f11(j) = f11(j) + nr(is)*Smat_mmf(1,j) * factor
-              f12(j) = f12(j) + nr(is)*Smat_mmf(2,j) * factor
-              f22(j) = f22(j) + nr(is)*Smat_mmf(1,j) * factor ! F22 = F11
-              f33(j) = f33(j) + nr(is)*Smat_mmf(3,j) * factor
-              f34(j) = f34(j) + nr(is)*Smat_mmf(4,j) * factor
-              f44(j) = f44(j) + nr(is)*Smat_mmf(3,j) * factor ! F44 = F33
+              !f11(j) = f11(j) + nr(is)*Smat_mmf(1,j) * factor
+              !f12(j) = f12(j) + nr(is)*Smat_mmf(2,j) * factor
+              !f22(j) = f22(j) + nr(is)*Smat_mmf(1,j) * factor ! F22 = F11
+              !f33(j) = f33(j) + nr(is)*Smat_mmf(3,j) * factor
+              !f34(j) = f34(j) + nr(is)*Smat_mmf(4,j) * factor
+              !f44(j) = f44(j) + nr(is)*Smat_mmf(3,j) * factor ! F44 = F33
+              f11(j) = f11(j) + nr(is)*0.5d0*(Smat_mmf(1,j)+Smat_mmf(1,j+1)) * factor
+              f12(j) = f12(j) + nr(is)*0.5d0*(Smat_mmf(2,j)+Smat_mmf(2,j+1)) * factor
+              f22(j) = f22(j) + nr(is)*0.5d0*(Smat_mmf(1,j)+Smat_mmf(1,j+1)) * factor ! F22 = F11
+              f33(j) = f33(j) + nr(is)*0.5d0*(Smat_mmf(3,j)+Smat_mmf(3,j+1)) * factor
+              f34(j) = f34(j) + nr(is)*0.5d0*(Smat_mmf(4,j)+Smat_mmf(4,j+1)) * factor
+              f44(j) = f44(j) + nr(is)*0.5d0*(Smat_mmf(3,j)+Smat_mmf(3,j+1)) * factor ! F44 = F33
            enddo
-           ! FIXME: I think this is correct now
+           ! FIXME: Do we need to renormalize?
            cext = cext + nr(is) * cext_mmf
            csca = csca + nr(is) * csca_mmf
            cabs = cabs + nr(is) * cabs_mmf
@@ -1163,7 +1175,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
      ! ----------------------------------------------------------------------
      ! Set the cross sections
      ! ----------------------------------------------------------------------
-     if (ilam .eq.1) p%rho  = mass/vol  ! FIXME: I think this is correct now
+     if (ilam .eq.1) p%rho  = mass/vol
      p%Kext(ilam) = 1d4 * cext / mass
      p%Kabs(ilam) = 1d4 * cabs / mass
      p%Ksca(ilam) = 1d4 * csca / mass
