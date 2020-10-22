@@ -672,7 +672,8 @@ the code.
 * Bibliography
 - Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
   Light by Small Particles/, Wiley-VCH
-- Draine, B, 2003, ApJ 598, 1026
+- Draine, B., 2003, ApJ 598, 1017
+- Draine, B., 2003, ApJ 598, 1026
 - Dorschner, J. et al. 1995, A&A 300, 503
 - Henning, Th. and Stognienko, R. 1996, A&A 311,291
 - Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
