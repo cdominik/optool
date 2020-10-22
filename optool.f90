@@ -137,7 +137,6 @@ program optool
 
   ! MMF implementation
   real(kind=dp)   :: mmf_a0
-  
 
   ! ----------------------------------------------------------------------
   ! Defaults values for parameters and switches
@@ -554,7 +553,7 @@ program optool
      afsub = afact**(1.d0/real(nsub-1))     ! Factor to next subgrain size
      ndone = 0; call tellertje(ndone,na,quiet)
      
-     !$OMP parallel do if (split .and. (method.ne.'MMF'))              &
+     !$OMP parallel do if (split)                                      &
      !$OMP default(none)                                               &
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
@@ -976,7 +975,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
   ndone = 0; if (progress) call tellertje(ndone,nlam,quiet)
-  !$OMP parallel do if ((.not. split) .and. (method.ne.'MMF'))            &
+  !$OMP parallel do if (.not. split)                                      &
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
   !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method,nf,ns,p_c,rho_av,wf,f) &
