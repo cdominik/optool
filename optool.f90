@@ -332,7 +332,7 @@ program optool
         if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) mmf_a0
         else
-           mmf_a0 = 1d0
+           mmf_a0 = 0.1d0
         endif
 
         ! ----------------------------------------------------------------------
