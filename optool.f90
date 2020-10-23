@@ -1131,10 +1131,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
            m      = dcmplx(e1blend(ilam),e2blend(ilam))
            nang2  = int(nang/2)+1 ! This is what meanscat needs as input
 
-           !$OMP critical
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
-           !$OMP end critical
 
            ! FIXME: This seems to work better for small grains that for big grains.  Ask Ryo.
            ! Check the normalization of S11
