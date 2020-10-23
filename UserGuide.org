@@ -14,20 +14,19 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 
 - stand-alone tool, fully command line driven, no input files need to
   be edited
-- flexible command line interface to specify input in a compact and
-  simple way
 - full scattering matrix output in several formats, including for
   RADMC-3D
 - combining materials through mixing into a complex grain with
   porosity
-- a useful collection of compiled-in materials for standard applications
+- a useful collection of built-in materials for standard applications
   in astronomy
 - an easy way to use external refractive index data for more
   specialized applications
-- Standard Mie solver for spherical grains
-- DHS (Distribution of Hollow Spheres) for shape effects and low-porosity aggregates
-- MMF (Modified Mean Field) method to model high-porosity and fractal
-  aggregates
+- two computational methods: (i) *DHS (Distribution of Hollow
+  Spheres)* for /irregular grains/ and /low-porosity/ aggregates.
+  Standard *Mie theory* for /perfect spheres/ is included as a
+  limiting case. (ii) *MMF (Modified Mean Field)* theory for
+  /high-porosity/fractal aggregates/.
 - =Python= interface module for easy postprocessing and cross-tool
   use.
 
@@ -165,7 +164,7 @@ system.
   The *-m* is /not/ optional, it must be present.
 
 
-** Grain geometry
+** Grain geometry and computational method
 
 + =-p POROSITY [P_MANTLE]= ::
 
@@ -174,22 +173,20 @@ system.
   mantle, but a second value will be specific for the mantle (and may
   be 0).
 
-+ =-mie= ::
-
-  Do a standard Mie calculation.  This is short for *-fmax 0* or
-  *-dhs 0*, see below.
-
 + =-dhs [FMAX]= ::
 
   Use the /Distribution of Hollow Spheres/ (DHS, Min 2005) approach to
   model deviations from prefect sphericity and low-porosity
   aggregates.  *This is the default method*.  Spheres with inner holes
-  with volume fractions between 0 and f_max (default 0.8) are
-  averaged.  f_max=0 means to use solid spheres (Mie theory),
-  i.e. perfectly regular grains.
+  with volume fractions between 0 and f_max (default 0.8) are averaged
+  to mimic irregularities.  f_max=0 means to use solid spheres (Mie
+  theory), i.e. perfectly regular grains. *-fmax* can be used instead
+  of *-dhs* for backward compatibility.
 
-+ =-fmax FMAX= :: Alternative way to set f_max, since DHS is the
-  default method. 
++ =-mie= ::
+
+  Do a standard Mie calculation.  This is short for *-dhs 0* (or *-fmax
+  0*).
 
 + =-mmf [AMONO]= ::
 
@@ -200,7 +197,9 @@ system.
   /porosity/ (*-p*), and a fractal dimension will be chosen
   appropriately. a_mono is the monomer radius, with default 0.1\mu{}m.
   Monomers will have the composition given by the *-c* and *-m*
-  switches. For details, see the [[#internals][appendix]].
+  switches. There are some subtleties in the parameterspace for the
+  valid application of this method. These are discussed in the
+  [[#internals][appendix]].
 
 
 
@@ -665,6 +664,8 @@ the code.
   :  |  |  ,- Loop over all DHS volume ratios f
   :  |  |  |   - Call DMiLay or (for large x) MeerhoffMie
   :  |  |  `- Sum the weighted contributions of each DHS volume
+  :  |  |  OR
+  :  |  |  [ Apply MMF ]
   :  |  `- Sum weighted contributions of all particle sizes
   :  `- Store the results for the current wavelength
 
