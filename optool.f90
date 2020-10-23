@@ -1116,7 +1116,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
         else if (method .eq. 'MMF') then
 
            ! The following computation uses Ryo's memo to derive Df and k0
-           ! from the number of monomets and the fillingfactor f = 1-p
+           ! from the number of monomers and the fillingfactor f = 1-p
            m_mono = 4.*pi/3. * mmf_a0**3 * rho_av
            V_agg  = 4.*pi/3. * r1**3
            m_agg  = V_agg * rho_av * (1.d0 - p_c)
@@ -1135,10 +1135,26 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
            !$OMP end critical
+
+           ! FIXME: This seems to work better for small grains that for big grains.  Ask Ryo.
+           ! Check the normalization of S11
+           factor = 4.d0*pi / wvno**2/csca_mmf
+           do j=1,nang
+              Mief11(j) = 0.5d0*(Smat_mmf(1,j)+Smat_mmf(1,j+1)) * factor
+           enddo
+           tot  = 0d0
+           tot2 = 0d0
+           do j=1,nang
+              ! This integration assumes that the grid is regular (linear)
+              !               F11                         sin theta                  d theta
+              tot  = tot  +  Mief11(j) * sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
+              tot2 = tot2 +              sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
+           enddo
+           write(*,'(1p,"lam,r,err ",3e10.2)') lam(ilam),r(is),(tot-tot2)/tot2
            
-                      ! This is the call exactly as done int the example I got from Ryo
+           ! This is the call exactly as done in the example I got from Ryo
            !call meanscatt(0.1d0,0.1d0,1024.d0,1.9d0,1.03d0,dcmplx(1.4d0,0.01d0),iqsca,iqcor,nang2,&
-            !    cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
+           !    cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
 
            ! Relation between F_ij and S_ij: F = 4 * pi * S / (k^2*Csca)
            ! csca is still needed as weight, will be devided out later
@@ -1186,7 +1202,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
      p%F(ilam)%F33(1:nang) = f33(1:nang)/csca
      p%F(ilam)%F34(1:nang) = f34(1:nang)/csca
      p%F(ilam)%F44(1:nang) = f44(1:nang)/csca
-
+     
      ! ----------------------------------------------------------------------
      ! Chop off forward-scattering peak, adjust the scattering cross section
      ! ----------------------------------------------------------------------
