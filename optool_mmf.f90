@@ -1,15 +1,10 @@
 !------------------------------------------------------
 ! This routine calculates optical cross sections of
-! fractal dust aggregates using mean field approximation.
-! 
-! This code is available on collaboration basis at the moment.
-! Please do not distribute it. If you observe strange behaviour
-! or think you find a bug, please feel free to contact me.
-!        <ryo.tazaki1205@gmail.com>
-!
-!                                 2017. 07.24. Ryo Tazaki
+! fractal dust aggregates using a modified-mean-field 
+! approximation.
+!                               2017. 07.24. Ryo Tazaki
 !------------------------------------------------------
-! Important variables 
+! INPUT AND OUTPUT
 !------------------------------------------------------
 !
 ! Input parameters:
@@ -23,11 +18,11 @@
 ! nang  : Number of angular grid between 0 ang 90 degrees.
 !         If nang=91, then angular width is 1 degrees.
 !
-! iqsca : Switch for monomer's electric field calculation
-!         iqsca = 1: External field (Rayleigh-Gans-Debye theory)
+! iqsca : Switch for calculation method
+!         iqsca = 1: Rayleigh-Gans-Debye theory
 !                    Reference: Tazaki et al. 2016
 !         iqsca = 2: Mean-field theory 
-!                    Reference: Botet et al. 1997, Rannou et al. 1997
+!                    Reference: Botet et al. 1997; Rannou et al. 1997
 !         iqsca = 3: Modified mean-field theory
 !                    Reference: Tazaki & Tanaka 2018
 !
@@ -743,7 +738,7 @@ end function func
 !---------------------------------------------
 ! Calculate Lorentz-Mie coefficients: an, bn
 ! This routine is based on BHMIE code written 
-! Bruce Draine, although this is is double precision.
+! Bruce Draine, although this is in double precision.
 !---------------------------------------------
 subroutine lorentz_mie(x,refrel,nstop,a,b)
 implicit none
