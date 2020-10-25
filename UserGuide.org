@@ -166,6 +166,9 @@ system.
 
 ** Grain geometry and computational method
 
+See [[#methods][Appendix A]] for a brief discussion of the merits of the different
+methods.
+
 + =-p POROSITY [P_MANTLE]= ::
 
   Porosity, the /volume/ fraction of vacuum, a number smaller than 1.
@@ -197,10 +200,8 @@ system.
   /porosity/ (*-p*), and a fractal dimension will be chosen
   appropriately. a_mono is the monomer radius, with default 0.1\mu{}m.
   Monomers will have the composition given by the *-c* and *-m*
-  switches. There are some subtleties in the parameterspace for the
-  valid application of this method. These are discussed in the
-  [[#internals][appendix]].
-
+  switches.
+  
 
 
 ** Grain size distribution
@@ -279,6 +280,7 @@ extend the [[#output-files][output]].
   extension of the files will be changed to =.inp=, and if you specify
   =LABEL=, it will be used in the file name(s).
 
+ 
 
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
@@ -507,9 +509,45 @@ whitespace, in list form =['/path/to my/command','arg1','arg2',...]=.
   on github]]).
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
 
-* Appendix
+\appendix
 
-** Units
+
+* Computational methods in =optool=
+:PROPERTIES:
+:CUSTOM_ID: methods
+:END:
+
+FIXME: This needs to be improved.
+
+The details and intricacies light scattering by small particles fill
+books and feed a vast literature. =optool= implements robust
+approximate methods that are fast, easy to use, and that can be used
+for a wide variety of applications.  Here is a brief instruction on
+when to use which =optool= method:
+
+1. Use standard Mie theory only if you have a good reason why you
+   particles should actually be perfect spheres. 
+2. DHS takes into account geometric irregularities, so it makes the
+   shape of solid state fetures more realistic (REF) and also produces
+   realistic opacity enhancement conneced to irregularities, in
+   particular enhancements in the Raghleigh limit (wavelength larger
+   than particle size). It further provides a decent approximation for
+   low porosity aggregates (Min+2016), that are compact enough so that
+   the properties of the monomers do not play a critical role. DHS is
+   stable, fast, and delivers fully consistent scattering matrix
+   elements.
+3. In high-porosity aggregates, the properties of the monomers become
+   critical for the correct determination of cross sections outside
+   the Rayleigh limit, i. e. at wavelengths smaller than the overall
+   size of the aggregate. Since DHS is unaware of the monomer
+   properties, it is no longer reliable. This is an area that is
+   covered well by MMF (Tazaki+2018), which delivers accurate
+   absorption and scattering cross sections for high porosity
+   aggregates, as well as asymmetry parameters. The scattering matrix
+   of MMF is reliable if the phase shift is.....
+
+
+* Units
 Due to conventions in our field, the input and output of =optool= uses
 the following units
 - *microns* for grain sizes and wavelengths
@@ -518,10 +556,10 @@ the following units
 - *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
   see below.
 
-** Scattering Matrix: The fine print
+* Scattering Matrix: The fine print
 
 
-*** Phase function normalization
+** Phase function normalization
 :PROPERTIES:
 :CUSTOM_ID: normalization
 :END:
@@ -549,7 +587,7 @@ normalizations again. As described in RADMC-3D's manual, these
 conventions can be matched by scaling all matrix elements with simple
 factors involving dust mass and wavenumber $k=2\pi/\lambda$.
 
-*** Forward-scattering peak
+** Forward-scattering peak
 :PROPERTIES:
 :CUSTOM_ID: forward-scattering-peak
 :END:
@@ -571,7 +609,7 @@ this narrow range of angles will be treated as if it did have /no
 interaction at all/ with the grain.
 
 
-*** Angular grid
+** Angular grid
 :PROPERTIES:
 :CUSTOM_ID: angular-grid
 :END:
@@ -588,7 +626,7 @@ RADMC-3D requires the values of the scattering matrix on the cell
 values.  For the input files for RADMC-3D, we interpolate and extend
 the computed values to the cell boundaries.
 
-** How to ingest refractive index data for another material
+* How to ingest refractive index data for another material
 :PROPERTIES:
 :CUSTOM_ID: ingest
 :END:
@@ -610,13 +648,8 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
    material.
 5. Recompile and install the code.
 
-** Comparison with other codes
 
-For a comparison with a pure Mie code like [[https://onlinelibrary.wiley.com/doi/pdf/10.1002/9783527618156.app2][BHMIE]], turn off DHS and
-set the porosity to zero, with these command line options: =-fmax 0 -p
-0=
-
-** Internals
+* Internals
 :PROPERTIES:
 :CUSTOM_ID: internals
 :END:
