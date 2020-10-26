@@ -1023,7 +1023,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
            min = dcmplx(1d0,0d0)
            do if=1,nf
               rad  = r1 / (1d0-f(if))**(1d0/3d0)
-              m    = dcmplx(e1blend(ilam),-e2blend(ilam))
               wvno = 2d0*pi / lam(ilam)
               
               if (f(if) .eq. 0d0) then
@@ -1034,11 +1033,15 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
                  toolarge = 1
               else if (method(1:3) .eq. 'DHS') then 
                  rcore = rad*f(if)**(1d0/3d0)
+                 ! DMiLay wants the imaginary part negative, this is a specific convention
+                 m = dcmplx(e1blend(ilam),-e2blend(ilam))
                  call DMiLay(rcore, rad, wvno, m, min, mu, &
                       nang/2, qext, qsca, qabs, gqsc, &
                       m1, m2, s21, d21, nang ,err)
               else
                  rcore = rad*0.999d0
+                 ! DMiLay wants the imaginary part negative, this is a specific convention
+                 m = dcmplx(e1blend(ilam),-e2blend(ilam))
                  call DMiLay(rcore, rad, wvno, min, m, mu, &
                       nang/2, qext, qsca, qabs, gqsc, &
                       m1, m2, s21, d21, nang ,err)
@@ -1129,7 +1132,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
-           m      = dcmplx(e1blend(ilam),e2blend(ilam))
+           m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! normal, positive k
            nang2  = int(nang/2)+1 ! This is what meanscat needs as input
 
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
