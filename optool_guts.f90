@@ -1507,6 +1507,12 @@ end subroutine tstsym
 subroutine DMiLay( rcore, rshell, wvno, rindsh, rindco, mu, &
      numang, qext, qsca, qbs, gqsc, &
      m1, m2, s21, d21, maxang, err)
+
+
+  ! Comment by Carsten Dominik (taking information provided by Michiel
+  ! Min): Careful, the refractive index entering into this routine use
+  ! a convention where the imaginary pard has a different singn than
+  ! what is used in morder books.
   
   ! **********************************************************************
   ! DOUBLE PRECISION version of MieLay, which computes electromagnetic
