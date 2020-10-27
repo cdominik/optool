@@ -137,7 +137,7 @@ program optool
   real (kind=dp), allocatable :: e1d(:),e2d(:)
 
   ! MMF implementation
-  real(kind=dp)   :: mmf_a0
+  real(kind=dp)   :: mmf_a0,mmf_Df
 
   ! ----------------------------------------------------------------------
   ! Defaults values for parameters and switches
@@ -332,6 +332,11 @@ program optool
         method = 'MMF'
         if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) mmf_a0
+           if (arg_is_number(i+1)) then
+              i=i+1; call getarg(i,value); read(value,*) mmf_Df
+           else
+              mmf_Df = -1.d0
+           endif
         else
            mmf_a0 = 0.1d0
         endif
@@ -559,7 +564,7 @@ program optool
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
-     !$OMP shared(quiet,mmf_a0)                                        &
+     !$OMP shared(quiet,mmf_a0,mmf_Df)                                 &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
 
@@ -580,7 +585,7 @@ program optool
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,pcore,pmantle, &
-             mat_mfr,mat_nm,mmf_a0,.false.)
+             mat_mfr,mat_nm,mmf_a0,mmf_Df,.false.)
 
         ! Outout is done serially, to avoid file handle conflicts
         !$OMP critical
@@ -620,7 +625,7 @@ program optool
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
-     call ComputePart(p,amin,amax,apow,na,fmax,pcore,pmantle,mat_mfr,nm,mmf_a0,.true.)
+     call ComputePart(p,amin,amax,apow,na,fmax,pcore,pmantle,mat_mfr,nm,mmf_a0,mmf_Df,.true.)
      
      ! ----------------------------------------------------------------------
      ! Write the output
@@ -653,7 +658,7 @@ end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
 
-subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progress)
+subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,progress)
   ! ----------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
   !
@@ -732,7 +737,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   complex (kind=dp)              :: m,mconj,min,e_out
 
   ! MMF variables
-  real (kind=dp)                 :: mmf_a0
+  real (kind=dp)                 :: mmf_a0,mmf_Df
   integer                        :: iqsca,iqcor,nang2
   real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,k0frac
   real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
@@ -989,7 +994,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   !$OMP private(m1,m2,d21,s21,m,mconj,wvno,min)                           &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
-  !$OMP shared(mmf_a0)                                                    &
+  !$OMP shared(mmf_a0,mmf_Df)                                             &
   !$OMP private(iqsca,iqcor,nang2)                                        &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,k0frac)                    &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
@@ -1126,7 +1131,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
            m_agg  = V_agg * rho_av 
            !m_agg  = V_agg * rho_av * (1.d0 - p_c)
            nmono  = m_agg / m_mono
-           Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c)) !FIXME: allow this to e set by the user.
+           if (mmf_Df .gt. 0) then
+              Dfrac = mmf_Df
+           else
+              Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c))
+           endif
            k0frac = (5.d0/3.d0)**(Dfrac/2.)
            if (ilam.eq.1) then
               write(*,'("r1,p = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,p_c,nmono,Dfrac,k0frac
