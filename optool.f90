@@ -1122,10 +1122,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
            ! The following computation uses Ryo's memo to derive Df and k0
            ! from the number of monomers and the fillingfactor f = 1-p
            m_mono = 4.*pi/3. * mmf_a0**3 * rho_av
-           V_agg  = 4.*pi/3. * r1**3
-           m_agg  = V_agg * rho_av * (1.d0 - p_c)
+           V_agg  = 4.*pi/3. * r1**3 ! compact volume of the aggregate material, so a is udes to basically specify the mass.
+           m_agg  = V_agg * rho_av 
+           !m_agg  = V_agg * rho_av * (1.d0 - p_c)
            nmono  = m_agg / m_mono
-           Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c))
+           Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c)) !FIXME: allow this to e set by the user.
            k0frac = (5.d0/3.d0)**(Dfrac/2.)
            if (ilam.eq.1) then
               write(*,'("r1,p = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,p_c,nmono,Dfrac,k0frac
