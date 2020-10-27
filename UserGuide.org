@@ -195,12 +195,12 @@ methods.
 
   Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute the
   opacities of highly porous or fractal aggregates.  Particles will
-  then be aggregates with the characteristic radius given by the *-a*
-  switch.  The volume filling factor $f=1-p$ is specified through the
-  /porosity/ (*-p*), and a fractal dimension will be chosen
-  appropriately. a_mono is the monomer radius, with default 0.1\mu{}m.
-  Monomers will have the composition given by the *-c* and *-m*
-  switches.
+  then be aggregates with a /compact size/ *-a* switch, effectively
+  specifying a mass.  The volume filling factor $f=1-p$ is specified
+  through the /porosity/ (*-p*), and a fractal dimension will be
+  chosen appropriately. a_mono is the monomer radius, with default
+  0.1\mu{}m.  Monomers will have the composition given by the *-c* and
+  *-m* switches.
   
 
 
@@ -517,20 +517,17 @@ whitespace, in list form =['/path/to my/command','arg1','arg2',...]=.
 :CUSTOM_ID: methods
 :END:
 
-FIXME: This needs to be improved.
-
-The details and intricacies light scattering by small particles fill
-books and feed a vast literature. =optool= implements robust
-approximate methods that are fast, easy to use, and that can be used
-for a wide variety of applications.  Here is a brief instruction on
-when to use which =optool= method:
+=optool= implements robust approximate methods that are fast, easy to
+use, and that can be used for a wide variety of applications.  Here is
+a brief instruction on when to use which =optool= method, and what the
+caveats are.
 
 1. Use standard Mie theory only if you have a good reason why you
    particles should actually be perfect spheres. 
 2. DHS takes into account geometric irregularities, so it makes the
-   shape of solid state fetures more realistic (REF) and also produces
-   realistic opacity enhancement conneced to irregularities, in
-   particular enhancements in the Raghleigh limit (wavelength larger
+   shape of solid state features more realistic (REF) and also produces
+   realistic opacity enhancement connected to irregularities, in
+   particular enhancements in the Rayleigh limit (wavelength larger
    than particle size). It further provides a decent approximation for
    low porosity aggregates (Min+2016), that are compact enough so that
    the properties of the monomers do not play a critical role. DHS is
@@ -543,8 +540,18 @@ when to use which =optool= method:
    properties, it is no longer reliable. This is an area that is
    covered well by MMF (Tazaki+2018), which delivers accurate
    absorption and scattering cross sections for high porosity
-   aggregates, as well as asymmetry parameters. The scattering matrix
-   of MMF is reliable if the phase shift is.....
+   aggregates. MMF has been designed to correctly converge to the
+   geometric optics limit, ensuring meaningful cross sections.  For
+   the scattering matrix and asymmetry parameter to be reliable, an
+   additional condition needs to be fulfilled, namely that the total
+   phase shift over the aggregate must be smaller than unity.  If you
+   run =optool= with scattering output and leave the parameter range
+   where this is true, a warning will be issued.  The scattering matrix
+   should then NOT be used.
+
+   FIXME: I could also set all matrix elements to zero, for example.
+   Or refuse to produce the scattering output?  I am still thinking
+   what would be the right thing to do.
 
 
 * Units
@@ -676,7 +683,7 @@ the code.
   core being treated an inclusion inside a mantle matrix.
 
 - DHS :: In order to simulate irregularities in grains (irregular
-  shapes, or the properties of low-porosity aggregates, =optool=
+  shapes, or the properties of low-porosity aggregates), =optool=
   averages the opacities of grains with an inner empty region, over a
   range of volume fractions of this inner region between 0 and $f_{\rm
   max}$.  The subroutine used to compute the opacities and scattering
@@ -687,7 +694,34 @@ the code.
   (reference missing), for a fixed size parameter of 5000, with proper
   scaling to the actual size of the particle.
 
-- MMF ::  FIXME: Document here the details of MMF 
+- MMF :: To apply MMF, =optool= first turns the information about the
+  particle into a number of monomers in the aggregate $N=a^3/a_{\rm
+  mono}^3$, by assuming that the size $a$ refers to the /compact
+  volume/ of the aggregate, ignoring porosity.  It then determines
+  fractal dimension $D_f$, and a fractal prefactor $k_f$, which
+  together determine the structure of the aggregate.  If the user
+  specified a fractal dimention with the =-mmf= option, it is enforced
+  throughout.  If no fractal dimension has been specified, the
+  porosity $p$ is used to determine a filling factor $f=1-p$ for the
+  aggregate, and $D_f$ is chosen to satisfy this condition.  $D_f$
+  will then be variable, depending on aggregate size.  The fractal
+  prefactor $k_f$ should then satisfy the condition that the filling
+  factor of an aggregate os the size of a monomer would be unity. Here
+  are the equations used.
+
+  | =-mmf AMONO -p p=                           |   | =-mmf AMONO DF=                   |
+  |---------------------------------------------+---+-----------------------------------|
+  | size $a$ specifies characteristic aggregate |   | size $a$ determines radius of the |
+  | radius, will volume filling factor $1-p$    |   | compact volume of the aggregate   |
+  |---------------------------------------------+---+-----------------------------------|
+  | $N = (1-p) a^3/a_{\rm mono}^3$              |   | $N = a^3/a_{\rm mono}^3$          |
+  | $D_f = 3\ln N\,/\,\ln(N/(1-p))$             |   | D_f is already known from user    |
+  | $k_f = (5/3)^{D_f/2}$                       |   | $k_f = (5/3)^{D_f/2}$             |
+
+  It then applies the formalism from Tazaki & Tanaka (2018) to compute
+  cross sections and the scattering matrix.  It also computes the
+  phase shift caused by the aggregate, and this information is used to
+  determine if the scattering matrisx information is accurate.
   
 - Computational Structure :: The computation of opacities and matrix
   elements follows this structure.  Additional information can be
