@@ -729,7 +729,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   real (kind=dp), allocatable    :: e1mantle(:),e2mantle(:)
   real (kind=dp), allocatable    :: vfrac(:),vfm(:)
   complex (kind=dp), allocatable :: e_in(:)
-  complex (kind=dp)              :: m,min,e_out
+  complex (kind=dp)              :: m,mconj,min,e_out
 
   ! MMF variables
   real (kind=dp)                 :: mmf_a0
@@ -1034,15 +1034,15 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
               else if (method(1:3) .eq. 'DHS') then 
                  rcore = rad*f(if)**(1d0/3d0)
                  ! DMiLay wants the imaginary part negative, this is a specific convention
-                 m = dcmplx(e1blend(ilam),-e2blend(ilam))
-                 call DMiLay(rcore, rad, wvno, m, min, mu, &
+                 mconj = dcmplx(e1blend(ilam),-e2blend(ilam))
+                 call DMiLay(rcore, rad, wvno, mconj, min, mu, &
                       nang/2, qext, qsca, qabs, gqsc, &
                       m1, m2, s21, d21, nang ,err)
               else
                  rcore = rad*0.999d0
                  ! DMiLay wants the imaginary part negative, this is a specific convention
-                 m = dcmplx(e1blend(ilam),-e2blend(ilam))
-                 call DMiLay(rcore, rad, wvno, min, m, mu, &
+                 mconj = dcmplx(e1blend(ilam),-e2blend(ilam))
+                 call DMiLay(rcore, rad, wvno, min, mconj, mu, &
                       nang/2, qext, qsca, qabs, gqsc, &
                       m1, m2, s21, d21, nang ,err)
               endif
