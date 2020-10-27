@@ -986,7 +986,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,progres
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
   !$OMP private(err,spheres,toolarge)                                     &
-  !$OMP private(m1,m2,d21,s21,m,wvno,min)                                 &
+  !$OMP private(m1,m2,d21,s21,m,mconj,wvno,min)                           &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
   !$OMP shared(mmf_a0)                                                    &
