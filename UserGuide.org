@@ -191,17 +191,18 @@ methods.
   Do a standard Mie calculation.  This is short for *-dhs 0* (or *-fmax
   0*).
 
-+ =-mmf [AMONO]= ::
++ =-mmf [AMONO [DFRAC]]= ::
 
   Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute the
   opacities of highly porous or fractal aggregates.  Particles will
-  then be aggregates with a /compact size/ *-a* switch, effectively
-  specifying a mass.  The volume filling factor $f=1-p$ is specified
-  through the /porosity/ (*-p*), and a fractal dimension will be
-  chosen appropriately. a_mono is the monomer radius, with default
-  0.1\mu{}m.  Monomers will have the composition given by the *-c* and
-  *-m* switches.
-  
+  then be aggregates with a /compact size/ given by *-a* switch,
+  effectively specifying a mass.  The volume filling factor $f=1-p$ is
+  specified through the /porosity/ (*-p*), and a fractal dimension
+  will be chosen appropriately. a_mono is the monomer radius, with
+  default 0.1\mu{}m.  Monomers will have the composition given by the
+  *-c* and *-m* switches. D_frac is the fractal dimension - the
+  default is to keep it variable to match the porosity given by the
+  *-p* switch.  When D_frac is given, the porosity will be ignored.
 
 
 ** Grain size distribution
@@ -546,8 +547,8 @@ caveats are.
    additional condition needs to be fulfilled, namely that the total
    phase shift over the aggregate must be smaller than unity.  If you
    run =optool= with scattering output and leave the parameter range
-   where this is true, a warning will be issued.  The scattering matrix
-   should then NOT be used.
+   where this is true, a warning will be issued.  The scattering
+   matrix and $g$ factor should then NOT be used.
 
    FIXME: I could also set all matrix elements to zero, for example.
    Or refuse to produce the scattering output?  I am still thinking
@@ -696,18 +697,17 @@ the code.
 
 - MMF :: To apply MMF, =optool= first turns the information about the
   particle into a number of monomers in the aggregate $N=a^3/a_{\rm
-  mono}^3$, by assuming that the size $a$ refers to the /compact
-  volume/ of the aggregate, ignoring porosity.  It then determines
-  fractal dimension $D_f$, and a fractal prefactor $k_f$, which
-  together determine the structure of the aggregate.  If the user
-  specified a fractal dimention with the =-mmf= option, it is enforced
-  throughout.  If no fractal dimension has been specified, the
-  porosity $p$ is used to determine a filling factor $f=1-p$ for the
-  aggregate, and $D_f$ is chosen to satisfy this condition.  $D_f$
-  will then be variable, depending on aggregate size.  The fractal
-  prefactor $k_f$ should then satisfy the condition that the filling
-  factor of an aggregate os the size of a monomer would be unity. Here
-  are the equations used.
+  mono}^3$, by assuming that the size $a$ sets the /compact volume/ of
+  the aggregate, ignoring porosity.  It then determines fractal
+  dimension $D_f$, and a fractal prefactor $k_f$, which together set
+  the structure of the aggregate.  If the user specifies a fractal
+  dimention with the =-mmf= option, it is enforced throughout.  If no
+  fractal dimension has been specified, the porosity $p$ is used to
+  determine a filling factor $f=1-p$ for the aggregate, and $D_f$ is
+  chosen (different for every size) to satisfy this condition. The
+  fractal prefactor $k_f$ is computed from the asymptotal behavior
+  that the filling factor of an aggregate of the size of a monomer
+  should be unity.
 
   | =-mmf AMONO -p p=                           |   | =-mmf AMONO DF=                   |
   |---------------------------------------------+---+-----------------------------------|
@@ -718,10 +718,10 @@ the code.
   | $D_f = 3\ln N\,/\,\ln(N/(1-p))$             |   | D_f is already known from user    |
   | $k_f = (5/3)^{D_f/2}$                       |   | $k_f = (5/3)^{D_f/2}$             |
 
-  It then applies the formalism from Tazaki & Tanaka (2018) to compute
-  cross sections and the scattering matrix.  It also computes the
-  phase shift caused by the aggregate, and this information is used to
-  determine if the scattering matrisx information is accurate.
+  With the structure defined, =optool= then applies the formalism from
+  Tazaki & Tanaka (2018) to compute cross sections and the scattering
+  matrix.  It also computes the phase shift caused by the aggregate to
+  check the validity of the scattering matrix.
   
 - Computational Structure :: The computation of opacities and matrix
   elements follows this structure.  Additional information can be
