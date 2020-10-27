@@ -1127,9 +1127,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
            ! The following computation uses Ryo's memo to derive Df and k0
            ! from the number of monomers and the fillingfactor f = 1-p
            m_mono = 4.*pi/3. * mmf_a0**3 * rho_av
-           V_agg  = 4.*pi/3. * r1**3 ! compact volume of the aggregate material, so a is udes to basically specify the mass.
+           V_agg  = 4.*pi/3. * r1**3 ! compact volume of the aggregate material
            m_agg  = V_agg * rho_av 
-           !m_agg  = V_agg * rho_av * (1.d0 - p_c)
            nmono  = m_agg / m_mono
            if (mmf_Df .gt. 0) then
               Dfrac = mmf_Df
@@ -1148,8 +1147,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
 
-           ! FIXME: This seems to work better for small grains that for big grains.  Ask Ryo.
-           ! Check the normalization of S11
            factor = 4.d0*pi / wvno**2/csca_mmf
            do j=1,nang
               Mief11(j) = 0.5d0*(Smat_mmf(1,j)+Smat_mmf(1,j+1)) * factor
