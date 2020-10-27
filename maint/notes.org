@@ -229,3 +229,17 @@ refractive index data in the following way:
   k}{d \log \lambda}\right|_{\lambda_f} \left(\log \lambda - \log \lambda_{f}\right)
   \end{align}
 
+* Snippets
+- Computational Structure :: The computation of opacities and matrix
+  elements follows this structure.  Additional information can be
+  obtained by reading the code.
+  :  ,- Loop over all wavelengths lambda
+  :  |  ,- Loop over all particle sizes a
+  :  |  |  ,- Loop over all DHS volume ratios f
+  :  |  |  |   - Call DMiLay or (for large x) MeerhoffMie
+  :  |  |  `- Sum the weighted contributions of each DHS volume
+  :  |  |  OR
+  :  |  |  [ Apply MMF ]
+  :  |  `- Sum weighted contributions of all particle sizes
+  :  `- Store the results for the current wavelength
+

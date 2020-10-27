@@ -166,9 +166,6 @@ system.
 
 ** Grain geometry and computational method
 
-See [[#methods][Appendix A]] for a brief discussion of the merits of the different
-methods.
-
 + =-p POROSITY [P_MANTLE]= ::
 
   Porosity, the /volume/ fraction of vacuum, a number smaller than 1.
@@ -194,15 +191,16 @@ methods.
 + =-mmf [AMONO [DFRAC]]= ::
 
   Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute the
-  opacities of highly porous or fractal aggregates.  Particles will
-  then be aggregates with a /compact size/ given by *-a* switch,
-  effectively specifying a mass.  The volume filling factor $f=1-p$ is
-  specified through the /porosity/ (*-p*), and a fractal dimension
-  will be chosen appropriately. a_mono is the monomer radius, with
-  default 0.1\mu{}m.  Monomers will have the composition given by the
-  *-c* and *-m* switches. D_frac is the fractal dimension - the
-  default is to keep it variable to match the porosity given by the
-  *-p* switch.  When D_frac is given, the porosity will be ignored.
+  opacities of highly porous or fractal aggregates.  Monomers will
+  have the composition given by the *-c* and *-m* switches, and fixed
+  radii a_mono with default 0.1\mu{}m.  Particles will be aggregates
+  with a /compact size/ given by the *-a* switch, so that the number
+  of monomers is $N_{\rm mono}=a^3/a_{\rm mono}^3$. The /porosity/
+  (*-p*) specifies how the monomers should be spread out to reach the
+  corresponding filling factor $f=1-p$.  If the optional fractal
+  dimension D_frac is specified, it will be used instead of the *-p*
+  value to construct the aggregates, causing the effective porosity to
+  vary with size.
 
 
 ** Grain size distribution
@@ -513,47 +511,6 @@ whitespace, in list form =['/path/to my/command','arg1','arg2',...]=.
 \appendix
 
 
-* Computational methods in =optool=
-:PROPERTIES:
-:CUSTOM_ID: methods
-:END:
-
-=optool= implements robust approximate methods that are fast, easy to
-use, and that can be used for a wide variety of applications.  Here is
-a brief instruction on when to use which =optool= method, and what the
-caveats are.
-
-1. Use standard Mie theory only if you have a good reason why you
-   particles should actually be perfect spheres. 
-2. DHS takes into account geometric irregularities, so it makes the
-   shape of solid state features more realistic (REF) and also produces
-   realistic opacity enhancement connected to irregularities, in
-   particular enhancements in the Rayleigh limit (wavelength larger
-   than particle size). It further provides a decent approximation for
-   low porosity aggregates (Min+2016), that are compact enough so that
-   the properties of the monomers do not play a critical role. DHS is
-   stable, fast, and delivers fully consistent scattering matrix
-   elements.
-3. In high-porosity aggregates, the properties of the monomers become
-   critical for the correct determination of cross sections outside
-   the Rayleigh limit, i. e. at wavelengths smaller than the overall
-   size of the aggregate. Since DHS is unaware of the monomer
-   properties, it is no longer reliable. This is an area that is
-   covered well by MMF (Tazaki+2018), which delivers accurate
-   absorption and scattering cross sections for high porosity
-   aggregates. MMF has been designed to correctly converge to the
-   geometric optics limit, ensuring meaningful cross sections.  For
-   the scattering matrix and asymmetry parameter to be reliable, an
-   additional condition needs to be fulfilled, namely that the total
-   phase shift over the aggregate must be smaller than unity.  If you
-   run =optool= with scattering output and leave the parameter range
-   where this is true, a warning will be issued.  The scattering
-   matrix and $g$ factor should then NOT be used.
-
-   FIXME: I could also set all matrix elements to zero, for example.
-   Or refuse to produce the scattering output?  I am still thinking
-   what would be the right thing to do.
-
 
 * Units
 Due to conventions in our field, the input and output of =optool= uses
@@ -695,19 +652,23 @@ the code.
   (reference missing), for a fixed size parameter of 5000, with proper
   scaling to the actual size of the particle.
 
-- MMF :: To apply MMF, =optool= first turns the information about the
-  particle into a number of monomers in the aggregate $N=a^3/a_{\rm
-  mono}^3$, by assuming that the size $a$ sets the /compact volume/ of
-  the aggregate, ignoring porosity.  It then determines fractal
-  dimension $D_f$, and a fractal prefactor $k_f$, which together set
-  the structure of the aggregate.  If the user specifies a fractal
-  dimention with the =-mmf= option, it is enforced throughout.  If no
-  fractal dimension has been specified, the porosity $p$ is used to
-  determine a filling factor $f=1-p$ for the aggregate, and $D_f$ is
-  chosen (different for every size) to satisfy this condition. The
-  fractal prefactor $k_f$ is computed from the asymptotal behavior
-  that the filling factor of an aggregate of the size of a monomer
-  should be unity.
+- MMF :: To apply MMF, =optool= needs the number of monomers $N$, the
+  fractal dimension $D_f$, and a scaling factor $k_f$ to describe the
+  structure of the aggregate. The size $a$ of the particles as
+  specified by the *-a* switch is interpreted as the /compact/ size of
+  all material in the aggregate, so that simply $N=a^3/a_{\rm
+  mono}^3$, where $a_{\rm mono}$ is the radius of the monomer.
+  Porosity is ignored for this consideration, both monomer and grain
+  volume are assumed to be compact. If the user has specified a
+  fractal dimension as the second numerical value of the =-mmf=
+  option, it is used for all particle sizes.  If no fractal dimension
+  has been specified, the porosity $p$ is used instead to determine a
+  filling factor $f=1-p$ for the aggregate. $D_f$ is then chosen
+  (different for every size) so achieve that average volume filling
+  fraction. That process also sets the fractal prefactor $k_f$ in a
+  way that the asymptotic density of small aggregates is the monomer
+  material density.  The following table summarises the relevant
+  equations.
 
   | =-mmf AMONO -p p=                           |   | =-mmf AMONO DF=                   |
   |---------------------------------------------+---+-----------------------------------|
@@ -721,23 +682,10 @@ the code.
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) to compute cross sections and the scattering
   matrix.  It also computes the phase shift caused by the aggregate to
-  check the validity of the scattering matrix.
+  check the validity of the scattering matrix.  If the conditions for
+  accurate scattering matrix results are violated, a warning will be
+  issued. 
   
-- Computational Structure :: The computation of opacities and matrix
-  elements follows this structure.  Additional information can be
-  obtained by reading the code.
-  :  ,- Loop over all wavelengths lambda
-  :  |  ,- Loop over all particle sizes a
-  :  |  |  ,- Loop over all DHS volume ratios f
-  :  |  |  |   - Call DMiLay or (for large x) MeerhoffMie
-  :  |  |  `- Sum the weighted contributions of each DHS volume
-  :  |  |  OR
-  :  |  |  [ Apply MMF ]
-  :  |  `- Sum weighted contributions of all particle sizes
-  :  `- Store the results for the current wavelength
-
-  
-
 * Bibliography
 - Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
   Light by Small Particles/, Wiley-VCH
