@@ -180,8 +180,8 @@ system.
   aggregates.  *This is the default method*.  Spheres with inner holes
   with volume fractions between 0 and f_max (default 0.8) are averaged
   to mimic irregularities.  f_max=0 means to use solid spheres (Mie
-  theory), i.e. perfectly regular grains. *-fmax* can be used instead
-  of *-dhs* for backward compatibility.
+  theory), i.e. perfectly regular grains. For backward compatibility,
+  *-fmax* can be used instead of *-dhs*.
 
 + =-mie= ::
 
@@ -198,8 +198,8 @@ system.
   the number of monomers is $N_{\rm mono}=a^3/a_{\rm mono}^3$. The
   /porosity/ (*-p*) specifies how the monomers should be spread out to
   reach a volume filling factor $f=1-p$.  =DFRAC= can optionally
-  specify the fractal dimension.  When it is present, *-p* will be
-  ignored, and the effective porosity will vary with size.
+  specify the fractal dimension.  When =DFRAC= is present, *-p* will
+  be ignored, and the effective porosity will vary with size.
 
 
 ** Grain size distribution
@@ -669,11 +669,12 @@ the code.
   asymptotic density of small aggregates is the monomer material
   density.  The following table summarises the relevant equations.
 
-  | =-mmf AMONO DF=          |   | =-mmf AMONO -p p=                  |
-  |--------------------------+---+------------------------------------|
-  | $N = a^3/a_{\rm mono}^3$ |   | $N \,\,= (1-p) a^3/a_{\rm mono}^3$ |
-  | D_f is given by user     |   | $D_f = 3\ln N\,/\,\ln(N/(1-p))$    |
-  | $k_f = (5/3)^{D_f/2}$    |   | $k_f \,\,= (5/3)^{D_f/2}$          |
+  |       | =-mmf AMONO DF=       | =-mmf AMONO -p p=          |
+  |-------+-----------------------+----------------------------|
+  | /     | <                     | <                          |
+  | $N$   | $=a^3/a_{\rm mono}^3$ | $=a^3/a_{\rm mono}^3$      |
+  | $D_f$ | given by user         | $=3\ln N\,/\,\ln(N/(1-p))$ |
+  | $k_f$ | $=(5/3)^{D_f/2}$      | $=(5/3)^{D_f/2}$           |
 
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) to compute cross sections and the scattering
