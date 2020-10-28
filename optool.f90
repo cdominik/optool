@@ -103,8 +103,7 @@ program optool
 
   real (kind=dp)  :: lmin,lmax       ! min and max wavelength
 
-  logical         :: write_mean_kap  ! Should mean kappas be computed?
-  logical         :: write_scatter   ! Should a fits file be written?
+  logical         :: write_scatter   ! Should the scattering matrix be written?
   logical         :: write_fits      ! Should a fits file be written?
   logical         :: for_radmc       ! Should the scattering matrix use RADME-3D convention?
 
@@ -165,7 +164,6 @@ program optool
   
   write_fits     = .false.    ! Default is to write ASCII output
   write_scatter  = .false.    ! Default is to not write scattering matrix
-  write_mean_kap = .false.    ! Default is to not compute mean kappas
   for_radmc      = .false.    ! Default is to use optool conventions.
 
   ! ----------------------------------------------------------------------
@@ -446,11 +444,6 @@ program optool
      nlam = 1
   endif
   ! *** Other checks
-  if (split .and. write_mean_kap) then
-     write(*,*) 'ERROR: With both -d and -t options, the dustkapmean.dat file'
-     write(*,*) '       would only reflect the final size bin.'
-     stop
-  endif
   if (split .and. blendonly) then
      if (.not. quiet) write(*,*) 'WARNING: Turning off -s for -blendonly'
      split = .false.
