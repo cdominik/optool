@@ -192,15 +192,14 @@ system.
 
   Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute the
   opacities of highly porous or fractal aggregates.  Monomers will
-  have the composition given by the *-c* and *-m* switches, and fixed
-  radii a_mono with default 0.1\mu{}m.  Particles will be aggregates
-  with a /compact size/ given by the *-a* switch, so that the number
-  of monomers is $N_{\rm mono}=a^3/a_{\rm mono}^3$. The /porosity/
-  (*-p*) specifies how the monomers should be spread out to reach the
-  corresponding filling factor $f=1-p$.  If the optional fractal
-  dimension D_frac is specified, it will be used instead of the *-p*
-  value to construct the aggregates, causing the effective porosity to
-  vary with size.
+  have the composition given by the *-c* and *-m* switches.  =AMONO=
+  is the monomer radius (default 0.1\mu{}m).  Particles will be
+  aggregates with a /compact size/ given by the *-a* switch, so that
+  the number of monomers is $N_{\rm mono}=a^3/a_{\rm mono}^3$. The
+  /porosity/ (*-p*) specifies how the monomers should be spread out to
+  reach a volume filling factor $f=1-p$.  =DFRAC= can optionally
+  specify the fractal dimension.  When it is present, *-p* will be
+  ignored, and the effective porosity will vary with size.
 
 
 ** Grain size distribution
@@ -658,26 +657,23 @@ the code.
   specified by the *-a* switch is interpreted as the /compact/ size of
   all material in the aggregate, so that simply $N=a^3/a_{\rm
   mono}^3$, where $a_{\rm mono}$ is the radius of the monomer.
-  Porosity is ignored for this consideration, both monomer and grain
-  volume are assumed to be compact. If the user has specified a
-  fractal dimension as the second numerical value of the =-mmf=
-  option, it is used for all particle sizes.  If no fractal dimension
-  has been specified, the porosity $p$ is used instead to determine a
-  filling factor $f=1-p$ for the aggregate. $D_f$ is then chosen
-  (different for every size) so achieve that average volume filling
-  fraction. That process also sets the fractal prefactor $k_f$ in a
-  way that the asymptotic density of small aggregates is the monomer
-  material density.  The following table summarises the relevant
-  equations.
+  Porosity is ignored for this consideration. If the user has
+  specified a fractal dimension as the second numerical value of the
+  =-mmf= option, it is used for all particle sizes, resulting in
+  decreasing volume filling factors as a function of aggregate size
+  (unless $D_f=3$).  If no fractal dimension has been specified, the
+  porosity $p$ is used instead to determine a constant filling factor
+  $f=1-p$ for all aggregate sizes. $D_f$ is then chosen (different for
+  every size) to achieve that average volume filling fraction. That
+  process also sets the fractal prefactor $k_f$ in a way that the
+  asymptotic density of small aggregates is the monomer material
+  density.  The following table summarises the relevant equations.
 
-  | =-mmf AMONO -p p=                           |   | =-mmf AMONO DF=                   |
-  |---------------------------------------------+---+-----------------------------------|
-  | size $a$ specifies characteristic aggregate |   | size $a$ determines radius of the |
-  | radius, will volume filling factor $1-p$    |   | compact volume of the aggregate   |
-  |---------------------------------------------+---+-----------------------------------|
-  | $N = (1-p) a^3/a_{\rm mono}^3$              |   | $N = a^3/a_{\rm mono}^3$          |
-  | $D_f = 3\ln N\,/\,\ln(N/(1-p))$             |   | D_f is already known from user    |
-  | $k_f = (5/3)^{D_f/2}$                       |   | $k_f = (5/3)^{D_f/2}$             |
+  | =-mmf AMONO DF=          |   | =-mmf AMONO -p p=                  |
+  |--------------------------+---+------------------------------------|
+  | $N = a^3/a_{\rm mono}^3$ |   | $N \,\,= (1-p) a^3/a_{\rm mono}^3$ |
+  | D_f is given by user     |   | $D_f = 3\ln N\,/\,\ln(N/(1-p))$    |
+  | $k_f = (5/3)^{D_f/2}$    |   | $k_f \,\,= (5/3)^{D_f/2}$          |
 
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) to compute cross sections and the scattering
