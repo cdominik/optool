@@ -190,16 +190,16 @@ system.
 
 + =-mmf [AMONO [DFRAC]]= ::
 
-  Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute the
-  opacities of highly porous or fractal aggregates.  Monomers will
-  have the composition given by the *-c* and *-m* switches.  =AMONO=
-  is the monomer radius (default 0.1\mu{}m).  Particles will be
-  aggregates with a /compact size/ given by the *-a* switch, so that
-  the number of monomers is $N_{\rm mono}=a^3/a_{\rm mono}^3$. The
-  /porosity/ (*-p*) specifies how the monomers should be spread out to
-  reach a volume filling factor $f=1-p$.  =DFRAC= can optionally
-  specify the fractal dimension.  When =DFRAC= is present, *-p* will
-  be ignored, and the effective porosity will vary with size.
+  Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute
+  opacities of highly porous or fractal aggregates.  *-c* and *-m*
+  switches now determine the composition of monomers.  =AMONO= is the
+  monomer radius (default 0.1\mu{}m).  Particles will be aggregates
+  with a /compact size/ given by the *-a* switch, giving rise to
+  $N=a^3/a_{\rm mono}^3$ monomers. The /porosity/ (*-p*) specifies
+  that the monomers should be spread out to reach a volume filling
+  factor $f=1-p$.  Alternatively, =DFRAC= can specify the fractal
+  dimension.  *-p* will then be ignored, and the effective porosity
+  will vary with size.
 
 
 ** Grain size distribution
@@ -282,8 +282,8 @@ extend the [[#output-files][output]].
 
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
-useful list of materials is compiled into =optool=, but you can also
-find and use other data.  No matter where the data is from, you should
+useful list of materials is compiled into =optool=. You can also find
+and use other data.  No matter where the data is from, you should
 /always/ cite the original laboratory papers.
 
 ** Built-in materials
