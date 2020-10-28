@@ -734,7 +734,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
   integer                        :: iqsca,iqcor,nang2
   real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,k0frac
   real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
+  real (kind=dp)                 :: deltaphi
   real (kind=dp), allocatable    :: Smat_mmf(:,:)
+  logical                        :: Smat_OK
 
   integer ichop
   
@@ -991,7 +993,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
   !$OMP private(iqsca,iqcor,nang2)                                        &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,k0frac)                    &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
-  !$OMP private(Smat_mmf)
+  !$OMP private(Smat_mmf,deltaphi,Smat_OK)
   
   do ilam = 1,nlam
 
@@ -1005,6 +1007,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
      enddo
      csca = 0d0; cabs = 0d0; cext = 0d0
      mass = 0d0; vol  = 0d0
+     Smat_OK = .true.
 
      ! ----------------------------------------------------------------------
      ! Start the main loop over all particle sizes
@@ -1139,6 +1142,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
 
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
+           !call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
+           !     cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf,deltaphi)
+           !if (deltaphi .gt. 1.d0) then
+           !   Smat_OK = .false.
+           !endif
+           ! FIXME: still need to implement an action when Smat_OK is false.
+           ! Print a warning, set matrix to zero, set gscat to 1?
 
            factor = 4.d0*pi / wvno**2/csca_mmf
            do j=1,nang
@@ -1162,12 +1172,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
            ! csca is still needed as weight, will be devided out later
            factor = 4.d0*pi / wvno**2
            do j=1,nang
-              !f11(j) = f11(j) + nr(is)*Smat_mmf(1,j) * factor
-              !f12(j) = f12(j) + nr(is)*Smat_mmf(2,j) * factor
-              !f22(j) = f22(j) + nr(is)*Smat_mmf(1,j) * factor ! F22 = F11
-              !f33(j) = f33(j) + nr(is)*Smat_mmf(3,j) * factor
-              !f34(j) = f34(j) + nr(is)*Smat_mmf(4,j) * factor
-              !f44(j) = f44(j) + nr(is)*Smat_mmf(3,j) * factor ! F44 = F33
               f11(j) = f11(j) + nr(is)*0.5d0*(Smat_mmf(1,j)+Smat_mmf(1,j+1)) * factor
               f12(j) = f12(j) + nr(is)*0.5d0*(Smat_mmf(2,j)+Smat_mmf(2,j+1)) * factor
               f22(j) = f22(j) + nr(is)*0.5d0*(Smat_mmf(1,j)+Smat_mmf(1,j+1)) * factor ! F22 = F11
@@ -1175,7 +1179,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
               f34(j) = f34(j) + nr(is)*0.5d0*(Smat_mmf(4,j)+Smat_mmf(4,j+1)) * factor
               f44(j) = f44(j) + nr(is)*0.5d0*(Smat_mmf(3,j)+Smat_mmf(3,j+1)) * factor ! F44 = F33
            enddo
-           ! FIXME: Do we need to renormalize?
            cext = cext + nr(is) * cext_mmf
            csca = csca + nr(is) * csca_mmf
            cabs = cabs + nr(is) * cabs_mmf
@@ -1261,6 +1264,21 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
         tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5d0)/dble(nang))
      enddo
      p%g(ilam) = p%g(ilam)/tot
+
+     ! FIXME: Overwrite the Scattering matrix if it is bad
+     if (.not. Smat_OK) then
+        if (write_scatter) then
+           print *,'WARNING: scattering matrix and asymmetry parameter not reliable at lambda=',lam(ilam)
+        else
+           print *,'WARNING: asymmetry parameter not reliable at lambda=',lam(ilam)
+        endif
+        ! FIXME: Setting stuff to zero is brutal.  What would be better?
+        p%g(ilam) = 0.d0   ! Set to isotropic scattering.
+        do j=1,nang
+           p%F(ilam)%F11(j) = 0.d0; p%F(ilam)%F12(j) = 0.d0; p%F(ilam)%F22(j) = 0.d0
+           p%F(ilam)%F33(j) = 0.d0; p%F(ilam)%F34(j) = 0.d0; p%F(ilam)%F44(j) = 0.d0
+        enddo
+     endif
      
      !$OMP atomic
      ndone = ndone+1
