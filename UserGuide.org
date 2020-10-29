@@ -20,11 +20,10 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
   porosity
 - a useful collection of built-in materials for standard applications
   in astronomy
-- an easy way to use external refractive index data for more
-  specialized applications
+- an easy way to use external refractive index data
 - two computational methods: (i) *DHS (Distribution of Hollow
   Spheres)* for /irregular grains/ and /low-porosity/ aggregates.
-  Standard *Mie theory* for /perfect spheres/ is included as a
+  Standard *Mie theory* for /perfect spheres/ is available as a
   limiting case. (ii) *MMF (Modified Mean Field)* theory for
   /high-porosity/fractal aggregates/.
 - =Python= interface module for easy postprocessing and cross-tool
@@ -96,11 +95,17 @@ matrix, chopping 3 degrees from the scattering peak.
 : optool -na 42 -d -s -radmc -chop 3
 
 Use MMF to compute the opacities of dust aggregates made of pyroxene
-monomers.  Use a monomer radius of 2.5 microns to construct aggregates
-with radii of gyration in the range between 1 and 3 cm, and a filling
+monomers.  Use a monomer radius of 0.3 \mu{}m to construct aggregates
+with compact-volume radii between 10 and 30 \mu{}m, and a filling
 factor of 5% (i.e. a porosity of 0.95)
 
-: optool pyr  -a 1e4 3e4  -mmf 2.5  -p 0.95 
+: optool pyr  -a 10 30  -mmf 0.3  -p 0.95
+
+As before, but fix the fractal dimension $D_f=1.9$ instead of setting
+the porosity
+
+: optool pyr  -a 10 30  -mmf 0.3 1.9
+
 
 #+LATEX: \clearpage
 * Compiling =optool=
@@ -185,17 +190,16 @@ system.
 
 + =-mie= ::
 
-  Do a standard Mie calculation.  This is short for *-dhs 0* (or *-fmax
-  0*).
+  Do a standard Mie calculation.  This is short for *-dhs 0*.
 
-+ =-mmf [AMONO [DFRAC]]= ::
++ =-mmf [A0 [DFRAC]]= ::
 
   Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute
   opacities of highly porous or fractal aggregates.  *-c* and *-m*
-  switches now determine the composition of monomers.  =AMONO= is the
+  switches determine the composition of monomers.  =A0= is the
   monomer radius (default 0.1\mu{}m).  Particles will be aggregates
   with a /compact size/ given by the *-a* switch, giving rise to
-  $N=a^3/a_{\rm mono}^3$ monomers. The /porosity/ (*-p*) specifies
+  $N=a^3/a_0^3$ monomers. The /porosity/ (*-p*) specifies
   that the monomers should be spread out to reach a volume filling
   factor $f=1-p$.  Alternatively, =DFRAC= can specify the fractal
   dimension.  *-p* will then be ignored, and the effective porosity
@@ -250,7 +254,7 @@ extend the [[#output-files][output]].
   Include the full scattering matrix in the output. =NANG= can
   optionally specify the number of equally-spaced [[#angular-grid][angular grid points]]
   to cover the range of angles between 0 and 180 degrees.  The default
-  for =NANG= is 180 and should normally not be changed.
+  for =NANG= is 180 and should normally be just fine.
 
 + =-chop [NDEG]= ::
 
@@ -651,12 +655,13 @@ the code.
   (reference missing), for a fixed size parameter of 5000, with proper
   scaling to the actual size of the particle.
 
-- MMF :: To apply MMF, =optool= needs the number of monomers $N$, the
-  fractal dimension $D_f$, and a scaling factor $k_f$ to describe the
-  structure of the aggregate. The size $a$ of the particles as
-  specified by the *-a* switch is interpreted as the /compact/ size of
-  all material in the aggregate, so that simply $N=a^3/a_{\rm
-  mono}^3$, where $a_{\rm mono}$ is the radius of the monomer.
+- MMF :: To construct fluffy/fractal aggregates, =optool= needs the
+  number of monomers $N$, the fractal dimension $D_f$, and a scaling
+  factor $k_f$ which are related to the radius of gyration $R_g$ of
+  the aggregate by $N=k_f\left(\frac{R_g}{a_0}\right)^{D_f}$. The size
+  $a$ of the particles as specified by the *-a* switch is interpreted
+  as the /compact/ size of all material in the aggregate, so that
+  simply $N=a^3/a_0^3$, where $a_0$ is the radius of the monomer.
   Porosity is ignored for this consideration. If the user has
   specified a fractal dimension as the second numerical value of the
   =-mmf= option, it is used for all particle sizes, resulting in
@@ -669,12 +674,12 @@ the code.
   asymptotic density of small aggregates is the monomer material
   density.  The following table summarises the relevant equations.
 
-  |       | =-mmf AMONO DF=       | =-mmf AMONO -p p=          |
-  |-------+-----------------------+----------------------------|
-  | /     | <                     | <                          |
-  | $N$   | $=a^3/a_{\rm mono}^3$ | $=a^3/a_{\rm mono}^3$      |
-  | $D_f$ | given by user         | $=3\ln N\,/\,\ln(N/(1-p))$ |
-  | $k_f$ | $=(5/3)^{D_f/2}$      | $=(5/3)^{D_f/2}$           |
+  |       | =-mmf A0 DF=     | =-mmf A0 -p p=             |
+  |-------+------------------+----------------------------|
+  | /     | <                | <                          |
+  | $N$   | $=a^3/a_0^3$     | $=a^3/a_0^3$               |
+  | $D_f$ | given by user    | $=3\ln N\,/\,\ln(N/(1-p))$ |
+  | $k_f$ | $=(5/3)^{D_f/2}$ | $=(5/3)^{D_f/2}$           |
 
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) to compute cross sections and the scattering
