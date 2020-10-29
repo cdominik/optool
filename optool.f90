@@ -1162,7 +1162,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
               tot  = tot  +  Mief11(j) * sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
               tot2 = tot2 +              sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
            enddo
-           write(*,'(1p,"lam,r,err ",3e10.2)') lam(ilam),r(is),(tot-tot2)/tot2
+           ! FIXME: write(*,'(1p,"lam,r,err ",3e10.2)') lam(ilam),r(is),(tot-tot2)/tot2
            
            ! This is the call exactly as done in the example I got from Ryo
            !call meanscatt(0.1d0,0.1d0,1024.d0,1.9d0,1.03d0,dcmplx(1.4d0,0.01d0),iqsca,iqcor,nang2,&
@@ -1267,11 +1267,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
 
      ! FIXME: Overwrite the Scattering matrix if it is bad
      if (.not. Smat_OK) then
-        if (write_scatter) then
-           print *,'WARNING: scattering matrix and asymmetry parameter not reliable at lambda=',lam(ilam)
-        else
-           print *,'WARNING: asymmetry parameter not reliable at lambda=',lam(ilam)
-        endif
+        print *,'WARNING: scattering matrix and asymmetry parameter not reliable at lambda=',lam(ilam)
         ! FIXME: Setting stuff to zero is brutal.  What would be better?
         p%g(ilam) = 0.d0   ! Set to isotropic scattering.
         do j=1,nang
