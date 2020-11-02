@@ -136,7 +136,7 @@ program optool
   real (kind=dp), allocatable :: e1d(:),e2d(:)
 
   ! MMF implementation
-  real(kind=dp)   :: mmf_a0,mmf_Df
+  real(kind=dp)   :: mmf_a0,mmf_struct
 
   ! ----------------------------------------------------------------------
   ! Defaults values for parameters and switches
@@ -331,9 +331,9 @@ program optool
         if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) mmf_a0
            if (arg_is_number(i+1)) then
-              i=i+1; call getarg(i,value); read(value,*) mmf_Df
+              i=i+1; call getarg(i,value); read(value,*) mmf_struct
            else
-              mmf_Df = -1.d0
+              mmf_struct = 0.2
            endif
         else
            mmf_a0 = 0.1d0
@@ -557,7 +557,7 @@ program optool
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
-     !$OMP shared(quiet,mmf_a0,mmf_Df)                                 &
+     !$OMP shared(quiet,mmf_a0,mmf_struct)                             &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
 
@@ -578,7 +578,7 @@ program optool
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
         call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,pcore,pmantle, &
-             mat_mfr,mat_nm,mmf_a0,mmf_Df,.false.)
+             mat_mfr,mat_nm,mmf_a0,mmf_struct,.false.)
 
         ! Outout is done serially, to avoid file handle conflicts
         !$OMP critical
@@ -618,7 +618,7 @@ program optool
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
-     call ComputePart(p,amin,amax,apow,na,fmax,pcore,pmantle,mat_mfr,nm,mmf_a0,mmf_Df,.true.)
+     call ComputePart(p,amin,amax,apow,na,fmax,pcore,pmantle,mat_mfr,nm,mmf_a0,mmf_struct,.true.)
      
      ! ----------------------------------------------------------------------
      ! Write the output
@@ -651,7 +651,7 @@ end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
 
-subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,progress)
+subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_struct,progress)
   ! ----------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
   !
@@ -730,7 +730,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
   complex (kind=dp)              :: m,mconj,min,e_out
 
   ! MMF variables
-  real (kind=dp)                 :: mmf_a0,mmf_Df
+  real (kind=dp)                 :: mmf_a0,mmf_struct
   integer                        :: iqsca,iqcor,nang2
   real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,k0frac
   real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
@@ -989,7 +989,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
   !$OMP private(m1,m2,d21,s21,m,mconj,wvno,min)                           &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
-  !$OMP shared(mmf_a0,mmf_Df)                                             &
+  !$OMP shared(mmf_a0,mmf_struct)                                         &
   !$OMP private(iqsca,iqcor,nang2)                                        &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,k0frac)                    &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
@@ -1126,14 +1126,16 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_Df,
            V_agg  = 4.*pi/3. * r1**3 ! compact volume of the aggregate material
            m_agg  = V_agg * rho_av 
            nmono  = m_agg / m_mono
-           if (mmf_Df .gt. 0) then
-              Dfrac = mmf_Df
+           if (mmf_struct .gt. 1.) then
+              ! mmf_struct is the fractal dimension
+              Dfrac = mmf_struct
            else
-              Dfrac  = 3.d0 * alog(nmono) / alog(nmono/(1.d0-p_c))
+              ! mmf_struct is the filling factor
+              Dfrac  = 3.d0 * alog(nmono) / alog(nmono/mmf_struct)
            endif
            k0frac = (5.d0/3.d0)**(Dfrac/2.)
            if (ilam.eq.1) then
-              write(*,'("r1,p = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,p_c,nmono,Dfrac,k0frac
+              write(*,'("r1,fill = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,k0frac
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate

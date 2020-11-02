@@ -97,12 +97,12 @@ matrix, chopping 3 degrees from the scattering peak.
 Use MMF to compute the opacities of dust aggregates made of pyroxene
 monomers.  Use a monomer radius of 0.3 \mu{}m to construct aggregates
 with compact-volume radii between 10 and 30 \mu{}m, and a filling
-factor of 5% (i.e. a porosity of 0.95)
+factor of 5%
 
-: optool pyr  -a 10 30  -mmf 0.3  -p 0.95
+: optool pyr  -a 10 30  -mmf 0.3 0.05
 
 As before, but fix the fractal dimension $D_f=1.9$ instead of setting
-the porosity
+the filling factor
 
 : optool pyr  -a 10 30  -mmf 0.3 1.9
 
@@ -192,18 +192,17 @@ system.
 
   Do a standard Mie calculation.  This is short for *-dhs 0*.
 
-+ =-mmf [A0 [DFRAC]]= ::
++ =-mmf [A0 [DFRAC-OR-FILL]]= ::
 
   Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute
-  opacities of highly porous or fractal aggregates.  *-c* and *-m*
-  switches determine the composition of monomers.  =A0= is the
-  monomer radius (default 0.1\mu{}m).  Particles will be aggregates
-  with a /compact size/ given by the *-a* switch, giving rise to
-  $N=a^3/a_0^3$ monomers. The /porosity/ (*-p*) specifies
-  that the monomers should be spread out to reach a volume filling
-  factor $f=1-p$.  Alternatively, =DFRAC= can specify the fractal
-  dimension.  *-p* will then be ignored, and the effective porosity
-  will vary with size.
+  opacities of highly porous or fractal aggregates.  *-c*, *-m*, and
+  *-p* now determine the composition of monomers.  =A0= is the monomer
+  radius (default 0.1\mu{}m).  Particles will be aggregates with a
+  /compact size/ given by the *-a* switch, giving rise to
+  $N=a^3/a_0^3$ monomers. When =DFRAC-OR-FILL= is greater than 1, it
+  specifies the /fractal dimension/.  When it is less than 1, it is
+  interpreted as the /volume filling factor/ of the aggregates
+  instead. The default is 0.2, corresponding to a 20% filling factor.
 
 
 ** Grain size distribution
@@ -661,24 +660,23 @@ the code.
   the aggregate by $N=k_f\left(\frac{R_g}{a_0}\right)^{D_f}$. The size
   $a$ of the particles as specified by the *-a* switch is interpreted
   as the /compact/ size of all material in the aggregate, so that
-  simply $N=a^3/a_0^3$, where $a_0$ is the radius of the monomer.
-  Porosity is ignored for this consideration. If the user has
-  specified a fractal dimension as the second numerical value of the
-  =-mmf= option, it is used for all particle sizes, resulting in
-  decreasing volume filling factors as a function of aggregate size
-  (unless $D_f=3$).  If no fractal dimension has been specified, the
-  porosity $p$ is used instead to determine a constant filling factor
-  $f=1-p$ for all aggregate sizes. $D_f$ is then chosen (different for
-  every size) to achieve that average volume filling fraction. That
-  process also sets the fractal prefactor $k_f$ in a way that the
-  asymptotic density of small aggregates is the monomer material
-  density.  The following table summarises the relevant equations.
+  simply $N=a^3/a_0^3$, where $a_0$ is the radius of the monomer.  If
+  the user has specified a fractal dimension $D_f$ by setting the
+  second numerical value of the =-mmf= option to a number larger than
+  1, it is used for all particle sizes, resulting in decreasing volume
+  filling factors as a function of aggregate size (unless $D_f=3$).
+  If that argument is less that 1, it is interpreted as the volume
+  filling factor $f$, which will be kept for all aggregate sizes,
+  adjusting the fractal dimension as needed.  The fractal prefactor
+  $k_f$ in chosen so that the asymptotic density of small aggregates
+  is the monomer material density.  The following table summarises the
+  relevant equations.
 
-  |       | =-mmf A0 DF=     | =-mmf A0 -p p=             |
+  |       | =-mmf A0 DF=     | =-mmf A0 FILL=             |
   |-------+------------------+----------------------------|
   | /     | <                | <                          |
   | $N$   | $=a^3/a_0^3$     | $=a^3/a_0^3$               |
-  | $D_f$ | given by user    | $=3\ln N\,/\,\ln(N/(1-p))$ |
+  | $D_f$ | given by user    | $=3\ln N\,/\,\ln(N/f)$      |
   | $k_f$ | $=(5/3)^{D_f/2}$ | $=(5/3)^{D_f/2}$           |
 
   With the structure defined, =optool= then applies the formalism from
