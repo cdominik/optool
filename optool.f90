@@ -15,7 +15,7 @@ subroutine usage()
   write(*,'("-m KEY-or-FILE [Mfrac]    Set material and mass fraction of mantle")')
   write(*,'("-p POROSITY [PMANTLE]     Set porosity, possibly different for core and mantle")')
   write(*,'("-dhs VHMAX                Maximum volume fraction of vacuum in DHS computation")')
-  write(*,'("-mmf [AMONO]              Use MMF with monomer size AMONO instead of DHS")')
+  write(*,'("-mmf [A0 [DF-or-FILL]]    Use MMF with monomer size A0 and frac.dim or fill")')
   write(*,'("-a AMIN AMAX [APOW [NA]]  Set up grain radius radius grid (unit: micron)")')
   write(*,'("-l LMIN LMAX [NLAM]       Set up wavelength grid          (unit: micron)")')
   write(*,'("-l FILE                   Read wavelength grid from file, e.g. some/file.lnk")')
@@ -333,7 +333,7 @@ program optool
            if (arg_is_number(i+1)) then
               i=i+1; call getarg(i,value); read(value,*) mmf_struct
            else
-              mmf_struct = 0.2
+              mmf_struct = 0.2  ! default is a filling factor of 20%
            endif
         else
            mmf_a0 = 0.1d0
@@ -538,7 +538,7 @@ program optool
   ! ----------------------------------------------------------------------
   if (.not. quiet) then
      call write_header(6,'',amin,amax,apow,na,lmin,lmax, &
-          pcore,pmantle,0.0d0,fmax,mat_mfr,mat_nm)
+          pcore,pmantle,0.0d0,fmax,mmf_a0,mmf_struct,mat_mfr,mat_nm)
   endif
 
   ! ----------------------------------------------------------------------
@@ -577,8 +577,8 @@ program optool
         asplit    = amin  *afact**real(ia-1d0+0.5d0)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
-        call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,pcore,pmantle, &
-             mat_mfr,mat_nm,mmf_a0,mmf_struct,.false.)
+        call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,mmf_a0,mmf_struct, &
+             pcore,pmantle,mat_mfr,mat_nm,.false.)
 
         ! Outout is done serially, to avoid file handle conflicts
         !$OMP critical
@@ -595,7 +595,7 @@ program optool
         else
            if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
            call write_ascii_file(p,aminsplit,amaxsplit,apow,nsub,lmin,lmax, &
-                fmax,pcore,pmantle,mat_mfr,mat_nm, &
+                fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
                 label,write_scatter,for_radmc,.false.)
         endif
         !$OMP end critical
@@ -618,7 +618,8 @@ program optool
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
-     call ComputePart(p,amin,amax,apow,na,fmax,pcore,pmantle,mat_mfr,nm,mmf_a0,mmf_struct,.true.)
+     call ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
+          pcore,pmantle,mat_mfr,nm,.true.)
      
      ! ----------------------------------------------------------------------
      ! Write the output
@@ -634,7 +635,7 @@ program optool
            call write_to_sdtout(p)
         else
            call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
-                fmax,pcore,pmantle,mat_mfr,mat_nm, &
+                fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
                 radmclbl,write_scatter,for_radmc,.true.)
         endif
      endif
@@ -651,7 +652,8 @@ end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
 
-subroutine ComputePart(p,amin,amax,apow,na,fmax,p_c,p_m,mfrac0,nm,mmf_a0,mmf_struct,progress)
+subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
+     p_c,p_m,mfrac0,nm,progress)
   ! ----------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
   !
@@ -1726,7 +1728,7 @@ subroutine write_to_sdtout(p)
 end subroutine write_to_sdtout
 
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
-     pcore,pmantle,rho_av,fmax,mfrac,nm)
+     pcore,pmantle,rho_av,fmax,a0,struct,mfrac,nm)
   ! ----------------------------------------------------------------------
   ! Write a header describing the full setup of the calculation
   ! CC is the comment character that should be added in front of each line
@@ -1735,13 +1737,25 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   implicit none
   integer        :: unit
   integer        :: na,i,nm
-  real (kind=dp) :: amin,amax,apow,lmin,lmax,pcore,pmantle,fmax,mfrac(nm),rho_av
+  real (kind=dp) :: amin,amax,apow,lmin,lmax,pcore,pmantle,rho_av
+  real (kind=dp) :: fmax,a0,struct,mfrac(nm)
   real (kind=dp) :: amean(3)
   character*(*)  :: cc
+  character*20   :: sstruct
 
   call plmeans(amin,amax,apow,amean)
   write(unit,'(A,"============================================================================")') cc
   write(unit,'(A," Opacities computed by OpTool          <a^n>=",1p,3e9.2e1)') cc,amean
+  if (method .eq. 'MMF') then
+     if (struct.gt.1.d0) then
+        sstruct = '(fractal dimension)'
+     else
+        sstruct = '(filling factor)'
+     endif
+     write(unit,'(A," Method:   ",A3,"  a0=",f7.3,"  Struct=",f7.3,A20)') cc,method,a0,struct,trim(sstruct)
+  else
+     write(unit,'(A," Method:   ",A3,"  fmax=",f7.3)') cc,method,fmax
+  endif
   write(unit,'(A," Parameters:")') cc
   write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
   write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f11.3,"  nlam=",I5,"    nang=",I6)') cc,lmin, lmax, nlam, nang
@@ -1763,7 +1777,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   write(unit,'(A,"============================================================================")') cc
 end subroutine write_header
 
-subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
+subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,pmantle,&
      mfrac,nm,label,scatter,for_radmc,progress)
   ! ----------------------------------------------------------------------
   ! Write an ASCII file with opacaties.
@@ -1775,7 +1789,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
   ! ----------------------------------------------------------------------
   use Defs
   implicit none
-  real (kind=dp) :: amin,amax,apow,fmax,pcore,pmantle,mfrac(nm)
+  real (kind=dp) :: amin,amax,apow,fmax,a0,struct,pcore,pmantle,mfrac(nm)
   real (kind=dp) :: lmin,lmax,f
   type(particle) :: p
   integer        :: na,i,ilam,iang,nm,i1,i2
@@ -1814,7 +1828,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      if (progress) write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
-          pcore,pmantle,p%rho,fmax,mfrac,nm)
+          pcore,pmantle,p%rho,fmax,a0,struct,mfrac,nm)
      write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
      write(20,'("#    iformat")')
      write(20,'("#    nlambda")')
@@ -1832,7 +1846,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,pcore,pmantle,&
      if (progress) write(*,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
-          pcore,pmantle,p%rho,fmax,mfrac,nm)
+          pcore,pmantle,p%rho,fmax,a0,struct,mfrac,nm)
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
      else
