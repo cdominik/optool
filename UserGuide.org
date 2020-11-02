@@ -168,9 +168,6 @@ system.
   that mix will be added to the core using the /Maxwell-Garnett/ rule.
   The *-m* is /not/ optional, it must be present.
 
-
-** Grain geometry and computational method
-
 + =-p POROSITY [P_MANTLE]= ::
 
   Porosity, the /volume/ fraction of vacuum, a number smaller than 1.
@@ -178,19 +175,25 @@ system.
   mantle, but a second value will be specific for the mantle (and may
   be 0).
 
-+ =-dhs [FMAX]= ::
 
+** Grain geometry and computational method
+
+If no method is explicitly specified, the default is *-dhs 0.8*, i.e.
+DHS with f_max=0.8.
+
++ =-dhs [FMAX]= ::
   Use the /Distribution of Hollow Spheres/ (DHS, Min 2005) approach to
   model deviations from prefect sphericity and low-porosity
-  aggregates.  *This is the default method*.  Spheres with inner holes
-  with volume fractions between 0 and f_max (default 0.8) are averaged
-  to mimic irregularities.  f_max=0 means to use solid spheres (Mie
-  theory), i.e. perfectly regular grains. For backward compatibility,
-  *-fmax* can be used instead of *-dhs*.
+  aggregates. Spheres with inner holes with volume fractions between 0
+  and f_max (default 0.8) are averaged to mimic irregularities.
+  f_max=0 means to use solid spheres (Mie theory), i.e. perfectly
+  regular grains. For backward compatibility, *-fmax* can be used
+  instead of *-dhs*.
 
 + =-mie= ::
 
-  Do a standard Mie calculation.  This is short for *-dhs 0*.
+  Do a standard /Mie/ calculation for perfect spheres. This is short
+  for *-dhs 0* .
 
 + =-mmf [A0 [DFRAC-OR-FILL]]= ::
 
