@@ -1,50 +1,43 @@
 
 * Introduction to optool
 
-This tool allows to produce complex dust particle opacities right from
-the command line. It is derived from Michiel Min's [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]
-for the [[https://dianaproject.wp.st-andrews.ac.uk/][DIANA]] program. =optool= adds a much more flexible command line
-interface, a curated list of built-in materials, easy access to
-external material properties, more output options, and significant
-speed gains.
-
-For another derivative of OpacityTool with a different set of
-applications, check out [[https://github.com/charlenelefevre/SIGMA][SIGMA]], the /Simple Icy Grain Model for
-Aggregates/, by Lefévre et al. (2020).
+This tool produces complex dust particle opacities right from the
+command line. It is derived from Michiel Min's DHS [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] and
+also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 
 * Capabilities
 
 - stand-alone tool, fully command line driven, no input files need to
   be edited
-- flexible command line interface to specify input in a compact and
-  simple way
 - full scattering matrix output in several formats, including for
   RADMC-3D
 - combining materials through mixing into a complex grain with
   porosity
-- DHS method to model shape effects and low-porosity aggregates
-- a useful collection of compiled-in materials for standard applications
+- a useful collection of built-in materials for standard applications
   in astronomy
-- an easy way to use external refractive index data for more
-  specialized applications
-- Python interface module for easy postprocessing and cross-tool use.
-- multi-core support through OpenMP to make even complex computations
-  very fast
+- an easy way to use external refractive index data
+- two computational methods: (i) *DHS (Distribution of Hollow
+  Spheres)* for /irregular grains/ and /low-porosity/ aggregates.
+  Standard *Mie theory* for /perfect spheres/ is available as a
+  limiting case. (ii) *MMF (Modified Mean Field)* theory for
+  /high-porosity/fractal aggregates/.
+- =Python= interface module for easy postprocessing and cross-tool
+  use.
 
 * Terms of use
 
+
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
-and redistributed freely.  The implemented physics is the same as in
-[[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]]. As a reference for this tool, please point to the [[https://github.com/cdominik/optool.git][GitHub
-repository]]. If you use it to publish papers, please cite the papers
-establishing the methods used, as well as to the original laboratory
-papers that published the refractive index measurements.
+and redistributed freely. The relevant references for this tool are
+listed below.  Depending on which parts of =optool= you are using,
+please reference the corresponding papers.
 
 - =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
+- MMF model for aggregates: [[https://ui.adsabs.harvard.edu/abs/2018ApJ...860...79T][Tazaki & Tanaka 2018, ApJ 860, 79]]
 - DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016, A&A 586, 103]]
 - Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
-- References to refractive index data used in your particular
+- References to [[#builtin-materials][refractive index data]] used in your particular
   application.
 
 * Examples
@@ -97,18 +90,22 @@ matrix, chopping 3 degrees from the scattering peak.
 
 : optool -na 42 -d -s -radmc -chop 3
 
-Use the Bruggeman rule to blend refractive index data of three
-orientations of a crystaline material, using the wavelength grid
-given in one of those files. Output to =blended.lnk=.
+Use MMF to compute the opacities of dust aggregates made of pyroxene
+monomers.  Use a monomer radius of 0.3 \mu{}m to construct aggregates
+with compact-volume radii between 10 and 30 \mu{}m, and a filling
+factor of 5%
 
-: optool -b gra_x.lnk 0.33 gra_y.lnk 0.33 gra_z.lnk 0.33 -l gra_x.lnk
+: optool pyr  -a 10 30  -mmf 0.3 0.05
+
+As before, but fix the fractal dimension $D_f=1.9$ instead of setting
+the filling factor
+
+: optool pyr  -a 10 30  -mmf 0.3 1.9
+
 
 * Acknowledgments
-- [[http://michielmin.nl/][Michiel Min]] for the [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][DIANA OpacityTool]] and all the incredible work
-  that went into it. =optool= is a direct derivative of that tool and
-  reuses almost all of its code.
-- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a mantle using
-  the Maxwell-Garnett rule.
+- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a grain mantle
+  using the Maxwell Garnett rule.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
   on github]]).
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
