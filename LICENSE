@@ -22,9 +22,10 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
-Additional licensing notices about subroutines included in this code
-====================================================================
+===============================================================
+Additional licensing notices notes associated with subroutines
+included in this code base
+===============================================================
 
 DMiLay
 ======
@@ -35,8 +36,15 @@ DMiLay
 LPMNS, LPN, CHGM, GAMMA
 =======================
 
-  Licensing:
-    These routines are copyrighted by Shanjie Zhang and Jianming Jin.
-    However, they give permission to incorporate this routine into a
-    user program provided that the copyright is acknowledged.
+   These routines are copyrighted by Shanjie Zhang and Jianming Jin.
+   However, they give permission to incorporate this routine into a
+   user program provided that the copyright is acknowledged.
 
+Numerical Recipes
+=================
+
+   This code base also includes a couple of routines that use the
+   algorithms descriped in W.H. Press et al. 1986, 'Numerical Recipes'
+   Cambridge University Press, (ISBN 0-521-30811).
+
+   ludcmp, lubksb, gauleg, gamln, spline, splint
