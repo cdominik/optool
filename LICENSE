@@ -40,11 +40,3 @@ LPMNS, LPN, CHGM, GAMMA
     However, they give permission to incorporate this routine into a
     user program provided that the copyright is acknowledged.
 
-Numerical Recipes
-=================
-
-This code base also includes a couple of routines that use the
-algorithms descriped in W.H. Press et al. 1986, 'Numerical Recipes'
-Cambridge University Press, (ISBN 0-521-30811).  It is not quite clear
-if this violates any provisions of the authors of numerical recipes -
-I hope not.
