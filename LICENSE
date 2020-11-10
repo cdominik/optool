@@ -1,6 +1,6 @@
 MIT License
 
-OpTool:      Copyright (c) 2020 Carsten Dominik & Michiel Min
+OpTool:      Copyright (c) 2020 Carsten Dominik, Michiel Min, Ryo Tazaki
 OpacityTool: Copyright (c) 2015 Michiel Min
 
 Permission is hereby granted, free of charge, to any person obtaining
@@ -23,3 +23,28 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+Additional licensing notices about subroutines included in this code
+====================================================================
+
+DMiLay
+======
+
+ This routine is from 
+   Toon, O. and T. Ackerman, Applied Optics 20, 3657 (1981)
+
+LPMNS, LPN, CHGM, GAMMA
+=======================
+
+  Licensing:
+    These routines are copyrighted by Shanjie Zhang and Jianming Jin.
+    However, they give permission to incorporate this routine into a
+    user program provided that the copyright is acknowledged.
+
+Numerical Recipes
+=================
+
+This code base also includes a couple of routines that use the
+algorithms descriped in W.H. Press et al. 1986, 'Numerical Recipes'
+Cambridge University Press, (ISBN 0-521-30811).  It is not quite clear
+if this violates any provisions of the authors of numerical recipes -
+I hope not.
