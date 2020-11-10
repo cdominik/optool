@@ -666,8 +666,8 @@ the code.
   simply $N=a^3/a_0^3$, where $a_0$ is the radius of the monomer. To
   determine the structure of the aggregates, the user can specify a
   structure parameter.  If that parameter is larger than 1, it is
-  interpreted as the fractal dimension of the aggregates.  Using a
-  fixed fractal dimension means, that the volume filling factor will
+  interpreted as the fractal dimension $D_f$ of the aggregates.  Using
+  a fixed fractal dimension means, that the volume filling factor will
   decrease with aggregate size.  As an alternative, the structure
   parameter can be less than 1.  In that case, it is interpreted as a
   fixed volume filling factor $f$ that applies to all aggregate

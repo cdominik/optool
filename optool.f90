@@ -733,12 +733,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
 
   ! MMF variables
   real (kind=dp)                 :: mmf_a0,mmf_struct
-  integer                        :: iqsca,iqcor,nang2
+  integer                        :: iqsca,iqcor,nang2,Smat_nbad
   real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,k0frac
   real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
   real (kind=dp)                 :: deltaphi
   real (kind=dp), allocatable    :: Smat_mmf(:,:)
-  logical                        :: Smat_OK
 
   integer ichop
   
@@ -995,7 +994,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
   !$OMP private(iqsca,iqcor,nang2)                                        &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,k0frac)                    &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
-  !$OMP private(Smat_mmf,deltaphi,Smat_OK)
+  !$OMP private(Smat_mmf,deltaphi,Smat_nbad)
   
   do ilam = 1,nlam
 
@@ -1009,7 +1008,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
      enddo
      csca = 0d0; cabs = 0d0; cext = 0d0
      mass = 0d0; vol  = 0d0
-     Smat_OK = .true.
+     Smat_nbad = 0
 
      ! ----------------------------------------------------------------------
      ! Start the main loop over all particle sizes
@@ -1146,13 +1145,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
 
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
-           !call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
+
+           ! Here is already the call to the new version of meanscat.
+           !call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,1,nang2,&
            !     cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf,deltaphi)
            !if (deltaphi .gt. 1.d0) then
-           !   Smat_OK = .false.
+           !   Smat_nbad = Smat_nbad + 1
            !endif
-           ! FIXME: still need to implement an action when Smat_OK is false.
-           ! Print a warning, set matrix to zero, set gscat to 1?
 
            factor = 4.d0*pi / wvno**2/csca_mmf
            do j=1,nang
@@ -1270,8 +1269,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
      p%g(ilam) = p%g(ilam)/tot
 
      ! FIXME: Overwrite the Scattering matrix if it is bad
-     if (.not. Smat_OK) then
-        print *,'WARNING: scattering matrix and asymmetry parameter not reliable at lambda=',lam(ilam)
+     if (Smat_nbad .gt. 0) then
+        write(*,'("WARNING: ScatMat and g_asym not reliable at lam=",f7.3,"for (",i3,"/",i3,") sizes")') lam(ilam),Smat_nbad,ns
         ! FIXME: Setting stuff to zero is brutal.  What would be better?
         p%g(ilam) = 0.d0   ! Set to isotropic scattering.
         do j=1,nang
