@@ -136,7 +136,7 @@ program optool
   real (kind=dp), allocatable :: e1d(:),e2d(:)
 
   ! MMF implementation
-  real(kind=dp)   :: mmf_a0,mmf_struct
+  real(kind=dp)   :: mmf_a0,mmf_struct,mmf_kf
 
   ! ----------------------------------------------------------------------
   ! Defaults values for parameters and switches
@@ -332,6 +332,11 @@ program optool
            i=i+1; call getarg(i,value); read(value,*) mmf_a0
            if (arg_is_number(i+1)) then
               i=i+1; call getarg(i,value); read(value,*) mmf_struct
+              if (arg_is_number(i+1)) then
+                 i=i+1; call getarg(i,value); read(value,*) mmf_kf
+              else
+                 mmf_kf = 0
+              endif
            else
               mmf_struct = 0.2  ! default is a filling factor of 20%
            endif
@@ -413,6 +418,10 @@ program optool
   if ( (nm.eq.nmant) .and. (nm.gt.0) ) then
      print *,"ERROR: at least one core material must be specified"; stop
   endif
+  ! *** Porosity ***
+  if ( (pcore.lt.0d0).or.(pcore.ge.1d0).or.(pmantle.lt.0d0).or.(pmantle.ge.1d0) ) then
+     print *,"ERROR: prosities must be 0 <= p < 1"; stop
+  endif
   ! *** Grain size distribution ***
   if (na .eq. 0) then
      ! set sampling of the grain radius: 10 per decade, min 5
@@ -442,6 +451,24 @@ program optool
   if ( (lmin.eq.lmax) .and. (nlam.ne.1) ) then
      print *,'WARNING: Setting nlam=1 because lmin=lmax'
      nlam = 1
+  endif
+  ! *** DHS
+  if (method .eq. 'DHS') then
+     if ((fmax.lt.0.d0) .or. (fmax.ge.1.d0)) then
+        print *,'ERROR: fmax for DHS must be >0 and <1'
+     endif
+  endif
+  ! *** MMF
+  if (method .eq. 'MMF') then
+     if (mmf_struct .gt. 3.0d0) then
+        print *,'ERROR: Fractal dimension needs to be between 1'; stop
+     endif
+     if (mmf_struct .le. 0d0) then
+        print *,'ERROR: MMF structure parameter needs to be positive'; stop
+     endif
+     if (mmf_a0 .ge. amin) then
+        print *,'ERROR: Minimum grain size cannot be smaller than monomeer size'; stop
+     endif
   endif
   ! *** Other checks
   if (split .and. blendonly) then
@@ -557,7 +584,7 @@ program optool
      !$OMP shared(amin,afact,afsub,nsub,apow,fmax,pcore,pmantle)       &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
-     !$OMP shared(quiet,mmf_a0,mmf_struct)                             &
+     !$OMP shared(quiet,mmf_a0,mmf_struct,mmf_kf)                      &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
 
@@ -577,7 +604,7 @@ program optool
         asplit    = amin  *afact**real(ia-1d0+0.5d0)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
-        call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,mmf_a0,mmf_struct, &
+        call ComputePart(p,aminsplit,amaxsplit,apow,nsub,fmax,mmf_a0,mmf_struct,mmf_kf, &
              pcore,pmantle,mat_mfr,mat_nm,.false.)
 
         ! Outout is done serially, to avoid file handle conflicts
@@ -618,7 +645,7 @@ program optool
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
-     call ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
+     call ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
           pcore,pmantle,mat_mfr,nm,.true.)
      
      ! ----------------------------------------------------------------------
@@ -652,7 +679,7 @@ end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
 
-subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
+subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      p_c,p_m,mfrac0,nm,progress)
   ! ----------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
@@ -732,9 +759,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
   complex (kind=dp)              :: m,mconj,min,e_out
 
   ! MMF variables
-  real (kind=dp)                 :: mmf_a0,mmf_struct
+  real (kind=dp)                 :: mmf_a0,mmf_struct,mmf_kf
   integer                        :: iqsca,iqcor,nang2,Smat_nbad
-  real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,k0frac
+  real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,kfrac
   real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
   real (kind=dp)                 :: deltaphi
   real (kind=dp), allocatable    :: Smat_mmf(:,:)
@@ -990,9 +1017,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
   !$OMP private(m1,m2,d21,s21,m,mconj,wvno,min)                           &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
-  !$OMP shared(mmf_a0,mmf_struct)                                         &
+  !$OMP shared(mmf_a0,mmf_struct,mmf_kf)                                  &
   !$OMP private(iqsca,iqcor,nang2)                                        &
-  !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,k0frac)                    &
+  !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,kfrac)                     &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
   !$OMP private(Smat_mmf,deltaphi,Smat_nbad)
   
@@ -1134,20 +1161,24 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct, &
               ! mmf_struct is the filling factor
               Dfrac  = 3.d0 * alog(nmono) / alog(nmono/mmf_struct)
            endif
-           k0frac = (5.d0/3.d0)**(Dfrac/2.)
+           if (mmf_kf .gt. 0.) then
+              kfrac = mmf_kf
+           else
+              kfrac = (5.d0/3.d0)**(Dfrac/2.)
+           endif
            if (ilam.eq.1) then
-              write(*,'("r1,fill = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,k0frac
+              write(*,'("r1,fill = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
            m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! normal, positive k
            nang2  = int(nang/2)+1 ! This is what meanscat needs as input
 
-           call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,nang2,&
+           call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,kfrac,m,iqsca,iqcor,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
 
            ! Here is already the call to the new version of meanscat.
-           !call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,k0frac,m,iqsca,iqcor,1,nang2,&
+           !call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,kfrac,m,iqsca,iqcor,1,nang2,&
            !     cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf,deltaphi)
            !if (deltaphi .gt. 1.d0) then
            !   Smat_nbad = Smat_nbad + 1
