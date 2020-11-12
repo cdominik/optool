@@ -146,7 +146,9 @@ system.
 :PROPERTIES:
 :CUSTOM_ID: composition
 :END:
-  
+If no composition is specified, the default is *-c pyr 0.87 -c c 0.13
+-p 0.25*.
+
 + =-c= :: List available built-in materials (the keys for the *-c* and
   *-m* options).
 
