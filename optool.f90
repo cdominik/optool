@@ -1174,15 +1174,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
            m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! normal, positive k
            nang2  = int(nang/2)+1 ! This is what meanscat needs as input
 
-           call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,kfrac,m,iqsca,iqcor,nang2,&
-                cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
-
-           ! Here is already the call to the new version of meanscat.
-           !call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,kfrac,m,iqsca,iqcor,1,nang2,&
-           !     cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf,deltaphi)
-           !if (deltaphi .gt. 1.d0) then
-           !   Smat_nbad = Smat_nbad + 1
-           !endif
+           call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,kfrac,m,iqsca,iqcor,1,nang2,&
+                cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf,deltaphi)
+           if (deltaphi .gt. 1.d0) then
+              Smat_nbad = Smat_nbad + 1
+           endif
 
            factor = 4.d0*pi / wvno**2/csca_mmf
            do j=1,nang

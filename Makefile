@@ -57,7 +57,7 @@ LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
 LIBS    = $(LIBS_FITS)
 
 # Object files to link
-OBJS	= optool.o optool_guts.o optool_manual.o ref_ind.o optool_mmf.o optool_guts2.o
+OBJS	= optool.o optool_guts.o optool_manual.o ref_ind.o optool_fractal.o
 
 # Program name and install location
 PROGRAM       = optool
@@ -144,8 +144,8 @@ binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
 
 # MMF leasds to segmentation faults if I compile with OpenMP support.
 # So we use a special rule for it.
-optool_mmf.o: optool_mmf.f90
-	$(FC) $(FLAG_ALL_NM) $(FLAG_LINUX) $(FLAG_FITS) -c optool_mmf.f90
+#optool_mmf.o: optool_mmf.f90
+#	$(FC) $(FLAG_ALL_NM) $(FLAG_LINUX) $(FLAG_FITS) -c optool_mmf.f90
 
 .SUFFIXES : .o .f .f90
 
