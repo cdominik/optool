@@ -42,6 +42,7 @@ module Defs
   logical, public                :: blendonly = .false. ! only blend materials and write result out
   logical, public                :: split     = .false. ! split to many files
   logical, public                :: quiet     = .false. ! reduce output to STDOUT
+  logical, public                :: verbose   = .false. ! additional output to STDOUT
   logical, public                :: justnum   = .false. ! Only give opacities on STDOUT 
   logical, public                :: debug     = .false. ! Additional infor to STDOUT
   ! ----------------------------------------------------------------------
@@ -384,6 +385,9 @@ program optool
      case('-q')
         ! Be less noisy
         quiet = .true.
+     case('-v')
+        ! Be more noisy
+        verbose = .true.
      case ('-n')
         quiet   = .true.
         justnum = .true.
@@ -1015,9 +1019,10 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   !$OMP parallel do if (.not. split)                                      &
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
-  !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method,nf,ns,p_c,rho_av,wf,f) &
+  !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method)                 &
+  !$OMP shared(nf,ns,p_c,rho_av,wf,f)                                     &
   !$OMP shared(split,progress,ndone,nang,chopangle)                       &
-  !$OMP shared(quiet)                                                     &
+  !$OMP shared(quiet,verbose)                                             &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
@@ -1029,7 +1034,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   !$OMP private(iqsca,iqcor,iqgeo,nang2)                                  &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,kfrac)                     &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
-  !$OMP private(Smat_mmf,deltaphi)   &
+  !$OMP private(Smat_mmf,deltaphi)                                        &
   !$OMP shared(Smat_nbad)
   
   do ilam = 1,nlam
@@ -1174,8 +1179,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
            else
               kfrac = (5.d0/3.d0)**(Dfrac/2.)
            endif
-           if (ilam.eq.1) then
-              !FIXME: write(*,'("r1,fill = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
+           if ((ilam.eq.1).and.(verbose)) then
+              write(*,'("r1,struct = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
