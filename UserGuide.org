@@ -616,7 +616,7 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 3. Optionally edit =lnk_data/lnk-help.txt=, so that [[#composition][=optool -c=]] will
    list the new material.  Note that, in order to define generic keys,
    optool looks for pairs that look like =genkey -> fullkey= in this file.
-4. Run =make ingest= to update =ref_ind.f90=, now including your new
+4. Run =make ingest= to update =optool_refind.f90=, now including your new
    material.
 5. Recompile and install the code.
 

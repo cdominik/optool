@@ -57,7 +57,7 @@ LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
 LIBS    = $(LIBS_FITS)
 
 # Object files to link
-OBJS	= optool.o optool_guts.o optool_manual.o ref_ind.o optool_fractal.o
+OBJS	= optool.o optool_guts.o optool_manual.o optool_refind.o optool_fractal.o
 
 # Program name and install location
 PROGRAM       = optool
@@ -81,7 +81,7 @@ manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org --bat
 		rm UserGuide.txt
 pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l maint/bake_manual.el UserGuide.org --batch -f org-latex-export-to-pdf --kill
 ingest:;	echo Compiling in datasets in lnk_data...
-		./maint/ingestlnk.pl lnk_data/*.lnk > ref_ind.f90
+		./maint/ingestlnk.pl lnk_data/*.lnk > optool_refind.f90
 test:; 		echo Computing size-integrated opacities ...
 		make cleanoutput
 		make
