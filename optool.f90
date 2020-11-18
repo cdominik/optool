@@ -81,6 +81,7 @@ module Defs
      real (kind=dp), allocatable :: Kabs(:),Ksca(:),Kext(:) ! Opacities
      real (kind=dp), allocatable :: g(:)           ! asymmetry parameter
      TYPE(MUELLER),  allocatable :: F(:)           ! Mueller matrix elements
+     logical                     :: scat_ok        ! Are F11... and g_asym usable?
   end type particle
   ! ----------------------------------------------------------------------
   ! The output directory
@@ -612,6 +613,9 @@ program optool
         ndone = ndone + 1
         call tellertje(ndone,na,quiet)
         write(label,'(I3.3)') ia
+        if (.not. p%scat_ok) then
+           write(*,'("WARNING: opacities OK, but F_nn and g_asym not accurate for particle ",I3,", a=",F10.3)') ia,asplit
+        endif
         if (write_fits) then
 #ifdef USE_FITSIO
            write(fitsfile,'(A,"_",A,".fits")') "dustkappa",trim(label)
@@ -651,6 +655,9 @@ program optool
      ! ----------------------------------------------------------------------
      ! Write the output
      ! ----------------------------------------------------------------------
+     if (.not. p%scat_ok) then
+        write(*,'("WARNING: opacities OK, but F_nn and g_asym not accurate")')
+     endif
      if (write_fits) then
 #ifdef USE_FITSIO
         call write_fits_file(p,amin,amax,apow,na, &
@@ -760,7 +767,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
 
   ! MMF variables
   real (kind=dp)                 :: mmf_a0,mmf_struct,mmf_kf
-  integer                        :: iqsca,iqcor,nang2,Smat_nbad
+  integer                        :: iqsca,iqcor,iqgeo,nang2,Smat_nbad
   real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,kfrac
   real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
   real (kind=dp)                 :: deltaphi
@@ -999,7 +1006,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      theta = (real(j)-0.5d0)/real(nang/2)*pi/2d0
      mu(j) = cos(theta)
   enddo
-  
+  Smat_nbad = 0   !FIXME:
+
   ! ----------------------------------------------------------------------
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
@@ -1018,10 +1026,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
   !$OMP shared(mmf_a0,mmf_struct,mmf_kf)                                  &
-  !$OMP private(iqsca,iqcor,nang2)                                        &
+  !$OMP private(iqsca,iqcor,iqgeo,nang2)                                  &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,kfrac)                     &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
-  !$OMP private(Smat_mmf,deltaphi,Smat_nbad)
+  !$OMP private(Smat_mmf,deltaphi)   &
+  !$OMP shared(Smat_nbad)
   
   do ilam = 1,nlam
 
@@ -1035,7 +1044,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      enddo
      csca = 0d0; cabs = 0d0; cext = 0d0
      mass = 0d0; vol  = 0d0
-     Smat_nbad = 0
 
      ! ----------------------------------------------------------------------
      ! Start the main loop over all particle sizes
@@ -1167,16 +1175,18 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
               kfrac = (5.d0/3.d0)**(Dfrac/2.)
            endif
            if (ilam.eq.1) then
-              write(*,'("r1,fill = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
+              !FIXME: write(*,'("r1,fill = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
+           iqgeo  = 2            ! How the the geometric cross section computed
            m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! normal, positive k
            nang2  = int(nang/2)+1 ! This is what meanscat needs as input
 
-           call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,kfrac,m,iqsca,iqcor,1,nang2,&
+           call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,kfrac,m,iqsca,iqcor,iqgeo,1,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf,deltaphi)
            if (deltaphi .gt. 1.d0) then
+              !$OMP atomic
               Smat_nbad = Smat_nbad + 1
            endif
 
@@ -1194,10 +1204,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
            enddo
            ! FIXME: write(*,'(1p,"lam,r,err ",3e10.2)') lam(ilam),r(is),(tot-tot2)/tot2
            
-           ! This is the call exactly as done in the example I got from Ryo
-           !call meanscatt(0.1d0,0.1d0,1024.d0,1.9d0,1.03d0,dcmplx(1.4d0,0.01d0),iqsca,iqcor,nang2,&
-           !    cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf)
-
            ! Relation between F_ij and S_ij: F = 4 * pi * S / (k^2*Csca)
            ! csca is still needed as weight, will be devided out later
            factor = 4.d0*pi / wvno**2
@@ -1296,8 +1302,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      p%g(ilam) = p%g(ilam)/tot
 
      ! FIXME: Overwrite the Scattering matrix if it is bad
+     ! print *,"nbad",Smat_nbad
      if (Smat_nbad .gt. 0) then
-        write(*,'("WARNING: ScatMat and g_asym not reliable at lam=",f7.3,"for (",i3,"/",i3,") sizes")') lam(ilam),Smat_nbad,ns
         ! FIXME: Setting stuff to zero is brutal.  What would be better?
         p%g(ilam) = 0.d0   ! Set to isotropic scattering.
         do j=1,nang
@@ -1313,6 +1319,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   enddo   ! end loop ilam over wavelength
   !$OMP end parallel DO
 
+  if (Smat_nbad.eq.0) then
+     p%scat_ok = .true.
+  else
+     p%scat_ok = .false.
+  endif
+  
   deallocate(e1,e2)
   deallocate(e1mantle,e2mantle)
 
