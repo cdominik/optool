@@ -466,13 +466,13 @@ program optool
   ! *** MMF
   if (method .eq. 'MMF') then
      if (mmf_struct .gt. 3.0d0) then
-        print *,'ERROR: Fractal dimension needs to be between 1'; stop
+        print *,'ERROR: Fractal dimension needs to be between 1 and 3'; stop
      endif
      if (mmf_struct .le. 0d0) then
         print *,'ERROR: MMF structure parameter needs to be positive'; stop
      endif
      if (mmf_a0 .ge. amin) then
-        print *,'ERROR: Minimum grain size cannot be smaller than monomeer size'; stop
+        print *,'ERROR: Minimum grain size cannot be smaller than monomer size'; stop
      endif
   endif
   ! *** Other checks
@@ -1010,7 +1010,8 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      theta = (real(j)-0.5d0)/real(nang/2)*pi/2d0
      mu(j) = cos(theta)
   enddo
-  Smat_nbad = 0   !FIXME:
+  
+  Smat_nbad = 0   ! So far not bad scattering results....
 
   ! ----------------------------------------------------------------------
   ! Start the main loop over all wavelengths
@@ -1199,15 +1200,14 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
            do j=1,nang
               Mief11(j) = 0.5d0*(Smat_mmf(1,j)+Smat_mmf(1,j+1)) * factor
            enddo
-           tot  = 0d0
-           tot2 = 0d0
-           do j=1,nang
-              ! This integration assumes that the grid is regular (linear)
-              !               F11                         sin theta                  d theta
-              tot  = tot  +  Mief11(j) * sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
-              tot2 = tot2 +              sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
-           enddo
-           ! FIXME: write(*,'(1p,"lam,r,err ",3e10.2)') lam(ilam),r(is),(tot-tot2)/tot2
+           !tot  = 0d0; tot2 = 0d0
+           !do j=1,nang
+           !   ! This integration assumes that the grid is regular (linear)
+           !   !               F11                         sin theta                  d theta
+           !   tot  = tot  +  Mief11(j) * sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
+           !   tot2 = tot2 +              sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
+           !enddo
+           ! write(*,'(1p,"lam,r,err ",3e10.2)') lam(ilam),r(is),(tot-tot2)/tot2
            
            ! Relation between F_ij and S_ij: F = 4 * pi * S / (k^2*Csca)
            ! csca is still needed as weight, will be devided out later
@@ -1306,8 +1306,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      enddo
      p%g(ilam) = p%g(ilam)/tot
 
-     ! FIXME: Overwrite the Scattering matrix if it is bad
-     ! print *,"nbad",Smat_nbad
      if (Smat_nbad .gt. 0) then
         ! FIXME: Setting stuff to zero is brutal.  What would be better?
         p%g(ilam) = 0.d0   ! Set to isotropic scattering.
