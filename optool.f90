@@ -617,7 +617,7 @@ program optool
         ndone = ndone + 1
         call tellertje(ndone,na,quiet)
         write(label,'(I3.3)') ia
-        if (.not. p%scat_ok) then
+        if ((.not. p%scat_ok).and.(.not. quiet)) then
            write(*,'("WARNING: opacities OK, but F_nn and g_asym not accurate for particle ",I3,", a=",F10.3)') ia,asplit
         endif
         if (write_fits) then
@@ -659,7 +659,7 @@ program optool
      ! ----------------------------------------------------------------------
      ! Write the output
      ! ----------------------------------------------------------------------
-     if (.not. p%scat_ok) then
+     if ((.not. p%scat_ok).and.(.not. quiet)) then
         write(*,'("WARNING: opacities OK, but F_nn and g_asym not accurate")')
      endif
      if (write_fits) then

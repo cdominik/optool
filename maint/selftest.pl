@@ -57,6 +57,18 @@ my $tests = [
    getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
+  {name => 'mmf-scat',
+   prepare => "rm -f $dir/dustkapscatmat.dat",
+   cmd => "./optool pyr 1 -q -a 10 30 -mmf 0.3 .005 -l 30 3000 20 -s -o $dir",
+   getsha => "accuracy",
+   glob => "$dir/dustkapscatmat.dat"},
+
+  {name => 'mmf-opac',
+   prepare => "rm -f $dir/dustkappa.dat",
+   cmd => "./optool pyr 1 -q -a 10 30 5 -mmf 0.3 2.2 -nlam 10 -o $dir",
+   getsha => "accuracy",
+   glob => "$dir/dustkappa.dat"},
+
   {name => 'fits-output',
    prepare => "rm -f $dir/dustkappa.fits",
    cmd => "./optool -q -na 10 -nl 30 -s -fits -o $dir",
@@ -195,8 +207,7 @@ sub find_accuracy {
 
 __DATA__
 
-
-# HASHES set on Mon Nov  2 11:19:22 CET 2020
+# HASHES set on Fri Nov 20 08:51:54 CET 2020
 
 noscat:::1000:bbf283849a::10:bbf283849a::9:bbf283849a::8:bbf283849a::7:bbf283849a::6:bbf283849a::5:c088b8ac5d::4:a2a0d382b9::3:7b77f4ba62::2:f67461f634::1:a112d33dca
 quick:::1000:be238cfadf::10:be238cfadf::9:be238cfadf::8:be238cfadf::7:be238cfadf::6:be238cfadf::5:2f8bfc75ad::4:43c6c3408a::3:990d2b4bc4::2:9f890b7b31::1:f6c6f1a4e3
@@ -206,4 +217,6 @@ div-in-10-parts:::1000:621143a1dc::10:621143a1dc::9:621143a1dc::8:621143a1dc::7:
 high-angular-resolution:::1000:4ad6a3b13e::10:4ad6a3b13e::9:4ad6a3b13e::8:4ad6a3b13e::7:4ad6a3b13e::6:4ad6a3b13e::5:1526af8dcd::4:978a67516e::3:f90acd97a1::2:1ca7d976c7::1:a8493c414c
 pure-ice-grain:::1000:b4d383dd33::10:b4d383dd33::9:b4d383dd33::8:b4d383dd33::7:b4d383dd33::6:b4d383dd33::5:7363790db0::4:c1f4e9123a::3:5a8a3c55b2::2:09daf67d89::1:1de622f9c2
 chop-peak:::1000:8b3d97f571::10:8b3d97f571::9:8b3d97f571::8:8b3d97f571::7:8b3d97f571::6:8b3d97f571::5:7283480cd7::4:fdc24de06d::3:671c0d51ee::2:0eb51afe51::1:1558598714
+mmf-scat:::1000:d73d25cfba::10:d73d25cfba::9:d73d25cfba::8:d73d25cfba::7:d73d25cfba::6:d73d25cfba::5:529b276e35::4:6347d03569::3:d7521d218c::2:1f6bdef5e8::1:58ee655839
+mmf-opac:::1000:93eabdbef2::10:93eabdbef2::9:93eabdbef2::8:93eabdbef2::7:93eabdbef2::6:93eabdbef2::5:501bfafe1b::4:ffccf7b5b7::3:836ef1dfe9::2:f91d75a97f::1:3f635e43c6
 
