@@ -184,7 +184,7 @@ If no method is explicitly specified, the default is *-dhs 0.8*, i.e.
 DHS with f_max=0.8.
 
 + =-dhs [FMAX]= ::
-  Use the /Distribution of Hollow Spheres/ (DHS, Min 2005) approach to
+  Use the /Distribution of Hollow Spheres/ (DHS, Min+ 2005) approach to
   model deviations from prefect sphericity and low-porosity
   aggregates. Spheres with inner holes with volume fractions between 0
   and f_max (default 0.8) are averaged to mimic irregularities.
@@ -199,14 +199,14 @@ DHS with f_max=0.8.
 
 + =-mmf [A0 [DFRAC-OR-FILL]]= ::
 
-  Use /Modified Mean Field/ theory (MMF, Tazaki 2018) to compute
-  opacities of highly porous or fractal aggregates.  *-c*, *-m*, and
-  *-p* now determine the composition of monomers.  =A0= is the monomer
-  radius (default 0.1\mu{}m).  Particles will be aggregates with a
-  /compact size/ given by the *-a* switch, giving rise to
-  $N=a^3/a_0^3$ monomers. When =DFRAC-OR-FILL= is greater than 1, it
-  specifies the /fractal dimension/.  When it is less than 1, it is
-  interpreted as the /volume filling factor/ of the aggregates
+  Use /Modified Mean Field/ theory (MMF, Tazaki & Tanaka 2018) to
+  compute opacities of highly porous or fractal aggregates.  *-c*,
+  *-m*, and *-p* now determine the composition of monomers.  =A0= is
+  the monomer radius (default 0.1\mu{}m).  Particles will be
+  aggregates with a /compact size/ given by the *-a* switch, giving
+  rise to $N=a^3/a_0^3$ monomers. When =DFRAC-OR-FILL= is greater than
+  1, it specifies the /fractal dimension/.  When it is less than 1, it
+  is interpreted as the /volume filling factor/ of the aggregates
   instead. The default is 0.2, corresponding to a 20% filling factor.
 
 
@@ -679,8 +679,8 @@ the code.
   be less than 1.  In that case, it is interpreted as a fixed /volume
   filling factor/ $f$ that applies to all aggregate sizes - with the
   implication that then the fractal dimension increases as a function
-  of size. The fractal prefactor $k_f$ in chosen so that the
-  asymptotic density of small aggregates is the monomer material
+  of size. The fractal prefactor $k_f$ is chosen automatically so that
+  the asymptotic density of small aggregates is the monomer material
   density.  To force another value for the prefactor, it can be given
   explicitly as the third value of the =-mmf= option. The following
   table summarises the relevant equations.
