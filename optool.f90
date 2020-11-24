@@ -1011,8 +1011,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      mu(j) = cos(theta)
   enddo
   
-  Smat_nbad = 0   ! So far not bad scattering results....
-
   ! ----------------------------------------------------------------------
   ! Start the main loop over all wavelengths
   ! ----------------------------------------------------------------------
@@ -1035,8 +1033,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   !$OMP private(iqsca,iqcor,iqgeo,nang2)                                  &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,kfrac)                     &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
-  !$OMP private(Smat_mmf,deltaphi)                                        &
-  !$OMP shared(Smat_nbad)
+  !$OMP private(Smat_mmf,deltaphi,Smat_nbad)                              
   
   do ilam = 1,nlam
 
@@ -1049,6 +1046,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
         f33(j) = 0d0; f34(j) = 0d0; f44(j) = 0d0
      enddo
      csca = 0d0; cabs = 0d0; cext = 0d0
+     Smat_nbad = 0   ! so far not bad scattering result atthis wavelength
      mass = 0d0; vol  = 0d0
 
      ! ----------------------------------------------------------------------
@@ -1192,7 +1190,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
            call meanscatt(lam(ilam),mmf_a0,nmono,Dfrac,kfrac,m,iqsca,iqcor,iqgeo,1,nang2,&
                 cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,Smat_mmf,deltaphi)
            if (deltaphi .gt. 1.d0) then
-              !$OMP atomic
               Smat_nbad = Smat_nbad + 1
            endif
 
@@ -1308,6 +1305,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
 
      if (Smat_nbad .gt. 0) then
         ! FIXME: Setting stuff to zero is brutal.  What would be better?
+        ! FIXME: However, below we use a zero value of g as a signal
         p%g(ilam) = 0.d0   ! Set to isotropic scattering.
         do j=1,nang
            p%F(ilam)%F11(j) = 0.d0; p%F(ilam)%F12(j) = 0.d0; p%F(ilam)%F22(j) = 0.d0
@@ -1322,12 +1320,12 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   enddo   ! end loop ilam over wavelength
   !$OMP end parallel DO
 
-  if (Smat_nbad.eq.0) then
-     p%scat_ok = .true.
-  else
-     p%scat_ok = .false.
-  endif
-  
+  ! Check if any g values exactly zero, pointing to issues with the scattering calculations 
+  p%scat_ok = .true.
+  do ilam=1,nlam
+     if (p%g(ilam) .eq. 0d0) p%scat_ok = .false.
+  enddo
+
   deallocate(e1,e2)
   deallocate(e1mantle,e2mantle)
 
