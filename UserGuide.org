@@ -694,7 +694,9 @@ the code.
 
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) to compute cross sections and the scattering
-  matrix.  It also computes the phase shift $\Delta\phi$ caused by the
+  matrix.  For the determination of the geometrical cross section
+  needed in the theory, we use equation 47 from Okuzumi et al. (2009).
+  =optool= also computes the phase shift $\Delta\phi$ caused by the
   aggregate to check the validity of the scattering matrix and the
   asymmetry parameter.  If the condition $\Delta\phi<1$ for accurate
   scattering matrix results is violated, a warning will be
@@ -717,6 +719,7 @@ the code.
 - Mishchenko, M. et al. 2002, /Scattering, absorption, and emission of
   light by small particles/, Cambridge University Press 
 - Mutschke, H. et al. 2004, A&A 423, 983
+- Okuzumi, S. et al. 2009,  ApJ 707, 1247
 - Tazaki, R. et al. 2016, ApJ 823, 70
 - Tazaki, R. & Tanaka, H. 2018, ApJ 860,79
 - Toon, O. & Ackerman,T. 1981, Applied Optics 20, 3657
