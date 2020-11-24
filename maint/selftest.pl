@@ -207,7 +207,7 @@ sub find_accuracy {
 
 __DATA__
 
-# HASHES set on Fri Nov 20 08:51:54 CET 2020
+# HASHES set on Tue Nov 24 11:55:51 CET 2020
 
 noscat:::1000:bbf283849a::10:bbf283849a::9:bbf283849a::8:bbf283849a::7:bbf283849a::6:bbf283849a::5:c088b8ac5d::4:a2a0d382b9::3:7b77f4ba62::2:f67461f634::1:a112d33dca
 quick:::1000:be238cfadf::10:be238cfadf::9:be238cfadf::8:be238cfadf::7:be238cfadf::6:be238cfadf::5:2f8bfc75ad::4:43c6c3408a::3:990d2b4bc4::2:9f890b7b31::1:f6c6f1a4e3
@@ -218,5 +218,5 @@ high-angular-resolution:::1000:4ad6a3b13e::10:4ad6a3b13e::9:4ad6a3b13e::8:4ad6a3
 pure-ice-grain:::1000:b4d383dd33::10:b4d383dd33::9:b4d383dd33::8:b4d383dd33::7:b4d383dd33::6:b4d383dd33::5:7363790db0::4:c1f4e9123a::3:5a8a3c55b2::2:09daf67d89::1:1de622f9c2
 chop-peak:::1000:8b3d97f571::10:8b3d97f571::9:8b3d97f571::8:8b3d97f571::7:8b3d97f571::6:8b3d97f571::5:7283480cd7::4:fdc24de06d::3:671c0d51ee::2:0eb51afe51::1:1558598714
 mmf-scat:::1000:d73d25cfba::10:d73d25cfba::9:d73d25cfba::8:d73d25cfba::7:d73d25cfba::6:d73d25cfba::5:529b276e35::4:6347d03569::3:d7521d218c::2:1f6bdef5e8::1:58ee655839
-mmf-opac:::1000:93eabdbef2::10:93eabdbef2::9:93eabdbef2::8:93eabdbef2::7:93eabdbef2::6:93eabdbef2::5:501bfafe1b::4:ffccf7b5b7::3:836ef1dfe9::2:f91d75a97f::1:3f635e43c6
+mmf-opac:::1000:3036ad139c::10:3036ad139c::9:3036ad139c::8:3036ad139c::7:3036ad139c::6:3036ad139c::5:b61da2fd8b::4:e62b2ca2d2::3:835ba59580::2:d23c1d5ddc::1:36bb97aabf
 
