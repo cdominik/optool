@@ -818,10 +818,9 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   ! ----------------------------------------------------------------------
   ! Normalize the mass fractions
   ! ----------------------------------------------------------------------
-  tot  = 0.0_dp
-  tot2 = 0.0_dp
+  tot  = 0.0_dp; tot2 = 0.0_dp
   do im=1,nm
-     tot=tot+mfrac(im)
+     tot = tot + mfrac(im)
      if (mat_loc(im).eq.'mantle') tot2 = tot2 + mfrac(im)
   enddo
   mfrac = mfrac/tot
@@ -1132,8 +1131,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
               ! ASKMICHIEL: You are only adjusting the one point a 0 degrees.
               ! So that means that the basic normalization is already in place at this point,
               ! and you just want to be sure that things are right on your specific grid?
-              tot  = 0d0
-              tot2 = 0d0
+              tot  = 0d0; tot2 = 0d0
               do j=1,nang
                  ! This integration assumes that the grid is regular (linear)
                  tot  = tot +  Mief11(j)*sin(pi*(real(j)-0.5d0)/real(nang))
@@ -1179,7 +1177,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
               kfrac = (5.d0/3.d0)**(Dfrac/2.)
            endif
            if ((ilam.eq.1).and.(verbose)) then
-              write(*,'("r1,struct = ",1p,2e10.2, " ==> N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
+              write(*,'("a,struct =",1p,2e10.2, "  ==>  N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
@@ -1282,12 +1280,6 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
         p%Ksca(ilam) = p%Ksca(ilam) * tot/tot2
         p%Kext(ilam) = p%Ksca(ilam) + p%Kabs(ilam)
         
-        !tot = 0; tot2 = 0
-        !do j=1,nang
-        !   tot  = tot  +  p%F(ilam)%F11(j) * (sin(pi*(real(j)-0.5d0)/real(nang))) * (pi/dble(nang)) * (2.d0*pi)
-        !   tot2 = tot2 +                      sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
-        !enddo
-        !print *,'>',tot,tot2
      endif   ! chopangle .gt. 0
 
      ! ----------------------------------------------------------------------
