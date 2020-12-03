@@ -72,7 +72,8 @@ cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_d
 cleanbin:;	rm -f bin/optool*
 clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.html bin.zip bin/optool*
 		make cleanoutput
-		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool tmp.py
+		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
+		rm -rf tmp.py __pycache__
 cclean:;	rm -f $(OBJS) $(PROGRAM)
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
