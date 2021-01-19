@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   December 2020, version 1.5
+#+DATE:   January 2021, version 1.5
 
 * Introduction
 
@@ -621,6 +621,7 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 5. Recompile and install the code.
 
 
+#+LATEX: \newpage
 * Internals
 :PROPERTIES:
 :CUSTOM_ID: internals
@@ -653,9 +654,9 @@ the code.
   range of volume fractions of this inner region between 0 and $f_{\rm
   max}$.  The subroutine used to compute the opacities and scattering
   matrix elements for these structures is =DMiLay= (Toon & Ackerman
-  1981).  However, when the size parameter $x=2 \pi a/\lambda$ exceeds
-  a value of 10^4, then no DHS averaging is used.  A standard Mie
-  calculation is performed , using the routine =MeerhoffMie=
+  1981).  When the size parameter $x=2 \pi a/\lambda$ exceeds
+  a value of 10^4, no DHS averaging is used.  A standard Mie
+  calculation is performed, using the routine =MeerhoffMie=
   (reference missing), for a fixed size parameter of 5000, with proper
   scaling to the actual size of the particle.
 
@@ -666,22 +667,22 @@ the code.
   \begin{equation}
    N=k_f\left(\frac{R_g}{a_0}\right)^{D_f}
   \end{equation}
-   The size $a$ of the particles as specified by the *-a* switch is
+  The size $a$ of the particles as specified by the *-a* switch is
   interpreted as the /compact/ size of all material in the aggregate,
-  so that simply $N=a^3/a_0^3$, where $a_0$ is the radius of the
-  monomer.  The average volume filling factor $f$ can be expressed by
+  so that $N=a^3/a_0^3$, where $a_0$ is the monomer radius.  The
+  average volume filling factor $f$ can be expressed by
   $f=N\cdot\left(\sqrt{3/5}\,a_0/R_g\right)^3$.  To determine the
   structure of the aggregates, the user can specify a structure
   parameter.  If that parameter is larger than 1, it is interpreted as
-  the /fractal dimension/ $D_f$ of the aggregates.  Using a fixed
-  fractal dimension means that the volume filling factor will decrease
-  with aggregate size.  As an alternative, the structure parameter can
-  be less than 1.  In that case, it is interpreted as a fixed /volume
-  filling factor/ $f$ that applies to all aggregate sizes - with the
+  the /fractal dimension/ $D_f$.  Using a fixed fractal dimension
+  means that the volume filling factor will decrease with aggregate
+  size.  As an alternative, the structure parameter can be less
+  than 1.  In that case, it is interpreted as a fixed /volume filling
+  factor/ $f$ that applies to all aggregate sizes - with the
   implication that then the fractal dimension increases as a function
   of size. The fractal prefactor $k_f$ is chosen automatically so that
   the asymptotic density of small aggregates is the monomer material
-  density.  To force another value for the prefactor, it can be given
+  density. To force another value for the prefactor, it can be given
   explicitly as the third value of the =-mmf= option. The following
   table summarises the relevant equations.
 
@@ -695,14 +696,15 @@ the code.
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) to compute cross sections and the scattering
   matrix.  For the determination of the geometrical cross section
-  needed in the theory, we use equation 47 from Okuzumi et al. (2009).
+  needed in the theory, we use the general expressions from Tazaki (2021).
   =optool= also computes the phase shift $\Delta\phi$ caused by the
   aggregate to check the validity of the scattering matrix and the
   asymmetry parameter.  If the condition $\Delta\phi<1$ for accurate
   scattering matrix results is violated, a warning will be
-  issued. However, even then, the opacities will be applicable.
+  issued. However, the opacities will remain applicable.
 
 * Bibliography
+#+LATEX: \footnotesize
 - Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
   Light by Small Particles/, Wiley-VCH
 - Draine, B., 2003, ApJ 598, 1017
@@ -722,13 +724,13 @@ the code.
 - Okuzumi, S. et al. 2009,  ApJ 707, 1247
 - Tazaki, R. et al. 2016, ApJ 823, 70
 - Tazaki, R. & Tanaka, H. 2018, ApJ 860,79
+- Tazaki, R. 2021, submitted
 - Toon, O. & Ackerman,T. 1981, Applied Optics 20, 3657
 - Woitke, P.; Min, M. et al. 2016, A&A 586, 103
 - Preibisch, Th. et al. 1993, A&A 279, 577
 - Steyer, T. 1974, PhD Thesis, The University of Arizona
 - Warren, S. and Brandt,R. 2008, JGRD,113, D14220
 - Zubko, V. et al. 1996, MNRAS 282,1321
-
 
 # Start of Setup
 
