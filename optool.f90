@@ -1181,7 +1181,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
-           iqgeo  = 2            ! How the the geometric cross section computed
+           iqgeo  = 3            ! How the the geometric cross section computed
            m      = dcmplx(e1blend(ilam),e2blend(ilam)) ! normal, positive k
            nang2  = int(nang/2)+1 ! This is what meanscat needs as input
 
