@@ -33,10 +33,10 @@
 !
 ! iqsca=1: All outputs would be physically reasonable for the phase shift <~ 1. 
 ! 
-! iqsca=2: The extinction cross section would be calculaed without limitation.
+! iqsca=2: The extinction cross section would be calculated without limitation.
 !          However, the other outputs would be reliable for the phase shift < ~1.
 !
-! iqsca=3: The extinction cross section would be calculaed without limitation.
+! iqsca=3: The extinction cross section would be calculated without limitation.
 !          Scattering and absorption cross sections could be calculated
 !          for the phase shift > 1, however too large phase shift may
 !          cause some problem.
@@ -68,7 +68,7 @@
 !
 ! The geometric cross section of aggregates (to be used when iqsca=3):
 ! iqgeo = 2     : Okuzumi et al. 2009, ApJ, 707, 1247
-! iqgeo = 3     : Empirical formulae obtained by mean-field extinction
+! iqgeo = 3     : Tazaki (submitted)
 !
 !--------------------------------------------------------------------------------
 !
@@ -88,6 +88,7 @@
 ! ludcmp      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
 ! lubksb      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
 ! gauleg      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
+! geofrac     : Tazaki (submitted to MNRAS)
 !
 !--------------------------------------------------------------------------------
 !
@@ -115,9 +116,9 @@
 !                 iqcor = 2  : Exponential cutoff 
 !                 iqcor = 3  : Fractal dimension cutoff
 ! iqgeo         : Switch for the two-point correlation function 
-!                 iqgeo = 1  : pi * rc^2
+!                 iqgeo = 1  : pi * rc^2, rc is the characteristic radius
 !                 iqgeo = 2  : Okuzumi et al. (2009)
-!                 iqgeo = 3  : Empirical formulae from mean-field extinction
+!                 iqgeo = 3  : Tazaki (submitted)
 ! iquiet        : Switch for standard output during a calculation
 !                 iquiet = 0 : show stdout 
 !                 iquiet = 1 : suppress stdout (including warnings)
@@ -169,21 +170,19 @@
 !   Lorentz-Mie routine. This does not change the results, since both of 
 !   them are not used to obtain final results.
 ! 
-! version 3.0 (Nov. 05, 2020) 
+! version 3.0 (Jan. 19, 2020) 
 ! - BUG fixed: Add a simple prescription for negative S(q) for iqcor=3.
 ! - Fixed a code crush for OpenMP mode.
-! - Fixed some over/underflow signals.
-! - Fixed a type mismatch of "d" for the subroutine 'ludcmp'.
-! - Fixed a type mismatch of cn1, cn2 in the main subroutine.
+! - Fixed a few type mismatchs and over/underflow signals.
 ! - Unified notation for Cabs in iqsca=1 for safety.
 ! - Updated f77 subroutines to f90.
 ! - Implemented parameterized real precision
 ! - Implemented more efficient loop structure at calculations of 
 !   gaunt coefficients : a(nu,n,p) and b(nu,n,p).
 ! - Removed the iqcor=4 option because it is practically unimportant.
-! - Implemented Okuzumi et al. (2009) formula for geometrical cross-section.
 ! - Added a return variable "phase shift"
-! - Added a new switch for geometric cross section
+! - Added models of for geometric cross sections (iqgeo option)
+! - Implemented geofractal code (called by iqgeo=3)
 !
 !--------------------------------------------------------------------------------
 !       Some constants
@@ -203,8 +202,8 @@ real(kind=dp),parameter :: d2r    = pi/180.0_dp  ! degree to radian
 real(kind=dp),parameter :: r2d    = 1.0_dp/d2r   ! radian to degree
 integer      ,parameter :: jm     = 400          ! Number of grid points of Gauss-Ledengre
                                                  ! for integration of Gaunt coefficients.
-integer,parameter       :: nn     = 10000        ! Number of grid points in the numerical
-                                                 ! integration for Sp(kRg)
+integer,parameter       :: nn     = 100000       ! Number of grid points in the numerical
+                                                 ! integration for Sp(kRg) 
 end module const
 
 !--------------------------------------------------------------------------------
@@ -262,6 +261,7 @@ real(kind=dp)           :: xi                 ! used in xi (Berry corr)
 integer::nstop,numax,nmax
 integer::nu,n,p,j,pmin,pmax
 integer::degmax,order
+integer::iqapp,iqcon                          ! call geofractal
 real(kind=dp),allocatable,dimension(:)::x,w
 real(kind=dp)::x1,x2,anunp,bnunp
 real(kind=dp)::dang,S11,S12,S33,S34
@@ -278,6 +278,9 @@ complex(kind=dp),allocatable,dimension(:,:,:)::T
 complex(kind=dp),dimension(1:2*nang-1)::S1,S2
 complex(kind=dp)::cn1,cn2
 complex(kind=dp):: mgmref
+
+logical,parameter::debug=.false.
+complex(kind=dp)::wa1,wa2
 
 !--------------------------------------------------------------------------------
 k       =  twopi/lmd                    ! wavenumber
@@ -377,6 +380,8 @@ if (dphi .ge. 1.0_dp .and. iquiet .eq. 0) then
         print *, '         physically guaranteed.'
 endif
 
+!
+if(debug) print *, 'DEBUG MODE ON'
 
 !--------------------------------------------------------------------------------
 !
@@ -393,6 +398,7 @@ ad = cmplx(0.0_dp,0.0_dp,kind=dp)
 dd = cmplx(0.0_dp,0.0_dp,kind=dp)
 !
 call lorenz_mie(x0,refrel,nstop,an,bn)
+!
 !
 ad(1,:) = an(:)
 ad(2,:) = bn(:)
@@ -481,11 +487,17 @@ elseif(iqsca .ge. 2) then
         !
         ! The structure integration Sp 
         !
-                !call spout(iqcor,df) !for output 
+        !call spout(iqcor,df) !for output 
+
         do p=0,numax+nmax
               Sp_tmp = cmplx(0.0_dp,0.0_dp,kind=dp)
-              call integration_of_Sp(iqcor,df,p,xg,Sp_tmp)
-              Sp(p) = Sp_tmp
+               if(debug) then
+                 Sp(p) = (df/(16.0*xg*xg))&
+                    *Gamma(0.5_dp*(df-2.0_dp))/Gamma(0.5_dp*df)
+               else
+                        call integration_of_Sp(iqcor,iqgeo,df,p,xg,Sp_tmp)
+                        Sp(p) = Sp_tmp
+               endif
         enddo
         
         !--------------------------------------------------------------------------------
@@ -581,14 +593,30 @@ endif
 if(iquiet .eq. 0) then
 print *, '----- Lorenz-Mie coefficients -----'
 write(*,fmt='(A3,4A15)') "n","Re(an)","Im(an)","Re(bn)","Im(bn)"
+wa1=0.0
+wa2=0.0
 do n=1,nstop
+  wa1 = wa1 + ad(1,n)
+  wa2 = wa2 + ad(2,n)
   write(*,fmt='(I3,1P4E15.5)') n,real(ad(1,n)),aimag(ad(1,n)),real(ad(2,n)),aimag(ad(2,n))
 enddo
+if(debug) then
+write(*,fmt='(1P2E15.5)') real(wa1)/real(nstop,kind=dp),aimag(wa1)/real(nstop,kind=dp),&
+           &        real(wa2)/real(nstop,kind=dp),aimag(wa2)/real(nstop,kind=dp)
+endif
 print *, '----- Mean field coefficients -----'
 write(*,fmt='(A3,4A15)') "n","Re(d1n(1))","Im(d1n(1))","Re(d1n(2))","Im(d1n(2))"
+wa1=0.0
+wa2=0.0
 do n=1,nstop
+  wa1 = wa1 + dd(1,n)
+  wa2 = wa2 + dd(2,n)
   write(*,fmt='(I3,1P4E15.5)') n,real(dd(1,n)),aimag(dd(1,n)),real(dd(2,n)),aimag(dd(2,n))
 enddo
+if(debug) then
+write(*,fmt='(1P2E15.5)') real(wa1)/real(nstop,kind=dp),aimag(wa1)/real(nstop,kind=dp),&
+           &        real(wa2)/real(nstop,kind=dp),aimag(wa2)/real(nstop,kind=dp)
+endif
 endif
 
 !
@@ -780,7 +808,9 @@ elseif(iqsca .eq. 3) then
         elseif(iqgeo .eq. 2) then
                 call geocross(PN,R0,RC,GC)
         elseif(iqgeo .eq. 3) then
-                call geocross_mft(PN,df,GC)
+                iqapp=3 ! use approximate solution
+                iqcon=1 ! without small-cluster limit.
+                call geofrac(iqapp,iqcon,iqcor,PN,k0,df,GC)
                 GC = GC * PN * pi * R0 * R0
         endif
         !
@@ -946,7 +976,6 @@ integer                           :: n,nmx,en
 real(kind=dp)                     :: xstop,ymod,enr,nr
 real(kind=dp)                     :: psi0,psi1,psi,chi0,chi1,chi
 complex(kind=dp)                  :: xi1,xi,y
-!complex(kind=dp),dimension(nmxx)  :: d
 complex(kind=dp),allocatable,dimension(:)  :: d
 complex(kind=dp),dimension(nstop) :: a,b
 
@@ -1421,17 +1450,17 @@ end subroutine complex_leqs_solver
 !               u_max ~ xg * eta1 * sqrt(2.0 /(d_f*(d_f+1))
 !       For iqcor=1 (FLDIM)
 !               u_max ~ xg * sqrt( 2.0 * eta1 ) ** (1.0/d_f)
+!  I adopt eta1 = 25.0.
 !
-!  u_min is chosen so that (u_min/xg)^{d_f} ~ exp[-eta2], thus, 
+!  u_min is chosen so that (u_min/xg)^{d_f} ~ exp[-eta2], thus,
 !
 !               umin ~ xg * exp(-eta2/d_f)
 !
-!  I adopt eta1 = 25.0, and eta2 = 40.0, respectively.
+!  where eta2 = 40.0.
 !
 !--------------------------------------------------------------------------------
-subroutine integration_of_Sp(iqcor,D,p,xg,Sp)
+subroutine integration_of_Sp(iqcor,iqgeo,D,p,xg,Sp)
 use types; use const
-!integer,parameter      :: nn =  10000                    !  integration grid.
 !--------------------------------------------------------------------------------
 ! Old boundary given by Jablonski et al. 1994 : !!! NOT FAVORED !!!
 !--------------------------------------------------------------------------------
@@ -1457,8 +1486,8 @@ real(kind=dp),parameter:: b4 =  3.72312019844119
 !--------------------------------------------------------------------------------
 real(kind=dp),parameter:: floorvalue=1.0e-30_dp
 real(kind=dp),parameter:: eta1 = 25.0_dp
-real(kind=dp),parameter:: eta2 = 40.0_dp
-integer                :: n,p,iqcor,isol
+real(kind=dp),parameter:: eta2 = 40.0_dp       ! dismissed since ver 3.0
+integer                :: n,p,iqcor,iqgeo,isol
 real(kind=dp)::umin,umax,du,xg,D,fc
 real(kind=dp)::lnxa,lnxb,jp,yp,unitary,error
 real(kind=dp),allocatable,dimension(:)::u
@@ -1476,10 +1505,9 @@ elseif(iqcor .eq. 2) then
 elseif(iqcor .eq. 3) then
         umax = xg * (2.0_dp*eta1)**(1.0_dp/D)
 endif
+
 umin = xg * exp(-eta2/D)
 du   = (umax/umin) ** (1.0_dp/real(nn-1,kind=dp))
-
-
 
 allocate(u(1:nn),intg(1:nn),intg_unit(1:nn))
 do n=1,nn
@@ -1558,9 +1586,13 @@ endif
 if(abs(aimag(Sp)) .lt. floorvalue) then
         Sp = cmplx(real(Sp),-floorvalue)
 endif
-!
 
-if(error .ge. 1.0e-3_dp) then
+
+!
+! If geofractal formulation is used (iqgeo=3), the variable 'unitary' 
+! does not necessary to have a value of 1.0.
+! Thus, this convergence check is performed when iqgeo=1 or 2.
+if(iqgeo .ne. 3 .and. error .ge. 1.0e-3_dp) then
         write(*,*) "--------------------------------------------------------"
         write(*,*) "Check unitary condition : the two-points correlation function"
         write(*,*) "Numerical integration of g(u) with error of ",error*1.d2," (%)"
@@ -1712,8 +1744,6 @@ integer::M,n,i,isol
 integer,parameter        :: imax = 100    ! Truncation order of series expansion
 integer,parameter        :: nwarmup = 100 ! Warming-up 
 real(kind=dp),parameter  :: eps=1.0e-30_dp
-!real(kind=dp),parameter  :: floorvalue=1.0e-140_dp
-!real(kind=dp),parameter  :: ceilingvalue=1.0e140_dp
 real(kind=dp),parameter  :: floorvalue=1.0e-70_dp
 real(kind=dp),parameter  :: ceilingvalue=1.0e70_dp
 real(kind=dp)            :: K0,K1,x,s,Y0,Y1
@@ -1802,10 +1832,11 @@ end subroutine sphbessel
 subroutine spout(iqcor,df)
 use types; use const
 implicit none
-integer          :: iqcor,p,imax,i
+integer          :: iqcor,iqgeo,p,imax,i
 real(kind=dp)    :: df,k,xg,xmin,xmax,dx
 real(kind=dp)    :: ImS0_xlt1,ImS0_xgt1,ReSp
 complex(kind=dp) :: sp
+iqgeo = 2
 k    = 1.0_dp
 xmin = 1.0e-8_dp
 xmax = 1.0e8_dp
@@ -1818,7 +1849,7 @@ do p=0,20
         write(*,*) "p = ",p
         do i=1,imax
         xg = xmin * dx ** real(i-1,kind=dp)
-        call integration_of_Sp(iqcor,df,p,xg,Sp)
+        call integration_of_Sp(iqcor,iqgeo,df,p,xg,Sp)
         ! asymptotic solution for Im(S_p) with p=0.
         ImS0_xlt1 = -sqrt(2.0_dp*pi)/4.0_dp/xg
         ImS0_xgt1 = -pi/8.0_dp/xg/xg
@@ -2220,78 +2251,6 @@ GC = min(GC,PN*pi*a0*a0)
 return
 end subroutine geocross
 
-!--------------------------------------------------------------------------------
-!
-! Fitting formulae of geometrical cross section derived from 
-! the mean-field extinction cross section at short-wavelength limit.
-!
-! CAUTION:
-! The fractal prefactor is assumed to have a value obtained by
-! linear interpolation (or extrapolation) of those values of 
-! BCCA and BPCA.
-!
-!--------------------------------------------------------------------------------
-subroutine geocross_mft(PN,df,Gratio)
-use types
-implicit none
-integer::i
-integer,parameter::ndim=15
-real(kind=dp),dimension(0:ndim)::a,b,c,d,e,f,g,h,fdim
-real(kind=dp)                ::aa,bb,cc,dd,ee,ff,gg,hh
-real(kind=dp)                ::PN,df,Gratio
-DATA (fdim(i),i=0,15) / 1.50000E+00,    1.60000E+00,    1.70000E+00,    1.80000E+00,&
-                        1.90000E+00,    2.00000E+00,    2.10000E+00,    2.20000E+00,&
-                        2.30000E+00,    2.40000E+00,    2.50000E+00,    2.60000E+00,&
-                        2.70000E+00,    2.80000E+00,    2.90000E+00,    3.00000E+00 /
-DATA (a(i),i=0,15) /    7.13973E+02,    1.16423E+03,    3.33395E+02,    3.56949E+02,&
-                        2.74600E+00,    3.04834E+02,    3.22197E+02,    4.03725E+02,&
-                        4.39512E+02,    4.26389E+02,    4.53031E+02,    4.52352E+02,&
-                        4.43447E+02,    4.35774E+02,    4.40590E+02,    4.50909E+02 /
-DATA (b(i),i=0,15) /   -1.08072E-01,   -1.05630E-01,   -1.15695E-01,   -1.24080E-01,&
-                       -2.52337E-03,   -8.12464E-02,   -3.39455E-02,    7.18452E-02,&
-                        6.30843E-02,   -1.98444E-02,   -1.24053E-01,   -1.74670E-01,&
-                       -1.95718E-01,   -2.04959E-01,   -2.07496E-01,   -2.04854E-01 /
-DATA (c(i),i=0,15) /    6.96352E+00,    7.44311E+00,    6.16310E+00,    6.16324E+00,&
-                        1.18113E+00,    5.90229E+00,    5.93429E+00,    6.13033E+00,&
-                        6.21396E+00,    6.37749E+00,    6.34347E+00,    6.30390E+00,&
-                        6.25537E+00,    6.21575E+00,    6.20834E+00,    6.21497E+00 /
-DATA (d(i),i=0,15) /    2.89145E-02,    2.28560E-02,    2.83661E-02,    3.18105E-02,&
-                        9.26620E-02,    2.80617E-02,    1.93156E-02,    2.41211E-05,&
-                       -9.34488E-05,   -8.23762E-05,    1.91956E-02,    2.93221E-02,&
-                        3.44086E-02,    3.71157E-02,    3.81358E-02,    3.78502E-02 /
-DATA (e(i),i=0,15) /    1.52260E+00,    1.29338E+00,    1.10944E+00,    9.16614E-01,&
-                        6.77090E-01,    6.26109E-01,    5.38993E-01,    4.52138E-01,&
-                        3.94309E-01,    6.19632E-01,    4.83615E-01,    4.00043E-01,&
-                        3.32825E-01,    2.78355E-01,    2.32785E-01,    1.93256E-01 /
-DATA (f(i),i=0,15) /   -5.05108E-02,   -1.51396E-02,    9.11257E-03,    2.25686E-02,&
-                        1.34713E-02,    5.34920E-02,    7.53823E-02,    1.08882E-01,&
-                        1.53220E-01,    1.65246E-01,    1.98459E-01,    2.27960E-01,&
-                        2.55767E-01,    2.81834E-01,    3.06280E-01,    3.29231E-01 /
-DATA (g(i),i=0,15) /    1.55847E+00,    1.41197E+00,    1.32293E+00,    1.31261E+00,&
-                        1.46648E+00,    1.32681E+00,    1.30102E+00,    1.31291E+00,&
-                        1.19121E+00,    8.13122E-01,    8.65730E-01,    8.40165E-01,&
-                        8.05872E-01,    7.64332E-01,    7.18741E-01,    6.72135E-01 /
-DATA (h(i),i=0,15) /    8.90935E-01,    8.75141E-01,    8.65479E-01,    8.80248E-01,&
-                        9.46148E-01,    9.44240E-01,    9.74293E-01,    1.04852E+00,&
-                        1.11467E+00,    8.78236E-01,    9.61048E-01,    1.00913E+00,&
-                        1.05517E+00,    1.10051E+00,    1.14855E+00,    1.20307E+00 /
-do i=0,ndim-1
-      if(fdim(i) .le. df .and. fdim(i+1) .ge. df) then
-              aa = (a(i+1)-a(i))/(fdim(i+1)-fdim(i))*(df-fdim(i))+a(i)
-              bb = (b(i+1)-b(i))/(fdim(i+1)-fdim(i))*(df-fdim(i))+b(i)
-              cc = (c(i+1)-c(i))/(fdim(i+1)-fdim(i))*(df-fdim(i))+c(i)
-              dd = (d(i+1)-d(i))/(fdim(i+1)-fdim(i))*(df-fdim(i))+d(i)
-              ee = (e(i+1)-e(i))/(fdim(i+1)-fdim(i))*(df-fdim(i))+e(i)
-              ff = (f(i+1)-f(i))/(fdim(i+1)-fdim(i))*(df-fdim(i))+f(i)
-              gg = (g(i+1)-g(i))/(fdim(i+1)-fdim(i))*(df-fdim(i))+g(i)
-              hh = (h(i+1)-h(i))/(fdim(i+1)-fdim(i))*(df-fdim(i))+h(i)
-              exit
-      endif
-enddo
-Gratio  = aa*PN**bb*exp(-cc/PN**dd)+ee*PN**ff*exp(-gg/PN**hh)
-Gratio  = 1.0_dp / Gratio
-return
-end subroutine geocross_mft
 
 subroutine opticslimit(iqcor,lmd,refrel,df,k0,PN,R0,Cext)
 use types; use const
@@ -2306,39 +2265,14 @@ if(iqcor .ne. 1) then
         print *, 'ERROR'
         stop
 endif
-k       =  twopi/lmd                   ! wavenumber
-!k       =  twopi/0.1_dp                 ! wavenumber
+k       =  twopi/lmd                    ! wavenumber
 Rg      =  R0 * (PN/k0) ** (1.0_dp/df)  ! Radius of gyration of the aggregate
 xg      =  k * Rg                       ! size parameter of aggregates
 x0      =  k * R0                       ! size parameter of a monomer
-!refrel = cmplx(2.0_dp,1.0_dp,kind=dp)
 sp = (df/(16.0*xg*xg))&
     *Gamma(0.5_dp*(df-2.0_dp))/Gamma(0.5_dp*df)
-xstop = x0 + 4.0_dp * x0 ** (1.0_dp/3.0_dp) + 2.0_dp
-nstop = nint(xstop)
-allocate(an(nstop),bn(nstop),dd(2,nstop))
-call lorenz_mie(x0,refrel,nstop,an,bn)
-
-! difflimit
-!an=0.5_dp
-!bn=0.5_dp
-
-sumA=0.0_dp
-sumB=0.0_dp
-do n=1,nstop
-        sumA = sumA + real(2*n+1,kind=dp)*an(n)
-        sumB = sumB + real(2*n+1,kind=dp)*bn(n)
-enddo
-do n=1,nstop
-        dd(1,n) = an(n)/(1.0_dp+(PN-1.0_dp)*Sp*sumA)
-        dd(2,n) = bn(n)/(1.0_dp+(PN-1.0_dp)*Sp*sumB)
-enddo
-Cext = 0.0_dp
-do n=1,nstop
-        Cext = Cext + real(2*n+1,kind=dp)*real(dd(1,n)+dd(2,n))
-enddo
+Cext = x0*x0/(1.0_dp+(PN-1.0_dp)*sp*x0*x0)
 Cext  = Cext * twopi * PN / k / k
-deallocate(an,bn,dd)
 return
 end subroutine opticslimit
 
@@ -2509,7 +2443,7 @@ z=cos(3.141592654d0*(i-.25d0)/(n+.5d0))
 !S: RT 
 ! Remove goto sentence, and add do while.
 ! To enter the first do-while loop, 
-! I put arbitrary some z1, which should differ 
+! I put some value of z1, which differ 
 ! by more than EPS.
 Z1=2.0*z 
 !E: RT
@@ -2532,3 +2466,4 @@ w(n+1-i)=w(i)
 enddo
 return
 END SUBROUTINE gauleg
+
