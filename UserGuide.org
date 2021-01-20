@@ -339,7 +339,7 @@ even simpler generic key.
 
 
 *** COMMENT Options for more materials
-These are under consideration.  One problem is the limited wavelengths
+These are under consideration.  One problem is the limited wavelength
 range....
 
 One could make an argument for a whole mineralogy section, of
@@ -415,7 +415,7 @@ the program.
   block contains the cross sections per unit mass. This is an n_\lambda
   \times 4 matrix with these columns:
 
-  1. wavelengths in [\mu{}m]
+  1. wavelength in [\mu{}m]
   2. mass extinction cross section \kappa_ext in [cm^2/g]
   3. mass absorption cross section \kappa_abs in [cm^2/g]
   4. mass scattering cross section \kappa_sca in [cm^2/g]
@@ -631,10 +631,10 @@ the code.
 
 - Refractive Index Data :: Measured refractive index data is obtained
   from data compiled into the code, or read-in from a file.  That data
-  is then interpolated and extrapolated onto the wavelengths grid
+  is then interpolated and extrapolated onto the wavelength grid
   requested for the computation. Extrapolation toward short
   wavelengths is done keeping the refractive indices constant.
-  Extrapolation toward long wavelength assumes that the last two
+  Extrapolation toward long wavelengths assumes that the last two
   measured data points define a powerlaw. Interpolation in the
   measured grid is done using double-logarithmic interpolation.
 
@@ -646,7 +646,7 @@ the code.
   uses an iterative procedure that is very stable, also for a large
   number of components.\\
   If there is a mantle, the Maxwell Garnett rule is applied with the
-  core being treated an inclusion inside a mantle matrix.
+  core being treated as an inclusion inside a mantle matrix.
 
 - DHS :: In order to simulate irregularities in grains (irregular
   shapes, or the properties of low-porosity aggregates), =optool=
