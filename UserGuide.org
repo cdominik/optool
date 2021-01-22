@@ -364,9 +364,8 @@ For now, the cut we are making is good.
 following format:
 - The file may start with several comment lines (lines starting with
   =!=, =#=, or =*=).
-- The next line contains two numbers, the number of
-  wavelengths $n_\lambda$ and the specific weight \rho of the material
-  in g/cm^3
+- The next line contains two numbers, the number of wavelengths
+  $n_\lambda$ and the specific density \rho of the material in g/cm^3
 - Then follow three columns of data: \lambda[\mu{}m], and the real and
   imaginary parts of the refractive index, $n$ and $k$.
 
