@@ -460,7 +460,7 @@ have the following attributes:
 | =nang=             | =int=                 | Number of scattering angles                     |
 | =scatang=          | =float[nang]=         | The angular grid                                |
 |--------------------+-----------------------+-------------------------------------------------|
-| =materials=        | =[ [...]... ]=        | Lists with location,m_{frac},\rho,material      |
+| =materials=        | =[ [...]... ]=        | Lists with [location,m_{frac},\rho,material]    |
 |--------------------+-----------------------+-------------------------------------------------|
 | =np=               | =int=                 | Number of particles, either 1 or (with -d) n_a  |
 |--------------------+-----------------------+-------------------------------------------------|
@@ -472,7 +472,7 @@ have the following attributes:
 | =apow=             | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
 | =a1=, =a2=, =a3=   | =fload[np]=           | Mean <a>, <a^2>, and <a^3> of the particle      |
 |--------------------+-----------------------+-------------------------------------------------|
-| =kabs,ksca,kext=   | =float[np,nlam]=      | Absorption,scattering/extinction cross section  |
+| =kabs,ksca,kext=   | =float[np,nlam]=      | Absorption,scattering,extinction cross section  |
 | =gsca=             | =float[np,nlam]=      | Asymmetry parameter                             |
 |--------------------+-----------------------+-------------------------------------------------|
 | =f11=, ..., =f44=  | =float[np,nlam,nang]= | Scattering matrix element F_11, ... ,F_44       |
