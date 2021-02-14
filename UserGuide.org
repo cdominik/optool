@@ -564,7 +564,7 @@ factors involving dust mass and wavenumber $k=2\pi/\lambda$.
 :END:
 
 Particles that are much larger than the wavelength of the considered
-radiation can show extreme forward scattering, were much of the
+radiation can show extreme forward scattering, where much of the
 /scattered/ radiation is sent into just a few degrees around the
 forward direction.  This can be difficult to handle for radiative
 transfer codes which have limited angular resolution or limited
