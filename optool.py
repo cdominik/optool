@@ -45,14 +45,16 @@ class lnktable:
         rfile.close()
 
     def plot(self):
-        plt.loglog(self.lam,self.n,label='n')
-        plt.loglog(self.lam,self.k,label='k')
-        plt.title(self.filename)
-        plt.xlabel(r"log $\lambda$ [$\mu$m]")
-        plt.ylabel(r'log $n$   &  log $k$')
-        plt.legend()
+        fig,ax = plt.subplots()
+        ax.semilogx(self.lam,self.n,label='n',color="blue")
+        ax.set_title(self.filename)
+        ax.set_xlabel(r"log $\lambda$ [$\mu$m]")
+        ax.set_ylabel(r'real part: $n$',color="blue")
+        ax2=ax.twinx()
+        ax2.loglog(self.lam,self.k,label='k',color="orange")
+        ax2.set_ylabel(r'imaginary part: log $k$',color="orange")
         plt.show(block=False)
-        
+
     def write(self,file):
         # Write the table to a file
         try:
@@ -66,7 +68,6 @@ class lnktable:
             wfile.write("  %16.6e %16.6e %16.6e\n" % (self.lam[i],self.n[i],self.k[i]))
             
         wfile.close()
-
 
 class particle:
     def __init__(self,cmd,keep=False):
