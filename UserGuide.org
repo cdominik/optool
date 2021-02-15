@@ -379,7 +379,7 @@ information on how to compile frequently-used external materials into
 the program.
 
 
-
+#+LATEX: \newpage
 * Output files
 :PROPERTIES:
 :CUSTOM_ID: output-files
@@ -479,10 +479,16 @@ have the following attributes:
 | =chop=             | =float[np]=           | Degrees chopped off forward scattering          |
 |--------------------+-----------------------+-------------------------------------------------|
 | =plot()=           | =method=              | Plot the cross sections and matrix elements     |
+|--------------------+-----------------------+-------------------------------------------------|
+| =computemean()=    | =method=              | Compute Planck/Rosseland mean opacities         |
+| =tmin,tmax,ntemp=  | =float,float,int=     | Temperature grid for mean opacities             |
+| =temp=             | =float[ntemp]=        | Temperatures used for mean opacities            |
+| =kplanck,kross=    | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
+
 
 The =optool.plot()= method will produce the following plots:
 
-#+CAPTION: Screenshot of the plots created by running =p.plot()= on an optool particle.
+#+CAPTION: Screenshot of plots created by running =p.plot()= on an optool particle.
 #+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./maint/inspect.png]]
 
@@ -496,6 +502,11 @@ The =optool.plot()= method will produce the following plots:
   positive/negative $\log_{10}$ of positive/negative matrix elements,
   compressing the range from $10^{-2}$ to $10^2$ into a line (use the
   grey lines as a guide, ignore the y-axis labels).
+- If the =computemean= method has been called first, the mean
+  opacities \kappa_Planck and \kappa_Ross are shown in a separate
+  plot.  The mean opacities are per unit of grain mass, so the
+  dust-to-gas mass ratio would still have to be applied to obtain
+  opacities for a gas-dust mixture.
 
 [fn:3] The module runs the command as a subprocess, with output to a
 temporary subdirectory in the current working directory.  It then
@@ -620,7 +631,6 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 5. Recompile and install the code.
 
 
-#+LATEX: \newpage
 * Internals
 :PROPERTIES:
 :CUSTOM_ID: internals

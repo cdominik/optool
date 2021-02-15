@@ -7,6 +7,7 @@ from distutils.spawn import find_executable
 import random
 
 
+
 class lnktable:
     def __init__(self,file):
         self.filename = file
@@ -153,6 +154,7 @@ class particle:
                 else:
                     self.nang = 0
             self.nsize = nfiles
+            self.np = nfiles
         finally:
             if keep:
                 print("Keeping the temporary directory for inspection: "+tmpdir)
@@ -162,6 +164,27 @@ class particle:
 
     def plot(self):
         # Create interactive plots of the opacities in SELF.
+
+        # Check if mean opacities have been computed
+        if hasattr(self, 'kplanck'):
+            # llamfmt = np.round(np.log10(self.lam),decimals=3)
+            kplanck = self.kplanck
+            kross   = self.kross
+            temp = self.temp
+            viewarr([kplanck,kross],index=1,ylabel=['kplanck','kross'],
+                    idxnames=['grain index','log lambda [um]'],
+                    idxvals=[np.array(range(self.nsize))+1,temp])
+
+
+            
+            #plt.loglog(self.temp,self.kplanck[0,:],label='kplanck')
+            #plt.loglog(self.temp,self.kross[0,:],label='kross')
+            #plt.legend()
+            #plt.xlabel('Temperature [K]')
+            #plt.ylabel('Mean Opacity [cm^2/g] (no gas)')
+            #plt.title('Mean opacities')
+            #plt.show(block=False)
+
         
         # Extract the kappas and g
         kabs   = np.copy(self.kabs)
@@ -222,6 +245,29 @@ class particle:
         f11 = self.f11
         mu = sin(ang*np.pi/180.)
         dmu = np.hstack(((mu[1:] - mu[0:-1]),[0]))
+
+    def computemean(self, tmax=1500.):
+        self.tmin    = 10.
+        self.tmax    = tmax
+        self.ntemp   = 100
+        self.temp    = np.logspace(np.log10(self.tmin),np.log10(self.tmax),self.ntemp)
+        self.kross   = np.zeros([self.nsize,self.ntemp])
+        self.kplanck = np.zeros([self.nsize,self.ntemp])
+
+        cl = 2.99792458e10                # Speed of light [cgs]
+        nu = 1e4*cl/self.lam              # 10^4 because lam is in um - we need cm
+        dnu = -1. * np.hstack([nu[1]-nu[0],0.5 * (nu[2:]-nu[:-2]), nu[-1] - nu[-2]  ])
+
+        for it in range(self.ntemp):
+            bnu   = bplanck(self.temp[it],nu)
+            bnudt = bplanckdt(self.temp[it],nu)
+            dumbnu = np.sum(bnu*dnu)
+            dumdb  = np.sum(bnudt*dnu)
+            for ip in range(self.nsize):
+                kap_p  = np.sum(self.kabs[ip,:]*bnu*dnu) / dumbnu
+                kap_r  = dumdb / np.sum(bnudt * dnu / ( self.kabs[ip,:] + self.ksca[ip,:]*(1.-self.gsca[ip,:])))
+                self.kplanck[ip,it] = kap_p
+                self.kross[ip,it]   = kap_r
 
 def logscale_with_sign(array,bottom):
     # Take the log10 of the absolute value of ARRAY, but transfer the
@@ -840,3 +886,45 @@ def interactive_curve(t, func, params, xmin=None, xmax=None, ymin=None, ymax=Non
     if returnipar:
         return mcb.ipar
 
+#----------------------------------------------------------------------------
+#                THE BLACKBODY PLANCK FUNCTION B_nu(T)
+#
+#     This function computes the Blackbody function 
+#
+#                    2 h nu^3 / c^2
+#        B_nu(T)  = ------------------    [ erg / cm^2 s ster Hz ]
+#                   exp(h nu / kT) - 1
+#
+#     ARGUMENTS:
+#        nu    [Hz]            = Frequency (may be an array)
+#        temp  [K]             = Temperature
+#----------------------------------------------------------------------------
+def bplanck(temp,nu):
+    if (temp == 0.e0): return nu*0.e0
+    bplanck = 1.47455e-47 * nu**3 /  (np.exp(4.7989e-11 * nu / temp)-1.e0) + 1.e-290
+    return bplanck
+
+#----------------------------------------------------------------------------
+#           THE TEMPERATURE DERIVATIVE OF PLANCK FUNCTION 
+#     
+#      This function computes the temperature derivative of the
+#      Blackbody function 
+#      
+#         dB_nu(T)     2 h^2 nu^4      exp(h nu / kT)        1 
+#         --------   = ---------- ------------------------  ---
+#            dT          k c^2    [ exp(h nu / kT) - 1 ]^2  T^2
+#     
+#      ARGUMENTS:
+#         nu    [Hz]            = Frequency (may be an array)
+#         temp  [K]             = Temperature
+#----------------------------------------------------------------------------
+def bplanckdt(temp,nu):
+    bplanckdt = np.zeros(len(nu))
+    exponent = 4.7989e-11*nu/temp
+    mask = (exponent <= 76.)
+    bplanckdt[mask] = 7.07661334104e-58 * nu[mask]**4 * np.exp(exponent[mask]) /  \
+        ( (np.exp(exponent[mask])-1.e0)**2 * temp**2 ) + 1.e-290
+    mask = (exponent > 76.)
+    bplanckdt[mask] = 7.07661334104e-58 * nu[mask]**4 /  \
+            ( np.exp(exponent[mask]) * temp**2 ) + 1.e-290
+    return bplanckdt
