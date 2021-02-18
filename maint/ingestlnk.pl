@@ -127,6 +127,7 @@ SUBROUTINE_TEMPLATE
 
 # Add the externals, case statements and help text
 $externals = substr($externals,0,-3);
+$cases    .= "case('ice-w') ! backward compatibility\n     call h2o_w(x,y1,y2,n0,rho)\n  ";
 $cases     = substr($cases,0,-3);
 
 $code =~ s/EXTERNAL_DEFS/$externals/;
