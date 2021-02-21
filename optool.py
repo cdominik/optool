@@ -1,77 +1,53 @@
+"""
+NAME
+    optool
+
+DESCRIPTION
+
+    This module provides an interfact to the optool program (available
+    at https://github.com/cdominik/optool), and tools to plot and
+    convert the results.
+    It also provides tools to prepare refractive index data for use
+    with the tool.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
+import math as m
 import re
 import os
 import subprocess
 from distutils.spawn import find_executable
 import random
 
-
-
-class lnktable:
-    def __init__(self,file):
-        self.filename = file
-        try:
-            rfile = open(file, 'r')
-        except:
-            print('ERROR: file not found:',file)
-            return -1
-        print('Reading lnk file ',file,'...')
-
-        # Read the header/comment field
-        header = ''
-        dum = rfile.readline()
-        while ((dum.strip()[0]=='#') or (dum.strip()[0]=='*') or (dum.strip()[0]=='!')):
-            header = header + dum
-            dum = rfile.readline()
-        self.header = header
-
-        # Extract the number of wavelengths points, and the material density
-        dum = dum.split()
-        self.nlam = int(dum[0])
-        self.rho  = float(dum[1])
-
-        # Prepare the arrays
-        self.lam = np.zeros(self.nlam)
-        self.n   = np.zeros(self.nlam)
-        self.k   = np.zeros(self.nlam)
-
-        # Fill the arrays
-        for ilam in range(self.nlam):
-            dum = rfile.readline()
-            dum = dum.split()
-            self.lam[ilam] = float(dum[0])
-            self.n[ilam]   = float(dum[1])
-            self.k[ilam]   = float(dum[2])
-        rfile.close()
-
-    def plot(self):
-        fig,ax = plt.subplots()
-        ax.semilogx(self.lam,self.n,label='n',color="blue")
-        ax.set_title(self.filename)
-        ax.set_xlabel(r"log $\lambda$ [$\mu$m]")
-        ax.set_ylabel(r'real part: $n$',color="blue")
-        ax2=ax.twinx()
-        ax2.loglog(self.lam,self.k,label='k',color="orange")
-        ax2.set_ylabel(r'imaginary part: log $k$',color="orange")
-        plt.show(block=False)
-
-    def write(self,file):
-        # Write the table to a file
-        try:
-            wfile = open(file, 'w')
-        except:
-            print('ERROR: Cannot write to file: ',file)
-            return -1
-        wfile.write(self.header)
-        wfile.write("  %d  %g\n" % (self.nlam,self.rho))
-        for i in range(self.nlam):
-            wfile.write("  %16.6e %16.6e %16.6e\n" % (self.lam[i],self.n[i],self.k[i]))
-            
-        wfile.close()
-
 class particle:
+    """
+NAME
+    optool
+
+DESCIPTION
+
+    Provides an interface to the optool program for comuuting dust opacities.
+
+    The optool program can be found at https://github.com/cdominik/optool .
+
+Arguments
+---------
+
+    cmd : string 
+         A shell command to run optool.  The output produced by this command
+         will be read in and stored in an instance of the optool.particle
+         class.
+
+Keywords
+--------
+
+    keep : Boolean, default False
+           When True, do not clean up the directory with the output from
+           running optool.
+    """
     def __init__(self,cmd,keep=False):
+        "Create a new optool.particle opject."
         self.cmd = cmd
         
         # Convert command string into list if necessary
@@ -163,7 +139,7 @@ class particle:
                 os.system('rm -rf '+tmpdir)
 
     def plot(self):
-        # Create interactive plots of the opacities in SELF.
+        """Create interactive plots of the opacities in SELF."""
 
         # Check if mean opacities have been computed
         if hasattr(self, 'kplanck'):
@@ -236,20 +212,63 @@ class particle:
                 idxvals=[np.array(range(self.nsize))+1,llamfmt])
 
     def checknorm(self):
-        # Check the nromalization of the scattering matrix
+        """Check the nromalization of the scattering matrix."""
+        # FIXME this is not yet done, still need to do it, and make sure it works with radmc.
         nlam = self.nlam
         nang = self.nang
         ang = self.scatang
+        nang = self.nang
         radmc = self.radmc
         scat = self.scat
         f11 = self.f11
-        mu = sin(ang*np.pi/180.)
-        dmu = np.hstack(((mu[1:] - mu[0:-1]),[0]))
 
-    def computemean(self, tmax=1500.):
-        self.tmin    = 10.
+        if (ang[0] == 0.):
+            # This is the radmc grid vith values on cell boundaries
+            thetab = ang*np.pi/nang
+            mub = np.cos(thetab)
+            dmu = mub[1:]-mub[:-1]
+            fc = 0.5*(f11[:,:,1:]+f11[:,:,:-1])
+            norm2 = np.zeros([self.np,nlam])
+            for ip in (range(self.np)):
+                for il in (range(self.nlam)):
+                    norm2[ip,il] = np.sum(fc[ip,il,:]*dmu)*(-2.*np.pi)/self.ksca[ip,il]
+                    # Should we renormalize this thing?
+                    # self.f11[ip,il,:] = self.f11[ip,il,:]/norm2[ip,il]
+            print(norm2)
+        else:
+            # This is the standard grid with values on cell midpoints
+            theta = ang*np.pi/nang
+            mu = np.cos(theta)
+            print("mu: ",mu)
+            # dmu = np.hstack(((mu[1:] - mu[0:-1]),[(mu[-1]-mu[-2])]))
+            th1 = (ang-0.5)*np.pi/nang
+            th2 = (ang+0.5)*np.pi/nang
+            mu1 = np.cos(th1)
+            mu2 = np.cos(th2)
+            dmu = mu2-mu1
+            print("dmu: ",dmu)
+            dtheta = (ang[1]-ang[0])*np.pi/180.
+            norm1 = np.zeros([self.np,nlam])
+            norm2 = np.zeros([self.np,nlam])
+            for ip in (range(self.np)):
+                for il in (range(self.nlam)):
+                    # print(il,self.lam[il],np.sum(f11[0,il,:]*dmu))
+                    norm1[ip,il] = np.sum(f11[ip,il,:]*np.sin(theta)*dtheta)/2.
+                    norm2[ip,il] = np.sum(f11[ip,il,:]*dmu)*(-1./2)
+            print(norm1)
+            print(norm2)
+
+    def computemean(self, tmin=10., tmax=1500., ntemp=100):
+        """Compupte mean opacities from the opacities in self.
+
+        Keyword parameters are
+        tmin - minimum temperature for which to compute mean opacities
+        tmax - maximum temperature for which to compute mean opacities
+        ntemp - number of temperature steps between tmin and tmax
+        """
+        self.tmin    = tmin
         self.tmax    = tmax
-        self.ntemp   = 100
+        self.ntemp   = ntemp
         self.temp    = np.logspace(np.log10(self.tmin),np.log10(self.tmax),self.ntemp)
         self.kross   = np.zeros([self.nsize,self.ntemp])
         self.kplanck = np.zeros([self.nsize,self.ntemp])
@@ -268,6 +287,149 @@ class particle:
                 kap_r  = dumdb / np.sum(bnudt * dnu / ( self.kabs[ip,:] + self.ksca[ip,:]*(1.-self.gsca[ip,:])))
                 self.kplanck[ip,it] = kap_p
                 self.kross[ip,it]   = kap_r
+
+class lnktable:
+    """NAME
+    
+    optool.lnktable
+
+DESCRIPTION
+
+    The is a clall to work with lnk files. lnk stands for lambda, n,
+    and k, where and and k are the real and imaginary components of
+    the refractive index of a material.
+    
+
+Arguments
+---------
+        
+   file : string
+          the file name from which to read the lnk data
+
+Keywords
+--------
+
+   i_lnk : numpy array
+           the column numbers where to find lambda, the real part of the
+           refractive index and the imaginary part of it, respectively.
+           The default is [1,2,3] .
+
+   nskip : integer
+        Number of lines to skil at the beginning.  Lines starting with
+        `#', `!' or `*` are stored as header lines and ar skipped in
+        this way. So this parameter is for dealing with files that are
+        not yet formatted in the standard way for optool.  The default
+        is 0.
+
+   nlam_rho : Boolean
+        True means, the first unskipped line contains the number of
+        wavelengths points and the specific density of the material.
+        False means no such line exists, and the lines have to be
+        counted.  Rho will be se to 0 then, to indicate that the value
+        is not know at this point.
+
+Conversion
+----------
+
+    The standard format of these files is described in the optool user
+    guide.  The class can also read files that are formatted
+    differently, in order to create properly formatted version.  For
+    example, if you have a file starting with 4 unimportant lines, and
+    then data columns where n an k are in column 1 and 2,
+    respectively, and the wavelength is given in units of cm^-1 in
+    column 3, you can doe the conversion in this way:
+
+    new = optool.lnktable('x.dat',i_lnk=[3,1,2], nskip=3)
+    new.lam = 10000./new.lam   # convert cm^-1 -> micrometer
+    new.sort()                 # sort arrays according to lambda
+    new.rho = 3.2              # set density in g/cm^3
+    new.header = "# This is a silicate from Dorschner+1995)"
+    new.write('sil-Dorschner1995.lnk')
+
+    """
+    def __init__(self,file,i_lnk=[1,2,3],nskip=0,nlam_rho=True,nlammax=10000):
+        self.filename = file
+        try:
+            rfile = open(file, 'r')
+        except:
+            print('ERROR: file not found:',file)
+            return -1
+        print('Reading lnk file ',file,'...')
+
+        # Skip lines that are irrelevant
+        for i in range (nskip): dum = rfile.readline()
+
+        # Read the header/comment field
+        header = ''
+        dum = rfile.readline()
+        while ((dum.strip()[0]=='#') or (dum.strip()[0]=='*') or (dum.strip()[0]=='!')):
+            header = header + dum
+            dum = rfile.readline()
+        self.header = header
+
+        # Extract the number of wavelengths points, and the material density
+        if (nlam_rho):
+            dum = dum.split()
+            self.nlam = int(dum[0])
+            self.rho  = float(dum[1])
+            dum = rfile.readline()
+        else:
+            self.nlam = nlammax
+            self.rho  = 0.0
+            print("Warning: density rho is nt known! Make sure to set it by hand.")
+
+        # Prepare the arrays
+        self.lam = np.zeros(self.nlam)
+        self.n   = np.zeros(self.nlam)
+        self.k   = np.zeros(self.nlam)
+
+        # Fill the arrays
+        for ilam in range(self.nlam):
+            dum = dum.split()
+            self.lam[ilam] = float(dum[i_lnk[0]-1])
+            self.n[ilam]   = float(dum[i_lnk[1]-1])
+            self.k[ilam]   = float(dum[i_lnk[2]-1])
+            dum = rfile.readline()
+            if ((len(dum) == 0) or dum.isspace()):
+                # No more data. Truncate the arrays and stop reading
+                self.nlam = ilam
+                self.lam = self.lam[:ilam]
+                self.n   = self.n[:ilam]
+                self.k   = self.k[:ilam]
+                break
+        rfile.close()
+
+    def sort(self):
+        """Sort lam, n, and k according to lambda array."""
+        sortinds = self.lam.argsort()
+        self.n   = self.n[sortinds]
+        self.k   = self.k[sortinds]
+        
+    def plot(self):
+        """Plot the refractive index aas a function of wavelength."""
+        fig,ax = plt.subplots()
+        ax.semilogx(self.lam,self.n,label='n',color="blue")
+        ax.set_title(self.filename)
+        ax.set_xlabel(r"log $\lambda$ [$\mu$m]")
+        ax.set_ylabel(r'real part: $n$',color="blue")
+        ax2=ax.twinx()
+        ax2.loglog(self.lam,self.k,label='k',color="orange")
+        ax2.set_ylabel(r'imaginary part: log $k$',color="orange")
+        plt.show(block=False)
+
+    def write(self,file):
+        """Write the table to a file."""
+        try:
+            wfile = open(file, 'w')
+        except:
+            print('ERROR: Cannot write to file: ',file)
+            return -1
+        wfile.write(self.header)
+        wfile.write("  %d  %g\n" % (self.nlam,self.rho))
+        for i in range(self.nlam):
+            wfile.write("  %16.6e %16.6e %16.6e\n" % (self.lam[i],self.n[i],self.k[i]))
+            
+        wfile.close()
 
 def logscale_with_sign(array,bottom):
     # Take the log10 of the absolute value of ARRAY, but transfer the
@@ -886,39 +1048,43 @@ def interactive_curve(t, func, params, xmin=None, xmax=None, ymin=None, ymax=Non
     if returnipar:
         return mcb.ipar
 
-#----------------------------------------------------------------------------
-#                THE BLACKBODY PLANCK FUNCTION B_nu(T)
-#
-#     This function computes the Blackbody function 
-#
-#                    2 h nu^3 / c^2
-#        B_nu(T)  = ------------------    [ erg / cm^2 s ster Hz ]
-#                   exp(h nu / kT) - 1
-#
-#     ARGUMENTS:
-#        nu    [Hz]            = Frequency (may be an array)
-#        temp  [K]             = Temperature
-#----------------------------------------------------------------------------
 def bplanck(temp,nu):
+    """
+----------------------------------------------------------------------------
+                THE BLACKBODY PLANCK FUNCTION B_nu(T)
+
+     This function computes the Blackbody function 
+
+                    2 h nu^3 / c^2
+        B_nu(T)  = ------------------    [ erg / cm^2 s ster Hz ]
+                   exp(h nu / kT) - 1
+
+     ARGUMENTS:
+        nu    [Hz]            = Frequency (may be an array)
+        temp  [K]             = Temperature
+----------------------------------------------------------------------------
+    """
     if (temp == 0.e0): return nu*0.e0
     bplanck = 1.47455e-47 * nu**3 /  (np.exp(4.7989e-11 * nu / temp)-1.e0) + 1.e-290
     return bplanck
 
-#----------------------------------------------------------------------------
-#           THE TEMPERATURE DERIVATIVE OF PLANCK FUNCTION 
-#     
-#      This function computes the temperature derivative of the
-#      Blackbody function 
-#      
-#         dB_nu(T)     2 h^2 nu^4      exp(h nu / kT)        1 
-#         --------   = ---------- ------------------------  ---
-#            dT          k c^2    [ exp(h nu / kT) - 1 ]^2  T^2
-#     
-#      ARGUMENTS:
-#         nu    [Hz]            = Frequency (may be an array)
-#         temp  [K]             = Temperature
-#----------------------------------------------------------------------------
 def bplanckdt(temp,nu):
+    """
+----------------------------------------------------------------------------
+           THE TEMPERATURE DERIVATIVE OF PLANCK FUNCTION 
+     
+      This function computes the temperature derivative of the
+      Blackbody function 
+      
+         dB_nu(T)     2 h^2 nu^4      exp(h nu / kT)        1 
+         --------   = ---------- ------------------------  ---
+            dT          k c^2    [ exp(h nu / kT) - 1 ]^2  T^2
+     
+      ARGUMENTS:
+         nu    [Hz]            = Frequency (may be an array)
+         temp  [K]             = Temperature
+----------------------------------------------------------------------------
+    """
     bplanckdt = np.zeros(len(nu))
     exponent = 4.7989e-11*nu/temp
     mask = (exponent <= 76.)

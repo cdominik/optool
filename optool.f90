@@ -1942,7 +1942,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
            enddo
            tot = 0.d0
            do iang=1,nang
-              theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)  /dble(nang) * pi
+              theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)/dble(nang) * pi
               mu1 = cos(theta1); mu2 = cos(theta2); dmu = mu1-mu2
               tot = tot + 0.5d0 * (f11(iang-1)+f11(iang)) * dmu
            enddo
