@@ -212,7 +212,7 @@ Keywords
                 idxvals=[np.array(range(self.nsize))+1,llamfmt])
 
     def checknorm(self):
-        """Check the nromalization of the scattering matrix."""
+        """Check the normalization of the scattering matrix."""
         # FIXME this is not yet done, still need to do it, and make sure it works with radmc.
         nlam = self.nlam
         nang = self.nang
@@ -221,42 +221,30 @@ Keywords
         radmc = self.radmc
         scat = self.scat
         f11 = self.f11
+        norm = np.zeros([self.np,nlam])
 
         if (ang[0] == 0.):
             # This is the radmc grid vith values on cell boundaries
+            lead = "Checking scattering matrix for RADMC-3D normalization to kappa_scat ..."
             thetab = ang*np.pi/180.
             mub = np.cos(thetab)
-            dmu = mub[1:]-mub[:-1]
+            dmu = mub[:-1]-mub[1:]   # Defined negatively
             fc = 0.5*(f11[:,:,1:]+f11[:,:,:-1])
-            norm2 = np.zeros([self.np,nlam])
             for ip in (range(self.np)):
                 for il in (range(self.nlam)):
-                    norm2[ip,il] = np.sum(fc[ip,il,:]*dmu)*(-2.*np.pi)/self.ksca[ip,il]
-                    # Should we renormalize this thing?
-                    # self.f11[ip,il,:] = self.f11[ip,il,:]/norm2[ip,il]
-            print(norm2)
+                    norm[ip,il] = 2.*np.pi*np.sum(fc[ip,il,:]*dmu) / self.ksca[ip,il]
         else:
             # This is the standard grid with values on cell midpoints
-            theta = ang*np.pi/nang
-            mu = np.cos(theta)
-            print("mu: ",mu)
-            # dmu = np.hstack(((mu[1:] - mu[0:-1]),[(mu[-1]-mu[-2])]))
-            th1 = (ang-0.5)*np.pi/nang
-            th2 = (ang+0.5)*np.pi/nang
-            mu1 = np.cos(th1)
-            mu2 = np.cos(th2)
-            dmu = mu2-mu1
-            print("dmu: ",dmu)
-            dtheta = (ang[1]-ang[0])*np.pi/180.
-            norm1 = np.zeros([self.np,nlam])
-            norm2 = np.zeros([self.np,nlam])
+            lead = "Checking scattering matrix for Hovenier normalization to 4pi..."
+            th1 = (ang-0.5)*np.pi/nang; mu1 = np.cos(th1)
+            th2 = (ang+0.5)*np.pi/nang; mu2 = np.cos(th2)
+            dmu = mu1-mu2
             for ip in (range(self.np)):
                 for il in (range(self.nlam)):
-                    # print(il,self.lam[il],np.sum(f11[0,il,:]*dmu))
-                    norm1[ip,il] = np.sum(f11[ip,il,:]*np.sin(theta)*dtheta)/2.
-                    norm2[ip,il] = np.sum(f11[ip,il,:]*dmu)*(-1./2)
-            print(norm1)
-            print(norm2)
+                    norm[ip,il] = 2.*np.pi*np.sum(f11[ip,il,:]*dmu) / (4.*np.pi)
+        maxerr = np.amax(np.abs(norm-1.))
+        print(lead)
+        print("Maximum deviation: %7.2e" % maxerr)
 
     def computemean(self, tmin=10., tmax=1500., ntemp=100):
         """Compupte mean opacities from the opacities in self.
