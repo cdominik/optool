@@ -493,6 +493,8 @@ have the following attributes:
 | =tmin,tmax,ntemp=  | =float,float,int=     | Temperature grid for mean opacities             |
 | =temp=             | =float[ntemp]=        | Temperatures used for mean opacities            |
 | =kplanck,kross=    | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
+|--------------------+-----------------------+-------------------------------------------------|
+| =checknorm()=      | =method=              | Check normalization of scattering matrix        |
 
 #+LATEX: \newpage
 
