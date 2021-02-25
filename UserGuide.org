@@ -559,14 +559,18 @@ scattering matrix equals unity, i.e.
 
 \begin{equation}
 \label{eq:1}
-\oint_{(4\pi)} F_{11}(\lambda,\Theta) d\Omega = 4\pi \quad .
+\oint_{(4\pi)} F_{11}(\lambda,\Theta) d\Omega = 
+2\pi \int_{-1}^{1} F_{11}(\lambda,\mu) {\rm d}\mu= 4\pi \quad ,
 \end{equation}
 
-=optool= can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] which uses instead
+with $\mu=\cos\Theta$. =optool= can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]]
+which uses instead
 
 \begin{equation}
 \label{eq:2}
-\oint_{(4\pi)} Z_{11}(\lambda,\Theta) d\Omega = \kappa_{\rm sca}(\lambda) \quad .
+\oint_{(4\pi)} Z_{11}(\lambda,\Theta) d\Omega =
+2\pi \int_{-1}^{1} Z_{11}(\lambda,\mu) {\rm d}\mu =
+ \kappa_{\rm sca}(\lambda) \quad .
 \end{equation}
 
 The books by Bohren & Huffman and by Mishchenko use different
