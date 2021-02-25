@@ -1825,7 +1825,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
   type(particle) :: p
   integer        :: na,i,ilam,iang,nm,i1,i2
   real (kind=dp) :: mu1,mu2,dmu,theta1,theta2,tot
-  real (kind=dp),allocatable :: f11(:)
+  real (kind=dp),allocatable :: f11(:),f12(:),f22(:),f33(:),f34(:),f44(:)
   character*(*)  :: label
   character*(3)  :: ext
   character*(23) :: ml
@@ -1881,7 +1881,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
      else
-        write(20,'("# Standard output file, scattering matrix mormalizattion: <F11>=1/sr")')
+        write(20,'("# Standard output file, scattering matrix mormalization: <F11>=1/sr")')
      endif
      write(20,'("#    iformat                                     ! format number")')
      write(20,'("#    nlam                                        ! number of wavelengths")')
@@ -1931,15 +1931,27 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
      endif
         
      write(20,*)      ! an empty line
-     ! Write the scattering matrix
-     if (for_radmc) allocate(f11(0:nang))
+     ! Write the scattering matrix.
+     if (for_radmc) then
+        allocate(f11(0:nang),f12(0:nang),f22(0:nang))
+        allocate(f33(0:nang),f34(0:nang),f44(0:nang))
+     endif
      do ilam=1,nlam
         if (for_radmc) then
-           ! Extra renormalization because of interpolation
+           ! We need the values at the cell boundaries, this requires
+           ! interpolation and extrapolation, and then renormalization.
+           ! First, interpolate and extrapolate.  For the extrapolation,
+           ! we assume  the same value that we had for the cell center.
            do iang=0,nang
               i1 = max(1,iang); i2=min(iang+1,nang)
               f11(iang) = 0.5d0 * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) )
+              f12(iang) = 0.5d0 * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) )
+              f22(iang) = 0.5d0 * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) )
+              f33(iang) = 0.5d0 * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) )
+              f34(iang) = 0.5d0 * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) )
+              f44(iang) = 0.5d0 * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
            enddo
+           ! Do the integration of f11
            tot = 0.d0
            do iang=1,nang
               theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)/dble(nang) * pi
@@ -1947,19 +1959,13 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
               tot = tot + 0.5d0 * (f11(iang-1)+f11(iang)) * dmu
            enddo
            tot = 2.d0 * pi * tot
+           ! Comppute the scaling factor
            f = p%ksca(ilam)/tot
-           ! print *,tot,p%ksca(ilam),f
+           ! Apply the scaling factor while writing the numbers
            do iang=0,nang
-              ! We have only computed 0..nang-1, but RADMC needs a value at
-              ! 180 degrees as well. We simply repeat the last value
-              i1 = max(1,iang); i2=min(iang+1,nang)
               write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') &
-                   0.5d0 * f * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) ), &
-                   0.5d0 * f * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) ), &
-                   0.5d0 * f * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) ), &
-                   0.5d0 * f * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) ), &
-                   0.5d0 * f * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) ), &
-                   0.5d0 * f * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
+                   f * f11(iang), f * f12(iang), f * f22(iang), &
+                   f * f33(iang), f * f34(iang), f * f44(iang)
            enddo
         else
            do i=1,nang
@@ -1969,7 +1975,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
            enddo
         endif
      enddo ! end do ilam=1,nlam
-     if (for_radmc) deallocate(f11)
+     if (for_radmc) deallocate(f11,f12,f22,f33,f34,f44)
      close(20)
   endif   ! end if (not scatter)
 end subroutine write_ascii_file

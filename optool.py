@@ -224,7 +224,7 @@ Keywords
 
         if (ang[0] == 0.):
             # This is the radmc grid vith values on cell boundaries
-            thetab = ang*np.pi/nang
+            thetab = ang*np.pi/180.
             mub = np.cos(thetab)
             dmu = mub[1:]-mub[:-1]
             fc = 0.5*(f11[:,:,1:]+f11[:,:,:-1])
