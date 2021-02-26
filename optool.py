@@ -4,7 +4,7 @@ NAME
 
 DESCRIPTION
 
-    This module provides an interfact to the optool program (available
+    This module provides an interface to the optool program (available
     at https://github.com/cdominik/optool), and tools to plot and
     convert the results.
     It also provides tools to prepare refractive index data for use
@@ -25,9 +25,9 @@ class particle:
 NAME
     optool
 
-DESCIPTION
+DESCRIPTION
 
-    Provides an interface to the optool program for comuuting dust opacities.
+    Provides an interface to the optool program for computing dust opacities.
 
     The optool program can be found at https://github.com/cdominik/optool .
 
@@ -151,17 +151,6 @@ Keywords
                     idxnames=['grain index','log lambda [um]'],
                     idxvals=[np.array(range(self.nsize))+1,temp])
 
-
-            
-            #plt.loglog(self.temp,self.kplanck[0,:],label='kplanck')
-            #plt.loglog(self.temp,self.kross[0,:],label='kross')
-            #plt.legend()
-            #plt.xlabel('Temperature [K]')
-            #plt.ylabel('Mean Opacity [cm^2/g] (no gas)')
-            #plt.title('Mean opacities')
-            #plt.show(block=False)
-
-        
         # Extract the kappas and g
         kabs   = np.copy(self.kabs)
         ksca   = np.copy(self.ksca)
@@ -201,27 +190,28 @@ Keywords
 
             # interactive plot of the scattering matric elements
             viewarr([f00,f00+2,f00-2,f00+4,f00-4,f11,f12,f22,f33,f34,f44],
-                    index=2,ylabel=['<1e-2','±1','','±1e2','','f11','f12','f22','f33','f34','f44'],
+                    index=2,ylabel=['<1e-2','±1','','±1e2','','f11','f12',
+                                    'f22','f33','f34','f44'],
                     idxnames=['grain index','lambda [um]','angle'],
                     idxvals=[np.array(range(self.nsize))+1,lamfmt,angfmt])
 
         # interactive plot of kabs, ksca, kext, and g
         llamfmt = np.round(np.log10(self.lam),decimals=3)
-        viewarr([ggscal,kext,ksca,kabs],index=1,ylabel=['gg','kext','ksca','kabs'],
+        viewarr([ggscal,kext,ksca,kabs],index=1,
+                ylabel=['gg','kext','ksca','kabs'],
                 idxnames=['grain index','log lambda [um]'],
                 idxvals=[np.array(range(self.nsize))+1,llamfmt])
 
     def checknorm(self):
         """Check the normalization of the scattering matrix."""
-        # FIXME this is not yet done, still need to do it, and make sure it works with radmc.
-        nlam = self.nlam
-        nang = self.nang
-        ang = self.scatang
-        nang = self.nang
+        nlam  = self.nlam
+        nang  = self.nang
+        ang   = self.scatang
+        nang  = self.nang
         radmc = self.radmc
-        scat = self.scat
-        f11 = self.f11
-        norm = np.zeros([self.np,nlam])
+        scat  = self.scat
+        f11   = self.f11
+        norm  = np.zeros([self.np,nlam])
 
         if (ang[0] == 0.):
             # This is the radmc grid vith values on cell boundaries
@@ -232,7 +222,8 @@ Keywords
             fc = 0.5*(f11[:,:,1:]+f11[:,:,:-1])
             for ip in (range(self.np)):
                 for il in (range(self.nlam)):
-                    norm[ip,il] = 2.*np.pi*np.sum(fc[ip,il,:]*dmu) / self.ksca[ip,il]
+                    norm[ip,il] = 2.*np.pi*np.sum(fc[ip,il,:]*dmu) \
+                    / self.ksca[ip,il]
         else:
             # This is the standard grid with values on cell midpoints
             lead = "Checking scattering matrix for Hovenier normalization to 4pi..."
@@ -257,17 +248,17 @@ Keywords
         self.tmin    = tmin
         self.tmax    = tmax
         self.ntemp   = ntemp
-        self.temp    = np.logspace(np.log10(self.tmin),np.log10(self.tmax),self.ntemp)
+        self.temp    = np.logspace(np.log10(tmin),np.log10(tmax),ntemp)
         self.kross   = np.zeros([self.nsize,self.ntemp])
         self.kplanck = np.zeros([self.nsize,self.ntemp])
 
-        cl = 2.99792458e10                # Speed of light [cgs]
-        nu = 1e4*cl/self.lam              # 10^4 because lam is in um - we need cm
+        cl = 2.99792458e10          # Speed of light [cgs]
+        nu = 1e4*cl/self.lam        # 10^4 because lam is in um - we need cm
         dnu = -1. * np.hstack([nu[1]-nu[0],0.5 * (nu[2:]-nu[:-2]), nu[-1] - nu[-2]  ])
 
         for it in range(self.ntemp):
-            bnu   = bplanck(self.temp[it],nu)
-            bnudt = bplanckdt(self.temp[it],nu)
+            bnu    = bplanck(self.temp[it],nu)
+            bnudt  = bplanckdt(self.temp[it],nu)
             dumbnu = np.sum(bnu*dnu)
             dumdb  = np.sum(bnudt*dnu)
             for ip in range(self.nsize):
@@ -415,8 +406,8 @@ Conversion
         wfile.write(self.header)
         wfile.write("  %d  %g\n" % (self.nlam,self.rho))
         for i in range(self.nlam):
-            wfile.write("  %16.6e %16.6e %16.6e\n" % (self.lam[i],self.n[i],self.k[i]))
-            
+            wfile.write("  %16.6e %16.6e %16.6e\n" %
+                        (self.lam[i],self.n[i],self.k[i]))
         wfile.close()
 
 def logscale_with_sign(array,bottom):
