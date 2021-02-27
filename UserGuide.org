@@ -469,7 +469,7 @@ have the following attributes:
 | =nang=             | =int=                 | Number of scattering angles                     |
 | =scatang=          | =float[nang]=         | The angular grid                                |
 |--------------------+-----------------------+-------------------------------------------------|
-| =materials=        | =[ [...]... ]=        | Lists with [location,m_{frac},\rho,material]    |
+| =materials=        | =[[[...]...]... ]=    | Lists with [location,m_{frac},\rho,material]    |
 |--------------------+-----------------------+-------------------------------------------------|
 | =np=               | =int=                 | Number of particles, either 1 or (with -d) n_a  |
 |--------------------+-----------------------+-------------------------------------------------|
@@ -480,6 +480,7 @@ have the following attributes:
 | =nsub=             | =int[np]=             | Number of sizes averaged for each particle.     |
 | =apow=             | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
 | =a1=, =a2=, =a3=   | =fload[np]=           | Mean <a>, <a^2>, and <a^3> of the particle      |
+| =rho=              | =float[np]=           | Specific density of grains                      |
 |--------------------+-----------------------+-------------------------------------------------|
 | =kabs,ksca,kext=   | =float[np,nlam]=      | Absorption,scattering,extinction cross section  |
 | =gsca=             | =float[np,nlam]=      | Asymmetry parameter                             |
@@ -495,6 +496,7 @@ have the following attributes:
 | =kplanck,kross=    | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
 |--------------------+-----------------------+-------------------------------------------------|
 | =checknorm()=      | =method=              | Check normalization of scattering matrix        |
+| =setnorm()=        | =method=              | Change the scattering matrix normalization      |
 
 #+LATEX: \newpage
 
@@ -525,14 +527,10 @@ species.  For more information, please read the documentation inside
 the file =optool.py=.
 
 [fn:2] The module runs the command as a subprocess, with output to a
-temporary subdirectory in the current working directory.  It then
-reads the output files and cleans up the temporary directory - unless
-is called with the =keep= keyword argument:
-=optool.particle('optool',keep=True)=.
+temporary subdirectory.
 
-[fn:3] The command may be given as string than can be split on
-whitespace, or, for example if the path to the binary contains
-whitespace, in list form =['/path/to my/command','arg1','arg2',...]=.
+[fn:3] As a string, or as a list like =['/path/to
+my/command','arg1','arg2',...]=. 
 
 \appendix
 

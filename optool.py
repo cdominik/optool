@@ -87,6 +87,8 @@ Keywords
             kabs=[]; ksca=[]; kext=[]; gg=[]
             f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
             nfiles=0; header=[];
+            materials = []
+            rho = []
             
             for i in range(500):
                 if scat:
@@ -213,8 +215,11 @@ Keywords
         f11   = self.f11
         norm  = np.zeros([self.np,nlam])
 
-        if (ang[0] == 0.):
-            # This is the radmc grid vith values on cell boundaries
+        if (self.gridtype == "edge"):
+            # Matrix values are on cell boundaries
+            if (ang[0] != 0):
+                print("Error: inconsistency between gridtype \"boundary\" and angle values")
+                return -1
             lead = "Checking scattering matrix for RADMC-3D normalization to kappa_scat ..."
             thetab = ang*np.pi/180.
             mub = np.cos(thetab)
@@ -226,6 +231,9 @@ Keywords
                     / self.ksca[ip,il]
         else:
             # This is the standard grid with values on cell midpoints
+            if (ang[0] == 0):
+                print("Error: inconsistency between gridtype \"center\" and angle values")
+                return -1
             lead = "Checking scattering matrix for Hovenier normalization to 4pi..."
             th1 = (ang-0.5)*np.pi/nang; mu1 = np.cos(th1)
             th2 = (ang+0.5)*np.pi/nang; mu2 = np.cos(th2)
@@ -448,8 +456,10 @@ def parse_headers(headers,b):
     b.pcore = np.zeros(n); b.pmantle = np.zeros(n); b.fmax = np.zeros(n);
     b.chop  = np.zeros(n);
     b.materials = []
+    b.rho = []
 
     for i in range(n):
+        mat = []
         m = re.search(r" amin \[um\]\s*=\s*(-?[0-9.]+)",headers[i])
         b.amin[i]=float(m.group(1))
         m = re.search(r" amax \[um\]\s*=\s*(-?[0-9.]+)",headers[i])
@@ -461,8 +471,12 @@ def parse_headers(headers,b):
         b.a2[i]=float(m.group(2))
         b.a3[i]=float(m.group(3))
 
-    for m in re.finditer(r"^#\s+(core|mantle|grain)\s+([.0-9]+)\s+([.0-9]+)\s*(\S.*?)$",headers[0],re.MULTILINE):
-        b.materials.append([m.group(1),float(m.group(2)),float(m.group(3)),m.group(4)])
+        for m in re.finditer(r"^#\s+(core|mantle|grain)\s+([.0-9]+)\s+([.0-9]+)\s*(\S.*?)$",headers[0],re.MULTILINE):
+            mat.append([m.group(1),float(m.group(2)),float(m.group(3)),m.group(4)])
+            if m.group(1) == "grain": b.rho.append(float(m.group(3)))
+        b.materials.append(mat)
+    b.rho = np.array(b.rho)
+    b.materials = np.array(b.materials)
     m = re.search(r" apow\s*=\s*(-?[0-9.]+)",headers[0])
     b.apow[i]=float(m.group(1))
     m = re.search(r" porosity\s*=\s*([0-9.]+)",headers[0])
@@ -474,14 +488,15 @@ def parse_headers(headers,b):
     m = re.search(r" chop\s*=\s*([0-9.]+)",headers[0])
     b.chop[i]=float(m.group(1))
 
-        
     m = re.search(r" RADMC-3D",headers[0])
     if m:
         b.radmc = True
+        b.gridtype = "boundary"
+        b.scatnorm = "radmc"
     else:
         b.radmc = False
-
-    # FIXME: parse the composition as well
+        b.gridtype = "center"
+        b.scatnorm = "hovenier"
 
     return b
 
