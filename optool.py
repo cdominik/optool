@@ -87,6 +87,8 @@ Keywords
             kabs=[]; ksca=[]; kext=[]; gg=[]
             f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
             nfiles=0; header=[];
+            materials = []
+            rho = []
             
             for i in range(500):
                 if scat:
@@ -202,40 +204,113 @@ Keywords
                 idxnames=['grain index','log lambda [um]'],
                 idxvals=[np.array(range(self.nsize))+1,llamfmt])
 
-    def checknorm(self):
-        """Check the normalization of the scattering matrix."""
-        nlam  = self.nlam
-        nang  = self.nang
-        ang   = self.scatang
-        nang  = self.nang
-        radmc = self.radmc
-        scat  = self.scat
-        f11   = self.f11
-        norm  = np.zeros([self.np,nlam])
+    def scatnorm(self,norm=""):
+        """Check or change the normalization of the scattering matrix.
 
-        if (ang[0] == 0.):
-            # This is the radmc grid vith values on cell boundaries
-            lead = "Checking scattering matrix for RADMC-3D normalization to kappa_scat ..."
+        Without an argument, check the current normalization of the
+        scattering matrix.
+
+            p = optool.particle('./optool -s')
+            p.scatnorm()
+
+        Calling the method with an argument will change the normalization
+        to one of the following conventions
+
+            'b'  Bohren & Huffman
+            'm'  Mishchenko
+            'r'  RADMC-3D
+            'h'  Hovenier
+        """
+
+        # analyze the NORM parameter
+        if (norm == ""):
+            renorm = False
+            conv = self.norm
+        else:
+            renorm = True
+            conv = norm
+            
+        conv = conv.lower()
+        if (conv in ['h','hovenier']):
+            self.norm = "hovenier"
+            name = "Hovenier"
+            normalization = "4 pi"
+            units = "sr^-1"
+        elif (conv in ['b','bh','bohren','bohrenhuffman']):
+            self.norm = "bohrenhuffman"
+            name = "Bohren & Huffman"
+            normalization = "kappa_scat m_grain (2pi/lambda)^2"
+            units = "sr^-1"
+        elif (conv in ['m','mish','mishchenko']):
+            self.norm = "mishchenko"
+            name = "Mishchenko"
+            normalization = "kappa_scat m_grain"
+            units = "cm^2 sr^-1"
+        elif (conv in ['r','radmc','radmc3d']):
+            self.norm = "radmc3d"
+            name = "RADMC-3D"
+            normalization = "kappa_scat"
+            units = "cm^2 g^-1 sr^-1"
+        else:
+            print("ERROR: Unknown normalization ",conv)
+        
+        ang   = self.scatang
+        lam   = self.lam
+        wav   = 2.*np.pi/(lam*1e-4)      # need cm here, not micrometer
+        ratio = np.zeros([self.np,self.nlam])
+
+        # Compute values and weights for the integration
+        if (self.gridtype == "boundary"):
+            # Matrix values are on cell boundaries
+            if (ang[0] != 0):
+                print("Error: inconsistency between gridtype \"boundary\" and angle values")
+                return -1
             thetab = ang*np.pi/180.
             mub = np.cos(thetab)
-            dmu = mub[:-1]-mub[1:]   # Defined negatively
-            fc = 0.5*(f11[:,:,1:]+f11[:,:,:-1])
-            for ip in (range(self.np)):
-                for il in (range(self.nlam)):
-                    norm[ip,il] = 2.*np.pi*np.sum(fc[ip,il,:]*dmu) \
-                    / self.ksca[ip,il]
+            dmu = mub[:-1]-mub[1:]   # Defined negatively for mu integral
+            fc = 0.5*(self.f11[:,:,1:]+self.f11[:,:,:-1]) 
         else:
             # This is the standard grid with values on cell midpoints
-            lead = "Checking scattering matrix for Hovenier normalization to 4pi..."
-            th1 = (ang-0.5)*np.pi/nang; mu1 = np.cos(th1)
-            th2 = (ang+0.5)*np.pi/nang; mu2 = np.cos(th2)
-            dmu = mu1-mu2
-            for ip in (range(self.np)):
-                for il in (range(self.nlam)):
-                    norm[ip,il] = 2.*np.pi*np.sum(f11[ip,il,:]*dmu) / (4.*np.pi)
-        maxerr = np.amax(np.abs(norm-1.))
-        print(lead)
-        print("Maximum deviation: %7.2e" % maxerr)
+            if (ang[0] == 0):
+                print("Error: inconsistency between gridtype \"center\" and angle values")
+                return -1
+            th1 = (ang-0.5)*np.pi/self.nang; mu1 = np.cos(th1)
+            th2 = (ang+0.5)*np.pi/self.nang; mu2 = np.cos(th2)
+            dmu = mu1-mu2  # Defined negatively for the mu integral
+            fc  = self.f11
+
+        for ip in (range(self.np)):
+            mgrain = (4./3.)*np.pi * self.a3[ip]**3 * self.rho[ip]
+            for il in (range(self.nlam)):
+                integ = 2.*np.pi*np.sum(fc[ip,il,:]*dmu)
+                if (self.norm == "radmc3d"):
+                    nn = self.ksca[ip,il]
+                elif (self.norm == "hovenier"):
+                    nn = 4.*np.pi
+                elif (self.norm == "bohrenhuffman"):
+                    nn = self.ksca[ip,il] * wav[il]**2 * mgrain
+                elif (self.norm == "mishchenko"):
+                    nn = self.ksca[ip,il] * mgrain
+                if (norm):
+                    self.f11[ip,il,:] = self.f11[ip,il,:] * nn/integ
+                    self.f12[ip,il,:] = self.f12[ip,il,:] * nn/integ
+                    self.f22[ip,il,:] = self.f22[ip,il,:] * nn/integ
+                    self.f33[ip,il,:] = self.f33[ip,il,:] * nn/integ
+                    self.f34[ip,il,:] = self.f34[ip,il,:] * nn/integ
+                    self.f44[ip,il,:] = self.f44[ip,il,:] * nn/integ
+                    ratio[ip,il] = 1.
+                else:
+                    ratio[ip,il] = integ / nn
+        
+        if (norm):
+            print("New     nomalization is       ",name," convention")
+        else:
+            print("Current nomalization is       ",name," convention")
+        print("Units of matrix elements are  ",units)
+        print("Integral F_11 d Omega =       ",normalization)
+        if (not norm):
+            maxerr = np.amax(np.abs(ratio-1.))
+            print("Maximum deviation              %7.2e" % maxerr)
 
     def computemean(self, tmin=10., tmax=1500., ntemp=100):
         """Compupte mean opacities from the opacities in self.
@@ -448,8 +523,10 @@ def parse_headers(headers,b):
     b.pcore = np.zeros(n); b.pmantle = np.zeros(n); b.fmax = np.zeros(n);
     b.chop  = np.zeros(n);
     b.materials = []
+    b.rho = []
 
     for i in range(n):
+        mat = []
         m = re.search(r" amin \[um\]\s*=\s*(-?[0-9.]+)",headers[i])
         b.amin[i]=float(m.group(1))
         m = re.search(r" amax \[um\]\s*=\s*(-?[0-9.]+)",headers[i])
@@ -461,8 +538,12 @@ def parse_headers(headers,b):
         b.a2[i]=float(m.group(2))
         b.a3[i]=float(m.group(3))
 
-    for m in re.finditer(r"^#\s+(core|mantle|grain)\s+([.0-9]+)\s+([.0-9]+)\s*(\S.*?)$",headers[0],re.MULTILINE):
-        b.materials.append([m.group(1),float(m.group(2)),float(m.group(3)),m.group(4)])
+        for m in re.finditer(r"^#\s+(core|mantle|grain)\s+([.0-9]+)\s+([.0-9]+)\s*(\S.*?)$",headers[0],re.MULTILINE):
+            mat.append([m.group(1),float(m.group(2)),float(m.group(3)),m.group(4)])
+            if m.group(1) == "grain": b.rho.append(float(m.group(3)))
+        b.materials.append(mat)
+    b.rho = np.array(b.rho)
+    b.materials = np.array(b.materials)
     m = re.search(r" apow\s*=\s*(-?[0-9.]+)",headers[0])
     b.apow[i]=float(m.group(1))
     m = re.search(r" porosity\s*=\s*([0-9.]+)",headers[0])
@@ -474,14 +555,15 @@ def parse_headers(headers,b):
     m = re.search(r" chop\s*=\s*([0-9.]+)",headers[0])
     b.chop[i]=float(m.group(1))
 
-        
     m = re.search(r" RADMC-3D",headers[0])
     if m:
         b.radmc = True
+        b.gridtype = "boundary"
+        b.norm = "radmc"
     else:
         b.radmc = False
-
-    # FIXME: parse the composition as well
+        b.gridtype = "center"
+        b.norm = "hovenier"
 
     return b
 

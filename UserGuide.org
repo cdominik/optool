@@ -26,12 +26,12 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
   Standard *Mie theory* for /perfect spheres/ is available as a
   limiting case. (ii) *MMF (Modified Mean Field)* theory for
   /high-porosity/fractal aggregates/.
-- =Python= interface module for easy postprocessing and cross-tool
+- =Python= interface module for easy post-processing and cross-tool
   use.
 
 ** Terms of use
 
-=optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
+=op tool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
 and redistributed freely. The relevant references for this tool are
 listed below.  Depending on which parts of =optool= you are using,
 please reference the corresponding papers.
@@ -185,7 +185,7 @@ DHS with f_max=0.8.
 
 + =-dhs [FMAX]= ::
   Use the /Distribution of Hollow Spheres/ (DHS, Min+ 2005) approach to
-  model deviations from prefect sphericity and low-porosity
+  model deviations from perfect spherical symmetry and low-porosity
   aggregates. Spheres with inner holes with volume fractions between 0
   and f_max (default 0.8) are averaged to mimic irregularities.
   f_max=0 means to use solid spheres (Mie theory), i.e. perfectly
@@ -225,7 +225,7 @@ DHS with f_max=0.8.
 
 + =-l LMIN [LMAX [NLAM]]= ::
 
-  Specifiy the (minimum) wavelength, and optionally the maximum
+  Specify the (minimum) wavelength, and optionally the maximum
   wavelength and the number of wavelengths points for the construction
   of the wavelength grid.  The default values are 0.05 \mu{}m, 10000
   \mu{}m, and 300, respectively.  You may also use the options
@@ -313,25 +313,25 @@ directory for additional information about these materials.
 | *-c Key* | *-c Key*   | *Material*              | *State* |   \rho | \lambda_min | \lambda_max | *Reference*  | *Comment*    | *File*                         |
 | generic  | full key   |                         |         | g/cm^3 |      \mu{}m |      \mu{}m |              |              |                                |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
-|          | pyr-mg100  | MgSiO_3                 | amorph  |   2.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] |              | [[file:lnk_data/pyr-mg100-Dorschner1995.lnk][pyr-mg100-Dorschner1995.lnk]]    |
-|          | pyr-mg95   | Mg_{0.95}Fe_{0.05}SiO_3 | amorph  |   2.74 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] |              | [[file:lnk_data/pyr-mg95-Dorschner1995.lnk][pyr-mg95-Dorschner1995.lnk]]     |
-|          | pyr-mg80   | Mg_{0.8}Fe_{0.2}SiO_3   | amorph  |    2.9 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] | \rho interp. | [[file:lnk_data/pyr-mg80-Dorschner1995.lnk][pyr-mg80-Dorschner1995.lnk]]     |
-| pyr      | pyr-mg70   | Mg_{0.7}Fe_{0.3}SiO_3   | amorph  |   3.01 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] |              | [[file:lnk_data/pyr-mg70-Dorschner1995.lnk][pyr-mg70-Dorschner1995.lnk]]     |
-|          | pyr-mg60   | Mg_{0.6}Fe_{0.4}SiO_3   | amorph  |    3.1 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] | \rho interp. | [[file:lnk_data/pyr-mg60-Dorschner1995.lnk][pyr-mg60-Dorschner1995.lnk]]     |
-|          | pyr-mg50   | Mg_{0.5}Fe_{0.5}SiO_3   | amorph  |    3.2 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] |              | [[file:lnk_data/pyr-mg50-Dorschner1995.lnk][pyr-mg50-Dorschner1995.lnk]]     |
-|          | pyr-mg40   | Mg_{0.4}Fe_{0.6}SiO_3   | amorph  |    3.3 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] | \rho interp. | [[file:lnk_data/pyr-mg40-Dorschner1995.lnk][pyr-mg40-Dorschner1995.lnk]]     |
+|          | pyr-mg100  | MgSiO_3                 | amorph  |   2.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] |              | [[file:lnk_data/pyr-mg100-Dorschner1995.lnk][pyr-mg100-Dorschner1995.lnk]]    |
+|          | pyr-mg95   | Mg_{0.95}Fe_{0.05}SiO_3 | amorph  |   2.74 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] |              | [[file:lnk_data/pyr-mg95-Dorschner1995.lnk][pyr-mg95-Dorschner1995.lnk]]     |
+|          | pyr-mg80   | Mg_{0.8}Fe_{0.2}SiO_3   | amorph  |    2.9 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] | \rho interp. | [[file:lnk_data/pyr-mg80-Dorschner1995.lnk][pyr-mg80-Dorschner1995.lnk]]     |
+| pyr      | pyr-mg70   | Mg_{0.7}Fe_{0.3}SiO_3   | amorph  |   3.01 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] |              | [[file:lnk_data/pyr-mg70-Dorschner1995.lnk][pyr-mg70-Dorschner1995.lnk]]     |
+|          | pyr-mg60   | Mg_{0.6}Fe_{0.4}SiO_3   | amorph  |    3.1 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] | \rho interp. | [[file:lnk_data/pyr-mg60-Dorschner1995.lnk][pyr-mg60-Dorschner1995.lnk]]     |
+|          | pyr-mg50   | Mg_{0.5}Fe_{0.5}SiO_3   | amorph  |    3.2 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] |              | [[file:lnk_data/pyr-mg50-Dorschner1995.lnk][pyr-mg50-Dorschner1995.lnk]]     |
+|          | pyr-mg40   | Mg_{0.4}Fe_{0.6}SiO_3   | amorph  |    3.3 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] | \rho interp. | [[file:lnk_data/pyr-mg40-Dorschner1995.lnk][pyr-mg40-Dorschner1995.lnk]]     |
 | ens      | pyr-c-mg96 | Mg_{0.96}Fe_{0.04}SiO3  | cryst   |    2.8 |       *2.0* |        *99* | [[https://ui.adsabs.harvard.edu/abs/1998A%26A...339..904J][Jäger+98]]     |              | [[file:lnk_data/pyr-c-mg96-Jäger1998.lnk][pyr-c-mg96-Jäger1998.lnk]]       |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
-| ol       | ol-mg50    | MgFeSiO_4               | amorph  |   3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]      |
-|          | ol-mg40    | Mg_0.8 Fe_1.2 SiO_4     | amorph  |   3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D/abstract][Dorschner+95]] | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]      |
+| ol       | ol-mg50    | MgFeSiO_4               | amorph  |   3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]      |
+|          | ol-mg40    | Mg_0.8 Fe_1.2 SiO_4     | amorph  |   3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]] | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]      |
 | for      | ol-c-mg100 | Mg_2 SiO_4              | cryst   |   3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]    | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]      |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
 |          | astrosil   | MgFeSiO4                | mixed   |    3.3 |        6e-5 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D][Draine+03]]    |              | [[file:lnk_data/astrosil-Draine2003.lnk][astrosil-Draine2003.lnk]]        |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
-| c        | c-z        | C                       | amorph? |    1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z/abstract][Zubko+96]]     |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]              |
-|          | c-p        | C                       | amorph  |    1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P/abstract][Preibisch+93]] |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]          |
-| gra      | c-gra      | C graphite              | cryst   |  2.16? |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D/abstract][Draine+03]]    |              | [[file:lnk_data/c-gra-Draine2003.lnk][c-gra-Draine2003.lnk]]           |
-| org      | c-org      | CHON organics           | amorph  |    1.4 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H/abstract][Henning+96]]   |              | [[file:lnk_data/c-org-Henning1996.lnk][c-org-Henning1996.lnk]]          |
+| c        | c-z        | C                       | amorph? |    1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z][Zubko+96]]     |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]              |
+|          | c-p        | C                       | amorph  |    1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P][Preibisch+93]] |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]          |
+| gra      | c-gra      | C graphite              | cryst   |  2.16? |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D][Draine+03]]    |              | [[file:lnk_data/c-gra-Draine2003.lnk][c-gra-Draine2003.lnk]]           |
+| org      | c-org      | CHON organics           | amorph  |    1.4 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]   |              | [[file:lnk_data/c-org-Henning1996.lnk][c-org-Henning1996.lnk]]          |
 |          | c-nano     | C nano-diamond          | cryst   |    2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]  |              | [[file:lnk_data/c-nano-Mutschke2004.lnk][c-nano-Mutschke2004.lnk]]        |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
 | iron     | fe-c       | Fe                      | metal   |   7.87 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]   |              | [[file:lnk_data/fe-c-Henning1996.lnk][fe-c-Henning1996.lnk]]           |
@@ -340,10 +340,10 @@ directory for additional information about these materials.
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
 | cor      | cor-c      | Al_{2}O_3               | cryst   |    4.0 |         0.5 |        *40* | [[https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K][Koike+95]]     |              | [[file:lnk_data/cor-c-Koike1995.lnk][cor-c-Koike1995.lnk]]            |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
-| ice,h2o  | h2o-w      | Water ice               | cryst   |   0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W/abstract][Warren+08]]    |              | [[file:lnk_data/h2o-w-Warren2008.lnk][h2o-w-Warren2008.lnk]]           |
+| ice,h2o  | h2o-w      | Water ice               | cryst   |   0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W][Warren+08]]    |              | [[file:lnk_data/h2o-w-Warren2008.lnk][h2o-w-Warren2008.lnk]]           |
 | co2      | co2-w      | CO_2 ice                | ?       |    1.6 |        0.05 |         2e5 | [[https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W][Warren+86]]    | interpolated | [[file:lnk_data/co2-ice-Warren1986.lnk][co2-ice-Warren2008.lnk]]         |
-| nh3      | nh3-m      | NH_3 ice                | ?       |   0.75 |        0.14 |         200 | [[https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M/abstract][Martonchik83]] | \rho?        | [[file:lnk_data/co2-ice-Warren1986.lnk][co2-ice-Warren2008.lnk]]         |
-|          | icemix-c2d | H_{2}O/CO_{2}/CO mix    | ?       |    1.0 |        0.04 |         8e6 | Pontoppidan  | \rho?        | [[file:lnk_data/icemix-c2d-Pontoppidan2009.lnk][icemix-c2d-Pontoppidan2009.lnk]] |
+| nh3      | nh3-m      | NH_3 ice                | ?       |   0.75 |        0.14 |         200 | [[https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M][Martonchik83]] | \rho?        | [[file:lnk_data/nh3-m-Martonchik1983.lnk][nh3-m-Martonchik1983.lnk]]       |
+|          | icemix-c2d | H_{2}O/CO_{2}/CO mix    | ?       |    1.0 |        0.04 |         8e6 | [[https://ui.adsabs.harvard.edu/abs/2009ApJ...690..496C][Pontoppidan]]  | \rho?        | [[file:lnk_data/icemix-c2d-Pontoppidan2009.lnk][icemix-c2d-Pontoppidan2009.lnk]] |
 
 
 *** COMMENT Options for more materials
@@ -469,7 +469,7 @@ have the following attributes:
 | =nang=             | =int=                 | Number of scattering angles                     |
 | =scatang=          | =float[nang]=         | The angular grid                                |
 |--------------------+-----------------------+-------------------------------------------------|
-| =materials=        | =[ [...]... ]=        | Lists with [location,m_{frac},\rho,material]    |
+| =materials=        | =[[[...]...]... ]=    | Lists with [location,m_{frac},\rho,material]    |
 |--------------------+-----------------------+-------------------------------------------------|
 | =np=               | =int=                 | Number of particles, either 1 or (with -d) n_a  |
 |--------------------+-----------------------+-------------------------------------------------|
@@ -480,6 +480,7 @@ have the following attributes:
 | =nsub=             | =int[np]=             | Number of sizes averaged for each particle.     |
 | =apow=             | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
 | =a1=, =a2=, =a3=   | =fload[np]=           | Mean <a>, <a^2>, and <a^3> of the particle      |
+| =rho=              | =float[np]=           | Specific density of grains                      |
 |--------------------+-----------------------+-------------------------------------------------|
 | =kabs,ksca,kext=   | =float[np,nlam]=      | Absorption,scattering,extinction cross section  |
 | =gsca=             | =float[np,nlam]=      | Asymmetry parameter                             |
@@ -494,7 +495,7 @@ have the following attributes:
 | =temp=             | =float[ntemp]=        | Temperatures used for mean opacities            |
 | =kplanck,kross=    | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
 |--------------------+-----------------------+-------------------------------------------------|
-| =checknorm()=      | =method=              | Check normalization of scattering matrix        |
+| =scatnorm()=       | =method=              | Check/change scat. matrix normalization         |
 
 #+LATEX: \newpage
 
@@ -525,14 +526,10 @@ species.  For more information, please read the documentation inside
 the file =optool.py=.
 
 [fn:2] The module runs the command as a subprocess, with output to a
-temporary subdirectory in the current working directory.  It then
-reads the output files and cleans up the temporary directory - unless
-is called with the =keep= keyword argument:
-=optool.particle('optool',keep=True)=.
+temporary subdirectory.
 
-[fn:3] The command may be given as string than can be split on
-whitespace, or, for example if the path to the binary contains
-whitespace, in list form =['/path/to my/command','arg1','arg2',...]=.
+[fn:3] As a string, or as a list like =['/path/to
+my/command','arg1','arg2',...]=. 
 
 \appendix
 
@@ -576,9 +573,11 @@ which uses instead
 \end{equation}
 
 The books by Bohren & Huffman and by Mishchenko use different
-normalizations again. As described in RADMC-3D's manual, these
-conventions can be matched by scaling all matrix elements with simple
-factors involving dust mass and wavenumber $k=2\pi/\lambda$.
+normalizations again. You can change the normalization of the
+scattering matrix in the python interface with the =scatnorm()=
+method. By default, it checks the current normalization.  Using
+an argument ='r'=, ='b'=, ='m'=, or ='h'=, will modify the
+normalization.
 
 ** Forward-scattering peak
 :PROPERTIES:
@@ -660,7 +659,7 @@ the code.
 
 - Mixing :: Once the refractive index for all involved materials is
   available, the core and the mantle mixtures are created
-  independantly, using the Bruggeman rule.  Mass fractions are
+  independently, using the Bruggeman rule.  Mass fractions are
   converted into volume fractions, and porosity is implemented using
   vacuum as an additional material.  The subroutine doing the mixing
   uses an iterative procedure that is very stable, also for a large
@@ -704,7 +703,7 @@ the code.
   the asymptotic density of small aggregates is the monomer material
   density. To force another value for the prefactor, it can be given
   explicitly as the third value of the =-mmf= option. The following
-  table summarises the relevant equations.
+  table summarizes the relevant equations.
 
   |       | =-mmf A0 DF=     | =-mmf A0 FILL=         | =-mmf A0 DF KF=                          |
   |-------+------------------+------------------------+------------------------------------------|
@@ -724,15 +723,17 @@ the code.
   issued. However, the opacities will remain applicable.
 
 * Acknowledgments
-- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a grain mantle
-  using the Maxwell Garnett rule.
+- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], for inspiration about grain mantles.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
   on github]]).
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
+- [[https://www.stsci.edu/~pontoppi/][Klaus van Pontoppidan]] for unpublished refractive index data of the
+  c2d ice mix. 
 * Bibliography
-#+LATEX: \footnotesize
-- Bohren, C.F. and Huffman, D.R. 1998, /Absorption and Scattering of
-  Light by Small Particles/, Wiley-VCH
+#  #+LATEX: \footnotesize
+- Bohren, C.F. and Huffman, D.R. 1998, Wiley-VCH, \\
+  /Absorption and Scattering of Light by Small Particles/
+- Chapman et al. 2009, ApJ 690, 496
 - Draine, B., 2003, ApJ 598, 1017
 - Draine, B., 2003, ApJ 598, 1026
 - Dorschner, J. et al. 1995, A&A 300, 503
@@ -742,10 +743,11 @@ the code.
 - Koike, C. et al. 1995, Icarus 114, 203
 - Laor, A. and Draine, B., ApJ 402, 441
 - Lefèvre, C.; Min,M. et al. 2020, A&A (submitted)
+- Martonchik, J. 1984, Applied Optics 23, 541
 - Min, M. et al. 2005, A&A, 432, 909
 - Min, M. et al. 2016, A&A, 585, 13
-- Mishchenko, M. et al. 2002, /Scattering, absorption, and emission of
-  light by small particles/, Cambridge University Press 
+- Mishchenko, M. et al. 2002, Cambridge University Press, \\
+  /Scattering, absorption, and emission of light by small particles/
 - Mutschke, H. et al. 2004, A&A 423, 983
 - Okuzumi, S. et al. 2009,  ApJ 707, 1247
 - Tazaki, R. et al. 2016, ApJ 823, 70
@@ -755,7 +757,8 @@ the code.
 - Woitke, P.; Min, M. et al. 2016, A&A 586, 103
 - Preibisch, Th. et al. 1993, A&A 279, 577
 - Steyer, T. 1974, PhD Thesis, The University of Arizona
-- Warren, S. and Brandt,R. 2008, JGRD,113, D14220
+- Warren, S. and Brandt, R. 2008, JGRD,113, D14220
+- Warren, S. 1986, Applied Optics 25, 2650
 - Zubko, V. et al. 1996, MNRAS 282,1321
 
 # Start of Setup
