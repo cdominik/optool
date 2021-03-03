@@ -114,8 +114,11 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
 - Release 1.6 ::
-  - New builtin materials: CO2, NH3, interstellar mixture.
+  - New builtin materials: CO2, NH3, interstellar ice mixture.
   - Mean opacities can be computed in the Python module.
+  - the =scatnorm= method in the Python module allows to renormalize
+    the scattering matrix to various conventions used in the
+    literature.
 - Release 1.5 ::
   - An implementation of the Modified Mean Field Theory (MMF, Tazaki &
     Tanaka 2018) to treat opacities of very porous or fractal
