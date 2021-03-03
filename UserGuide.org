@@ -408,12 +408,19 @@ the program.
 
 - dustkapscatmat.dat ::
 
-  ASCII file with cross sections and full scattering matrix.  The
-  comment section at the start of the file explains the structure. See
-  [[#normalization][the appendix]] for information about the normalization of the
-  scattering matrix.  And see the =-radmc= switch which will modify
-  the output to make sure it can be used as an input file for
-  [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]].
+  ASCII file with cross sections and full scattering matrix. It is an
+  extended version of the =dustkappa.dat= file.  This file has a
+  format number (0), the number of wavelengths and then the number of
+  angular points after the comment section.  This is followed by the
+  same block of wavelengths and opacities as described above for the
+  =dustkappa.dat= file.  Then follows a list of the grid angles, and
+  then the scattering matrix elements for all wavelengths and all
+  angles. The comment section at the start of the file explains the
+  structure in a formal way.  See [[#normalization][the appendix]] for information about
+  the normalization of the scattering matrix and about the angular
+  grid that is used for it.  Also, see the =-radmc= switch which will
+  modify[fn:2] the output to make sure it can be used as an input file
+  for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]].
 
 - dustkappa.fits ::
 
@@ -434,11 +441,16 @@ the program.
   n_ang-1), for each wavelength value. The stored matrix elements are
   F_11, F_12, F_22, F_33, F_34, and F_44.
 
+
+[fn:2] This includes a change of the angular grid, and a  change in
+the normalization of the scattering matrix.
+
+
 #+LATEX: \newpage
 * Python interface
 
 =optool= comes with a [[https://www.python.org/][=python=]] module =optool.py= that runs =optool=
-in the background[fn:2] and puts all computed quantities as =numpy=
+in the background[fn:3] and puts all computed quantities as =numpy=
 arrays into a python object.  This makes it straight forward to
 inspect and further process the output, for example to produce custom
 opacity files for use in an radiative transfer tool. Here is how to
@@ -447,7 +459,7 @@ use the module:
 : >>> import optool
 : >>> p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
 
-The argument to =optool.particle()= must be a valid shell command[fn:3] to
+The argument to =optool.particle()= must be a valid shell command[fn:4] to
 run =optool=, if necessary with the full path to the =optool= binary.
 Depending on the presence of the =optool='s *-d* switch, the command
 will produce opacities either for $n_p=1$ particle, or for $n_p=n_a$
@@ -525,10 +537,10 @@ Other functionality in the python model includes reading and writing
 species.  For more information, please read the documentation inside
 the file =optool.py=.
 
-[fn:2] The module runs the command as a subprocess, with output to a
+[fn:3] The module runs the command as a subprocess, with output to a
 temporary subdirectory.
 
-[fn:3] As a string, or as a list like =['/path/to
+[fn:4] As a string, or as a list like =['/path/to
 my/command','arg1','arg2',...]=. 
 
 \appendix
