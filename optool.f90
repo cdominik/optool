@@ -1886,12 +1886,15 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
      write(20,'("#    iformat                                     ! format number")')
      write(20,'("#    nlam                                        ! number of wavelengths")')
      write(20,'("#    nang                                        ! number of angles 0-180")')
+     write(20,'("#")')
      write(20,'("#    lam(1)    kabs(1)    ksca(1)    g(1)        ! um, cm^2/g, cm^2/g, none")')
      write(20,'("#    ...")')
      write(20,'("#    lam(nlam) kabs(nlam) ksca(nlam) g(nlam)")')
+     write(20,'("#")')
      write(20,'("#    ang(1)                                      ! ang(1)    must be 0")')
      write(20,'("#    ...")')
      write(20,'("#    ang(nang)                                   ! ang(nang) must be 180")')
+     write(20,'("#")')
      write(20,'("#    ",A,                  "                     ! (ilam=   1,iang=   1)")') ml
      write(20,'("#    ...")')
      write(20,'("#    ",A,                  "                     ! (ilam=   1,iang=nang)")') ml
