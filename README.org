@@ -113,7 +113,7 @@ the filling factor
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
-- Release 1.6 ::
+- Release 1.7 ::
   - New builtin materials: CO2, NH3, interstellar ice mixture.
   - Mean opacities can be computed in the Python module.
   - the =scatnorm= method in the Python module allows to renormalize

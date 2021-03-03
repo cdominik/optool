@@ -720,7 +720,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   real (kind=dp)                 :: p_c,p_m          ! porosity, core and mantle
 
   integer                        :: nm,im            ! nr of grain materials in a composite grain
-  real (kind=dp),allocatable     :: rho(:)           ! specific material dnesities
+  real (kind=dp),allocatable     :: rho(:)           ! specific material densities
   real (kind=dp)                 :: mfrac0(nm)       ! mass fractions, input
   real (kind=dp),allocatable     :: mfrac(:)         ! mass fractions, modified
   real (kind=dp)                 :: vfrac_mantle     ! volume fraction of mantle
