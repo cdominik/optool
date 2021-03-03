@@ -495,12 +495,7 @@ have the following attributes:
 | =temp=             | =float[ntemp]=        | Temperatures used for mean opacities            |
 | =kplanck,kross=    | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
 |--------------------+-----------------------+-------------------------------------------------|
-<<<<<<< HEAD
-| =checknorm()=      | =method=              | Check normalization of scattering matrix        |
-| =setnorm()=        | =method=              | Change the scattering matrix normalization      |
-=======
 | =scatnorm()=       | =method=              | Check/change scat. matrix normalization         |
->>>>>>> renormalize
 
 #+LATEX: \newpage
 
