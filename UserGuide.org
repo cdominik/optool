@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   March 2021, version 1.6
+#+DATE:   March 2021, version 1.7
 
 * Introduction
 
