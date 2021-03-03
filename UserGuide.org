@@ -411,11 +411,12 @@ the program.
   ASCII file with cross sections and full scattering matrix. It is an
   extended version of the =dustkappa.dat= file.  This file has a
   format number (0), the number of wavelengths and then the number of
-  angular points after the comment section.  This is followed by the
-  same block of wavelengths and opacities as described above for the
-  =dustkappa.dat= file.  Then follows a list of the grid angles, and
+  angular points after the comment section.  After en empty line, this
+  is followed by the same block of wavelengths and opacities as
+  described above for the =dustkappa.dat= file.  Another empty line is
+  followed by a list of the grid angles, yet another empty line, and
   then the scattering matrix elements for all wavelengths and all
-  angles. The comment section at the start of the file explains the
+  angles. The comment section at the start of the file shows the
   structure in a formal way.  See [[#normalization][the appendix]] for information about
   the normalization of the scattering matrix and about the angular
   grid that is used for it.  Also, see the =-radmc= switch which will
@@ -442,8 +443,8 @@ the program.
   F_11, F_12, F_22, F_33, F_34, and F_44.
 
 
-[fn:2] This includes a change of the angular grid, and a  change in
-the normalization of the scattering matrix.
+[fn:2] This includes a change of the angular grid and a change in the
+normalization of the scattering matrix.
 
 
 #+LATEX: \newpage
@@ -587,9 +588,8 @@ which uses instead
 The books by Bohren & Huffman and by Mishchenko use different
 normalizations again. You can change the normalization of the
 scattering matrix in the python interface with the =scatnorm()=
-method. By default, it checks the current normalization.  Using
-an argument ='r'=, ='b'=, ='m'=, or ='h'=, will modify the
-normalization.
+method. By default, it checks the current normalization.  Using an
+argument ='r'=, ='b'=, ='m'=, or ='h'= will modify the normalization.
 
 ** Forward-scattering peak
 :PROPERTIES:
