@@ -1,6 +1,14 @@
-# cd2 ices, von Pontoppidan, unpublished.  Density was only guessed
-# A plot of extinction using this dataset is shown in Chapman et al 2009. 
-# https://ui.adsabs.harvard.edu/abs/2009ApJ...690..496C/abstract
+# A mix of ices (H2O, CO, CO2) that provides a good match with the
+# observations of the Cores-to-disks (c2d) key program with the HERSCHEL
+# Space telescope. The refractive indices have been provided by Klaus
+# Pontoppidan (private communication).  The data is unpublished, but
+# used in Chapman et al 2009. 
+# https://ui.adsabs.harvard.edu/abs/2009ApJ...690..496C
+# I am still missing information about the density and the detailed
+# compositions.  Also, this dataset has been mixed and patched
+# together without proper Kramers-Kronig treatment, so use as a
+# benchmark, but with care.
+# 
 8124 1.0
 0.044300001    0.83441    0.164
 0.0451544    0.836796    0.173668
