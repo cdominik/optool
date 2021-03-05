@@ -391,9 +391,9 @@ Conversion
     example, if you have a file starting with 4 unimportant lines, and
     then data columns where n an k are in column 1 and 2,
     respectively, and the wavelength is given in units of cm^-1 in
-    column 3, you can doe the conversion in this way:
+    column 3, you can do the conversion in this way:
 
-    new = optool.lnktable('x.dat',i_lnk=[3,1,2], nskip=3)
+    new = optool.lnktable('x.dat',i_lnk=[3,1,2], nskip=4)
     new.lam = 10000./new.lam   # convert cm^-1 -> micrometer
     new.sort()                 # sort arrays according to lambda
     new.rho = 3.2              # set density in g/cm^3
@@ -401,7 +401,7 @@ Conversion
     new.write('sil-Dorschner1995.lnk')
 
     """
-    def __init__(self,file,i_lnk=[1,2,3],nskip=0,nlam_rho=True,nlammax=10000):
+    def __init__(self,file,i_lnk=[1,2,3],nskip=0,nlam_rho=True):
         self.filename = file
         try:
             rfile = open(file, 'r')
@@ -428,37 +428,76 @@ Conversion
             self.rho  = float(dum[1])
             dum = rfile.readline()
         else:
-            self.nlam = nlammax
+            self.nlam = 1
             self.rho  = 0.0
             print("Warning: density rho is nt known! Make sure to set it by hand.")
 
         # Prepare the arrays
-        self.lam = np.zeros(self.nlam)
-        self.n   = np.zeros(self.nlam)
-        self.k   = np.zeros(self.nlam)
-
+        self.lam = []
+        self.n   = []
+        self.k   = []
+        ilam     = 0
+        
         # Fill the arrays
-        for ilam in range(self.nlam):
-            dum = dum.split()
-            self.lam[ilam] = float(dum[i_lnk[0]-1])
-            self.n[ilam]   = float(dum[i_lnk[1]-1])
-            self.k[ilam]   = float(dum[i_lnk[2]-1])
+        while True:
+            dum  = dum.split()
+            ilam = ilam+1
+            self.lam.append(float(dum[i_lnk[0]-1]))
+            self.n.append(  float(dum[i_lnk[1]-1]))
+            self.k.append(  float(dum[i_lnk[2]-1]))
             dum = rfile.readline()
             if ((len(dum) == 0) or dum.isspace()):
                 # No more data. Truncate the arrays and stop reading
+                if (not (self.nlam == ilam)):
+                    print("WARNING: found %d lines of data, not %d" % (ilam,self.nlam))
+                # Convert to numpy arrays and exit
                 self.nlam = ilam
-                self.lam = self.lam[:ilam]
-                self.n   = self.n[:ilam]
-                self.k   = self.k[:ilam]
+                self.lam = np.array(self.lam)
+                self.n   = np.array(self.n)
+                self.k   = np.array(self.k)
                 break
         rfile.close()
 
     def sort(self):
         """Sort lam, n, and k according to lambda array."""
         sortinds = self.lam.argsort()
+        self.lam = self.lam[sortinds]
         self.n   = self.n[sortinds]
         self.k   = self.k[sortinds]
-        
+
+    def smooth(self,size=10):
+        """Smooth n and k with a medium filter of SIZE bins."""
+        from scipy.ndimage import median_filter
+        self.n = median_filter(self.n,size)
+        self.k = median_filter(self.k,size)
+
+    def decimate(self,step=2,size=0):
+        """Decimate the arrays by a factor STEP.
+        When SIZE is given instead, decimate to that size."""
+        # FIXME: should we force to keep the first and last values?
+        from math import floor
+        if (size > 0):
+            nlam = self.lam.size        
+            step = floor(nlam/size)
+            print("Decimating in steps of ",step," to reach size ",size)
+        self.lam = self.lam[:-step:step]
+        self.n   = self.n[:-step:step]
+        self.k   = self.k[:-step:step]
+        self.nlam = self.lam.size        
+
+    def klimit(self,limit=0.):
+        """Make sure imaginary part k is never smaller than LIMIT"""
+        self.k[self.k<limit] = limit
+
+    def fromwav(self):
+        """Convert from wavenumbers and sort.
+        Assuming that the self.lam array is actually wavenumbers,
+        convert them to microns, and then sort the arraus so that
+        lambda is increasing.
+        """
+        self.lam = 10000./self.lam
+        self.sort()
+            
     def plot(self):
         """Plot the refractive index aas a function of wavelength."""
         fig,ax = plt.subplots()
