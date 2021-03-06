@@ -75,12 +75,12 @@ separate file.
 
 : optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
 
-Pure ice grains in a narrow size distribution from 1 to 3 microns,
-with 15 sample sizes following an $f(a)\propto a^{-2.5}$ powerlaw size
-distribution. Also, restrict the wavelength range to 10-100\mu{}m, and
-turn off DHS to get perfect spheres.
+Pure water ice grains in a narrow size distribution from 1 to 3
+microns, with 15 sample sizes following an $f(a)\propto a^{-2.5}$
+powerlaw size distribution. Also, restrict the wavelength range to
+10-100\mu{}m, and turn off DHS to get perfect spheres.
 
-: optool ice  -a 1 3 2.5 15  -l 10 100 -fmax 0
+: optool h2o  -a 1 3 2.5 15  -l 10 100 -fmax 0
 
 For silicon carbide, compute the opacity of a single grains size (2.5\mu{}m)
 at \lambda=8.9\mu{}m.
@@ -340,27 +340,19 @@ directory for additional information about these materials.
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
 | cor      | cor-c      | Al_{2}O_3               | cryst   |    4.0 |         0.5 |        *40* | [[https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K][Koike+95]]     |              | [[file:lnk_data/cor-c-Koike1995.lnk][cor-c-Koike1995.lnk]]            |
 |----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
-| ice,h2o  | h2o-w      | Water ice               | cryst   |   0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W][Warren+08]]    |              | [[file:lnk_data/h2o-w-Warren2008.lnk][h2o-w-Warren2008.lnk]]           |
-| co2      | co2-w      | CO_2 ice                | ?       |    1.6 |        0.05 |         2e5 | [[https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W][Warren+86]]    | interpolated | [[file:lnk_data/co2-ice-Warren1986.lnk][co2-ice-Warren2008.lnk]]         |
-| nh3      | nh3-m      | NH_3 ice                | ?       |   0.75 |        0.14 |         200 | [[https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M][Martonchik83]] | \rho?        | [[file:lnk_data/nh3-m-Martonchik1983.lnk][nh3-m-Martonchik1983.lnk]]       |
+| h2o      | h2o-w      | Water ice               | cryst   |   0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W][Warren+08]]    |              | [[file:lnk_data/h2o-w-Warren2008.lnk][h2o-w-Warren2008.lnk]]           |
+| co2      | co2-w      | CO_2 ice                | cryst   |    1.6 |        0.05 |         2e5 | [[https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W][Warren+86]]    | interpolated | [[file:lnk_data/co2-ice-Warren1986.lnk][co2-ice-Warren2008.lnk]]         |
+| nh3      | nh3-m      | NH_3 ice                | cryst   |   0.75 |        0.14 |         200 | [[https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M][Martonchik83]] | \rho?        | [[file:lnk_data/nh3-m-Martonchik1983.lnk][nh3-m-Martonchik1983.lnk]]       |
 |          | icemix-c2d | H_{2}O/CO_{2}/CO mix    | ?       |    1.0 |        0.04 |         8e6 | [[https://ui.adsabs.harvard.edu/abs/2009ApJ...690..496C][Pontoppidan]]  | \rho?        | [[file:lnk_data/icemix-c2d-Pontoppidan2009.lnk][icemix-c2d-Pontoppidan2009.lnk]] |
-
-
-*** COMMENT Options for more materials
-These are under consideration.  One problem is the limited wavelength
-range....
-
-One could make an argument for a whole mineralogy section, of
-course.....  But there would be so many hard-to-remember keys....
-
-For now, the cut we are making is good.
-|     | ol-c-mg100-T295 | Mg_2 SiO_4      | crystalline  | 3.37 | *5.0* | [[https://ui.adsabs.harvard.edu/abs/2006MNRAS.370.1599S][Suto+2006]]     | switch out?     | ????                      |
-| ??? | ice             | Water ice       | amorphous    |      |       |               |                 |                           |
-| fes | fes             | FeS             | crystalline? | 4.83 | *10*  | [[https://ui.adsabs.harvard.edu/abs/1994ApJ...423L..71B][Begemann+1994]] | \rho guessed    | fes-Begemann1994.lnk      |
-|     | fes-mg10        | Fe_0.9 Mg_0.1 S | crystalline? | 4.83 | *10*  | [[https://ui.adsabs.harvard.edu/abs/1994ApJ...423L..71B][Begemann+1994]] | \rho set to FeS | fes-mg10-Begemann1994.lnk |
-|     | fes-mg50        | Fe_0.5 Mg_0.5 S | crystalline? | 4.83 | *10*  | [[https://ui.adsabs.harvard.edu/abs/1994ApJ...423L..71B][Begemann+1994]] | \rho set to FeS | fes-mg50-Begemann1994.lnk |
-|-----+-----------------+-----------------+--------------+------+-------+---------------+-----------------+---------------------------|
-
+|----------+------------+-------------------------+---------+--------+-------------+-------------+--------------+--------------+--------------------------------|
+|          | co-a       | CO                      | amorph  |        |             |             | ???          |              |                                |
+|          | co-c       | CO                      | cryst   |        |             |             | ???          |              |                                |
+|          | co2-a      | CO_2                    | amorph  |    1.2 |       *2.5* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines20]]  |              |                                |
+|          | co2-c      | CO_2                    | cryst   |    1.2 |       *2.5* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines20]]  |              |                                |
+|          | ch4-a      | CH_4                    | amorph  |   0.47 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines20]]  | cut at 13    |                                |
+|          | ch4-c      | CH_4                    | cryst   |   0.47 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines20]]  |              |                                |
+|          | ch3oh-a    | CH_{3}OH                | amorph  |  0.779 |       *2.0* |        *24* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines20]]  |              |                                |
+|          | ch3oh-c    | CH_{3}OH                | cryst   |   1.02 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines20]]  |              |                                |
 
 
 ** External refractory index files (=lnk= files)
