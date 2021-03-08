@@ -497,6 +497,33 @@ Conversion
         """
         self.lam = 10000./self.lam
         self.sort()
+
+    def compute_absorbance(self,dlayer=5):
+        """Compute the absorbance for a thin layer of the material.
+
+        dlayer   is the thickness of the layer to be used for the
+                 computation, in micrometer units.  The default is 5um.
+
+        Simple assumptions: infinite vacuum "substrate".
+        R. Swaneloel 1983, J.Phys. E 16,1214
+        We use the expressions (A2), for an infinite substrate."""
+        n = self.n
+        k = self.k
+        s = 1.    # assume a vacuum subtrate
+        lam = self.lam/10000.      # units are cm now
+        d = dlayer /1e4            # Units: cm
+        phi   = 4.*np.pi*n*d/lam
+        alpha = 4.*np.pi*k/lam
+        x  = np.exp(-alpha*d)
+        A  = 16.*s*(n**2+k**2)
+        B  =  ( (n+1.)**2 + k**2 ) * ( (n+s)**2 + k**22 )
+        C1 = ( (n**2-1+k**2) * (n**2-s**2+k**2) + 4.*k**2*s  )    *2.*np.cos(phi)
+        C2 = k * ( 2.*(n**2-s**2-k**2 ) + 2.* s *(n**2-1+k**2 ) ) *2.*np.sin(phi)
+        C  = C1-C2
+        D  = ( (n-1)**2 + k**2 ) * ( (n-s)**2 + k**2 )
+        self.transmission  = A*x / (B-C*x-D*x**2)
+        self.absorptivity = -np.log(self.trans)
+        self.d = dlayer    # Record the density that was used.
             
     def plot(self):
         """Plot the refractive index aas a function of wavelength."""
@@ -1194,3 +1221,72 @@ def bplanckdt(temp,nu):
     bplanckdt[mask] = 7.07661334104e-58 * nu[mask]**4 /  \
             ( np.exp(exponent[mask]) * temp**2 ) + 1.e-290
     return bplanckdt
+
+
+def plotall():
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import optool
+
+    files = [
+        'lnk_data/pyr-mg100-Dorschner1995.lnk',
+        'lnk_data/pyr-mg95-Dorschner1995.lnk',
+        'lnk_data/pyr-mg80-Dorschner1995.lnk',
+        'lnk_data/pyr-mg70-Dorschner1995.lnk',
+        'lnk_data/pyr-mg60-Dorschner1995.lnk',
+        'lnk_data/pyr-mg50-Dorschner1995.lnk',
+        'lnk_data/pyr-mg40-Dorschner1995.lnk',
+        'lnk_data/pyr-c-mg96-Jaeger1998.lnk',
+        'lnk_data/ol-mg50-Dorschner1995.lnk',
+        'lnk_data/ol-mg40-Dorschner1995.lnk',
+        'lnk_data/ol-c-mg100-Steyer1974.lnk',
+        'lnk_data/astrosil-Draine2003.lnk',
+
+        'lnk_data/c-z-Zubko1996.lnk',
+        'lnk_data/c-p-Preibisch1993.lnk',
+        'lnk_data/c-gra-Draine2003.lnk',
+        'lnk_data/c-org-Henning1996.lnk',
+        'lnk_data/c-nano-Mutschke2004.lnk',
+
+        'lnk_data/fe-c-Henning1996.lnk',
+        'lnk_data/fes-Henning1996.lnk',
+        'lnk_data/sic-Draine1993.lnk',
+
+        'lnk_data/cor-c-Koike1995.lnk',
+
+        'lnk_data/h2o-w-Warren2008.lnk',
+        'lnk_data/co2-w-Warren1986.lnk',
+        'lnk_data/nh3-m-Martonchik1983.lnk',
+        'lnk_data/icemix-c2d-Pontoppidan2009.lnk',
+        
+        'lnk_data/co2-a-Gerakines2020.lnk',
+        'lnk_data/co2-c-Gerakines2020.lnk',
+        'lnk_data/ch4-a-Gerakines2020.lnk',
+        'lnk_data/ch4-c-Gerakines2020.lnk',
+        'lnk_data/ch3oh-a-Gerakines2020.lnk',
+        'lnk_data/ch3oh-c-Gerakines2020.lnk'
+       ]
+    
+
+    # Some example data to display
+    x = np.linspace(0, 2 * np.pi, 400)
+    y = np.sin(x ** 2)
+    nx = 5
+    ny = 6
+    fig = plt.figure()
+    gs = fig.add_gridspec(nx,ny, hspace=0, wspace=0)
+    gs1 = gs.subplots(sharex='all',sharey='all')
+    print(gs1.shape)
+    for iy in range(ny):
+        for ix in range(nx):
+            nn = ix+iy*ny
+            print(ix,iy,nn)
+            if (nn >= len(files)):
+                break
+            file = files[nn]
+            p=optool.lnktable(file)
+            ax = gs1[ix,iy]
+            ax.loglog(p.lam,p.k+1e-5)
+    fig.show()
+        
+    
