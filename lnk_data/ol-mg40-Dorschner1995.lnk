@@ -1,5 +1,7 @@
 # Material:  Mg0.8Fe1.2SiO4, amorphous
 # Reference: Dorschner 1995, A&A 300, 503
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
      109  3.17
      0.20000    1.718000    0.279200
      0.22000    1.727270    0.321307

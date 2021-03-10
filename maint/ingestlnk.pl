@@ -54,6 +54,7 @@ while ($file = shift) {
   while (<$fh>) {
     $line_number++;
     last unless /^\s*[#!*]/;
+    next if  /^\s*[#] First line is N_lam/; # Dont need this line in the comments.
     s/^\s*[#!*]/  !/;
     $comments .= $_;
   }

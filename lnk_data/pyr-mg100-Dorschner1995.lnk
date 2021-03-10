@@ -1,5 +1,7 @@
 # Material:  MgSiO3, amorphous
 # Reference: Dorschner et al 1995, A&A 300, 503
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
      109  2.71
      0.20000    1.691660    0.000000
      0.22000    1.659980    0.000000

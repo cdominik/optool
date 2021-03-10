@@ -1,5 +1,7 @@
 # Material:  Carbon, amorphous
 # Reference: Zubko 1996, MNRAS 282, 1321
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
 2060 1.80
 0.50000E-01	0.98559E+00	0.34893E+00
 0.52686E-01	0.98559E+00	0.34893E+00

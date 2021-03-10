@@ -1,5 +1,7 @@
 # Material:  Water ice, crystalline?
 # Reference: Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
    486 0.92
    4.43000e-02   8.22800e-01   1.64000e-01
    4.51000e-02   8.25000e-01   1.73000e-01

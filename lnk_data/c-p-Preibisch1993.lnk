@@ -1,5 +1,7 @@
 # Material:  Carbon, amorphous
 # Reference: Preibisch 1993,  A&A 279,577
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
 90 1.80 
 0.105	1.415	0.796
 0.207	1.617	0.512

@@ -1,5 +1,7 @@
 # Meteoritic Diamond, Mutschke+2004, A&A 423, 983.
 # Density measurement from Lewis+1987, Nature 326, 160
+# 
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
 88 2.3
 0.0202	0.908	0.0283
 0.0224	0.890	0.0388

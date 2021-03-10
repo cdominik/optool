@@ -1,4 +1,6 @@
 # FeS, Henning & Stognienko 1996, A&A 311,291
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
 113 4.83
  0.10000E+00 0.42529E+01 0.75934E+00
  0.10500E+00 0.42937E+01 0.77511E+00

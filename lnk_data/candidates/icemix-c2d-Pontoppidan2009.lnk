@@ -8,7 +8,9 @@
 # compositions.  Also, this dataset has been mixed and patched
 # together without proper Kramers-Kronig treatment, so use as a
 # benchmark, but with care.
+# (C. Dominik, 2021-03-10)
 # 
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
 8124 1.0
 0.044300001    0.83441    0.164
 0.0451544    0.836796    0.173668

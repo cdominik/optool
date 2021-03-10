@@ -1,5 +1,8 @@
 # CH3OH amorphous 10 K Gerakines & Hudson 2020, ApJ 901, 52
 # https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+# Smoothed and reduced resolution to limit file size
+# (C. Dominik, 2021-03-10)
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   1006  0.779
       2.000000e+00     1.286700e+00     1.000000e-05
       2.001826e+00     1.286700e+00     1.000000e-05

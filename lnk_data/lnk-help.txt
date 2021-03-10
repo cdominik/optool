@@ -1,26 +1,5 @@
 # -*- mode: text; fill-column: 100;  -*-
 :===================== *** LIST OF BUILT-IN MATERIALS *** =====================:
-: amorphous pyroxenes   pyr-mg100/95/80/70/60/50/40                            :
-: amorphous olivines    ol-mg100/40                    (Dorschner95,Henning96) :
-: crystalline pyr/ol    pyr-c-mg96     ol-c-mg100           (Jäger96,Steyer74) :
-: other silicates       astrosil                                    (Draine03) :
-: amorphous carbon      c-z    c-p                       (Zubko96,Preibisch93) :
-: graphite,special      c-gra  c-nano  c-org            (Dra.03,Mut.04,Hen.96) :
-: corundum              cor-c                                        (Koike95) :
-: iron/sulfide          fe-c   fes                                 (Henning96) :
-: carbides              sic                                         (Draine93) :
-: water ice             h2o-w                                       (Warren08) :
-: other ices            co2-w  nh3-m   icemix-c2d      (War.86,Mar.83,Pont.PC) :
-:                       co2-a co2-c ch4-a ch4-c ch3oh-a ch3oh-c  (Gerakines20) :
-:                                                                              :
-: *** ABBREVIATIONS AND GENERIC KEYS FOR QUICK ACCESS ***                      :
-: pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      ice  -> h2o-w     :
-: ol   -> ol-mg50      gra  -> c-gra       cor  -> cor-c     h2o  -> h2o-w     :
-: for  -> ol-c-mg100   org  -> c-org                         co2  -> co2-w     :
-: ens  -> pyr-c-mg96                                         nh3  -> nh3-m     :
-================================================================================
-
-:===================== *** LIST OF BUILT-IN MATERIALS *** =====================:        
 : amorph.pyroxenes  pyr-mg100/95/80/70/60/50/40                                :
 : amorph.olivines   ol-mg100/40                        (Dorschner95,Henning96) :
 : cryst. pyr/ol     pyr-c-mg96     ol-c-mg100               (Jäger96,Steyer74) :
@@ -31,14 +10,12 @@
 : iron/sulfide      fe-c   fes                                     (Henning96) :
 : carbides          sic                                             (Draine93) :
 : water ice         h2o-w                                           (Warren08) :
-: other ices        co2-w  nh3-m   icemix-c2d          (War.86,Mar.83,Pont.PC) :
-:                   co2-a co2-c ch4-a ch4-c ch3oh-a ch3oh-c      (Gerakines20) :
+: other ices        co2-w  nh3-m                               (War.86,Mar.83) :
+:                   co-a   co2-a/c ch4-a/c ch3oh-a/c   (Palumbo06,Gerakines20) :
 :                                                                              :
 : *** ABBREVIATIONS AND GENERIC KEYS FOR QUICK ACCESS ***                      :
 : pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      h2o  -> h2o-w     :
-: ol   -> ol-mg50      gra  -> c-gra       cor  -> cor-c     co   -> ???       :
+: ol   -> ol-mg50      gra  -> c-gra       cor  -> cor-c     co   -> co-a      :
 : for  -> ol-c-mg100   org  -> c-org                         co2  -> co2-w     :
 : ens  -> pyr-c-mg96                                         nh3  -> nh3-m     :
-:                                                            ch4  -> ????      :
-:                                                            form -> ???       : 
 ================================================================================

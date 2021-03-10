@@ -1,5 +1,7 @@
 # Material:  Fosterite, crystalline
 # Reference: Steyer 1974,  PhD Thesis
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   199 3.33
      0.3000E+01     0.1627E+01     0.1332E-03
      0.4000E+01     0.1600E+01     0.2999E-03

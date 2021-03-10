@@ -1,5 +1,8 @@
 # CO2 amorphous, 8K, Gerakines & Hudson 2020, ApJ 901, 52
 # https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+# Smoothed and reduced resolution to limit file size
+# (C. Dominik, 2021-03-10)
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   1029  1.2
       2.499875e+00     1.251200e+00     1.000000e-05
       2.502002e+00     1.251100e+00     1.000000e-05

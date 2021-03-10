@@ -4,7 +4,9 @@
 # 0.127-0.33 um, 25-80 um, 102-140 um, and beyond 160 um
 # For this data we have brutally interpolated these gaps and used a
 # fixed value of 0.001 for the long wavelength end.
+# (C. Dominik, 2021-03-10)
 #
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
    945  1.6
      5.2E-02   0.509     1.16E-01  
      5.3E-02   0.493     1.84E-01  

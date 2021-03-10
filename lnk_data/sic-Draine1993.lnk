@@ -1,5 +1,7 @@
 # Alpha SiC
 # Laor & Draine 1993, ApJ 402, 441
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   1201 3.22
       0.0010000      0.9995441      0.0000285
       0.0010120      0.9995328      0.0000298

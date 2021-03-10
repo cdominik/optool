@@ -1,7 +1,10 @@
 # Ammonia ice
 # Martonchik et al 1984 Applied Optics 23, 541
 # The density 0.75 is a mean value for low temperatures
-#   taken from Satorre et al 2013, Icarus 225, 703
+# taken from Satorre et al 2013, Icarus 225, 703
+# (C. Dominik, 2021-03-10)
+# 
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
 298   0.75
 0.140	1.548	5.504E-01
 0.150	1.522	5.897E-01

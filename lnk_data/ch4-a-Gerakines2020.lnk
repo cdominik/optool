@@ -1,5 +1,11 @@
 # amorphous CH4 (8K) Gerakines & Hudson 2020, ApJ 901, 52
 # https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+# 
+# I cut the data at 12 microns, because there was too much noise.
+# However, the extrapolation works without any problems into this region.
+# (C.Dominik, 2021-03-10)
+#
+# First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   906  0.47
       2.000000e+00     1.278200e+00     1.131300e-04
       2.001842e+00     1.278200e+00     1.271600e-04
