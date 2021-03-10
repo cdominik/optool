@@ -1257,8 +1257,8 @@ def plotall():
         'lnk_data/h2o-w-Warren2008.lnk',
         'lnk_data/co2-w-Warren1986.lnk',
         'lnk_data/nh3-m-Martonchik1983.lnk',
-        'lnk_data/icemix-c2d-Pontoppidan2009.lnk',
         
+        'lnk_data/co-a-Palumbo2006.lnk',
         'lnk_data/co2-a-Gerakines2020.lnk',
         'lnk_data/co2-c-Gerakines2020.lnk',
         'lnk_data/ch4-a-Gerakines2020.lnk',
@@ -1271,15 +1271,15 @@ def plotall():
     # Some example data to display
     x = np.linspace(0, 2 * np.pi, 400)
     y = np.sin(x ** 2)
-    nx = 5
-    ny = 6
+    nx = 8
+    ny = 4
     fig = plt.figure()
     gs = fig.add_gridspec(nx,ny, hspace=0, wspace=0)
     gs1 = gs.subplots(sharex='all',sharey='all')
     print(gs1.shape)
     for iy in range(ny):
         for ix in range(nx):
-            nn = ix+iy*ny
+            nn = ix+iy*nx
             print(ix,iy,nn)
             if (nn >= len(files)):
                 break
@@ -1287,6 +1287,8 @@ def plotall():
             p=optool.lnktable(file)
             ax = gs1[ix,iy]
             ax.loglog(p.lam,p.k+1e-5)
+            ax.set_xlim(1,300)
+            ax.text(2,20.,file[9:-8],fontsize='xx-small')
     fig.show()
         
     

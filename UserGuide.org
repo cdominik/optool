@@ -736,6 +736,7 @@ the code.
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
 - [[https://www.stsci.edu/~pontoppi/][Klaus van Pontoppidan]] for unpublished refractive index data of the
   c2d ice mix. 
+
 * Bibliography
 #  #+LATEX: \footnotesize
 - Bohren, C.F. and Huffman, D.R. 1998, Wiley-VCH, \\
