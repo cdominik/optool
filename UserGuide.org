@@ -303,9 +303,13 @@ To access one of the built-in materials, specify the corresponding key
 string like =pyr-mg70= instead of the path to an =lnk= file. In each
 material class I have selected a useful default, accessible with an
 even simpler generic key.  Please check the files in the =lnk_data=
-directory for additional information about these materials.  Most
-material have a wide wavelengths range. The few exceptions are
-highlighted by bold-face numbers.
+directory for additional information about these materials.  Most of
+the refractive index datasets have a wide wavelength coverage - the
+few exceptions are highlighted by bold-face numbers.  If a material is
+being used outside of the measured region, =optool= will still
+function, using extrapolated optical properties that will be quite
+reasonable in many cases. Of course specific features in these
+unmeasured regions will be missing from the the opacities.
 
 #+LATEX: \newpage
 #+begin_center
