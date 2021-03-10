@@ -734,8 +734,17 @@ the code.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
   on github]]).
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
-- [[https://www.stsci.edu/~pontoppi/][Klaus van Pontoppidan]] for unpublished refractive index data of the
-  c2d ice mix. 
+
+
+* Overview of optical properties
+
+This grid plot shows the imaginary parts of all built-in materials, in
+the wavelength range from 1 to 300 \mu{}m.
+
+#+ATTR_LATEX: :width 13.8cm :options angle=0
+[[./maint/all_k.pdf]]
+
+
 
 * Bibliography
 #  #+LATEX: \footnotesize
