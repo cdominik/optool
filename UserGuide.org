@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   March 2021, version 1.7
+#+DATE:   March 2021, version 1.7.2
 
 * Introduction
 
@@ -300,16 +300,16 @@ and use other data.  No matter where the data is from, you should
 :END:
 
 To access one of the built-in materials, specify the corresponding key
-string like =pyr-mg70= instead of the path to an =lnk= file. In each
-material class I have selected a useful default, accessible with an
-even simpler generic key.  Please check the files in the =lnk_data=
-directory for additional information about these materials.  Most of
-the refractive index datasets have a wide wavelength coverage - the
-few exceptions are highlighted by bold-face numbers.  If a material is
-being used outside of the measured region, =optool= will still
-function, using extrapolated optical properties that will be quite
-reasonable in many cases. Of course specific features in these
-unmeasured regions will be missing from the the opacities.
+string like =pyr-mg70=. In each material class I have selected a
+useful default, accessible with an even simpler generic key.  Please
+check the files in the =lnk_data= directory for additional information
+about these materials.  Most of the refractive index datasets have a
+wide wavelength coverage - the few exceptions are highlighted by
+bold-face numbers.  If a material is being used outside of the
+measured region, =optool= will still function, using extrapolated
+optical properties that will be quite reasonable in many cases. Of
+course specific features in these unmeasured regions will be missing
+from the the opacities.
 
 #+LATEX: \newpage
 #+begin_center
@@ -455,14 +455,14 @@ use the module:
 : >>> import optool
 : >>> p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
 
-The argument to =optool.particle()= must be a valid shell command[fn:4] to
-run =optool=, if necessary with the full path to the =optool= binary.
-Depending on the presence of the =optool='s *-d* switch, the command
-will produce opacities either for $n_p=1$ particle, or for $n_p=n_a$
-particles. Most of the attributes (with the exception of the global
-wavelength and angular grids) will therefore be arrays with the first
-dimension equal to $n_p$, even if $n_p=1$. The object returned will
-have the following attributes:
+The argument to =optool.particle()= must be a valid shell
+command[fn:4] to run =optool=, if necessary with the full path to the
+=optool= binary.  Depending on the presence of the =optool='s *-d*
+switch, the command will produce opacities either for $n_p=1$
+particle, or for $n_p=n_a$ particles. Most of the attributes (with the
+exception of the global wavelength and angular grids) will therefore
+be arrays with the first dimension equal to $n_p$, even if
+$n_p=1$. The resulting object will have the following attributes:
 
 #+ATTR_LATEX: :font \small  :align llp{7cm}
 | *Attribute*        | *Type/Shape*          | *Quantity*                                      |
@@ -511,10 +511,20 @@ have the following attributes:
 #+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./maint/inspect.png]]
 
+
+You can also use /particle arithmetic/ to produce opacites for a
+mixture of different grains or scale opacities using a dust-to-gas
+ratio:
+
+: p1 = optool.particle('optool -a 0.01 0.3 pyr-mg70')      # silicate grains
+: p2 = optool.particle('optool -a 0.03 0.1 c-z')           # carbon grains
+: p  = 0.75*p1 + 0.25*p2   # add with mass fractions
+: p  = p * 0.01            # apply dust-to-gas ratio -> opacity per gas mass
+
 The =optool.plot()= method will produce the following plots:
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
   as a function of wavelength, along with the asymmetry parameter /g/
-  (on a linear y-scale).  Note that the blue /g/ curve does not have
+  (on a linear y-scale).  Note that the blue /g/ curve does not havex
   its own axis, imagine the full /y/ axis going from 0 to 1 for /g/.
 - a plot showing the scattering matrix elements as a function of
   scattering angle, with sliders to go through grain sizes and
@@ -524,14 +534,15 @@ The =optool.plot()= method will produce the following plots:
   grey lines as a guide, ignore the y-axis labels).
 - If the =computemean= method has been called first, the mean
   opacities \kappa_Planck and \kappa_Ross are shown in a separate
-  plot.  The mean opacities are per unit of grain mass, so the
-  dust-to-gas mass ratio would still have to be applied to obtain
-  opacities for a gas-dust mixture.
+  plot.  The mean opacities are per unit of grain mass, so please
+  apply a dust-to-gas mass ratio to obtain opacities for a gas-dust
+  mixture.
 
-Other functionality in the python model includes reading and writing
-=lnk= files and constructing opacities for a mix of different grain
-species.  For more information, please read the documentation inside
-the file =optool.py=.
+# Other functionality in the python module includes multiplying
+# "particles" by factors and adding "particles" in order to construct
+# opacities for a mix of different grain species.  There is also a class
+# for reading, converting and writing =lnk= files. For more information,
+# please read the documentation inside the file =optool.py=.
 
 [fn:3] The module runs the command as a subprocess, with output to a
 temporary subdirectory.

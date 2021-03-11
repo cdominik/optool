@@ -83,6 +83,7 @@ Keywords
             # Check if there is output we can use
             scat,ext = check_for_output(tmpdir)
             self.scat = scat
+            self.massscale = 1.
     
             kabs=[]; ksca=[]; kext=[]; gg=[]
             f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
@@ -341,6 +342,108 @@ Keywords
                 kap_r  = dumdb / np.sum(bnudt * dnu / ( self.kabs[ip,:] + self.ksca[ip,:]*(1.-self.gsca[ip,:])))
                 self.kplanck[ip,it] = kap_p
                 self.kross[ip,it]   = kap_r
+
+
+    def __add__(s,o):
+        """Addition of optool.particle objects.
+        This can be used to mix different grain types together
+        into a dust model.
+        
+        # Make a silicate grain and a carbonatieous grain
+        p1 = optool.particle('./optool -a 0.01 0.3 pyr-mg70')
+        p2 = optool.particle('./optool -1 0.03 0.1 c-z')
+
+        # Mix the particles with a mass ration 0.75 : 0.25
+        # Make sure abundances add up to 1, or the opacities will
+        # not be per g of dust!
+        p = 0.75*p1 + 0.25*p2
+
+        # Apply a dust-to-gas ratio, so that the opacities will be
+        # per unit of GAS mass
+        dtg = 0.01
+        p   = dtg * p
+
+        # Plot the opacities
+        p.plot()
+
+        """
+        if ((s.np > 1) or (o.np>1)):
+            raise NameError('Cannot add multi-particles')
+        if ((s.nlam != o.nlam) or (np.abs((s.lam-o.lam)/s.lam).any()>1e-4)):
+            raise NameError('Wavelength grids differ')
+        if (s.scat):
+            if ((s.nang != o.nang) or (np.abs((s.scatang[1:]-o.scatang[1:])/s.scatang[1:]).any()>1e-4)):
+                # We don't check the first value, could be 0
+                raise NameError('Angular grids differ')
+            if (s.norm != o.norm):
+                raise NameError('Scattering normalizations differ')
+        # Note that after adding, quite a few elements in the object will
+        # have become meaningless:  Composition, mean radii,rho, all of that.
+        # FIXME: What should we do???  Set them to zero, maybe?
+        # What we should achieve is that kappa, g, and the scattering matric are all OK.
+        import copy
+        x = copy.deepcopy(s)
+        x.kabs = x.kabs+o.kabs
+        x.ksca = x.ksca+o.ksca
+        x.kext = x.kext+o.kext
+        # F11 is linear in the integral for the computation of g.
+        # So we can just take the weighted mean for g.
+        x.gsca = (x.ksca*x.gsca + o.ksca*o.gsca) / (x.ksca+o.ksca)
+        x.massscale = s.massscale + o.massscale
+        if s.scat:
+            # There is a scattering matrix
+            for ip in range(s.np):
+                for il in range(s.nlam):
+                    if s.norm == 'hovenier':
+                        # average, weighted by kappa_scat
+                        ws, wo, wn = s.ksca[ip,il],o.ksca[ip,il],s.ksca[ip,il]+o.ksca[ip,il]
+                    else:
+                        # Add the values
+                        ws, wo, wn = 1.,1.,1.
+                    x.f11[ip,il,:] = (s.f11[ip,il,:]*ws + o.f11[ip,il,:]*wo) / wn
+                    x.f12[ip,il,:] = (s.f12[ip,il,:]*ws + o.f12[ip,il,:]*wo) / wn
+                    x.f22[ip,il,:] = (s.f22[ip,il,:]*ws + o.f22[ip,il,:]*wo) / wn
+                    x.f33[ip,il,:] = (s.f33[ip,il,:]*ws + o.f33[ip,il,:]*wo) / wn
+                    x.f34[ip,il,:] = (s.f34[ip,il,:]*ws + o.f34[ip,il,:]*wo) / wn
+                    x.f44[ip,il,:] = (s.f44[ip,il,:]*ws + o.f44[ip,il,:]*wo) / wn
+        return x
+        
+    def __mul__(s,o):
+        """Multiplication for optool.particle objects.
+        
+        This is indended for the multiplication of such an object with
+        a number.  The way to think about it is like this.  Such an
+        contains opacities in units cm^2/g.  Multiplying it with a
+        number means that the opacities are now per a different mass.
+        This sounds strange, but it makes sens together with addition
+        of particles - which see.
+        """
+        import copy
+        x = copy.deepcopy(s)
+        x.kabs = x.kabs*o
+        x.ksca = x.ksca*o
+        x.kext = x.kext*o
+        x.massscale = x.massscale*o
+        if s.norm != 'hovenier':
+            # We need to change the matrix as well,
+            # because is it normalized to ksca
+            x.f11 = x.f11*o
+            x.f12 = x.f12*o
+            x.f22 = x.f22*o
+            x.f33 = x.f33*o
+            x.f34 = x.f34*o
+            x.f44 = x.f44*o
+        return x
+
+    def __rmul__(s,o):
+        """Rightsided multiplication of optool.particle object by a number."""
+        return s*o
+    def __div__(s,o):
+        """Division of optool.particle object by a number."""
+        return s * (1./o)
+    def __truediv__(s,o):
+        """Division of optool.particle object by a number."""
+        return s * (1./o)
 
 class lnktable:
     """NAME

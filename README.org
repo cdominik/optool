@@ -61,20 +61,20 @@ List the built-in materials
 
 : optool -c
 
-Add an ice mantle (built-in data from Warren+08) that is 20% of the
-core mass
+Add a water ice mantle (built-in data from Warren+08) that is 20% of
+the core mass
 
-: optool pyr-mg70 0.87  c 0.13  -m ice-w 0.2  -p 0.25
+: optool pyr-mg70 0.87  c 0.13  -m h2o-w 0.2  -p 0.25
 
 Like the previous example, but use ice refractive index data from a
 separate file.
 
 : optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
 
-Pure ice grains in a narrow size distribution from 1 to 3 microns,
-with 15 sample sizes following an $f(a)\propto a^{-2.5}$ powerlaw size
-distribution. Also, restrict the wavelength range to 10-100\mu{}m, and
-turn off DHS to get perfect spheres.
+Pure water ice grains in a narrow size distribution from 1 to 3
+microns, with 15 sample sizes following an $f(a)\propto a^{-2.5}$
+powerlaw size distribution. Also, restrict the wavelength range to
+10-100\mu{}m, and turn off DHS to get perfect spheres.
 
 : optool ice  -a 1 3 2.5 15  -l 10 100 -fmax 0
 
@@ -113,6 +113,8 @@ the filling factor
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.7.2 ::
+  - Implementation of particle arithmetic in the python module
 - Release 1.7 ::
   - New builtin materials (ices!): CO, CO2, CH3OH, CH4, and NH3.
   - Mean opacities can be computed in the Python module.
