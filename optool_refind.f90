@@ -5349,6 +5349,7 @@ subroutine co_a(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! because the data was getting very noisy.  Also, I added two
   ! wavelength points at the end, to make sure extrapolation
   ! is working correctly (N~constat, k~0) (C. Dominik, 2021-3-10)
+  ! The density 0.81 is from Loeffler et al. 2005 A&A 435, 587
   !
 
   IMPLICIT NONE
@@ -5357,7 +5358,7 @@ subroutine co_a(l_lnk,n_lnk,k_lnk,nlam,rho)
   real*8 l0(747),n0(747),k0(747)
   real*8 rho
   nlam = 747
-  rho  = 1.2
+  rho  = 0.81
   data (l0(j),j=1,747) / &
   3.845991e+00,3.847767e+00,3.849559e+00,3.851338e+00,3.853134e+00, &
   3.854916e+00,3.856715e+00,3.858501e+00,3.860303e+00,3.862092e+00, &

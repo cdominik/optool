@@ -4,9 +4,10 @@
 # because the data was getting very noisy.  Also, I added two
 # wavelength points at the end, to make sure extrapolation
 # is working correctly (N~constat, k~0) (C. Dominik, 2021-3-10)
+# The density 0.81 is from Loeffler et al. 2005 A&A 435, 587
 #
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
-  747  1.2
+  747  0.81
       3.845991e+00     1.270913e+00     7.652094e-04
       3.847767e+00     1.270998e+00     7.058818e-04
       3.849559e+00     1.270942e+00     6.120916e-04
