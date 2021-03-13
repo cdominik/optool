@@ -146,8 +146,8 @@ system.
 :PROPERTIES:
 :CUSTOM_ID: composition
 :END:
-If no composition is specified, the default is *-c pyr 0.87 -c c 0.13
--p 0.25*.
+If no composition is specified, the default is 
+*-c pyr 0.87 -c c 0.13 -p 0.25*.
 
 + =-c= :: List available built-in materials (the keys for the *-c* and
   *-m* options).
@@ -155,13 +155,13 @@ If no composition is specified, the default is *-c pyr 0.87 -c c 0.13
 + =[-c] KEY-or-FILE [MFRAC]= ::
 
   Specify a material to include in the grain.  =KEYorFILE= can be the
-  [[#builtin-materials][key for a builtin material]], or the path to the correct =lnk=
-  file. =MFRAC= is the /mass/ fraction (default 1.0) of the
-  material. You can give up to 10 materials to build up the grain.
-  Mass fractions do not have to add up to one, they will be
-  renormalized.  All materials will be mixed together using the
-  /Bruggeman/ rule, and vacuum can be added through the porosity. A
-  *-c* switch before each =KEY-or-FILE= is optional.
+  [[#builtin-materials][key for a builtin material]], or the path to an =lnk= file. =MFRAC= is
+  the /mass/ fraction (default 1.0) of the material. You can give up
+  to 10 materials to build up the grain.  Mass fractions do not have
+  to add up to one, they will be renormalized.  All materials will be
+  mixed together using the /Bruggeman/ rule, and vacuum can be added
+  through the porosity. A *-c* switch before each =KEY-or-FILE= is
+  optional.
 
 + =-m KEY-or-FILE [MFRAC]= ::
 
@@ -239,7 +239,7 @@ DHS with f_max=0.8.
   comment lines, and the first non-comment line needs to contain the
   number of wavelength values in the data block below it. In the data
   block, the first column is expected to hold the wavelength
-  values, in \mu{}m. For example, an [[#lnk-files][=lnk=]] file could be used here.
+  values, in \mu{}m. In particular, an [[#lnk-files][=lnk=]] file could be used here.
 
 ** Controlling the output
 
@@ -250,8 +250,8 @@ extend the [[#output-files][output]].
 + =-o [DIR]= ::
 
   Put the output files in directory =DIR= instead of the current
-  working directory. =./output= will be used if =DIR= is not
-  specified.
+  working directory. =./output= will be used if *-o* is present but
+  =DIR= is not specified.
 
 + =-s [NANG]= ::
 
@@ -312,9 +312,9 @@ course specific features in these unmeasured regions will be missing
 from the the opacities.
 
 #+LATEX: \newpage
-#+begin_center
-*Table 1:* Built-in materials
-#+end_center
+# #+begin_center
+# *Table 1:* Built-in materials
+# #+end_center
 #+ATTR_LATEX: :font \small\sf :align llllrrrlHH
 | *-c Key* | *-c Key*   | *Material*              | *State* |      \rho | \lambda_min | \lambda_max | *Reference*   | *Comment*    | *File*                      |
 | generic  | full key   |                         |         |    g/cm^3 |      \mu{}m |      \mu{}m |               |              |                             |
@@ -449,7 +449,7 @@ normalization of the scattering matrix.
 in the background[fn:3] and puts all computed quantities as =numpy=
 arrays into a python object.  This makes it straight forward to
 inspect and further process the output, for example to produce custom
-opacity files for use in an radiative transfer tool. Here is how to
+opacity files for use in a radiative transfer tool. Here is how to
 use the module:
 
 #+begin_src python
@@ -664,7 +664,7 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
    (the text after the final =-=) is the reference.
 2. Put this file into the =lnk_data= directory.
 3. Optionally edit =lnk_data/lnk-help.txt=, so that [[#composition][=optool -c=]] will
-   list the new material.  Note that, in order to define generic keys,
+   list the new material.  Note that, in order to define /generic keys/,
    optool looks for pairs that look like =genkey -> fullkey= in this file.
 4. Run =make ingest= to update =optool_refind.f90=, now with your new
    material.
@@ -763,7 +763,7 @@ the code.
 
 
 * Bibliography
-#  #+LATEX: \footnotesize
+#+LATEX: \footnotesize
 - Bohren, C.F. and Huffman, D.R. 1998, Wiley-VCH, \\
   /Absorption and Scattering of Light by Small Particles/
 - Chapman et al. 2009, ApJ 690, 496
