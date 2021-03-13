@@ -281,7 +281,6 @@ Keywords
             fc  = self.f11
 
         for ip in (range(self.np)):
-            mgrain = (4./3.)*np.pi * self.a3[ip]**3 * self.rho[ip]
             for il in (range(self.nlam)):
                 integ = 2.*np.pi*np.sum(fc[ip,il,:]*dmu)
                 if (self.norm == "radmc3d"):
@@ -289,8 +288,10 @@ Keywords
                 elif (self.norm == "hovenier"):
                     nn = 4.*np.pi
                 elif (self.norm == "bohrenhuffman"):
+                    mgrain = (4./3.)*np.pi * self.a3[ip]**3 * self.rho[ip]
                     nn = self.ksca[ip,il] * wav[il]**2 * mgrain
                 elif (self.norm == "mishchenko"):
+                    mgrain = (4./3.)*np.pi * self.a3[ip]**3 * self.rho[ip]
                     nn = self.ksca[ip,il] * mgrain
                 if (norm):
                     self.f11[ip,il,:] = self.f11[ip,il,:] * nn/integ
