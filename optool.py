@@ -406,6 +406,19 @@ Keywords
                     x.f33[ip,il,:] = (s.f33[ip,il,:]*ws + o.f33[ip,il,:]*wo) / wn
                     x.f34[ip,il,:] = (s.f34[ip,il,:]*ws + o.f34[ip,il,:]*wo) / wn
                     x.f44[ip,il,:] = (s.f44[ip,il,:]*ws + o.f44[ip,il,:]*wo) / wn
+        # Invalidate variables tha no longer make sense.
+        x.materials = np.hstack((x.materials,o.materials))
+        if (x.fmax    != o.fmax   ): x.fmax    = -1
+        if (x.pcore   != o.pcore  ): x.pcore   = -1
+        if (x.pmantle != o.pmantle): x.pmantle = -1
+        if (x.amin    != o.amin   ): x.amin    = -1
+        if (x.amax    != o.amax   ): x.amax    = -1
+        if (x.nsub    != o.nsub   ): x.nsub    = -1
+        if (x.apow    != o.apow   ): x.apow    = -1
+        if (x.rho     != o.rho    ): x.rho     = -1
+        if (x.chop    != o.chop   ): x.chop    = -1
+        x.a1,x.a2,x.a3 = -1,-1,-1
+
         return x
         
     def __mul__(s,o):
