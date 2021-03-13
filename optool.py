@@ -1375,7 +1375,7 @@ def plotall():
     y = np.sin(x ** 2)
     nx = 6
     ny = 6
-    fig = plt.figure(figsize=(6,8))
+    fig = plt.figure(figsize=(10,9))
     gs = fig.add_gridspec(nx,ny, hspace=0, wspace=0)
     gs1 = gs.subplots(sharex='all',sharey='all')
     print(gs1.shape)
@@ -1390,8 +1390,8 @@ def plotall():
             ax = gs1[ix,iy]
             ax.loglog(p.lam,p.k+1e-5)
             ax.set_xlim(1,300)
-            ax.set_ylim(0.001,100.)
-            ax.text(1.2,5.,file[9:-4],fontsize='xx-small')
+            ax.set_ylim(1e-4,1e3)
+            ax.text(1.2,100.,file[9:-4],fontsize='xx-small')
     fig.show()
     fig.savefig("maint/all_k.pdf", bbox_inches='tight')
         

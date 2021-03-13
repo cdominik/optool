@@ -455,6 +455,7 @@ use the module:
 #+begin_src python
 import optool
 p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
+p.plot()
 #+end_src
 
 The argument to =optool.particle()= must be a valid shell
@@ -507,9 +508,8 @@ $n_p=1$. The resulting object will have the following attributes:
 |--------------------+-----------------------+-------------------------------------------------|
 | =scatnorm()=       | =method=              | Check/change scat. matrix normalization         |
 
-** Plotting the opacities and the scattring matrix
-
-The =optool.plot()= method will produce the following plots:
+The =plot()= method applied to a particle will produce the following
+plots:
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
   as a function of wavelength, along with the asymmetry parameter /g/
   (on a linear y-scale).  Note that the blue /g/ curve does not havex
@@ -529,22 +529,8 @@ The =optool.plot()= method will produce the following plots:
 #+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./maint/inspect.png]]
 
-
-# Other functionality in the python module includes multiplying
-# "particles" by factors and adding "particles" in order to construct
-# opacities for a mix of different grain species.  There is also a class
-# for reading, converting and writing =lnk= files. For more information,
-# please read the documentation inside the file =optool.py=.
-
-[fn:3] The module runs the command as a subprocess, with output to a
-temporary subdirectory.
-
-[fn:4] As a string, or as a list like =['/path/to
-my/command','arg1','arg2',...]=. 
-
-** Particle arithmetic
 You can also use /particle arithmetic/ (multiplying =particle= objects
-with a factor and adding them), for example to produce opacites for a
+with factors and adding them), for example to produce opacites for a
 mixture of different grains or scale opacities using a dust-to-gas
 ratio:
 
@@ -555,45 +541,18 @@ p  = 0.75*p1 + 0.25*p2   # add with mass fractions
 p  = p * 0.01            # apply dust-to-gas ratio -> opacity per gas mass
 #+end_src
 
-** Preparing =lnk= files
+[fn:3] The module runs the command as a subprocess, with output to a
+temporary subdirectory.
 
-The python module also contains tools to prepare files with refractive
-index data for use with optool. The standard format of =lnk= files for
-=optool= is described ?????.  These files can be read and the data
-plotted using the =lnktable= class, like this:
-
-#+begin_src python
-import optool
-d = optool.lnktable('lnk_data/co-palumbo2006.lnk')
-d.plot()
-#+end_src
-
-The class can also read files that are formatted differently, in order
-to create properly formatted version. Let's say you have a file
-starting with 4 unimportant lines, and then data columns where n an k
-are in column 1 and 2, respectively, and the wavelength is given in
-units of cm^-1 in column 3, you can do the conversion in this way:
-
-#+begin_src python
-import optool
-new = optool.lnktable('x.dat',i_lnk=[3,1,2], nskip=4)
-new.lam = 10000./new.lam   # convert cm^-1 -> micrometer
-new.sort()                 # sort arrays according to lambda
-new.smooth(5)              # smooth the data, using median filter 5 pixel          
-new.decimate(3)            # reduce file size by using ony every 3rd value
-new.rho = 3.2              # set density in g/cm^3
-new.header = "# This is a silicate from Dorschner+1995)"
-new.write('sil-Dorschner1995.lnk')
-#+end_src
+[fn:4] As a string, or as a list like =['/path/to
+my/command','arg1','arg2',...]=. 
 
 
-** Mean opacities in a system with evaporation
 
-#+LATEX: \newpage
 
 \appendix
+#+LATEX: \newpage
 
-*APPENDIX*
 
 * Units
 Due to conventions in our field, the input and output of =optool= uses
@@ -678,6 +637,16 @@ RADMC-3D requires the values of the scattering matrix on the cell
 /boundaries/, so at 0\deg, 1\deg etc to 180\deg, for a total of 181
 values.  For the input files for RADMC-3D, we interpolate and extend
 the computed values to the cell boundaries.
+
+* Overview of optical properties
+
+This grid plot shows the imaginary parts of all built-in materials, in
+the wavelength range from 1 to 300 \mu{}m.
+
+#+ATTR_LATEX: :width 14.8cm :options angle=0
+[[./maint/all_k.pdf]]
+
+
 
 * How to ingest refractive index data for another material
 :PROPERTIES:
@@ -783,21 +752,14 @@ the code.
   scattering matrix results is violated, a warning will be
   issued. However, the opacities will remain applicable.
 
+
+#+LATEX: \newpage
+
 * Acknowledgments
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], for inspiration about grain mantles.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
   on github]]).
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
-
-
-* Overview of optical properties
-
-This grid plot shows the imaginary parts of all built-in materials, in
-the wavelength range from 1 to 300 \mu{}m.
-
-#+ATTR_LATEX: :width 8cm :options angle=0
-[[./maint/all_k.pdf]]
-
 
 
 * Bibliography
