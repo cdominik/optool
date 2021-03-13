@@ -377,10 +377,6 @@ Keywords
                 raise NameError('Angular grids differ')
             if (s.norm != o.norm):
                 raise NameError('Scattering normalizations differ')
-        # Note that after adding, quite a few elements in the object will
-        # have become meaningless:  Composition, mean radii,rho, all of that.
-        # FIXME: What should we do???  Set them to zero, maybe?
-        # What we should achieve is that kappa, g, and the scattering matric are all OK.
         import copy
         x = copy.deepcopy(s)
         x.kabs = x.kabs+o.kabs
