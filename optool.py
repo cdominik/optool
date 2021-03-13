@@ -1370,12 +1370,11 @@ def plotall():
         'lnk_data/ch3oh-c-Gerakines2020.lnk'
        ]
     
-
     # Some example data to display
     x = np.linspace(0, 2 * np.pi, 400)
     y = np.sin(x ** 2)
-    nx = 8
-    ny = 4
+    nx = 6
+    ny = 6
     fig = plt.figure(figsize=(6,8))
     gs = fig.add_gridspec(nx,ny, hspace=0, wspace=0)
     gs1 = gs.subplots(sharex='all',sharey='all')

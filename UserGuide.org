@@ -452,8 +452,10 @@ inspect and further process the output, for example to produce custom
 opacity files for use in an radiative transfer tool. Here is how to
 use the module:
 
-: >>> import optool
-: >>> p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
+#+begin_src python
+import optool
+p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
+#+end_src
 
 The argument to =optool.particle()= must be a valid shell
 command[fn:4] to run =optool=, if necessary with the full path to the
@@ -505,21 +507,7 @@ $n_p=1$. The resulting object will have the following attributes:
 |--------------------+-----------------------+-------------------------------------------------|
 | =scatnorm()=       | =method=              | Check/change scat. matrix normalization         |
 
-#+LATEX: \newpage
-
-#+CAPTION: Screenshot of plots created by running =p.plot()= on an optool particle.
-#+ATTR_LATEX: :width 14.8cm :options angle=0
-[[./maint/inspect.png]]
-
-
-You can also use /particle arithmetic/ to produce opacites for a
-mixture of different grains or scale opacities using a dust-to-gas
-ratio:
-
-: p1 = optool.particle('optool -a 0.01 0.3 pyr-mg70')      # silicate grains
-: p2 = optool.particle('optool -a 0.03 0.1 c-z')           # carbon grains
-: p  = 0.75*p1 + 0.25*p2   # add with mass fractions
-: p  = p * 0.01            # apply dust-to-gas ratio -> opacity per gas mass
+** Plotting the opacities and the scattring matrix
 
 The =optool.plot()= method will produce the following plots:
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
@@ -537,6 +525,10 @@ The =optool.plot()= method will produce the following plots:
   plot.  The mean opacities are per unit of grain mass, so please
   apply a dust-to-gas mass ratio to obtain opacities for a gas-dust
   mixture.
+#+CAPTION: Screenshot of plots created by running =p.plot()= on an optool particle.
+#+ATTR_LATEX: :width 14.8cm :options angle=0
+[[./maint/inspect.png]]
+
 
 # Other functionality in the python module includes multiplying
 # "particles" by factors and adding "particles" in order to construct
@@ -550,7 +542,58 @@ temporary subdirectory.
 [fn:4] As a string, or as a list like =['/path/to
 my/command','arg1','arg2',...]=. 
 
+** Particle arithmetic
+You can also use /particle arithmetic/ (multiplying =particle= objects
+with a factor and adding them), for example to produce opacites for a
+mixture of different grains or scale opacities using a dust-to-gas
+ratio:
+
+#+begin_src python
+p1 = optool.particle('optool -a 0.01 0.3 pyr-mg70')      # silicate grains
+p2 = optool.particle('optool -a 0.03 0.1 c-z')           # carbon grains
+p  = 0.75*p1 + 0.25*p2   # add with mass fractions
+p  = p * 0.01            # apply dust-to-gas ratio -> opacity per gas mass
+#+end_src
+
+** Preparing =lnk= files
+
+The python module also contains tools to prepare files with refractive
+index data for use with optool. The standard format of =lnk= files for
+=optool= is described ?????.  These files can be read and the data
+plotted using the =lnktable= class, like this:
+
+#+begin_src python
+import optool
+d = optool.lnktable('lnk_data/co-palumbo2006.lnk')
+d.plot()
+#+end_src
+
+The class can also read files that are formatted differently, in order
+to create properly formatted version. Let's say you have a file
+starting with 4 unimportant lines, and then data columns where n an k
+are in column 1 and 2, respectively, and the wavelength is given in
+units of cm^-1 in column 3, you can do the conversion in this way:
+
+#+begin_src python
+import optool
+new = optool.lnktable('x.dat',i_lnk=[3,1,2], nskip=4)
+new.lam = 10000./new.lam   # convert cm^-1 -> micrometer
+new.sort()                 # sort arrays according to lambda
+new.smooth(5)              # smooth the data, using median filter 5 pixel          
+new.decimate(3)            # reduce file size by using ony every 3rd value
+new.rho = 3.2              # set density in g/cm^3
+new.header = "# This is a silicate from Dorschner+1995)"
+new.write('sil-Dorschner1995.lnk')
+#+end_src
+
+
+** Mean opacities in a system with evaporation
+
+#+LATEX: \newpage
+
 \appendix
+
+*APPENDIX*
 
 * Units
 Due to conventions in our field, the input and output of =optool= uses
@@ -752,7 +795,7 @@ the code.
 This grid plot shows the imaginary parts of all built-in materials, in
 the wavelength range from 1 to 300 \mu{}m.
 
-#+ATTR_LATEX: :width 13.8cm :options angle=0
+#+ATTR_LATEX: :width 8cm :options angle=0
 [[./maint/all_k.pdf]]
 
 
