@@ -368,6 +368,9 @@ Keywords
         p.plot()
 
         """
+        #
+        # First, check if the particles are compatible
+        #
         if ((s.np > 1) or (o.np>1)):
             raise NameError('Cannot add multi-particles')
         if ((s.nlam != o.nlam) or (np.abs((s.lam-o.lam)/s.lam).any()>1e-4)):
@@ -378,6 +381,9 @@ Keywords
                 raise NameError('Angular grids differ')
             if (s.norm != o.norm):
                 raise NameError('Scattering normalizations differ')
+        #
+        # Now do the adding
+        #
         import copy
         x = copy.deepcopy(s)
         x.kabs = x.kabs+o.kabs
@@ -403,7 +409,9 @@ Keywords
                     x.f33[ip,il,:] = (s.f33[ip,il,:]*ws + o.f33[ip,il,:]*wo) / wn
                     x.f34[ip,il,:] = (s.f34[ip,il,:]*ws + o.f34[ip,il,:]*wo) / wn
                     x.f44[ip,il,:] = (s.f44[ip,il,:]*ws + o.f44[ip,il,:]*wo) / wn
+        #
         # Invalidate variables tha no longer make sense.
+        #
         x.materials = np.hstack((x.materials,o.materials))
         if (x.fmax    != o.fmax   ): x.fmax    = -1
         if (x.pcore   != o.pcore  ): x.pcore   = -1
