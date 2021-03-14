@@ -410,7 +410,7 @@ Keywords
                     x.f34[ip,il,:] = (s.f34[ip,il,:]*ws + o.f34[ip,il,:]*wo) / wn
                     x.f44[ip,il,:] = (s.f44[ip,il,:]*ws + o.f44[ip,il,:]*wo) / wn
         #
-        # Invalidate variables tha no longer make sense.
+        # Invalidate attributes that no longer make sense.
         #
         x.materials = np.hstack((x.materials,o.materials))
         if (x.fmax    != o.fmax   ): x.fmax    = -1

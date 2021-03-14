@@ -13,16 +13,15 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
   RADMC-3D
 - combining materials through mixing into a complex grain with
   porosity
-- a useful collection of built-in materials for standard applications
-  in astronomy
-- an easy way to use external refractive index data
+- /built-in/: a curated collection of materials for applications in
+  astronomy
+- external refractive index data can be used just as easily
 - two computational methods: (i) *DHS (Distribution of Hollow
   Spheres)* for /irregular grains/ and /low-porosity/ aggregates.
   Standard *Mie theory* for /perfect spheres/ is available as a
   limiting case. (ii) *MMF (Modified Mean Field)* theory for
-  /high-porosity/fractal aggregates/.
-- =Python= interface module for easy postprocessing and cross-tool
-  use.
+  /high-porosity/fractal aggregates/
+- =Python= interface module for plotting and post-processing
 
 * Terms of use
 
@@ -114,7 +113,8 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
 - Release 1.7.2 ::
-  - Implementation of particle arithmetic in the python module
+  - Implementation of particle arithmetic in the python module, to
+    allow constructing grain models by adding separate grain types.
 - Release 1.7 ::
   - New builtin materials (ices!): CO, CO2, CH3OH, CH4, and NH3.
   - Mean opacities can be computed in the Python module.
