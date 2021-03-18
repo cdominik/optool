@@ -1735,8 +1735,6 @@ subroutine read_lambda_grid(file)
   allocate(lam(nlam))
   do i=1, nlam
      read (99, fmt=* ) lam(i)
-     ! Convert to microns
-     lam(i) = lam(i)
   end do
   close(99)
 end subroutine read_lambda_grid

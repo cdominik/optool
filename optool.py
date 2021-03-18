@@ -1344,7 +1344,7 @@ def bplanckdt(temp,nu):
     return bplanckdt
 
 
-def plotall():
+def plotallk():
     import matplotlib.pyplot as plt
     import numpy as np
     import optool
@@ -1413,5 +1413,3 @@ def plotall():
             ax.text(0.1,100.,file[9:-4],fontsize='xx-small')
     fig.show()
     fig.savefig("maint/all_k.pdf", bbox_inches='tight')
-        
-    
