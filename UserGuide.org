@@ -300,58 +300,61 @@ and use other data.  No matter where the data is from, you should
 
 To access one of the built-in materials, specify the corresponding key
 string like =pyr-mg70=. In each material class I have selected a
-useful default, accessible with an even simpler generic key.  Please
-check the files in the =lnk_data= directory for additional information
-about these materials.  Most of the refractive index datasets have a
-wide wavelength coverage - the few exceptions are highlighted by
-bold-face numbers.  If a material is being used outside of the
-measured region, =optool= will still function, using extrapolated
-optical properties that will be quite reasonable in many cases. Of
-course specific features in these unmeasured regions will be missing
-from the the opacities.
+useful default, accessible with an even simpler generic key (for
+example, =pyr= is an alias for =pyr-mg70=). Most of the refractive
+index datasets have a wide wavelength coverage - the few exceptions
+are highlighted by bold-face numbers.  If a material is being used
+outside of the measured region, =optool= will still function, using
+extrapolated optical properties.
+
+Even the limited number of materials we have selected to include with
+=optool= can certainly be daunting. To get started with some kind of
+standard opacity, we recommend to work with pyroxene \fbox{pyr},
+carbon \fbox{c}, and (at low temperaturs) water ice \fbox{h2o}.
 
 #+LATEX: \newpage
 # #+begin_center
 # *Table 1:* Built-in materials
 # #+end_center
 #+ATTR_LATEX: :font \small\sf :align llllrrrlHH
-| *-c Key* | *-c Key*   | *Material*              | *State* |      \rho | \lambda_min | \lambda_max | *Reference*   | *Comment*    | *File*                      |
-| generic  | full key   |                         |         |    g/cm^3 |      \mu{}m |      \mu{}m |               |              |                             |
-|----------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
-|          | pyr-mg100  | MgSiO_3                 | amorph  |      2.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg100-Dorschner1995.lnk][pyr-mg100-Dorschner1995.lnk]] |
-|          | pyr-mg95   | Mg_{0.95}Fe_{0.05}SiO_3 | amorph  |      2.74 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg95-Dorschner1995.lnk][pyr-mg95-Dorschner1995.lnk]]  |
-|          | pyr-mg80   | Mg_{0.8}Fe_{0.2}SiO_3   | amorph  |       2.9 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg80-Dorschner1995.lnk][pyr-mg80-Dorschner1995.lnk]]  |
-| pyr      | pyr-mg70   | Mg_{0.7}Fe_{0.3}SiO_3   | amorph  |      3.01 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg70-Dorschner1995.lnk][pyr-mg70-Dorschner1995.lnk]]  |
-|          | pyr-mg60   | Mg_{0.6}Fe_{0.4}SiO_3   | amorph  |       3.1 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg60-Dorschner1995.lnk][pyr-mg60-Dorschner1995.lnk]]  |
-|          | pyr-mg50   | Mg_{0.5}Fe_{0.5}SiO_3   | amorph  |       3.2 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg50-Dorschner1995.lnk][pyr-mg50-Dorschner1995.lnk]]  |
-|          | pyr-mg40   | Mg_{0.4}Fe_{0.6}SiO_3   | amorph  |       3.3 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg40-Dorschner1995.lnk][pyr-mg40-Dorschner1995.lnk]]  |
-| ens      | pyr-c-mg96 | Mg_{0.96}Fe_{0.04}SiO3  | cryst   |       2.8 |       *2.0* |        *99* | [[https://ui.adsabs.harvard.edu/abs/1998A%26A...339..904J][Jäger+98]]      |              | [[file:lnk_data/pyr-c-mg96-Jäger1998.lnk][pyr-c-mg96-Jäger1998.lnk]]    |
-|----------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
-| ol       | ol-mg50    | MgFeSiO_4               | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]   |
-|          | ol-mg40    | Mg_0.8 Fe_1.2 SiO_4     | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]   |
-| for      | ol-c-mg100 | Mg_2 SiO_4              | cryst   |      3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]     | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
-|----------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
-|          | astrosil   | MgFeSiO4                | mixed   |       3.3 |        6e-5 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D][Draine+03]]     |              | [[file:lnk_data/astrosil-Draine2003.lnk][astrosil-Draine2003.lnk]]     |
-|----------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
-| c        | c-z        | C                       | amorph? |       1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z][Zubko+96]]      |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]           |
-|          | c-p        | C                       | amorph  |       1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P][Preibisch+93]]  |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]       |
-| gra      | c-gra      | C graphite              | cryst   |     2.16? |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D][Draine+03]]     |              | [[file:lnk_data/c-gra-Draine2003.lnk][c-gra-Draine2003.lnk]]        |
-| org      | c-org      | CHON organics           | amorph  |       1.4 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/c-org-Henning1996.lnk][c-org-Henning1996.lnk]]       |
-|          | c-nano     | C nano-diamond          | cryst   |       2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]   |              | [[file:lnk_data/c-nano-Mutschke2004.lnk][c-nano-Mutschke2004.lnk]]     |
-|----------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
-| iron     | fe-c       | Fe                      | metal   |      7.87 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/fe-c-Henning1996.lnk][fe-c-Henning1996.lnk]]        |
-|          | fes        | FeS                     | metal   |      4.83 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/fes-Henning1996.lnk][fes-Henning1996.lnk]]         |
-|          | sic        | SiC                     | cryst   |      3.22 |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L][Laor93]]        |              | [[file:lnk_data/sic-Draine1993.lnk][sic-Draine1993.lnk]]          |
-|----------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
-| cor      | cor-c      | Al_{2}O_3               | cryst   |       4.0 |         0.5 |        *40* | [[https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K][Koike+95]]      |              | [[file:lnk_data/cor-c-Koike1995.lnk][cor-c-Koike1995.lnk]]         |
-|----------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
-| h2o      | h2o-w      | Water ice               | cryst   |      0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W][Warren+08]]     |              | [[file:lnk_data/h2o-w-Warren2008.lnk][h2o-w-Warren2008.lnk]]        |
-| co2      | co2-w      | CO_2 ice                | cryst   |       1.6 |        0.05 |         2e5 | [[https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W][Warren+86]]     | interpolated | [[file:lnk_data/co2-ice-Warren1986.lnk][co2-ice-Warren2008.lnk]]      |
-| nh3      | nh3-m      | NH_3 ice                | cryst   |      0.75 |        0.14 |         200 | [[https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M][Martonchik+83]] | \rho?        | [[file:lnk_data/nh3-m-Martonchik1983.lnk][nh3-m-Martonchik1983.lnk]]    |
-| co       | co-a       | CO                      | amorph  |      0.81 |       *3.8* |       *5.8* | [[https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P][Palumbo+06]]    |              | [[file:lnk_data/co-a-Palumbo2006.lnk][co-a-Palumbo2006.lnk]]        |
-|          | co2-a/c    | CO_2                    | am/cr   |       1.2 |       *2.5* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/co2-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/co2-c-Gerakines2020.lnk][cryst]]                |
-|          | ch4-a/c    | CH_4                    | am/cr   |      0.47 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch4-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch4-c-Gerakines2020.lnk][cryst]]                |
-|          | ch3oh-a/c  | CH_{3}OH                | am/cr   | 0.78/1.02 |       *2.0* |        *24* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch3oh-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch3oh-c-Gerakines2020.lnk][cryst]]                |
+| *-c Key*   | *-c Key*   | *Material*              | *State* |      \rho | \lambda_min | \lambda_max | *Reference*   | *Comment*    | *File*                      |
+| generic    | full key   |                         |         |    g/cm^3 |      \mu{}m |      \mu{}m |               |              |                             |
+|------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
+|            | pyr-mg100  | MgSiO_3                 | amorph  |      2.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg100-Dorschner1995.lnk][pyr-mg100-Dorschner1995.lnk]] |
+|            | pyr-mg95   | Mg_{0.95}Fe_{0.05}SiO_3 | amorph  |      2.74 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg95-Dorschner1995.lnk][pyr-mg95-Dorschner1995.lnk]]  |
+|            | pyr-mg80   | Mg_{0.8}Fe_{0.2}SiO_3   | amorph  |       2.9 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg80-Dorschner1995.lnk][pyr-mg80-Dorschner1995.lnk]]  |
+| \fbox{pyr} | pyr-mg70   | Mg_{0.7}Fe_{0.3}SiO_3   | amorph  |      3.01 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg70-Dorschner1995.lnk][pyr-mg70-Dorschner1995.lnk]]  |
+|            | pyr-mg60   | Mg_{0.6}Fe_{0.4}SiO_3   | amorph  |       3.1 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg60-Dorschner1995.lnk][pyr-mg60-Dorschner1995.lnk]]  |
+|            | pyr-mg50   | Mg_{0.5}Fe_{0.5}SiO_3   | amorph  |       3.2 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg50-Dorschner1995.lnk][pyr-mg50-Dorschner1995.lnk]]  |
+|            | pyr-mg40   | Mg_{0.4}Fe_{0.6}SiO_3   | amorph  |       3.3 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg40-Dorschner1995.lnk][pyr-mg40-Dorschner1995.lnk]]  |
+| ens        | pyr-c-mg96 | Mg_{0.96}Fe_{0.04}SiO3  | cryst   |       2.8 |       *2.0* |        *99* | [[https://ui.adsabs.harvard.edu/abs/1998A%26A...339..904J][Jäger+98]]      |              | [[file:lnk_data/pyr-c-mg96-Jäger1998.lnk][pyr-c-mg96-Jäger1998.lnk]]    |
+|------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
+| ol         | ol-mg50    | MgFeSiO_4               | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]   |
+|            | ol-mg40    | Mg_0.8 Fe_1.2 SiO_4     | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]   |
+| for        | ol-c-mg100 | Mg_2 SiO_4              | cryst   |      3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]     | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
+|------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
+|            | astrosil   | MgFeSiO4                | mixed   |       3.3 |        6e-5 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D][Draine+03]]     |              | [[file:lnk_data/astrosil-Draine2003.lnk][astrosil-Draine2003.lnk]]     |
+|------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
+| \fbox{c}   | c-z        | C                       | amorph? |       1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z][Zubko+96]]      |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]           |
+|            | c-p        | C                       | amorph  |       1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P][Preibisch+93]]  |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]       |
+| gra        | c-gra      | C graphite              | cryst   |     2.16? |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D][Draine+03]]     |              | [[file:lnk_data/c-gra-Draine2003.lnk][c-gra-Draine2003.lnk]]        |
+| org        | c-org      | CHON organics           | amorph  |       1.4 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/c-org-Henning1996.lnk][c-org-Henning1996.lnk]]       |
+|            | c-nano     | C nano-diamond          | cryst   |       2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]   |              | [[file:lnk_data/c-nano-Mutschke2004.lnk][c-nano-Mutschke2004.lnk]]     |
+|------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
+| iron       | fe-c       | Fe                      | metal   |      7.87 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/fe-c-Henning1996.lnk][fe-c-Henning1996.lnk]]        |
+|            | fes        | FeS                     | metal   |      4.83 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/fes-Henning1996.lnk][fes-Henning1996.lnk]]         |
+|            | sic        | SiC                     | cryst   |      3.22 |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L][Laor93]]        |              | [[file:lnk_data/sic-Draine1993.lnk][sic-Draine1993.lnk]]          |
+|------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
+| qua        | sio2       | SiO_2                   | amorph  |      2.65 |      0.0006 |         500 | [[https://ui.adsabs.harvard.edu/abs/2007ApOpt..46.8118K][Kitamura+07]]   | \rho ?       | [[file:lnk_data/sio2-Kitamura2007.lnk][si02-Kitamura2007.lnk]]       |
+| cor        | cor-c      | Al_{2}O_3               | cryst   |       4.0 |         0.5 |        *40* | [[https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K][Koike+95]]      |              | [[file:lnk_data/cor-c-Koike1995.lnk][cor-c-Koike1995.lnk]]         |
+|------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
+| \fbox{h2o} | h2o-w      | Water ice               | cryst   |      0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W][Warren+08]]     |              | [[file:lnk_data/h2o-w-Warren2008.lnk][h2o-w-Warren2008.lnk]]        |
+| co2        | co2-w      | CO_2 ice                | cryst   |       1.6 |        0.05 |         2e5 | [[https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W][Warren+86]]     | interpolated | [[file:lnk_data/co2-ice-Warren1986.lnk][co2-ice-Warren2008.lnk]]      |
+| nh3        | nh3-m      | NH_3 ice                | cryst   |      0.75 |        0.14 |         200 | [[https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M][Martonchik+83]] | \rho?        | [[file:lnk_data/nh3-m-Martonchik1983.lnk][nh3-m-Martonchik1983.lnk]]    |
+| co         | co-a       | CO ice                  | amorph  |      0.81 |       *3.8* |       *5.8* | [[https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P][Palumbo+06]]    |              | [[file:lnk_data/co-a-Palumbo2006.lnk][co-a-Palumbo2006.lnk]]        |
+|            | co2-a/c    | CO_2 ice                | am/cr   |       1.2 |       *2.5* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/co2-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/co2-c-Gerakines2020.lnk][cryst]]                |
+|            | ch4-a/c    | CH_4 ice                | am/cr   |      0.47 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch4-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch4-c-Gerakines2020.lnk][cryst]]                |
+|            | ch3oh-a/c  | CH_{3}OH ice            | am/cr   | 0.78/1.02 |       *2.0* |        *24* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch3oh-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch3oh-c-Gerakines2020.lnk][cryst]]                |
 
 
 # |          | icemix-c2d | H_{2}O/CO_{2}/CO mix    | ?       |    1.0 |        0.04 |         8e6 | [[https://ui.adsabs.harvard.edu/abs/2009ApJ...690..496C][Pontoppidan]]  | \rho?        | [[file:lnk_data/icemix-c2d-Pontoppidan2009.lnk][icemix-c2d-Pontoppidan2009.lnk]] |
@@ -367,18 +370,18 @@ following format:
 - The file may start with several comment lines (lines starting with
   =!=, =#=, or =*=).
 - The next line contains two numbers, the number of wavelengths
-  $n_\lambda$ and the specific density \rho of the material in g/cm^3
-- Then follow three columns of data: \lambda[\mu{}m], and the real and
-  imaginary parts of the refractive index, $n$ and $k$.
+  $n_\lambda$ and the specific density \rho of the material in
+  g/cm^{3}.
+- The remaining lines should form three columns of data:
+  \lambda[\mu{}m], and the real and imaginary parts of the refractive
+  index, $n$ and $k$.
 
 You can find refractive index data in the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and
 associated with original papers in the literature. Don't forget to add
 the line with $n_\lambda$ and \rho!  If for some reason it is not
 convenient to add that line to the file, =optool= will count the lines
 and you can specify the density after the mass fraction, like this:
-=optool -c path/to/file.lnk 0.7 3.42=. [[#ingest][The appendix]] contains
-information on how to compile frequently-used external materials into
-the program.
+=optool -c path/to/file.lnk 0.7 3.42=.
 
 
 #+LATEX: \newpage
@@ -645,7 +648,7 @@ the computed values to the cell boundaries.
 * Overview of optical properties
 
 This grid plot shows the imaginary parts of all built-in materials, in
-the wavelength range from 1 to 300 \mu{}m.
+the wavelength range from 0.05 to 300 \mu{}m.
 
 #+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./maint/all_k.pdf]]
@@ -778,6 +781,7 @@ the code.
 - Henning, Th. and Stognienko, R. 1996, A&A 311,291
 - Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
 - Jäger, C. et al. 1998, A&A 339, 904
+- Kitamura, R. et al 2007, Applied Optics 46,33, p. 8188
 - Koike, C. et al. 1995, Icarus 114, 203
 - Laor, A. and Draine, B., ApJ 402, 441
 - Lefèvre, C.; Min,M. et al. 2020, A&A (submitted)

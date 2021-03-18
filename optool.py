@@ -442,7 +442,7 @@ Keywords
         x.ksca = x.ksca*o
         x.kext = x.kext*o
         x.massscale = x.massscale*o
-        if s.norm != 'hovenier':
+        if (s.scat and (s.norm != 'hovenier')):
             # We need to change the matrix as well,
             # because is it normalized to ksca
             x.f11 = x.f11*o
@@ -1373,6 +1373,7 @@ def plotall():
         'lnk_data/fes-Henning1996.lnk',
         'lnk_data/sic-Draine1993.lnk',
 
+        'lnk_data/sio2-Kitamura2007.lnk',
         'lnk_data/cor-c-Koike1995.lnk',
 
         'lnk_data/h2o-w-Warren2008.lnk',
@@ -1407,9 +1408,9 @@ def plotall():
             p=optool.lnktable(file)
             ax = gs1[ix,iy]
             ax.loglog(p.lam,p.k+1e-5)
-            ax.set_xlim(1,300)
+            ax.set_xlim(0.05,300)
             ax.set_ylim(1e-4,1e3)
-            ax.text(1.2,100.,file[9:-4],fontsize='xx-small')
+            ax.text(0.1,100.,file[9:-4],fontsize='xx-small')
     fig.show()
     fig.savefig("maint/all_k.pdf", bbox_inches='tight')
         

@@ -6,7 +6,7 @@
 : other silicates   astrosil                                        (Draine03) :
 : amorphous carbon  c-z    c-p                           (Zubko96,Preibisch93) :
 : graphite,special  c-gra  c-nano  c-org                (Dra.03,Mut.04,Hen.96) :
-: corundum          cor-c                                            (Koike95) :
+: quartz,corundum   sio2   cor-c                          (Kitamura07,Koike95) :
 : iron/sulfide      fe-c   fes                                     (Henning96) :
 : carbides          sic                                             (Draine93) :
 : water ice         h2o-w                                           (Warren08) :
@@ -15,7 +15,7 @@
 :                                                                              :
 : *** ABBREVIATIONS AND GENERIC KEYS FOR QUICK ACCESS ***                      :
 : pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      h2o  -> h2o-w     :
-: ol   -> ol-mg50      gra  -> c-gra       cor  -> cor-c     co   -> co-a      :
-: for  -> ol-c-mg100   org  -> c-org                         co2  -> co2-w     :
+: ol   -> ol-mg50      gra  -> c-gra       qua  -> sio2      co   -> co-a      :
+: for  -> ol-c-mg100   org  -> c-org       cor  -> cor-c     co2  -> co2-w     :
 : ens  -> pyr-c-mg96                                         nh3  -> nh3-m     :
 ================================================================================

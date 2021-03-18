@@ -112,6 +112,8 @@ the filling factor
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.7.3 ::
+  - New builtin materials: SiO2
 - Release 1.7.2 ::
   - Implementation of particle arithmetic in the python module, to
     allow constructing grain models by adding separate grain types.

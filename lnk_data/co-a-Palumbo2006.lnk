@@ -1,9 +1,13 @@
-#  CO ice 16 K.  Palumbo et al. 2006 PCCP 8, 279
+# CO ice 16 K.  Palumbo et al. 2006 PCCP 8, 279
+#
+# According to Urso et al. 2016, A&A 594 A80, the CO band does
+# not change at higher temperatures, so this can be used for all
+# temperatures below the sublimation limit.
 #
 # This data was smoothed, and a lower limit for k of 1e-4 was set,
-# because the data was getting very noisy.  Also, I added two
-# wavelength points at the end, to make sure extrapolation
-# is working correctly (N~constat, k~0) (C. Dominik, 2021-3-10)
+# because the data was getting noisy at low values.  Also, I
+# added two wavelength points at the end, to make sure extrapolation
+# is working correctly (n~constant, k~0) (C. Dominik, 2021-3-10)
 # The density 0.81 is from Loeffler et al. 2005 A&A 435, 587
 #
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
