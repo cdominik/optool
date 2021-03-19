@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   March 2021, version 1.7.2
+#+DATE:   March 2021, version 1.7.3
 
 * Introduction
 
@@ -299,16 +299,16 @@ and use other data.  No matter where the data is from, you should
 :END:
 
 To access one of the built-in materials, specify the corresponding key
-string like =pyr-mg70=. In each material class I have selected a
+string like =pyr-mg70=. In each material class we have selected a
 useful default, accessible with an even simpler generic key (for
-example, =pyr= is an alias for =pyr-mg70=). Most of the refractive
-index datasets have a wide wavelength coverage - the few exceptions
-are highlighted by bold-face numbers.  If a material is being used
-outside of the measured region, =optool= will still function, using
-extrapolated optical properties.
+example, =pyr= is an alias for =pyr-mg70=). Most of the built-in
+refractive index datasets have a wide wavelength coverage - the few
+exceptions are highlighted by bold-face numbers.  If a material is
+being used outside of the measured region, =optool= will still
+function, using extrapolated optical properties.
 
 Even the limited number of materials we have selected to include with
-=optool= can certainly be daunting. To get started with some kind of
+=optool= can be daunting. To get started with some kind of
 standard opacity, we recommend to work with pyroxene \fbox{pyr},
 carbon \fbox{c}, and (at low temperaturs) water ice \fbox{h2o}.
 
@@ -378,10 +378,9 @@ following format:
 
 You can find refractive index data in the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and
 associated with original papers in the literature. Don't forget to add
-the line with $n_\lambda$ and \rho!  If for some reason it is not
-convenient to add that line to the file, =optool= will count the lines
-and you can specify the density after the mass fraction, like this:
-=optool -c path/to/file.lnk 0.7 3.42=.
+the line with $n_\lambda$ and \rho!  If that is not possible, =optool=
+will count the lines and you can specify the density after the mass
+fraction, like this: =optool -c path/to/file.lnk 0.7 3.42=.
 
 
 #+LATEX: \newpage

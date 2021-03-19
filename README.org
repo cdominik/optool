@@ -113,12 +113,15 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
 - Release 1.7.3 ::
-  - New builtin materials: SiO2
+  - New built-in materials: SiO2
+  - Stabilization of the interpolation and extrapolation of refractive
+    index data.  Zero values did cause problems with the loglog
+    scheme.
 - Release 1.7.2 ::
   - Implementation of particle arithmetic in the python module, to
     allow constructing grain models by adding separate grain types.
 - Release 1.7 ::
-  - New builtin materials (ices!): CO, CO2, CH3OH, CH4, and NH3.
+  - New built-in materials (ices!): CO, CO2, CH3OH, CH4, and NH3.
   - Mean opacities can be computed in the Python module.
   - the =scatnorm= method in the Python module allows to renormalize
     the scattering matrix to various conventions used in the
