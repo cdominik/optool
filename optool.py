@@ -205,6 +205,50 @@ Keywords
                 idxnames=['grain index','log lambda [um]'],
                 idxvals=[np.array(range(self.nsize))+1,llamfmt])
 
+    def select(self,i):
+        """Select just one bin from a multi-particle object.
+        A multi-particle opject is produced when running optool with
+        a -d switch.
+
+        This is useful for doing particle arithmetic, which only works for
+        single particle objects.
+        """
+        import copy
+        x = copy.deepcopy(self)
+
+        x.fmax    = np.array(x.fmax[i])
+        x.pcore   = np.array(x.pcore[i])
+        x.pmantle = np.array(x.pmantle[i])
+
+        x.amin    = np.array(x.amin[i])
+        x.amax    = np.array(x.amax[i])
+        x.nsub    = np.array(x.nsub[i])
+        x.apow    = np.array(x.apow[i])
+        x.a1      = np.array(x.a1[i])
+        x.a2      = np.array(x.a2[i])
+        x.a3      = np.array(x.a3[i])
+        x.rho     = np.array(x.rho[i])
+        x.chop    = np.array(x.chop[i])
+        
+        x.kabs    = np.array(x.kabs[i,:])
+        x.ksca    = np.array(x.ksca[i,:])
+        x.kext    = np.array(x.kext[i,:])
+        x.gsca    = np.array(x.gsca[i,:])
+
+        if x.scat:
+            x.f11     = np.array(x.f11[i,:,:])
+            x.f12     = np.array(x.f12[i,:,:])
+            x.f22     = np.array(x.f22[i,:,:])
+            x.f33     = np.array(x.f33[i,:,:])
+            x.f34     = np.array(x.f34[i,:,:])
+            x.f44     = np.array(x.f44[i,:,:])
+
+        if (hasattr(x,'kross')):
+            x.kplanck = np.array(x.kplanck[i,:])
+            x.kross   = np.array(x.kross[i,:])
+
+        return x
+        
     def scatnorm(self,norm=""):
         """Check or change the normalization of the scattering matrix.
 

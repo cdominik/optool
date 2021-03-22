@@ -376,11 +376,13 @@ following format:
   \lambda[\mu{}m], and the real and imaginary parts of the refractive
   index, $n$ and $k$.
 
-You can find refractive index data in the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and
-associated with original papers in the literature. Don't forget to add
-the line with $n_\lambda$ and \rho!  If that is not possible, =optool=
-will count the lines and you can specify the density after the mass
-fraction, like this: =optool -c path/to/file.lnk 0.7 3.42=.
+You can find additinal refractive index data [[https://github.com/cdominik/refind-for-optool][here]], in databases like
+the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and associated with original papers in the
+literature. Don't forget to add the line with $n_\lambda$ and \rho!
+If that is not possible, =optool= will count the lines and you can
+specify the density after the mass fraction, like this: =optool -c
+path/to/file.lnk 0.7 3.42=.
+
 
 
 #+LATEX: \newpage
@@ -536,9 +538,10 @@ It will produce the following plots:
   mixture.
 
 You can also use /particle arithmetic/ (multiplying =particle= objects
-with factors and adding them), for example to produce opacites for a
-mixture of different grains or scale opacities using a dust-to-gas
-ratio:
+with factors and adding them - this is implemented in a way that it
+works correctly also for the scattering matrix), for example to
+produce opacites for a mixture of different grains or scale opacities
+using a dust-to-gas ratio:
 
 #+begin_src python
 p1 = optool.particle('optool -a 0.01 0.3 pyr-mg70')      # silicate grains
