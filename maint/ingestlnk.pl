@@ -38,12 +38,14 @@ close $fh;
 # ------------------------------------------------------------------
 while ($file = shift) {
   # Extract the material key and the Reference
-  if ($file =~ /(.*\/)?(.*)-(\w+[0-9]+).lnk$/) {
+  if ($file =~ /(.*\/)?(.+)-(\w+[0-9]+).lnk$/) {
     $key = $2;
     $ref = $3;
     # Set the name of the subroutine
     $sbrname = $key;
     $sbrname =~ s/-/_/g;
+  } else {
+    die "File $file does not have a name like key-reference2017.lnk\n";
   }
 
   # open the file
@@ -79,6 +81,13 @@ while ($file = shift) {
     push @ll,$l; push @nn,$n; push @kk,$k;
   }
   die "Extra data after expected last line $line_number in file $file\n" if ($_=<$fh> and /[^\s]/);
+
+  # Make sure lambda is increasing in the data
+  if ($ll[0] > $ll[-1]) {
+    @ll = reverse(@ll);
+    @nn = reverse(@nn);
+    @kk = reverse(@kk);
+  }
   
   # Is there q quick key for this dataset?
   $quick = $key_to_quick{$key};

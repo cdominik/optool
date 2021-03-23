@@ -11,7 +11,7 @@
 # opacities using a 1/3-2/3 rule.  You can look at this like this:
 # The asumption is that in each grain, the orientations of the
 # graphite planes are randomized in many small regions.
-# 
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
  1201 2.16
      1.0000E-03     9.9968E-01     2.3810E-05

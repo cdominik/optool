@@ -6,13 +6,15 @@ end subroutine ListBuiltinMaterials
 
 subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   use Defs
-  IMPLICIT NONE
-  REAL (KIND=dp) :: grid(n)
-  REAL (KIND=dp) :: e1(n),e2(n),x0,y01,y02,x1,y11,y12,wp,gamma
-  REAL (KIND=dp) :: rho,rho_in
-  REAL (KIND=dp) :: slope1,sect1,slope2,sect2,dist
-  REAL (KIND=dp) :: lgy11,lgy12,lgy01,lgy02,lgx0,lgx1,lggr
-  integer i,j,n, iostatus, count_numbers, count_data_lines
+  implicit none
+  integer, parameter :: nmax = 100000 ! for allocation of lnk arrays
+  real (kind=dp) :: grid(n)
+  real (kind=dp) :: e1(n),e2(n),x0,y01,y02,x1,y11,y12,wp,gamma
+  real (kind=dp) :: rho,rho_in
+  real (kind=dp) :: slope1,sect1,slope2,sect2,dist,temp
+  real (kind=dp) :: lgy11,lgy12,lgy01,lgy02,lgx0,lgx1,lggr
+  integer i,j,n, iup,idown, iostatus, count_numbers, count_data_lines
+
   character*100 input
   character*500 line
   real (KIND=dp),allocatable :: x(:),y1(:),y2(:)
@@ -22,9 +24,9 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
 
   EXTERNAL_DEFS
   
-  allocate(x(10000))
-  allocate(y1(10000))
-  allocate(y2(10000))
+  allocate(x(nmax))
+  allocate(y1(nmax))
+  allocate(y2(nmax))
 
   ! Check if INPUT is a built-in dataset
   select case(trim(input))
@@ -72,6 +74,19 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
         if (y2(i).le.0.d0) y2(i) = 1d-10
      end do
      close(99)
+
+     ! Check if we need to reverse the arrays
+     if (x(n0) .lt. x(1)) then
+        if (.not. quiet) print *,"WARNING: reversing input from file ",input
+        iup = 1; idown = n0
+        do
+           if (iup >= idown) exit
+           temp = x(iup);  x(iup)  = x(idown);  x(idown)  = temp
+           temp = y1(iup); y1(iup) = y2(idown); y1(idown) = temp
+           temp = y2(iup); y2(iup) = y2(idown); y2(idown) = temp
+           iup = iup+1; idown = idown-1
+        enddo
+     endif
   end select
   
   i   = 1
@@ -157,9 +172,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
 
 9 continue
   
-  deallocate(x)
-  deallocate(y1)
-  deallocate(y2)
+  deallocate(x,y1,y2)
   
   return
 end subroutine GetAndRegridLNK
