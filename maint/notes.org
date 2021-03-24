@@ -1,4 +1,12 @@
 * Actions and Ideas
+
+** TODO log-normal size distribution
+
+
+dn/da ∝ exp(−log[a/a0]2)/σ.
+
+optool -a 0.1 3000 10.2:1.0 88
+
 ** TODO Bohren-Huffman output. command-line-switch -bh
 ** TODO Implement Ryo's MMT
 Problems: the scattering matrix will not be right, only the cross

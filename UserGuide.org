@@ -219,6 +219,10 @@ DHS with f_max=0.8.
   /10 per size decade with a fixed minimum of 5/, respectively.  If
   only a single size is specified with *-a*, then a_max=a_min and
   n_a=1 are implied.
+
+#  If the APOW element looks like =AP:SIG=, the size distribution
+#  will be log normal, centered around a_p: $dn/da = 
+#  \exp\{-0.5[\ln(a/a_{\rm p})/\sigma]^2\}$
   
 ** Wavelength grid
 
@@ -373,8 +377,8 @@ following format:
   $n_\lambda$ and the specific density \rho of the material in
   g/cm^{3}.
 - The remaining lines should form three columns of data:
-  \lambda[\mu{}m], and the real and imaginary parts of the refractive
-  index, $n$ and $k$.
+  \lambda[\mu{}m] (sorted either up or down), and the real and
+  imaginary parts of the refractive index, $n$ and $k$.
 
 You can find additinal refractive index data [[https://github.com/cdominik/refind-for-optool][here]], in databases like
 the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and associated with original papers in the
