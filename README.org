@@ -116,10 +116,21 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
   - New built-in materials: SiO2
   - Stabilization of the interpolation and extrapolation of refractive
     index data.  Zero values did cause problems with the loglog
-    scheme.
+    scheme.  This is now fixed by using a floor of 1e-10 for both n
+    and k values.
+  - New =select()= method for the =optool.particle class=, to pull a
+    particle size out of an opject with many particle sizes in it
+    (because it was computed by =optool= with the -d switch).
+    : p   = optool.particle('optool -d -na 50')
+    : p5  = p.select(5)
+    : p12 = p.select(12)
+    : pp  = p5 + p12
 - Release 1.7.2 ::
   - Implementation of particle arithmetic in the python module, to
     allow constructing grain models by adding separate grain types.
+    : p_pyr  = optool.particle('optool pyr -a 0.05 0.3 3.5 30')
+    : p_c    = optool.particle('optool c   -a 0.05 0.9 2.5 10')
+    : dustopac   = 0.7*p_pyr + 0.3*p_c
 - Release 1.7 ::
   - New built-in materials (ices!): CO, CO2, CH3OH, CH4, and NH3.
   - Mean opacities can be computed in the Python module.

@@ -216,36 +216,38 @@ Keywords
         import copy
         x = copy.deepcopy(self)
 
-        x.fmax    = np.array(x.fmax[i])
-        x.pcore   = np.array(x.pcore[i])
-        x.pmantle = np.array(x.pmantle[i])
-
-        x.amin    = np.array(x.amin[i])
-        x.amax    = np.array(x.amax[i])
-        x.nsub    = np.array(x.nsub[i])
-        x.apow    = np.array(x.apow[i])
-        x.a1      = np.array(x.a1[i])
-        x.a2      = np.array(x.a2[i])
-        x.a3      = np.array(x.a3[i])
-        x.rho     = np.array(x.rho[i])
-        x.chop    = np.array(x.chop[i])
+        x.np = 1
         
-        x.kabs    = np.array(x.kabs[i,:])
-        x.ksca    = np.array(x.ksca[i,:])
-        x.kext    = np.array(x.kext[i,:])
-        x.gsca    = np.array(x.gsca[i,:])
+        x.fmax    = np.array([x.fmax[i]])
+        x.pcore   = np.array([x.pcore[i]])
+        x.pmantle = np.array([x.pmantle[i]])
+
+        x.amin    = np.array([x.amin[i]])
+        x.amax    = np.array([x.amax[i]])
+        x.nsub    = np.array([x.nsub[i]])
+        x.apow    = np.array([x.apow[i]])
+        x.a1      = np.array([x.a1[i]])
+        x.a2      = np.array([x.a2[i]])
+        x.a3      = np.array([x.a3[i]])
+        x.rho     = np.array([x.rho[i]])
+        x.chop    = np.array([x.chop[i]])
+        
+        x.kabs    = np.array([x.kabs[i,:]])
+        x.ksca    = np.array([x.ksca[i,:]])
+        x.kext    = np.array([x.kext[i,:]])
+        x.gsca    = np.array([x.gsca[i,:]])
 
         if x.scat:
-            x.f11     = np.array(x.f11[i,:,:])
-            x.f12     = np.array(x.f12[i,:,:])
-            x.f22     = np.array(x.f22[i,:,:])
-            x.f33     = np.array(x.f33[i,:,:])
-            x.f34     = np.array(x.f34[i,:,:])
-            x.f44     = np.array(x.f44[i,:,:])
+            x.f11     = np.array([x.f11[i,:,:]])
+            x.f12     = np.array([x.f12[i,:,:]])
+            x.f22     = np.array([x.f22[i,:,:]])
+            x.f33     = np.array([x.f33[i,:,:]])
+            x.f34     = np.array([x.f34[i,:,:]])
+            x.f44     = np.array([x.f44[i,:,:]])
 
         if (hasattr(x,'kross')):
-            x.kplanck = np.array(x.kplanck[i,:])
-            x.kross   = np.array(x.kross[i,:])
+            x.kplanck = np.array([x.kplanck[i,:]])
+            x.kross   = np.array([x.kross[i,:]])
 
         return x
         
@@ -388,7 +390,6 @@ Keywords
                 self.kplanck[ip,it] = kap_p
                 self.kross[ip,it]   = kap_r
 
-
     def __add__(s,o):
         """Addition of optool.particle objects.
         This can be used to mix different grain types together
@@ -467,6 +468,11 @@ Keywords
         if (x.rho     != o.rho    ): x.rho     = -1
         if (x.chop    != o.chop   ): x.chop    = -1
         x.a1,x.a2,x.a3 = -1,-1,-1
+
+        if hasattr(self, 'kplanck'):
+            kplanck = -1
+            kross   = -1 
+            temp    = -1
 
         return x
         
