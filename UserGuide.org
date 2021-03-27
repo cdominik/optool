@@ -48,62 +48,84 @@ A simple grain made only of the default pyroxene, for the default
 grain size distribution ($a^{-3.5}$ powerlaw from 0.05 to 3000\mu{}m),
 on the default wavelength grid (0.05\mu{}m to 1cm).
 
-: optool pyr
+#+begin_src sh
+optool pyr
+#+end_src
 
 Include the scattering matrix in the produced output
 
-: optool pyr -s
+#+begin_src sh
+optool pyr -s
+#+end_src
 
 Reproduce the DIANA standard dust model, using a specific pyroxene
 (70% Mg) and carbon, in a mass ratio 0.87/0.13, and with a porosity of
 25%.
 
-: optool pyr-mg70 0.87  c 0.13  -p 0.25
+#+begin_src sh
+optool pyr-mg70 0.87  c 0.13  -p 0.25
+#+end_src
 
 List the built-in materials
 
-: optool -c
+#+begin_src sh
+optool -c
+#+end_src
 
 Add a water ice mantle (built-in data from Warren+08) that is 20% of
 the core mass
 
-: optool pyr-mg70 0.87  c 0.13  -m h2o-w 0.2  -p 0.25
+#+begin_src sh
+optool pyr-mg70 0.87  c 0.13  -m h2o-w 0.2  -p 0.25
+#+end_src
 
 Like the previous example, but use ice refractive index data from a
 separate file.
 
-: optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
+#+begin_src sh
+optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
+#+end_src
 
 Pure water ice grains in a narrow size distribution from 1 to 3
 microns, with 15 sample sizes following an $f(a)\propto a^{-2.5}$
 powerlaw size distribution. Also, restrict the wavelength range to
 10-100\mu{}m, and turn off DHS to get perfect spheres.
 
-: optool h2o  -a 1 3 2.5 15  -l 10 100 -fmax 0
+#+begin_src sh
+optool h2o  -a 1 3 2.5 15  -l 10 100 -fmax 0
+#+end_src
 
 For silicon carbide, compute the opacity of a single grains size (2.5\mu{}m)
 at \lambda=8.9\mu{}m.
 
-: optool -a 2.5 -l 8.9 sic
+#+begin_src sh
+optool -a 2.5 -l 8.9 sic
+#+end_src
 
 Represent the default dust model (DIANA, you also get this when you do
 not give any materials at all) in 42 grain sizes, and produce input
 files for RADMC-3D, one for each grain size, with full scattering
 matrix, chopping 3 degrees from the scattering peak.
 
-: optool -na 42 -d -s -radmc -chop 3
+#+begin_src sh
+optool -na 42 -d -s -radmc -chop 3
+#+end_src
 
 Use MMF to compute the opacities of dust aggregates made of pyroxene
 monomers.  Use a monomer radius of 0.3 \mu{}m to construct aggregates
 with compact-volume radii between 10 and 30 \mu{}m, and a filling
 factor of 5%
 
-: optool pyr  -a 10 30  -mmf 0.3 0.05
+#+begin_src sh
+optool pyr  -a 10 30  -mmf 0.3 0.05
+#+end_src
 
 As before, but fix the fractal dimension $D_f=1.9$ instead of setting
 the filling factor
 
-: optool pyr  -a 10 30  -mmf 0.3 1.9
+#+begin_src sh
+optool pyr  -a 10 30  -mmf 0.3 1.9
+#+end_src
 
 
 #+LATEX: \clearpage
@@ -455,9 +477,7 @@ normalization of the scattering matrix.
 =optool= comes with a [[https://www.python.org/][=python=]] module =optool.py= that runs =optool=
 in the background[fn:3] and puts all computed quantities as =numpy=
 arrays into a python object.  This makes it straight forward to
-inspect and further process the output, for example to produce custom
-opacity files for use in a radiative transfer tool. Here is how to
-use the module:
+inspect and further process the output. Here is how to use it:
 
 #+begin_src python
 import optool
@@ -474,57 +494,55 @@ be arrays with the first dimension equal to $n_p$, even if
 $n_p=1$. The resulting object will have the following attributes:
 
 #+ATTR_LATEX: :font \small  :align llp{7cm}
-| *Attribute*        | *Type/Shape*          | *Quantity*                                      |
-|--------------------+-----------------------+-------------------------------------------------|
-| =cmd=              | =string=              | The full command given in the particle() call   |
-|--------------------+-----------------------+-------------------------------------------------|
-| =radmc=            | =boolean=             | Output follows RADMC conventions                |
-| =scat=             | =boolean=             | Scattering matrix is available                  |
-|--------------------+-----------------------+-------------------------------------------------|
-| =nlam=             | =int=                 | Number of wavelength points                     |
-| =lam=              | =float[nlam]=         | The wavelength grid                             |
-| =nang=             | =int=                 | Number of scattering angles                     |
-| =scatang=          | =float[nang]=         | The angular grid                                |
-|--------------------+-----------------------+-------------------------------------------------|
-| =materials=        | =[[[...]...]... ]=    | Lists with [location,m_{frac},\rho,material]    |
-|--------------------+-----------------------+-------------------------------------------------|
-| =np=               | =int=                 | Number of particles, either 1 or (with -d) n_a  |
-|--------------------+-----------------------+-------------------------------------------------|
-| =fmax=             | =float[np]=           | Maximum volume fraction of vacuum for DHS       |
-| =pcore=, =pmantle= | =float[np]=           | Porosity of the core/mantle material            |
-|--------------------+-----------------------+-------------------------------------------------|
-| =amin=, =amax=     | =float[np]=           | min/max grain size used for each particle       |
-| =nsub=             | =int[np]=             | Number of sizes averaged for each particle.     |
-| =apow=             | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
-| =a1=, =a2=, =a3=   | =fload[np]=           | Mean <a>, <a^2>, and <a^3> of the particle      |
-| =rho=              | =float[np]=           | Specific density of grains                      |
-|--------------------+-----------------------+-------------------------------------------------|
-| =kabs,ksca,kext=   | =float[np,nlam]=      | Absorption,scattering,extinction cross section  |
-| =gsca=             | =float[np,nlam]=      | Asymmetry parameter                             |
-|--------------------+-----------------------+-------------------------------------------------|
-| =f11=, ..., =f44=  | =float[np,nlam,nang]= | Scattering matrix element F_11, ... ,F_44       |
-| =chop=             | =float[np]=           | Degrees chopped off forward scattering          |
-|--------------------+-----------------------+-------------------------------------------------|
-| =plot()=           | =method=              | Plot the cross sections and matrix elements     |
-|--------------------+-----------------------+-------------------------------------------------|
-| =computemean()=    | =method=              | Compute Planck/Rosseland mean opacities         |
-| =tmin,tmax,ntemp=  | =float,float,int=     | Temperature grid for mean opacities             |
-| =temp=             | =float[ntemp]=        | Temperatures used for mean opacities            |
-| =kplanck,kross=    | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
-|--------------------+-----------------------+-------------------------------------------------|
-| =norm=             | =string=              | Current scattering matrix normalization         |
-| =scatnorm()=       | =method=              | Check/change scat. matrix normalization         |
+| *Attribute*         | *Type/Shape*          | *Quantity*                                      |
+|---------------------+-----------------------+-------------------------------------------------|
+| =cmd=               | =string=              | The full command given in the particle() call   |
+|---------------------+-----------------------+-------------------------------------------------|
+| =radmc=             | =boolean=             | Output follows RADMC conventions                |
+| =scat=              | =boolean=             | Scattering matrix is available                  |
+|---------------------+-----------------------+-------------------------------------------------|
+| =nlam=              | =int=                 | Number of wavelength points                     |
+| =lam=               | =float[nlam]=         | The wavelength grid                             |
+| =nang=              | =int=                 | Number of scattering angles                     |
+| =scatang=           | =float[nang]=         | The angular grid                                |
+|---------------------+-----------------------+-------------------------------------------------|
+| =materials=         | =[[[...]...]... ]=    | Lists with [location,m_{frac},\rho,material]    |
+|---------------------+-----------------------+-------------------------------------------------|
+| =np=                | =int=                 | Number of particles, either 1 or (with -d) n_a  |
+|---------------------+-----------------------+-------------------------------------------------|
+| =fmax=              | =float[np]=           | Maximum volume fraction of vacuum for DHS       |
+| =pcore=, =pmantle=  | =float[np]=           | Porosity of the core/mantle material            |
+|---------------------+-----------------------+-------------------------------------------------|
+| =amin=, =amax=      | =float[np]=           | min/max grain size used for each particle       |
+| =nsub=              | =int[np]=             | Number of sizes averaged for each particle.     |
+| =apow=              | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
+| =a1=, =a2=, =a3=    | =fload[np]=           | Mean <a>, $\sqrt{<a^2>}$, and $\sqrt[3]{<a^3>}$ |
+| =rho=               | =float[np]=           | Specific density of grains                      |
+|---------------------+-----------------------+-------------------------------------------------|
+| =kabs,ksca,kext=    | =float[np,nlam]=      | Absorption,scattering,extinction cross section  |
+| =gsca=              | =float[np,nlam]=      | Asymmetry parameter                             |
+|---------------------+-----------------------+-------------------------------------------------|
+| =f11=, ..., =f44=   | =float[np,nlam,nang]= | Scattering matrix element F_11, ... ,F_44       |
+| =chop=              | =float[np]=           | Degrees chopped off forward scattering          |
+|---------------------+-----------------------+-------------------------------------------------|
+| =plot()=            | =method=              | Plot the cross sections and matrix elements     |
+|---------------------+-----------------------+-------------------------------------------------|
+| =computemean()=     | =method=              | Compute Planck/Rosseland mean opacities         |
+| =tmin,tmax,ntemp=   | =float,float,int=     | Temperature grid for mean opacities             |
+| =temp=              | =float[ntemp]=        | Temperatures used for mean opacities            |
+| =kplanck,kross=     | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
+|---------------------+-----------------------+-------------------------------------------------|
+| =norm=              | =string=              | Current scattering matrix normalization         |
+| =scatnorm()=        | =method=              | Check/change scat. matrix normalization         |
+|---------------------+-----------------------+-------------------------------------------------|
+| =sizedist()=        | =method=              | Sum opacities over a size distribution          |
 
 #+CAPTION: Screenshot of plots created by running =p.plot()= on an optool particle.
 #+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./maint/inspect.png]]
 
-#+LATEX: \newpage
-The =plot()= method is used like this:
-#+begin_src python
-p.plot()
-#+end_src
-It will produce the following plots:
+Applying the =plot()= method to a =particle= object like =p.plot()=
+will produce these plots:
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
   as a function of wavelength, along with the asymmetry parameter /g/
   (on a linear y-scale).  Note that the blue /g/ curve does not havex
@@ -541,17 +559,78 @@ It will produce the following plots:
   apply a dust-to-gas mass ratio to obtain opacities for a gas-dust
   mixture.
 
-You can also use /particle arithmetic/ (multiplying =particle= objects
-with factors and adding them - this is implemented in a way that it
-works correctly also for the scattering matrix), for example to
-produce opacites for a mixture of different grains or scale opacities
-using a dust-to-gas ratio:
+The python module has a few more tricks up its sleeve.  We show a few
+examples here - full documentation is inside the Python module file.
+
+- a =lnktable= class to read, plot and modify =lnk= files.
+  #+begin_src python
+  x = optool.lnkfile('lnk_data/sio2-Kitamura2007.lnk')
+  x.plot()
+  #+end_src
+- Compute Planck and Rosseland mean opacities
+  #+begin_src 
+  p = optool.particle('optool  pyr 0.87  c 0.13 -p 0.25')
+  p.computemean(tmin=10.,tmax=1500.,ntemp=300)
+  #+end_src
+- /particle arithmetic/: multiplying =optool.particle= objects with
+  factors and adding them, or applying size distributions to a
+  precmoputed set of opacities. The following page contains a number
+  of examples.
+#+LATEX: \newpage
+
+Pre-compute the opacities of 100 olivine silicate grain sizes and of
+50 carbon grain sizes, and store the opacities in directories. This
+works simply by specifying the directory as the second argument.
 
 #+begin_src python
-p1 = optool.particle('optool -a 0.01 0.3 pyr-mg70')      # silicate grains
-p2 = optool.particle('optool -a 0.03 0.1 c-z')           # carbon grains
-p  = 0.75*p1 + 0.25*p2   # add with mass fractions
-p  = p * 0.01            # apply dust-to-gas ratio -> opacity per gas mass
+import optool
+sil  = optool.particle('optool -d -a 0.001 100 0 100 ol-mg50',dir='sil')
+carb = optool.particle('optool -d -a 0.001 3.0 0 50  c',dir='carb')
+#+end_src
+
+In a new session, read the opacities computed above back in.  This
+will be much faster than recomputing them every time.
+
+#+begin_src python
+import optool
+import numpy as np
+sil  = optool.particle(dir='sil')
+carb = optool.particle(dir='carb')
+#+end_src
+
+Apply powerlaw size distributions, and limit the size of the
+contributing grains.  Note that a power law f(a)\propto a^{-3.5} on a
+logarithmic grid implies using a power a^{-2.5}.
+
+#+begin_src python
+nsil = sil.a1**(-2.5)             # power law, no normalization required
+nsil[sil.a1<0.01] = 0             # no grains smaller than 0.01um
+nsil[sil.a1>0.3]  = 0             # no grains larger  than 0.3um
+sil_pl = sil.sizedist(nsil)       # pass the relative number for each size
+
+nc = carb.a1**(-2.5)              # power law, no normalization required
+nc[carb.a1>0.3]=0                 # no grains larger than 0.3um
+carb_pl = carb.sizedist(nc)       # pass the relative number for each size
+#+end_src
+
+=sil_pl= and =carb_pl= are now objects with a single opacity each,
+obtained by adding opacities with the weights of the size
+distribution. The opacities are still per g of total grain mass.
+Let's add these two opacities with mass weights, to get something
+resembling an interstellar dust opacity produced by a mixture of
+silicate and carbon grains:
+#+begin_src python
+ptot = 0.7*sil_pl + 0.3*carb_pl   # weights should add up to 1
+ptot.plot()
+#+end_src
+
+Other size distributions can be made just as easily.  Here is a
+log-normal size distribution for the silicate grains, with a
+peak abundance at a size of a_m=1.3 microns, and a logarithmic width
+of \sigma=0.2:
+#+begin_src python
+sil_ln = sil.sizedist( np.exp(-0.5* (np.log(sil.a1/1.3)/0.2)**2) )
+sil_ln.write('dkap_ln.dat')       # write opacity to a file
 #+end_src
 
 [fn:3] The module runs the command as a subprocess, with output to a
@@ -560,12 +639,9 @@ temporary subdirectory.
 [fn:4] As a string, or as a list like =['/path/to
 my/command','arg1','arg2',...]=. 
 
-
-
-
 \appendix
-#+LATEX: \newpage
 
+#+LATEX: \newpage
 
 * Units
 Due to conventions in our field, the input and output of =optool= uses
@@ -654,9 +730,13 @@ the computed values to the cell boundaries.
 * Overview of optical properties
 
 This grid plot shows the imaginary parts of all built-in materials, in
-the wavelength range from 0.05 to 300 \mu{}m.
+the wavelength range from 0.05 to 300 \mu{}m.  Some if the ices have
+only data in a small range, where the virbrational transitions lie.
+However, these materials can be used over a much broader wavelength
+range, because the extrapolation becomes problematic only in the UV
+where electronic transitions kick in.
 
-#+ATTR_LATEX: :width 14.8cm :options angle=0
+#+ATTR_LATEX: :width 14.cm :options angle=0
 [[./maint/all_k.pdf]]
 
 

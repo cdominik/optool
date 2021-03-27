@@ -10,7 +10,7 @@ DESCRIPTION
     It also provides tools to prepare refractive index data for use
     with the tool.
 """
-
+import copy
 import numpy as np
 import matplotlib.pyplot as plt
 import math as m
@@ -34,51 +34,67 @@ DESCRIPTION
 Arguments
 ---------
 
-    cmd : string 
-         A shell command to run optool.  The output produced by this command
-         will be read in and stored in an instance of the optool.particle
-         class.
+    cmd  : string 
+           A shell command to run optool.  The output produced by this
+           command will be read in and stored in an instance of the
+           optool.particle class. When this argument is not present,
+           data will instead be read from a directory specified with
+           the DIR argument.
 
-Keywords
---------
+    dir  : string
+           The diretory to write optool output files to, or to read them
+             from (if they were computed on a previous occasion).
 
-    keep : Boolean, default False
-           When True, do not clean up the directory with the output from
-           running optool.
+    CMD and DIR present: optool will be run and the data
+                         will be stored in DIR.
+    Only CMD present:    a temporary directory will be used and
+                         cleaned up after reading the data.
+    Only DIR is present: data will be read from DIR, assuming it
+                         was placed there in an earlier run.
     """
-    def __init__(self,cmd,keep=False):
+    def __init__(self,cmd='',dir=''):
         "Create a new optool.particle opject."
         self.cmd = cmd
+        if cmd:
+            # OK, a command was specified
         
-        # Convert command string into list if necessary
-        if (isinstance(cmd, str)):
-            cmd = cmd.split()
+            # Convert command string into list if necessary
+            if (isinstance(cmd, str)):
+                cmd = cmd.split()
 
-        if cmd[0].startswith("~"):
-            cmd[0] = os.path.expanduser(cmd[0])
+                if cmd[0].startswith("~"):
+                    cmd[0] = os.path.expanduser(cmd[0])
+                    
+            # Find the optool executable
+            try:
+                bin = find_executable(cmd[0])
+            except:
+                print('ERROR: executable not found:',cmd[0])
+                return -1
             
-        # Find the optool executable
-        try:
-            bin = find_executable(cmd[0])
-        except:
-            print('ERROR: executable not found:',cmd[0])
-            return -1
-            
-        if (not bin):
-            print('ERROR: executable not found:',cmd[0])
-            return -1
+            if (not bin):
+                print('ERROR: executable not found:',cmd[0])
+                return -1
+        else:
+            if (not dir):
+                # Just return and empty object
+                raise NameError("Need CMD or DIR ot both.")
 
         # Wrap the main part into try - finally to make sure we clean up
         try:
-            # create a directory for the output and make sure it is empty
-            random.seed(a=None)
-            tmpdir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
-            os.system('rm -rf '+tmpdir)
-            os.system('mkdir '+tmpdir)
-            cmd.append('-o'); cmd.append(tmpdir)
+            if (dir):
+                tmpdir = dir
+            else:
+                # create a directory for the output and make sure it is empty
+                random.seed(a=None)
+                tmpdir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
+            if cmd:
+                os.system('rm -rf '+tmpdir)
+                os.system('mkdir '+tmpdir)
+                cmd.append('-o'); cmd.append(tmpdir)
     
-            # Run optool to produce the opacities
-            cmd[0] = bin; subprocess.Popen(cmd).wait()
+                # Run optool to produce the opacities
+                cmd[0] = bin; subprocess.Popen(cmd).wait()
             
             # Check if there is output we can use
             scat,ext = check_for_output(tmpdir)
@@ -91,7 +107,7 @@ Keywords
             materials = []
             rho = []
             
-            for i in range(500):
+            for i in range(5000):
                 if scat:
                     file = ("%s/dustkapscatmat_%03d.%s") % (tmpdir,(i+1),ext)
                 else:
@@ -132,11 +148,10 @@ Keywords
                     self.f44  = np.array(f44)
                 else:
                     self.nang = 0
-            self.nsize = nfiles
             self.np = nfiles
         finally:
-            if keep:
-                print("Keeping the temporary directory for inspection: "+tmpdir)
+            if dir:
+                print("Files remain available in directory: "+tmpdir)
             else:
                 print("Cleaning up temporary directory "+tmpdir)
                 os.system('rm -rf '+tmpdir)
@@ -152,7 +167,7 @@ Keywords
             temp = self.temp
             viewarr([kplanck,kross],index=1,ylabel=['kplanck','kross'],
                     idxnames=['grain index','log lambda [um]'],
-                    idxvals=[np.array(range(self.nsize))+1,temp])
+                    idxvals=[np.array(range(self.np))+1,temp])
 
         # Extract the kappas and g
         kabs   = np.copy(self.kabs)
@@ -196,14 +211,14 @@ Keywords
                     index=2,ylabel=['<1e-2','±1','','±1e2','','f11','f12',
                                     'f22','f33','f34','f44'],
                     idxnames=['grain index','lambda [um]','angle'],
-                    idxvals=[np.array(range(self.nsize))+1,lamfmt,angfmt])
+                    idxvals=[np.array(range(self.np))+1,lamfmt,angfmt])
 
         # interactive plot of kabs, ksca, kext, and g
         llamfmt = np.round(np.log10(self.lam),decimals=3)
         viewarr([ggscal,kext,ksca,kabs],index=1,
                 ylabel=['gg','kext','ksca','kabs'],
                 idxnames=['grain index','log lambda [um]'],
-                idxvals=[np.array(range(self.nsize))+1,llamfmt])
+                idxvals=[np.array(range(self.np))+1,llamfmt])
 
     def select(self,i):
         """Select just one bin from a multi-particle object.
@@ -213,44 +228,123 @@ Keywords
         This is useful for doing particle arithmetic, which only works for
         single particle objects.
         """
-        import copy
         x = copy.deepcopy(self)
 
         x.np = 1
+        j = i+1
         
-        x.fmax    = np.array([x.fmax[i]])
-        x.pcore   = np.array([x.pcore[i]])
-        x.pmantle = np.array([x.pmantle[i]])
+        x.fmax    = x.fmax[i:j]
+        x.pcore   = x.pcore[i:j]
+        x.pmantle = x.pmantle[i:j]
 
-        x.amin    = np.array([x.amin[i]])
-        x.amax    = np.array([x.amax[i]])
-        x.nsub    = np.array([x.nsub[i]])
-        x.apow    = np.array([x.apow[i]])
-        x.a1      = np.array([x.a1[i]])
-        x.a2      = np.array([x.a2[i]])
-        x.a3      = np.array([x.a3[i]])
-        x.rho     = np.array([x.rho[i]])
-        x.chop    = np.array([x.chop[i]])
+        x.amin    = x.amin[i:j]
+        x.amax    = x.amax[i:j]
+        x.nsub    = x.nsub[i:j]
+        x.apow    = x.apow[i:j]
+        x.a1      = x.a1[i:j]
+        x.a2      = x.a2[i:j]
+        x.a3      = x.a3[i:j]
+        x.rho     = x.rho[i:j]
+        x.chop    = x.chop[i:j]
         
-        x.kabs    = np.array([x.kabs[i,:]])
-        x.ksca    = np.array([x.ksca[i,:]])
-        x.kext    = np.array([x.kext[i,:]])
-        x.gsca    = np.array([x.gsca[i,:]])
+        x.kabs    = x.kabs[i:j,:]
+        x.ksca    = x.ksca[i:j,:]
+        x.kext    = x.kext[i:j,:]
+        x.gsca    = x.gsca[i:j,:]
 
         if x.scat:
-            x.f11     = np.array([x.f11[i,:,:]])
-            x.f12     = np.array([x.f12[i,:,:]])
-            x.f22     = np.array([x.f22[i,:,:]])
-            x.f33     = np.array([x.f33[i,:,:]])
-            x.f34     = np.array([x.f34[i,:,:]])
-            x.f44     = np.array([x.f44[i,:,:]])
+            x.f11     = x.f11[i:j,:,:]
+            x.f12     = x.f12[i:j,:,:]
+            x.f22     = x.f22[i:j,:,:]
+            x.f33     = x.f33[i:j,:,:]
+            x.f34     = x.f34[i:j,:,:]
+            x.f44     = x.f44[i:j,:,:]
 
         if (hasattr(x,'kross')):
-            x.kplanck = np.array([x.kplanck[i,:]])
-            x.kross   = np.array([x.kross[i,:]])
+            x.kplanck = x.kplanck[i:j,:]
+            x.kross   = x.kross[i:j,:]
 
         return x
+
+    def sizedist(self,N_of_a):
+        """Compute opacity of a size distribution of elements of SELF.
+
+        Arguments
+        ---------
         
+        N_of_a : numpy array containing the sumber of partiles of each size
+                 available in SELF (as given by self.a1)
+
+        """
+        # Check if N_of_a is compatible with self.a1
+        if (len(N_of_a) != len(self.a1)):
+            raise NameError('N_of_a and a1 arrays differ in length')
+            
+        # create a particle object to return
+        x = copy.deepcopy(self)
+
+        # Fill all attributes that make sense
+        x.np = 1
+
+        x.cmd     = ''
+
+        x.materials = self.materials[0:1]
+        
+        x.fmax    = x.fmax[0:1]
+        x.pcore   = x.pcore[0:1]
+        x.pmantle = x.pmantle[0:1]
+
+        x.amin    = x.a1[0:1]
+        x.amax    = x.a1[-1:]
+        x.nsub    = self.nsub[0]*self.np
+        x.apow    = x.apow[0:1]
+        x.a1 = x.a2 = x.a3 = -1;
+        x.rho     = x.rho[0:1]
+        x.chop    = x.chop[0:1]
+
+        # Turn N_of_a into mass fractions, normalized to 1
+        mass   = (4./3.) * np.pi * (self.a1*1e-4)**3 * self.rho
+        m_of_a = N_of_a*mass
+        mtot = np.sum(m_of_a)
+        mfrac  = m_of_a/mtot
+        x.massscale = 1
+
+        # add up the opacities
+        x.kabs = np.sum(self.kabs*mfrac[:,None],axis=0)
+        x.ksca = np.sum(self.ksca*mfrac[:,None],axis=0)
+        x.kabs = x.kabs[None,:]; x.ksca = x.ksca[None,:] # add particle size axis
+        x.kext = x.kabs+x.ksca
+
+        # compute gsca
+        x.gsca = np.sum(self.ksca*self.gsca*mfrac[:,None],axis=0) / x.ksca[0]
+        x.gsca = x.gsca[None,:]  # add particle size axis
+
+        # compute the scattering matrix elements
+        if x.scat:
+            if self.norm == 'hovenier':
+                w  = (self.ksca*mfrac[:,None])[:,:,None]
+                wn = x.ksca[0,:,None]
+                x.f11 = np.sum(self.f11*w,axis=0)/wn
+                x.f12 = np.sum(self.f12*w,axis=0)/wn
+                x.f22 = np.sum(self.f22*w,axis=0)/wn
+                x.f33 = np.sum(self.f33*w,axis=0)/wn
+                x.f34 = np.sum(self.f34*w,axis=0)/wn
+                x.f44 = np.sum(self.f44*w,axis=0)/wn
+            else:
+                w  = mfrac[:,None,None]
+                x.f11 = np.sum(self.f11*w,axis=0)
+                x.f12 = np.sum(self.f12*w,axis=0)
+                x.f22 = np.sum(self.f22*w,axis=0)
+                x.f33 = np.sum(self.f33*w,axis=0)
+                x.f34 = np.sum(self.f34*w,axis=0)
+                x.f44 = np.sum(self.f44*w,axis=0)
+            # Add the particle size axis
+            x.f11 = x.f11[None,:]; x.f12 = x.f12[None,:]; x.f22 = x.f22[None,:]; 
+            x.f33 = x.f33[None,:]; x.f34 = x.f34[None,:]; x.f44 = x.f44[None,:]; 
+
+        # Return the new object
+        return x
+    
     def scatnorm(self,norm=""):
         """Check or change the normalization of the scattering matrix.
 
@@ -372,8 +466,8 @@ Keywords
         self.tmax    = tmax
         self.ntemp   = ntemp
         self.temp    = np.logspace(np.log10(tmin),np.log10(tmax),ntemp)
-        self.kross   = np.zeros([self.nsize,self.ntemp])
-        self.kplanck = np.zeros([self.nsize,self.ntemp])
+        self.kross   = np.zeros([self.np,self.ntemp])
+        self.kplanck = np.zeros([self.np,self.ntemp])
 
         cl = 2.99792458e10          # Speed of light [cgs]
         nu = 1e4*cl/self.lam        # 10^4 because lam is in um - we need cm
@@ -384,7 +478,7 @@ Keywords
             bnudt  = bplanckdt(self.temp[it],nu)
             dumbnu = np.sum(bnu*dnu)
             dumdb  = np.sum(bnudt*dnu)
-            for ip in range(self.nsize):
+            for ip in range(self.np):
                 kap_p  = np.sum(self.kabs[ip,:]*bnu*dnu) / dumbnu
                 kap_r  = dumdb / np.sum(bnudt * dnu / ( self.kabs[ip,:] + self.ksca[ip,:]*(1.-self.gsca[ip,:])))
                 self.kplanck[ip,it] = kap_p
@@ -421,7 +515,8 @@ Keywords
         if ((s.nlam != o.nlam) or (np.abs((s.lam-o.lam)/s.lam).any()>1e-4)):
             raise NameError('Wavelength grids differ')
         if (s.scat):
-            if ((s.nang != o.nang) or (np.abs((s.scatang[1:]-o.scatang[1:])/s.scatang[1:]).any()>1e-4)):
+            if ((s.nang != o.nang) or
+                (np.abs((s.scatang[1:]-o.scatang[1:])/s.scatang[1:]).any()>1e-4)):
                 # We don't check the first value, could be 0
                 raise NameError('Angular grids differ')
             if (s.norm != o.norm):
@@ -429,7 +524,6 @@ Keywords
         #
         # Now do the adding
         #
-        import copy
         x = copy.deepcopy(s)
         x.kabs = x.kabs+o.kabs
         x.ksca = x.ksca+o.ksca
@@ -438,22 +532,23 @@ Keywords
         # So we can just take the weighted mean for g.
         x.gsca = (x.ksca*x.gsca + o.ksca*o.gsca) / (x.ksca+o.ksca)
         x.massscale = s.massscale + o.massscale
+
         if s.scat:
-            # There is a scattering matrix
-            for ip in range(s.np):
-                for il in range(s.nlam):
-                    if s.norm == 'hovenier':
-                        # average, weighted by kappa_scat
-                        ws, wo, wn = s.ksca[ip,il],o.ksca[ip,il],s.ksca[ip,il]+o.ksca[ip,il]
-                    else:
-                        # Add the values
-                        ws, wo, wn = 1.,1.,1.
-                    x.f11[ip,il,:] = (s.f11[ip,il,:]*ws + o.f11[ip,il,:]*wo) / wn
-                    x.f12[ip,il,:] = (s.f12[ip,il,:]*ws + o.f12[ip,il,:]*wo) / wn
-                    x.f22[ip,il,:] = (s.f22[ip,il,:]*ws + o.f22[ip,il,:]*wo) / wn
-                    x.f33[ip,il,:] = (s.f33[ip,il,:]*ws + o.f33[ip,il,:]*wo) / wn
-                    x.f34[ip,il,:] = (s.f34[ip,il,:]*ws + o.f34[ip,il,:]*wo) / wn
-                    x.f44[ip,il,:] = (s.f44[ip,il,:]*ws + o.f44[ip,il,:]*wo) / wn
+            # There is a scattering matrix.
+            if s.norm == 'hovenier':
+                # Add, weighted by kappa_scat
+                ws = s.ksca[:,:,None]
+                wo = o.ksca[:,:,None]
+                wn = ws+wo
+            else:
+                # Just add the values
+                ws, wo, wn = 1.,1.,1.
+            x.f11 = (s.f11*ws + o.f11*wo) / wn
+            x.f12 = (s.f12*ws + o.f12*wo) / wn
+            x.f22 = (s.f22*ws + o.f22*wo) / wn
+            x.f33 = (s.f33*ws + o.f33*wo) / wn
+            x.f34 = (s.f34*ws + o.f34*wo) / wn
+            x.f44 = (s.f44*ws + o.f44*wo) / wn
         #
         # Invalidate attributes that no longer make sense.
         #
@@ -469,7 +564,7 @@ Keywords
         if (x.chop    != o.chop   ): x.chop    = -1
         x.a1,x.a2,x.a3 = -1,-1,-1
 
-        if hasattr(self, 'kplanck'):
+        if hasattr(s, 'kplanck'):
             kplanck = -1
             kross   = -1 
             temp    = -1
@@ -479,28 +574,22 @@ Keywords
     def __mul__(s,o):
         """Multiplication for optool.particle objects.
         
-        This is indended for the multiplication of such an object with
+        This is intended for the multiplication of such an object with
         a number.  The way to think about it is like this.  Such an
         contains opacities in units cm^2/g.  Multiplying it with a
         number means that the opacities are now per a different mass.
-        This sounds strange, but it makes sens together with addition
+        This sounds strange, but it makes sense together with addition
         of particles - which see.
         """
-        import copy
+        if (not (isinstance(o,int) or isinstance(o,float))):
+            raise NameError('optool.particle object can only be multiplied with a number')
         x = copy.deepcopy(s)
-        x.kabs = x.kabs*o
-        x.ksca = x.ksca*o
-        x.kext = x.kext*o
+        x.kabs = x.kabs*o; x.ksca = x.ksca*o; x.kext = x.kext*o
         x.massscale = x.massscale*o
         if (s.scat and (s.norm != 'hovenier')):
-            # We need to change the matrix as well,
-            # because is it normalized to ksca
-            x.f11 = x.f11*o
-            x.f12 = x.f12*o
-            x.f22 = x.f22*o
-            x.f33 = x.f33*o
-            x.f34 = x.f34*o
-            x.f44 = x.f44*o
+            # We need to change the matrix as well, it's normalized to ksca
+            x.f11 = x.f11*o; x.f12 = x.f12*o; x.f22 = x.f22*o
+            x.f33 = x.f33*o; x.f34 = x.f34*o; x.f44 = x.f44*o
         return x
 
     def __rmul__(s,o):
@@ -512,6 +601,66 @@ Keywords
     def __truediv__(s,o):
         """Division of optool.particle object by a number."""
         return s * (1./o)
+
+    def write(s,filename,header="Opacity file written by optool.particle.write"):
+        """Write a single particle object to a file.
+        
+        The format of the file will be similar to the dustkappa.dat and
+        dustkapscatmat.dat files produced by the optool FORTRAN program,
+        with the difference that the header will not contain the detailed
+        information about the computation.  But the file would be readable
+        with the `readoutputfile' function.
+
+        Arguments
+        =========
+
+        filename:  String, pointing the file name to which output should
+                   be written.
+        
+        header:    A string that should be put at the beginning of the
+                   file, as a commend describing the dataset.  The string
+                   may have several lines, the # comment character will
+                   automatically be added to the beginning of every line.
+        """
+
+        if (s.np>1):
+            raise NameError('Writing is not supported for multi-particle objects')
+        try:
+            wfile = open(filename, 'w')
+        except:
+            print('ERROR: Cannot write to file: ',filename)
+            return -1
+
+        headerlines = header.splitlines()
+        for i in range(len(headerlines)):
+            wfile.write("# %s\n" % headerlines[i])
+        if s.scat:
+            wfile.write('  0\n')
+            wfile.write('  %d\n' % s.nlam)
+            wfile.write('  %d\n' % s.nang)
+            wfile.write('\n')
+        else:
+            wfile.write('  3\n')
+            wfile.write('  %d\n' % s.nlam)
+            
+        for i in range(s.nlam):
+            # write the lambda grid and the opacities
+            wfile.write(' %15.5e %15.5e %15.5e %15.5e\n' % (s.lam[i],s.kabs[0,i],s.ksca[0,i],s.gsca[0,i]))
+            
+        if s.scat:
+            # we have a scattering matrix
+            wfile.write('\n')
+            # Write the angular grid
+            for i in range(s.nang):
+                wfile.write("%9.2f\n" % s.scatang[i])
+            wfile.write('\n')
+            # Write the scattering matrix
+            for il in range(s.nlam):
+                for ia in range(s.nang):
+                    wfile.write('  %15.5e %15.5e %15.5e %15.5e %15.5e %15.5e\n' %
+                                (s.f11[0,il,ia],s.f12[0,il,ia],s.f22[0,il,ia],
+                                 s.f33[0,il,ia],s.f34[0,il,ia],s.f44[0,il,ia]))
+        wfile.close()
 
 class lnktable:
     """NAME
@@ -601,7 +750,7 @@ Conversion
         else:
             self.nlam = 1
             self.rho  = 0.0
-            print("Warning: density rho is nt known! Make sure to set it by hand.")
+            print("Warning: density rho is not known! Make sure to set it by hand.")
 
         # Prepare the arrays
         self.lam = []

@@ -1774,7 +1774,7 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
 
   call plmeans(amin,amax,apow,amean)
   write(unit,'(A,"============================================================================")') cc
-  write(unit,'(A," Opacities computed by OpTool          <a^n>=",1p,3e9.2e1)') cc,amean
+  write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,amean
   if (method .eq. 'MMF') then
      if (struct.gt.1.d0) then
         sstruct = '(fractal dimension)'
@@ -1791,12 +1791,12 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
   write(unit,'(A,"   porosity =",f11.3," p_mantle =",f11.3,"  fmax=",g9.2,"chop=  ",f4.1)') cc,pcore,pmantle,fmax,chopangle
   write(unit,'(A," Composition:")') cc
   write(unit,'(A,"  Where   mfrac  rho   Material")') cc
-  write(unit,'(A,"  -----   -----  ----  ----------------------------------------------------")') cc
+  write(unit,'(A,"  -----   -----  ----  -----------------------------------------------------")') cc
   do i=1,nm
      write(unit,'(A,"  ",A6,f7.3,f6.2,"  ",A)') cc,mat_loc(i), mfrac(i)/sum(mfrac(1:nm)),mat_rho(i),trim(mat_lnk(i))
   enddo
   if (rho_av .gt. 0.d0) then
-     write(unit,'(A,"  - - -   - - -  -  -  - - - - - - - - - - - - - - - - - - - - - - - - -  -")') cc
+     write(unit,'(A,"  - - -   - - -  -  -  - - - - - - - - - - - - - - - - - - - - - - - - - - -")') cc
      if ( (pcore+pmantle) .gt. 0.d0) then
         write(unit,'(A,"  ",A6,f7.3,f6.2,"  ","mixture of",i3," materials and vacuum")') cc,'grain  ', 1.0,rho_av,nm
      else
