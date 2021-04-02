@@ -110,91 +110,77 @@ class particle:
         sizedist(N_of_a)
              Compute opacity of a size distribution of elements of SELF
         """
-    def __init__(self,cmd='',dir='',cache=False):
+    def __init__(self,cmd,cache=''):
         """"Create a new optool.particle opject.
 
         Parameters
         ---------=
 
-        cmd  : str, optional
-               A shell command to run optool.  The output produced by this
+        cmd  : str
+               A shell command to run optool. The output produced by this
                command will be read in and stored in an instance of the
-               optool.particle class. When this argument is not present,
-               data will instead be read from a directory specified with
-               the DIR argument.
+               optool.particle class.
 
-        dir  : str, optional
-               The diretory to write optool output files to, or to read them
-               from (if they were computed on a previous occasion).
-
-        cache : bool, optional, default=False
-
-        CMD and DIR present:  optool will run and data will be stored in DIR
-        Only CMD present:     use a temporary directory
-        Only DIR is present:  data will be read from DIR, assuming it was
-                              placed there in an earlier run.
-
-        If both CMD and DIR are present, and also cache=True, then the
-        directory will be treated as a cache.  The files will just be read
-        in if they are already available, and if the command given to
-        produce them is still the same as the one in the current call.  To be
-        able to make this determination, the command is stored in a file
-        called "cmd" in the same directory.
-        If the command is different, or if cache=False, then the computation
-        will be repeated.
+        cache  : str, optional
+               The diretory to cache the optool output files in, so that
+               they can be read instead of recomputed the next time
+               the same command is used.  The cache is automatically
+               cleared when CMD changes between runs.
         """
-        self.cmd = cmd
-        if cmd:
-            # OK, a command was specified
-        
-            if (dir and cache and checkcmd(dir,cmd)):
-                # OK, even though we have a command, we are not using it since
-                # we can read the output directly from a directory that was
-                # created by the exact same command.
-                print("Using result cache in directory:",dir,"...")
-                cmd=''
-            else:
-                # Convert command string into list if necessary
-                if (isinstance(cmd, str)):
-                    cmd = cmd.split()
-
-                    if cmd[0].startswith("~"):
-                        cmd[0] = os.path.expanduser(cmd[0])
-
-                # Find the optool executable
-                try:
-                    bin = find_executable(cmd[0])
-                except:
-                    print('ERROR: executable not found:',cmd[0])
-                    return -1
-
-                if (not bin):
-                    print('ERROR: executable not found:',cmd[0])
-                    return -1
+        if (type(cmd)==list):
+            self.cmd = " ".join(cmd)
+        elif (type(cmd)==str):
+            self.cmd = cmd
         else:
-            if (not dir):
-                # Just return and empty object
-                raise NameError("Need CMD or DIR ot both.")
+            raise NameError("cmd needs to be string or list")
+        
+        if (cache and checkcmd(cache,self.cmd)):
+            # We can read the output directly from a directory that was
+            # created by the exact same command.
+            print("Using result cache in directory:",cache,"...")
+            cmd=''
+        else:
+            # Convert command string into list if necessary
+            if (isinstance(cmd, str)):
+                cmd = cmd.split()
+
+                if cmd[0].startswith("~"):
+                    cmd[0] = os.path.expanduser(cmd[0])
+
+            # Find the optool executable
+            try:
+                bin = find_executable(cmd[0])
+            except:
+                print('ERROR: executable not found:',cmd[0])
+                return -1
+
+            if (not bin):
+                print('ERROR: executable not found:',cmd[0])
+                return -1
 
         # Wrap the main part into try - finally to make sure we clean up
         try:
-            if (dir):
-                tmpdir = dir
+            if (cache):
+                dir = cache
             else:
                 # create a directory for the output and make sure it is empty
                 random.seed(a=None)
-                tmpdir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
+                dir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
             if cmd:
-                os.system('rm -rf '+tmpdir)
-                os.system('mkdir '+tmpdir)
-                writecmd(tmpdir,self.cmd)
-                cmd.append('-o'); cmd.append(tmpdir)
+                # make sure directory is new and empty
+                os.system('rm -rf '+dir)
+                os.system('mkdir '+dir)
+                # Store the command line we are using.  We store the
+                # string version of the command, not the list version.
+                writecmd(dir,self.cmd)
+                # tell the command to use the directory as writing desination
+                cmd.append('-o'); cmd.append(dir)
     
                 # Run optool to produce the opacities
                 cmd[0] = bin; subprocess.Popen(cmd).wait()
             
             # Check if there is output we can use
-            scat,ext = check_for_output(tmpdir)
+            scat,ext = check_for_output(dir)
             self.scat = scat
             self.massscale = 1.
     
@@ -206,9 +192,9 @@ class particle:
             
             for i in range(5000):
                 if scat:
-                    file = ("%s/dustkapscatmat_%03d.%s") % (tmpdir,(i+1),ext)
+                    file = ("%s/dustkapscatmat_%03d.%s") % (dir,(i+1),ext)
                 else:
-                    file = ("%s/dustkappa_%03d.%s") % (tmpdir,(i+1),ext)
+                    file = ("%s/dustkappa_%03d.%s") % (dir,(i+1),ext)
                 if (not os.path.exists(file)): break
                 nfiles = nfiles+1
                 x = readoutputfile(file,scat)
@@ -247,11 +233,11 @@ class particle:
                     self.nang = 0
             self.np = nfiles
         finally:
-            if dir:
-                print("Files remain available in directory: "+tmpdir)
+            if cache:
+                print("Files remain available in directory: "+dir)
             else:
-                print("Cleaning up temporary directory "+tmpdir)
-                os.system('rm -rf '+tmpdir)
+                print("Cleaning up temporary directory "+dir)
+                os.system('rm -rf '+dir)
 
     def plot(self):
         """Create interactive plots of the opacities in SELF.
@@ -986,18 +972,18 @@ def logscale_with_sign(array,bottom):
     array[b] = -np.log10(-array[b]+bottom) + lb
     return array
 
-def check_for_output(tmpdir):
+def check_for_output(dir):
     # Check for and if necessary rename input files
     for ext in['dat','inp']:
-        if (os.path.exists(tmpdir+'/dustkapscatmat_001.'+ext)):
+        if (os.path.exists(dir+'/dustkapscatmat_001.'+ext)):
             return True, ext
-        elif (os.path.exists(tmpdir+'/dustkappa_001.'+ext)):
+        elif (os.path.exists(dir+'/dustkappa_001.'+ext)):
             return False, ext
-        elif (os.path.exists(tmpdir+'/dustkapscatmat.'+ext)):
-            os.system('mv '+tmpdir+'/dustkapscatmat.'+ext+' '+tmpdir+'/dustkapscatmat_001.'+ext)
+        elif (os.path.exists(dir+'/dustkapscatmat.'+ext)):
+            os.system('mv '+dir+'/dustkapscatmat.'+ext+' '+dir+'/dustkapscatmat_001.'+ext)
             return True, ext
-        elif (os.path.exists(tmpdir+'/dustkappa.'+ext)):
-            os.system('mv '+tmpdir+'/dustkappa.'+ext+' '+tmpdir+'/dustkappa_001.'+ext)
+        elif (os.path.exists(dir+'/dustkappa.'+ext)):
+            os.system('mv '+dir+'/dustkappa.'+ext+' '+dir+'/dustkappa_001.'+ext)
             return False, ext
     raise RuntimeError('No valid OpTool output files found')
 

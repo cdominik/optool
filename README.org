@@ -112,15 +112,15 @@ the filling factor
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
-- Release 1.8 ::
+- Release 1.8.1 ::
 
   - New way to keep precomputed opacities in a directory and read them
     back in in python at a later time.
     : # First time, the opacities are computed and stored in directory
-    : diana = optool.particle('optool -d',dir='diana',read=True)
+    : diana = optool.particle('optool -d',cache='diana')
     : # new python session
     : # Second time, the opacities are just read back in
-    : diana = optool.particle('optool -d',dir='diana',read=True)
+    : diana = optool.particle('optool -d',cache='diana')
 
   - New =sizedist()= method for quickly applying size distributions to
     a set of precomputed opacities.

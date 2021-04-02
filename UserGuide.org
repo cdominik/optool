@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   April 2021, version 1.8
+#+DATE:   April 2021, version 1.8.1
 
 * Introduction
 
@@ -557,41 +557,45 @@ will produce these plots:
   mixture.
 
 The python module has a few more tricks up its sleeve.  We show a few
-examples here - full documentation is inside the Python module file.
+examples here - full documentation is inside the Python module file
+=optool.py=.
 
-- a =lnktable= class to read, plot and modify =lnk= files.
+- A =lnktable= class to read, plot, modify and write =lnk= files.
   #+begin_src python
   x = optool.lnkfile('lnk_data/sio2-Kitamura2007.lnk')
   x.plot()
   #+end_src
+
 - Compute Planck and Rosseland mean opacities
   #+begin_src 
   p = optool.particle('optool  pyr 0.87  c 0.13 -p 0.25')
   p.computemean(tmin=10.,tmax=1500.,ntemp=300)
   #+end_src
-- /particle arithmetic/: multiplying =optool.particle= objects with
+
+- /Particle arithmetic/: multiplying =optool.particle= objects with
   factors and adding them, or applying size distributions to a
   pre-computed set of opacities. The following page contains a number
   of examples.
 #+LATEX: \newpage
 
-Pre-compute the opacities of 100 olivine silicate grain sizes and of
-50 carbon grain sizes, and store the opacities in directories. This
-works by specifying the directory as the second argument. In a
-new session, because of the =cache=True= flag, if the directories still
-exist and were produced using the same commands, the opacities are
-simply read back in.
+Compute the opacities of 100 olivine silicate grain sizes and of 50
+carbon grain sizes, and store the opacities in cache directories. This
+works by specifying the directory as the second argument. In a new
+session, if the directories still exist and were produced using the
+same commands, the opacities are simply read back in.
 
 #+begin_src python
 import optool
 import numpy as np
-sil  = optool.particle('optool -d -a 0.001 100 0 100 ol-mg50','sil',cache=True)
-carb = optool.particle('optool -d -a 0.001 3.0 0 50  c','carb',cache=True)
+sil  = optool.particle('optool -d -a 0.001 100 0 100 ol-mg50',cache='sil')
+carb = optool.particle('optool -d -a 0.001 3.0 0 50  c',cache='carb')
 #+end_src
 
 Apply powerlaw size distributions, and limit the size of the
-contributing grains.  Note that a power law f(a)\propto a^{-3.5} on a
-logarithmic grid implies using a power a^{-2.5}.
+contributing grains.  Note that a power law f(a)\propto a^{-3.5}
+implies using a power a^{-2.5} when computing the number of particles
+per size bin on a logarithmic size grid. No normalization is
+necessary - the =sizedist= method will take care of that.
 
 #+begin_src python
 nsil = sil.a1**(-2.5)             # power law, no normalization required
@@ -620,7 +624,7 @@ dust is just one percent of the total mass.  We want to have the
 opacity per unit of /gas mass/ instead, and we need Planck and
 Rosseland mean opacities:
 #+begin_src python
-p_ism = 0.01*ptot                 # dilute the opacity
+p_ism = ptot * 0.01               # dilute the opacity
 p_ism.computemean(tmax=1300)      # Compute mean opacities
 p_ism.plot()                      # Plot the results
 #+end_src
