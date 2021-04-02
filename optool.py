@@ -110,7 +110,7 @@ class particle:
         sizedist(N_of_a)
              Compute opacity of a size distribution of elements of SELF
         """
-    def __init__(self,cmd='',dir='',just_read_if_present=False):
+    def __init__(self,cmd='',dir='',read=False):
         """"Create a new optool.particle opject.
 
         Parameters
@@ -127,14 +127,14 @@ class particle:
                The diretory to write optool output files to, or to read them
                from (if they were computed on a previous occasion).
 
-        just_read_if_present : bool, optional, default=False
+        read : bool, optional, default=False
 
         CMD and DIR present:  optool will run and data will be stored in DIR
         Only CMD present:     use a temporary directory
         Only DIR is present:  data will be read from DIR, assuming it was
                               placed there in an earlier run.
 
-        If both CMD and DIR are present, and also just_read_if_present=True,
+        If both CMD and DIR are present, and also read=True,
         then the command will run only if the directory does not yet exist.
         This makes it possible to hae a single command for both creation and
         reading of the opacities.  Note,however, that if you change the
@@ -145,23 +145,28 @@ class particle:
         if cmd:
             # OK, a command was specified
         
-            # Convert command string into list if necessary
-            if (isinstance(cmd, str)):
-                cmd = cmd.split()
+            if (dir and read and os.path.isdir(dir) and (len(os.listdir(dir))>0)):
+                # OK, even though we have a command, we are not using it since
+                # we can read the output directly from a directory.
+                cmd=''
+            else:
+                # Convert command string into list if necessary
+                if (isinstance(cmd, str)):
+                    cmd = cmd.split()
 
-                if cmd[0].startswith("~"):
-                    cmd[0] = os.path.expanduser(cmd[0])
-                    
-            # Find the optool executable
-            try:
-                bin = find_executable(cmd[0])
-            except:
-                print('ERROR: executable not found:',cmd[0])
-                return -1
-            
-            if (not bin):
-                print('ERROR: executable not found:',cmd[0])
-                return -1
+                    if cmd[0].startswith("~"):
+                        cmd[0] = os.path.expanduser(cmd[0])
+
+                # Find the optool executable
+                try:
+                    bin = find_executable(cmd[0])
+                except:
+                    print('ERROR: executable not found:',cmd[0])
+                    return -1
+
+                if (not bin):
+                    print('ERROR: executable not found:',cmd[0])
+                    return -1
         else:
             if (not dir):
                 # Just return and empty object

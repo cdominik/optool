@@ -106,11 +106,27 @@ the filling factor
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a grain mantle
   using the Maxwell Garnett rule.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
-  on github]]).
+  on GitHub]]).
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
+
+- Release 1.8 ::
+
+  - New way to keep precomputed opacities in a directory and read them
+    back in in python at a later time.
+    : # First time, the opacities are computed and stored in directory
+    : diana = optool.particle('optool -d',dir='diana',read=True)
+    : # new python session
+    : # Second time, the opacities are just read back in
+    : diana = optool.particle('optool -d',dir='diana',read=True)
+
+  - New =sizedist()= method for quickly applying size distributions to
+    a set of precomputed opacities.
+
+    : sil  = optool.particle('optool -d -a 0.001 100 0 100 ol-mg50')
+    : sil_ln = sil.sizedist( np.exp(-0.5* (np.log(sil.a1/1.3)/0.2)**2) )
 
 - Release 1.7.3 ::
   - New built-in materials: SiO2
@@ -119,7 +135,7 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     scheme.  This is now fixed by using a floor of 1e-10 for both n
     and k values.
   - New =select()= method for the =optool.particle class=, to pull a
-    particle size out of an opject with many particle sizes in it
+    particle size out of an object with many particle sizes in it
     (because it was computed by =optool= with the -d switch).
     : p   = optool.particle('optool -d -na 50')
     : p5  = p.select(5)
