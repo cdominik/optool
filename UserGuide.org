@@ -581,7 +581,7 @@ works simply by specifying the directory as the second argument. In a
 new session, because of the =read=True= flag, if the directories still
 exist, the same commands just read the computed opacities back in -
 this is much faster than recomputing them every time.  Be careful,
-however, when you change the command - then you need to remove the
+however, when you change the command. Then you need to remove the
 directories to ensure new opacities will be computed.
 
 
