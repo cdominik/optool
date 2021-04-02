@@ -134,20 +134,24 @@ class particle:
         Only DIR is present:  data will be read from DIR, assuming it was
                               placed there in an earlier run.
 
-        If both CMD and DIR are present, and also cache=True,
-        then the command will run only if the directory does not yet exist.
-        This makes it possible to hae a single command for both creation and
-        reading of the opacities.  Note,however, that if you change the
-        command, data will still just be read from the existing directory.
-        To force recreation, just remove the directory.
+        If both CMD and DIR are present, and also cache=True, then the
+        directory will be treated as a cache.  The files will just be read
+        in if they are already available, and if the command given to
+        produce them is still the same as the one in the current call.  To be
+        able to make this determination, the command is stored in a file
+        called "cmd" in the same directory.
+        If the command is different, or if cache=False, then the computation
+        will be repeated.
         """
         self.cmd = cmd
         if cmd:
             # OK, a command was specified
         
-            if (dir and cache and os.path.isdir(dir) and (len(os.listdir(dir))>0)):
+            if (dir and cache and checkcmd(dir,cmd)):
                 # OK, even though we have a command, we are not using it since
-                # we can read the output directly from a directory.
+                # we can read the output directly from a directory that was
+                # created by the exact same command.
+                print("Using result cache in directory:",dir,"...")
                 cmd=''
             else:
                 # Convert command string into list if necessary
@@ -183,6 +187,7 @@ class particle:
             if cmd:
                 os.system('rm -rf '+tmpdir)
                 os.system('mkdir '+tmpdir)
+                writecmd(tmpdir,self.cmd)
                 cmd.append('-o'); cmd.append(tmpdir)
     
                 # Run optool to produce the opacities
@@ -1057,7 +1062,7 @@ def readoutputfile(file,scat):
     except:
         print('ERROR: file not found:',file)
         return -1
-    print('Reading ',file,'...')
+    print('Reading',file,'...')
 
     # Read the header/comment field
     header = ''
@@ -1121,6 +1126,59 @@ def readoutputfile(file,scat):
     else:
         return [header,lam,kabs,ksca,phase_g]
 
+def writecmd(dir,cmd):
+    """Store the CMD string in file DIR/cmd.
+
+    This functions checks if the directory DIR contains a file
+    called CMD, and if the first line in thie directory is the
+    same as the string passed with the DIR parameter.
+    """
+    if (os.path.isdir(dir)):
+        # Directory does not exist
+        dir = dir.rstrip('/')
+        filename = dir+"/cmd"
+        try:
+            wfile = open(filename, 'w')
+        except:
+            print('ERROR: Cannot write to file: ',filename)
+            return False
+        newcmd=cmd.strip()
+        wfile.write(cmd+"\n")
+        wfile.close()
+        return True
+    else:
+        return False
+    
+def checkcmd(dir,cmd):
+    """Check if new command line is the same as the old one.
+
+    This functions checks if the directory DIR contains a file
+    called CMD, and if the first line in thie directory is the
+    same as the string passed with the DIR parameter.
+    """
+    if (not os.path.isdir(dir)):
+        # Directory does not exist
+        return False
+    if (len(os.listdir(dir))<=1):
+        # There are less than one file in the directory. So either the cmd
+        # file does not exist, or no output files are present.
+        return False
+    dir = dir.rstrip('/')
+    filename = dir+"/cmd"
+    if (not os.path.exists(dir+"/cmd")):
+        # The command file does not exist
+        return False
+    try:
+        rfile = open(filename, 'r')
+    except:
+        print('ERROR: Cannot read file: ',filename)
+        return False
+    dum = rfile.readline()
+    rfile.close()
+    cached_cmd = dum.strip()
+    new_cmd    = cmd.strip()
+    return (cached_cmd == new_cmd)
+    
 def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,idxvals=None,idxformat=''):
     """
     For details about this function see https://github.com/dullemond/interactive_plot

@@ -577,13 +577,10 @@ examples here - full documentation is inside the Python module file.
 
 Pre-compute the opacities of 100 olivine silicate grain sizes and of
 50 carbon grain sizes, and store the opacities in directories. This
-works simply by specifying the directory as the second argument. In a
+works by specifying the directory as the second argument. In a
 new session, because of the =cache=True= flag, if the directories still
-exist, the same commands just read the computed opacities back in -
-this is much faster than recomputing them every time.  Be careful,
-however, when you change the command. Then you need to remove the
-directories to ensure new opacities will be computed.
-
+exist and were produced using the same commands, the opacities are
+simply read back in.
 
 #+begin_src python
 import optool
@@ -851,9 +848,9 @@ the code.
 
 
 * Troubleshooting
-- If you get oscillations in the opacities at long wavelengths, the
-  grain size resolution is not sufficient.  Use more grain sizes (see
-  the *-a*, *-na* and *-d* switches).
+- If you get oscillations in the opacities, in particular at long
+  wavelengths, the grain size resolution is not sufficient.  Use more
+  grain sizes (*-a*, *-na* and *-d* switches).
 
 #+LATEX: \newpage
 
