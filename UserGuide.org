@@ -578,7 +578,7 @@ examples here - full documentation is inside the Python module file.
 Pre-compute the opacities of 100 olivine silicate grain sizes and of
 50 carbon grain sizes, and store the opacities in directories. This
 works simply by specifying the directory as the second argument. In a
-new session, because of the =read=True= flag, if the directories still
+new session, because of the =cache=True= flag, if the directories still
 exist, the same commands just read the computed opacities back in -
 this is much faster than recomputing them every time.  Be careful,
 however, when you change the command. Then you need to remove the
@@ -588,10 +588,9 @@ directories to ensure new opacities will be computed.
 #+begin_src python
 import optool
 import numpy as np
-sil  = optool.particle('optool -d -a 0.001 100 0 100 ol-mg50','sil',read=True)
-carb = optool.particle('optool -d -a 0.001 3.0 0 50  c','carb',read=True)
+sil  = optool.particle('optool -d -a 0.001 100 0 100 ol-mg50','sil',cache=True)
+carb = optool.particle('optool -d -a 0.001 3.0 0 50  c','carb',cache=True)
 #+end_src
-
 
 Apply powerlaw size distributions, and limit the size of the
 contributing grains.  Note that a power law f(a)\propto a^{-3.5} on a
@@ -853,7 +852,8 @@ the code.
 
 * Troubleshooting
 - If you get oscillations in the opacities at long wavelengths, the
-  grain size resolution is not sufficient.  Use more grain sizes.
+  grain size resolution is not sufficient.  Use more grain sizes (see
+  the *-a*, *-na* and *-d* switches).
 
 #+LATEX: \newpage
 
