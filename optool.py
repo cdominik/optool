@@ -21,39 +21,126 @@ from distutils.spawn import find_executable
 import random
 
 class particle:
-    """
-NAME
-    optool
+    """Run optool and turn output into a python object.
 
-DESCRIPTION
+        Provides an interface to the optool program for computing dust
+        opacities. The optool program can be found on GitHub, at this address:
+        https://github.com/cdominik/optool .
 
-    Provides an interface to the optool program for computing dust opacities.
+        Attributes
+        ----------
 
-    The optool program can be found at https://github.com/cdominik/optool .
+        cmd : str
+             The full command given in the particle() call
+        radmc : boolean
+             Output follows RADMC conventions
+        scat : boolean
+             Scattering matrix is available
+        nlam : int
+             Number of wavelength points
+        lam : float[nlam]
+             The wavelength grid
+        nang : int
+             Number of scattering angles
+        scatang : float[nang]
+             The angular grid
+        materials : [[[...]...]... ]
+             Lists with [location,m_{frac},\rho,material
+        np : int
+             Number of particles, either 1 or (with -d) n_a
+        fmax : float[np]
+             Maximum volume fraction of vacuum for DHS
+        pcore, pmantle : float[np]
+             Porosity of the core/mantle material
+        amin : float[np]
+             min grain size used for each particle
+        amax : float[np]
+             max grain size used for each particle
+        nsub : int[np]
+             Number of sizes averaged for each particle
+        apow : float[np]
+             Negative size distribution power law (e.g. 3.5)
+        a1 : float[np]
+            Mean grain radius
+        a2 : float[np]
+            Radius of the grain with mean surface area
+        a3 : float[np]
+            Radius of the grain with mean volume
+        rho : float[np]
+             Specific density of grains
+        kabs : float[np,nlam]
+             Absorption cross section
+        ksca : float[np,nlam]
+             Scattering cross section
+        kext : float[np,nlam]
+             Extinction cross section
+        gsca : float[np,nlam]
+             Asymmetry parameter
+        f11, ..., f44 : float[np,nlam,nang]
+             Scattering matrix element F_11, ... ,F_44
+        chop : float[np]
+             Degrees chopped off forward scattering
+        tmin : float
+             Minimum temperature for mean opacities
+        tmax : float
+             Maximum temperature for mean opacities
+        ntemp : int
+             Number of temperatures for mean opacities
+        temp : float[ntemp]
+             Temperatures used for mean opacities
+        kplanck : float[np,ntemp]
+             Planck mean opacities, after calling computemean()
+        kross : float[np,ntemp]
+             Rosseland mean opacities, after calling computemean()
+        norm : string
+             Current scattering matrix normalization
 
-Arguments
----------
+        Methods
+        -------
 
-    cmd  : string 
-           A shell command to run optool.  The output produced by this
-           command will be read in and stored in an instance of the
-           optool.particle class. When this argument is not present,
-           data will instead be read from a directory specified with
-           the DIR argument.
+        plot()
+             Plot the opacities and the scattering matrix
 
-    dir  : string
-           The diretory to write optool output files to, or to read them
-             from (if they were computed on a previous occasion).
+        computemean(tmin=10,tmax=1500,ntemp=100)
+             Compute Planck and Rosseland mean opacities
 
-    CMD and DIR present: optool will be run and the data
-                         will be stored in DIR.
-    Only CMD present:    a temporary directory will be used and
-                         cleaned up after reading the data.
-    Only DIR is present: data will be read from DIR, assuming it
-                         was placed there in an earlier run.
-    """
-    def __init__(self,cmd='',dir=''):
-        "Create a new optool.particle opject."
+        scatnorm(norm='')
+             Check or change the normalization of the scattering matrix
+
+        sizedist(N_of_a)
+             Compute opacity of a size distribution of elements of SELF
+        """
+    def __init__(self,cmd='',dir='',just_read_if_present=False):
+        """"Create a new optool.particle opject.
+
+        Parameters
+        ---------=
+
+        cmd  : str, optional
+               A shell command to run optool.  The output produced by this
+               command will be read in and stored in an instance of the
+               optool.particle class. When this argument is not present,
+               data will instead be read from a directory specified with
+               the DIR argument.
+
+        dir  : str, optional
+               The diretory to write optool output files to, or to read them
+               from (if they were computed on a previous occasion).
+
+        just_read_if_present : bool, optional, default=False
+
+        CMD and DIR present:  optool will run and data will be stored in DIR
+        Only CMD present:     use a temporary directory
+        Only DIR is present:  data will be read from DIR, assuming it was
+                              placed there in an earlier run.
+
+        If both CMD and DIR are present, and also just_read_if_present=True,
+        then the command will run only if the directory does not yet exist.
+        This makes it possible to hae a single command for both creation and
+        reading of the opacities.  Note,however, that if you change the
+        command, data will still just be read from the existing directory.
+        To force recreation, just remove the directory.
+        """
         self.cmd = cmd
         if cmd:
             # OK, a command was specified
@@ -157,7 +244,12 @@ Arguments
                 os.system('rm -rf '+tmpdir)
 
     def plot(self):
-        """Create interactive plots of the opacities in SELF."""
+        """Create interactive plots of the opacities in SELF.
+
+        Furthermore, a plot for the scattering matric elements and, if the
+        computemean() method has been called, a plot of the mean opacities
+        are produces as well.
+        """
 
         # Check if mean opacities have been computed
         if hasattr(self, 'kplanck'):
@@ -271,10 +363,9 @@ Arguments
 
         Arguments
         ---------
-        
+                
         N_of_a : numpy array containing the sumber of partiles of each size
                  available in SELF (as given by self.a1)
-
         """
         # Check if N_of_a is compatible with self.a1
         if (len(N_of_a) != len(self.a1)):
@@ -457,10 +548,15 @@ Arguments
     def computemean(self, tmin=10., tmax=1500., ntemp=100):
         """Compupte mean opacities from the opacities in self.
 
-        Keyword parameters are
-        tmin - minimum temperature for which to compute mean opacities
-        tmax - maximum temperature for which to compute mean opacities
-        ntemp - number of temperature steps between tmin and tmax
+        Parameters
+        ----------
+
+        tmin : float
+             minimum temperature for which to compute mean opacities
+        tmax : float
+             maximum temperature for which to compute mean opacities
+        ntemp : int
+             number of temperature steps between tmin and tmax
         """
         self.tmin    = tmin
         self.tmax    = tmax
@@ -486,26 +582,26 @@ Arguments
 
     def __add__(s,o):
         """Addition of optool.particle objects.
+
         This can be used to mix different grain types together
         into a dust model.
         
-        # Make a silicate grain and a carbonatieous grain
-        p1 = optool.particle('./optool -a 0.01 0.3 pyr-mg70')
-        p2 = optool.particle('./optool -1 0.03 0.1 c-z')
+            # Make a silicate grain and a carbonatieous grain
+            p1 = optool.particle('./optool -a 0.01 0.3 pyr-mg70')
+            p2 = optool.particle('./optool -1 0.03 0.1 c-z')
 
-        # Mix the particles with a mass ration 0.75 : 0.25
-        # Make sure abundances add up to 1, or the opacities will
-        # not be per g of dust!
-        p = 0.75*p1 + 0.25*p2
+            # Mix the particles with a mass ration 0.75 : 0.25
+            # Make sure abundances add up to 1, or the opacities will
+            # not be per g of dust!
+            p = 0.75*p1 + 0.25*p2
 
-        # Apply a dust-to-gas ratio, so that the opacities will be
-        # per unit of GAS mass
-        dtg = 0.01
-        p   = dtg * p
+            # Apply a dust-to-gas ratio, so that the opacities will be
+            # per unit of GAS mass
+            dtg = 0.01
+            p   = dtg * p
 
-        # Plot the opacities
-        p.plot()
-
+            # Plot the opacities
+            p.plot()
         """
         #
         # First, check if the particles are compatible
@@ -663,44 +759,12 @@ Arguments
         wfile.close()
 
 class lnktable:
-    """NAME
-    
-    optool.lnktable
+    """Class to work with lnk files.
 
-DESCRIPTION
-
-    The is a clall to work with lnk files. lnk stands for lambda, n,
-    and k, where and and k are the real and imaginary components of
-    the refractive index of a material.
+lnk stands for lambda, n, and k, where and and k are the real and
+imaginary components of the refractive index of a material.
     
 
-Arguments
----------
-        
-   file : string
-          the file name from which to read the lnk data
-
-Keywords
---------
-
-   i_lnk : numpy array
-           the column numbers where to find lambda, the real part of the
-           refractive index and the imaginary part of it, respectively.
-           The default is [1,2,3] .
-
-   nskip : integer
-        Number of lines to skil at the beginning.  Lines starting with
-        `#', `!' or `*` are stored as header lines and ar skipped in
-        this way. So this parameter is for dealing with files that are
-        not yet formatted in the standard way for optool.  The default
-        is 0.
-
-   nlam_rho : Boolean
-        True means, the first unskipped line contains the number of
-        wavelengths points and the specific density of the material.
-        False means no such line exists, and the lines have to be
-        counted.  Rho will be se to 0 then, to indicate that the value
-        is not know at this point.
 
 Conversion
 ----------
@@ -722,6 +786,33 @@ Conversion
 
     """
     def __init__(self,file,i_lnk=[1,2,3],nskip=0,nlam_rho=True):
+        """Create a new optool.lnktable object
+
+        Parameters
+        ----------
+        
+        file : str
+             the file name from which to read the lnk data
+
+        i_lnk : numpy array, optional
+             the column numbers where to find lambda, the real part of the
+             refractive index and the imaginary part of it, respectively.
+             The default is [1,2,3] .
+
+        nskip : int, optional
+             Number of lines to skil at the beginning.  Lines starting with
+            `#', `!' or `*` are stored as header lines and ar skipped in
+             this way. So this parameter is for dealing with files that are
+             not yet formatted in the standard way for optool.  The default
+             is 0.
+
+        nlam_rho : boolean, optional
+             True means, the first unskipped line contains the number of
+             wavelengths points and the specific density of the material.
+             False means no such line exists, and the lines have to be
+             counted.  Rho will be se to 0 then, to indicate that the value
+             is not know at this point.
+        """
         self.filename = file
         try:
             rfile = open(file, 'r')
@@ -1541,74 +1632,3 @@ def bplanckdt(temp,nu):
     bplanckdt[mask] = 7.07661334104e-58 * nu[mask]**4 /  \
             ( np.exp(exponent[mask]) * temp**2 ) + 1.e-290
     return bplanckdt
-
-
-def plotallk():
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import optool
-
-    files = [
-        'lnk_data/pyr-mg100-Dorschner1995.lnk',
-        'lnk_data/pyr-mg95-Dorschner1995.lnk',
-        'lnk_data/pyr-mg80-Dorschner1995.lnk',
-        'lnk_data/pyr-mg70-Dorschner1995.lnk',
-        'lnk_data/pyr-mg60-Dorschner1995.lnk',
-        'lnk_data/pyr-mg50-Dorschner1995.lnk',
-        'lnk_data/pyr-mg40-Dorschner1995.lnk',
-        'lnk_data/pyr-c-mg96-Jaeger1998.lnk',
-        'lnk_data/ol-mg50-Dorschner1995.lnk',
-        'lnk_data/ol-mg40-Dorschner1995.lnk',
-        'lnk_data/ol-c-mg100-Steyer1974.lnk',
-        'lnk_data/astrosil-Draine2003.lnk',
-
-        'lnk_data/c-z-Zubko1996.lnk',
-        'lnk_data/c-p-Preibisch1993.lnk',
-        'lnk_data/c-gra-Draine2003.lnk',
-        'lnk_data/c-org-Henning1996.lnk',
-        'lnk_data/c-nano-Mutschke2004.lnk',
-
-        'lnk_data/fe-c-Henning1996.lnk',
-        'lnk_data/fes-Henning1996.lnk',
-        'lnk_data/sic-Draine1993.lnk',
-
-        'lnk_data/sio2-Kitamura2007.lnk',
-        'lnk_data/cor-c-Koike1995.lnk',
-
-        'lnk_data/h2o-w-Warren2008.lnk',
-        'lnk_data/co2-w-Warren1986.lnk',
-        'lnk_data/nh3-m-Martonchik1983.lnk',
-        
-        'lnk_data/co-a-Palumbo2006.lnk',
-        'lnk_data/co2-a-Gerakines2020.lnk',
-        'lnk_data/co2-c-Gerakines2020.lnk',
-        'lnk_data/ch4-a-Gerakines2020.lnk',
-        'lnk_data/ch4-c-Gerakines2020.lnk',
-        'lnk_data/ch3oh-a-Gerakines2020.lnk',
-        'lnk_data/ch3oh-c-Gerakines2020.lnk'
-       ]
-    
-    # Some example data to display
-    x = np.linspace(0, 2 * np.pi, 400)
-    y = np.sin(x ** 2)
-    nx = 6
-    ny = 6
-    fig = plt.figure(figsize=(10,9))
-    gs = fig.add_gridspec(nx,ny, hspace=0, wspace=0)
-    gs1 = gs.subplots(sharex='all',sharey='all')
-    print(gs1.shape)
-    for iy in range(ny):
-        for ix in range(nx):
-            nn = ix+iy*nx
-            print(ix,iy,nn)
-            if (nn >= len(files)):
-                break
-            file = files[nn]
-            p=optool.lnktable(file)
-            ax = gs1[ix,iy]
-            ax.loglog(p.lam,p.k+1e-5)
-            ax.set_xlim(0.05,300)
-            ax.set_ylim(1e-4,1e3)
-            ax.text(0.1,100.,file[9:-4],fontsize='xx-small')
-    fig.show()
-    fig.savefig("maint/all_k.pdf", bbox_inches='tight')

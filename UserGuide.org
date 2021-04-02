@@ -514,9 +514,9 @@ $n_p=1$. The resulting object will have the following attributes:
 | =pcore=, =pmantle=  | =float[np]=           | Porosity of the core/mantle material            |
 |---------------------+-----------------------+-------------------------------------------------|
 | =amin=, =amax=      | =float[np]=           | min/max grain size used for each particle       |
-| =nsub=              | =int[np]=             | Number of sizes averaged for each particle.     |
+| =nsub=              | =int[np]=             | Number of sizes averaged for each particle      |
 | =apow=              | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
-| =a1=, =a2=, =a3=    | =fload[np]=           | Mean <a>, $\sqrt{<a^2>}$, and $\sqrt[3]{<a^3>}$ |
+| =a1=, =a2=, =a3=    | =float[np]=           | Mean <a>, $\sqrt{<a^2>}$, and $\sqrt[3]{<a^3>}$ |
 | =rho=               | =float[np]=           | Specific density of grains                      |
 |---------------------+-----------------------+-------------------------------------------------|
 | =kabs,ksca,kext=    | =float[np,nlam]=      | Absorption,scattering,extinction cross section  |
