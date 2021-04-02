@@ -285,7 +285,7 @@ extend the [[#output-files][output]].
 + =-chop [NDEG]= ::
 
   Cut out the first =NDEG= (2 if unspecified) degrees of the [[#forward-scattering-peak][forward
-  scattering peak]] and compensate by a reduction in the scattering
+  scattering peak]] and compensate by a reduction of the scattering
   cross section.
 
 + =-d [NSUB]= ::
@@ -808,37 +808,37 @@ the code.
   scaling to the actual size of the particle.
 
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
-  number of monomers $N$, the fractal dimension $D_f$, and a scaling
-  factor $k_f$ which are related to the radius of gyration $R_g$ of
-  the aggregate by
+  number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
+  scaling factor $k_{\rm f}$ which are related to the radius of
+  gyration $R_{\rm g}$ of the aggregate by
   \begin{equation}
-   N=k_f\left(\frac{R_g}{a_0}\right)^{D_f}
+   N=k_{\rm f}\left(\frac{R_{\rm g}}{a_0}\right)^{D_{\rm f}}
   \end{equation}
   The size $a$ of the particles as specified by the *-a* switch is
   interpreted as the /compact/ size of all material in the aggregate,
   so that $N=a^3/a_0^3$, where $a_0$ is the monomer radius.  The
   average volume filling factor $f$ can be expressed by
-  $f=N\cdot\left(\sqrt{3/5}\,a_0/R_g\right)^3$.  To determine the
-  structure of the aggregates, the user can specify a structure
+  $f=N\cdot\left(\sqrt{3/5}\,a_0/R_{\rm g}\right)^3$.  To determine
+  the structure of the aggregates, the user can specify a structure
   parameter.  If that parameter is larger than 1, it is interpreted as
-  the /fractal dimension/ $D_f$.  Using a fixed fractal dimension
-  means that the volume filling factor will decrease with aggregate
-  size.  As an alternative, the structure parameter can be less
-  than 1.  In that case, it is interpreted as a fixed /volume filling
-  factor/ $f$ that applies to all aggregate sizes - with the
+  the /fractal dimension/ $D_{\rm f}$.  Using a fixed fractal
+  dimension means that the volume filling factor will decrease with
+  aggregate size.  As an alternative, the structure parameter can be
+  less than 1.  In that case, it is interpreted as a fixed /volume
+  filling factor/ $f$ that applies to all aggregate sizes - with the
   implication that then the fractal dimension increases as a function
-  of size. The fractal prefactor $k_f$ is chosen automatically so that
-  the asymptotic density of small aggregates is the monomer material
-  density. To force another value for the prefactor, it can be given
-  explicitly as the third value of the =-mmf= option. The following
-  table summarizes the relevant equations.
+  of size. The fractal prefactor $k_{\rm f}$ is chosen automatically
+  so that the asymptotic density of small aggregates is the monomer
+  material density. To force another value for the prefactor, it can
+  be given explicitly as the third value of the =-mmf= option. The
+  following table summarizes the relevant equations.
 
-  |       | =-mmf A0 DF=     | =-mmf A0 FILL=         | =-mmf A0 DF KF=                          |
-  |-------+------------------+------------------------+------------------------------------------|
-  | /     | <                | <                      | <                                        |
-  | $f$   | $N^{(D_f-3)/3}$  | *given by user*        | $\sqrt{27/125}\,k_f^{3/D_f}N^{3-1/D_f}$  |
-  | $D_f$ | *given by user*  | $3\ln N\,/\,\ln(N/f)$  | *given by user*                          |
-  | $k_f$ | $(5/3)^{D_f/2}$  | $(5/3)^{D_f/2}$        | *given by user*                          |
+  |       | =-mmf A0 DF=          | =-mmf A0 FILL=        | =-mmf A0 DF KF=                                           |
+  |-------+-----------------------+-----------------------+-----------------------------------------------------------|
+  | /     | <                     | <                     | <                                                         |
+  | $f$   | $N^{(D_{\rm f}-3)/3}$ | *given by user*       | $\sqrt{27/125}\,k_{\rm f}^{3/D_{\rm f}}N^{3-1/D_{\rm f}}$ |
+  | $D_f$ | *given by user*       | $3\ln N\,/\,\ln(N/f)$ | *given by user*                                           |
+  | $k_f$ | $(5/3)^{D_{\rm f}/2}$ | $(5/3)^{D_{\rm f}/2}$ | *given by user*                                           |
 
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) to compute cross sections and the scattering
