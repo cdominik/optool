@@ -846,6 +846,10 @@ the code.
   issued. However, the opacities will remain applicable.
 
 
+* Troubleshooting
+- If you get oscillations in the opacities at long wavelengths, the
+  grain size resolution is not sufficient.  Use more grain sizes.
+
 #+LATEX: \newpage
 
 * Acknowledgments
