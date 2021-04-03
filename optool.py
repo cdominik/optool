@@ -1041,8 +1041,24 @@ def parse_headers(headers,b):
     return b
 
 def readoutputfile(file,scat):
-    # Read OpTool output file FILE.
-    # scat=True marks if the file contains a scattering matrix
+    """Read OpTool output file FILE.
+
+    Parameters
+    ----------
+
+    file : str
+         The file name to read
+    scat : bool
+         When True, the file contains a scattering matrix
+
+    Returns
+    -------
+
+    Depending on the SCAT flag, Returns a list with these elements
+   
+    [header,lam,kabs,ksca,phase_g]  or
+    [header,lam,kabs,ksca,phase_g,scatang,f11,f12,f22,f33,f34,f44]
+    """
     try:
         rfile = open(file, 'r')
     except:
@@ -1058,55 +1074,48 @@ def readoutputfile(file,scat):
         dum = rfile.readline()
 
     # Read the file format
+    while len(dum.strip())<1: dum = rfile.readline() # skip any empty lines
     iformat = int(dum)
 
-    # Read the number of wavelengths in the file
+    # Read the number of wavelengths in the file and prepare arrays
     nlam = int(rfile.readline())
-
-    if scat:
-        # Read the scattering angular grid size
-        dum = rfile.readline()
-        while len(dum.strip())<2: dum = rfile.readline()
-        nang = int(dum)
-
-    # Prepare a few arrays
     lam=np.zeros(nlam); kabs=np.zeros(nlam); ksca=np.zeros(nlam); phase_g=np.zeros(nlam)
+
     if scat:
+        # Read the scattering angular grid size and prepare arrays
+        nang = int(rfile.readline())
         scatang = np.zeros(nang)
         f11=np.zeros([nlam,nang]); f12=np.zeros([nlam,nang]); f22=np.zeros([nlam,nang])
         f33=np.zeros([nlam,nang]); f34=np.zeros([nlam,nang]); f44=np.zeros([nlam,nang])
 
     # Read the opacities
+    dum = rfile.readline()
+    while len(dum.strip())<1: dum = rfile.readline() # skip any empty lines
     for ilam in range(nlam):
-        dum = rfile.readline()
-        while len(dum.strip())<2: dum = rfile.readline()
         dum           = dum.split()
         lam[ilam]     = float(dum[0])
         kabs[ilam]    = float(dum[1])
         ksca[ilam]    = float(dum[2])
         phase_g[ilam] = float(dum[3])
+        dum = rfile.readline()
 
     if scat:
         # Read the angular grid
+        while len(dum.strip())<1: dum = rfile.readline() # skip any empty lines
         for iang in range(nang):
-            dum        = rfile.readline()
-            while len(dum.strip())<2: dum = rfile.readline()
             scatang[iang] = float(dum)
+            dum = rfile.readline()
 
         # Read the scattering matrix
-        for ilam in range(nlam):
-            for iang in range(nang):
-                dum = rfile.readline()
-                while len(dum.strip())<2: dum = rfile.readline()
-                dum = dum.split()
-                f11[ilam,iang] = float(dum[0])
-                f12[ilam,iang] = float(dum[1])
-                f22[ilam,iang] = float(dum[2])
-                f33[ilam,iang] = float(dum[3])
-                f34[ilam,iang] = float(dum[4])
-                f44[ilam,iang] = float(dum[5])
+        while len(dum.strip())<1: dum = rfile.readline()
+        dums = rfile.readlines()
+        dums.insert(0,dum)
+        data = np.fromstring("".join(dums),sep=' ')
+        data = np.reshape(data,(nlam,nang,6),'C')
+        f11[:,:]=data[:,:,0]; f12[:,:]=data[:,:,1]; f22[:,:]=data[:,:,2]
+        f33[:,:]=data[:,:,3]; f34[:,:]=data[:,:,4]; f44[:,:]=data[:,:,5]
 
-    rfile.close()
+        rfile.close()
     if scat:
         return [header,lam,kabs,ksca,phase_g,scatang,f11,f12,f22,f33,f34,f44]
     else:
@@ -1114,10 +1123,6 @@ def readoutputfile(file,scat):
 
 def writecmd(dir,cmd):
     """Store the CMD string in file DIR/cmd.
-
-    This functions checks if the directory DIR contains a file
-    called CMD, and if the first line in thie directory is the
-    same as the string passed with the DIR parameter.
     """
     if (os.path.isdir(dir)):
         # Directory does not exist
