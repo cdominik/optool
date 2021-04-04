@@ -801,11 +801,11 @@ the code.
   range of volume fractions of this inner region between 0 and $f_{\rm
   max}$.  The subroutine used to compute the opacities and scattering
   matrix elements for these structures is =DMiLay= (Toon & Ackerman
-  1981).  When the size parameter $x=2 \pi a/\lambda$ exceeds
-  a value of 10^4, no DHS averaging is used.  A standard Mie
-  calculation is performed, using the routine =MeerhoffMie=
-  (reference missing), for a fixed size parameter of 5000, with proper
-  scaling to the actual size of the particle.
+  1981).  When the size parameter $x=2 \pi a/\lambda$ exceeds a value
+  of 10^4, no DHS averaging is used.  A standard Mie calculation is
+  performed, using the routine =MeerhoffMie= (de Rooij+ 1984), for a
+  fixed size parameter of 5000, with proper scaling to the actual size
+  of the particle.
 
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
   number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
@@ -833,12 +833,12 @@ the code.
   be given explicitly as the third value of the =-mmf= option. The
   following table summarizes the relevant equations.
 
-  |       | =-mmf A0 DF=          | =-mmf A0 FILL=        | =-mmf A0 DF KF=                                           |
-  |-------+-----------------------+-----------------------+-----------------------------------------------------------|
-  | /     | <                     | <                     | <                                                         |
-  | $f$   | $N^{(D_{\rm f}-3)/3}$ | *given by user*       | $\sqrt{27/125}\,k_{\rm f}^{3/D_{\rm f}}N^{3-1/D_{\rm f}}$ |
-  | $D_f$ | *given by user*       | $3\ln N\,/\,\ln(N/f)$ | *given by user*                                           |
-  | $k_f$ | $(5/3)^{D_{\rm f}/2}$ | $(5/3)^{D_{\rm f}/2}$ | *given by user*                                           |
+  |             | =-mmf A0 DF=          | =-mmf A0 FILL=        | =-mmf A0 DF KF=                                           |
+  |-------------+-----------------------+-----------------------+-----------------------------------------------------------|
+  | /           | <                     | <                     | <                                                         |
+  | $f$         | $N^{(D_{\rm f}-3)/3}$ | *given by user*       | $\sqrt{27/125}\,k_{\rm f}^{3/D_{\rm f}}N^{3-1/D_{\rm f}}$ |
+  | $D_{\rm f}$ | *given by user*       | $3\ln N\,/\,\ln(N/f)$ | *given by user*                                           |
+  | $k_{\rm f}$ | $(5/3)^{D_{\rm f}/2}$ | $(5/3)^{D_{\rm f}/2}$ | *given by user*                                           |
 
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) to compute cross sections and the scattering
@@ -898,10 +898,12 @@ the code.
 - Woitke, P.; Min, M. et al. 2016, A&A 586, 103
 - Palumbo, E. et al. 2006, PCCP 8, 279
 - Preibisch, Th. et al. 1993, A&A 279, 577
+- de Rooij W. and van der Stap, C. 1984, A&A 131, 237
 - Steyer, T. 1974, PhD Thesis, The University of Arizona
 - Warren, S. and Brandt, R. 2008, JGRD,113, D14220
 - Warren, S. 1986, Applied Optics 25, 2650
 - Zubko, V. et al. 1996, MNRAS 282,1321
+
 
 # Start of Setup
 
