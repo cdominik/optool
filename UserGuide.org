@@ -89,13 +89,13 @@ optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
 Pure water ice grains in a narrow size distribution from 1 to 3
 microns, with 15 sample sizes following an $f(a)\propto a^{-2.5}$
 powerlaw size distribution. Also, restrict the wavelength range to
-10-100\mu{}m, and turn off DHS to get perfect spheres.
+10-100\mu{}m, and turn off DHS to get perfect spheres (Mie).
 
 #+begin_src sh
-optool h2o  -a 1 3 2.5 15  -l 10 100 -fmax 0
+optool h2o  -a 1 3 2.5 15  -l 10 100 -mie
 #+end_src
 
-For silicon carbide, compute the opacity of a single grains size (2.5\mu{}m)
+For silicon carbide, compute the opacity of a single grain size (2.5\mu{}m)
 at \lambda=8.9\mu{}m.
 
 #+begin_src sh
@@ -176,9 +176,9 @@ If no composition is specified, the default is
 + =[-c] KEY-or-FILE [MFRAC]= ::
 
   Specify a material to include in the grain.  =KEYorFILE= can be the
-  [[#builtin-materials][key for a builtin material]], or the path to an =lnk= file. =MFRAC= is
+  [[#builtin-materials][key for a builtin material]], or the [[#lnk-files][path to an =lnk= file]]. =MFRAC= is
   the /mass/ fraction (default 1.0) of the material. You can give up
-  to 10 materials to build up the grain.  Mass fractions do not have
+  to 20 materials to build up the grain.  Mass fractions do not have
   to add up to one, they will be renormalized.  All materials will be
   mixed together using the /Bruggeman/ rule, and vacuum can be added
   through the porosity. A *-c* switch before each =KEY-or-FILE= is
