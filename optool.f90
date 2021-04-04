@@ -116,7 +116,7 @@ program optool
   type(particle)  :: p
   integer         :: i,ndone         ! counter
   integer         :: im,ia           ! for material, radius
-  character*100   :: tmp,value       ! for processing args
+  character*1000  :: tmp,value       ! for processing args
 
   logical         :: arg_is_present  ! functions to test arguments
   logical         :: arg_is_switch   ! functions to test arguments
@@ -183,6 +183,7 @@ program optool
   ! Loop over all command line arguments
   call getarg(1,tmp)
   i = 1
+  
   do while(tmp.ne.' ')
      select case(tmp)
 
@@ -1625,6 +1626,29 @@ function arg_is_number(i)
   endif
 end function arg_is_number
 
+subroutine write_command_line(unit,width,leader)
+  implicit none
+  integer :: unit,i,width,lout,ltmp
+  character*1000 :: out,tmp
+  character*(*) :: leader
+  i=0
+  out = trim(leader) // " Command:"
+  call getarg(i,tmp)
+  do while(tmp.ne.' ')
+     lout = len(trim(out))
+     ltmp = len(trim(tmp))
+     if ((lout+ltmp+3) .gt. width) then
+        write(unit,'(A)') trim(out) // ' \'    ! ' for font lock
+        out = trim(leader) // " > " // trim(tmp)
+     else
+        out = trim(out) // " " // trim(tmp)
+     endif
+     i=i+1
+     call getarg(i,tmp)
+  enddo
+  write(unit,'(A)') trim(out)
+end subroutine write_command_line
+
 !!! **** Reading files and checking for some consistency
 
 function count_words (string)
@@ -1803,6 +1827,10 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
         write(unit,'(A,"  ",A6,f7.3,f6.2,"  ","mixture of",i3," materials")') cc,'grain  ', 1.0,rho_av,nm
      endif
   endif
+  if (cc .ne. '') then
+     write(unit,'(A,"----------------------------------------------------------------------------")') cc
+     call write_command_line(unit,75,cc)
+  endif
   write(unit,'(A,"============================================================================")') cc
 end subroutine write_header
 
@@ -1858,7 +1886,11 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
           pcore,pmantle,p%rho,fmax,a0,struct,mfrac,nm)
-     write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
+     if (for_radmc) then
+        write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
+     else
+        write(20,'("# Standard output file, no scattering matrix")')
+     endif
      write(20,'("#    iformat")')
      write(20,'("#    nlambda")')
      write(20,'("#    lambda[um]  kabs [cm^2/g]  ksca [cm^2/g]    g_asymmetry")')
