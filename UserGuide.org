@@ -855,6 +855,9 @@ the code.
 - If you get oscillations in the opacities, in particular at long
   wavelengths, the grain size resolution is not sufficient.  Use more
   grain sizes (*-a*, *-na* and *-d* switches).
+- If you do not remember how to reproduce a specific run, just check
+  the file header - it contains the exact command that was used to
+  produce the file.
 
 #+LATEX: \newpage
 
