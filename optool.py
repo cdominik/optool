@@ -132,7 +132,7 @@ class particle:
         elif (type(cmd)==str):
             self.cmd = cmd
         else:
-            raise RuntimeError("cmd needs to be string or list")
+            raise RuntimeError("First argument CMD needs to be string or list")
         
         if (cache and checkcmd(cache,self.cmd)):
             # We can read the output directly from a directory that was
@@ -486,7 +486,7 @@ class particle:
         if (self.gridtype == "boundary"):
             # Matrix values are on cell boundaries
             if (ang[0] != 0):
-                raise RuntimeError("inconsistency between gridtype \"boundary\" and angle values")
+                raise RuntimeError("Inconsistency between gridtype \"boundary\" and angle values")
             thetab = ang*np.pi/180.
             mub = np.cos(thetab)
             dmu = mub[:-1]-mub[1:]   # Defined negatively for mu integral
@@ -494,7 +494,7 @@ class particle:
         else:
             # This is the standard grid with values on cell midpoints
             if (ang[0] == 0):
-                raise RuntimeError("inconsistency between gridtype \"center\" and angle values")
+                raise RuntimeError("Inconsistency between gridtype \"center\" and angle values")
             th1 = (ang-0.5)*np.pi/self.nang; mu1 = np.cos(th1)
             th2 = (ang+0.5)*np.pi/self.nang; mu2 = np.cos(th2)
             dmu = mu1-mu2  # Defined negatively for the mu integral
@@ -596,7 +596,7 @@ class particle:
         # First, check if the particles are compatible
         #
         if ((s.np > 1) or (o.np>1)):
-            raise TypeError('Cannot add multi-particles')
+            raise TypeError('Cannot add multi-particle objects')
         if ((s.nlam != o.nlam) or (np.abs((s.lam-o.lam)/s.lam).any()>1e-4)):
             raise RuntimeError('Wavelength grids differ')
         if (s.scat):
@@ -667,7 +667,7 @@ class particle:
         of particles - which see.
         """
         if (not (isinstance(o,int) or isinstance(o,float))):
-            raise TypeError('optool.particle object can only be multiplied with a number')
+            raise TypeError('optool.particle object can only be multiplied by a number')
         x = copy.deepcopy(s)
         x.kabs = x.kabs*o; x.ksca = x.ksca*o; x.kext = x.kext*o
         x.massscale = x.massscale*o
@@ -805,7 +805,7 @@ Conversion
         try:
             rfile = open(file, 'r')
         except:
-            print('ERROR: file not found:',file)
+            print('ERROR: File not found:',file)
             return -1
         print('Reading lnk file ',file,'...')
 
@@ -941,7 +941,7 @@ Conversion
         try:
             wfile = open(file, 'w')
         except:
-            raise RuntimeError('ERROR: Cannot write to file: '+file)
+            raise RuntimeError('Cannot write to file: '+file)
         wfile.write(self.header)
         wfile.write("  %d  %g\n" % (self.nlam,self.rho))
         for i in range(self.nlam):
@@ -1053,7 +1053,7 @@ def readoutputfile(file,scat):
     try:
         rfile = open(file, 'r')
     except:
-        raise RuntimeError('ERROR: file not found: '+file)
+        raise RuntimeError('File not found: '+file)
     print('Reading',file,'...')
 
     # Read the header/comment field
