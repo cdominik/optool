@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   April 2021, version 1.8.1
+#+DATE:   April 2021, version 1.8.2
 
 * Introduction
 
@@ -417,10 +417,11 @@ path/to/file.lnk 0.7 3.42=.
 - dustkappa.dat ::
 
   This is an ASCII file containing the basic opacity results. It
-  starts with a comment section describing the dust model, followed by
-  the format number (3, currently), followed by the number of
-  wavelengths in the grid, both on lines by themselves.  Then follows
-  a block with these columns:
+  starts with a comment section describing the dust model and also
+  showing the exact command line that was used to produce the file.
+  The header is followed by the format number (3, currently), followed
+  by the number of wavelengths in the grid, both on lines by
+  themselves.  Then follows a block with these columns:
 
   1. wavelength \lambda [micron]
   2. mass absorption cross section \kappa_abs [cm^2/g]
@@ -432,7 +433,7 @@ path/to/file.lnk 0.7 3.42=.
   ASCII file with cross sections and full scattering matrix. It is an
   extended version of the =dustkappa.dat= file.  This file has a
   format number (0), the number of wavelengths and then the number of
-  angular points after the comment section.  After en empty line, this
+  angular points after the comment section.  After an empty line, this
   is followed by the same block of wavelengths and opacities as
   described above for the =dustkappa.dat= file.  Another empty line is
   followed by a list of the grid angles, yet another empty line, and
@@ -815,9 +816,9 @@ the code.
    N=k_{\rm f}\left(\frac{R_{\rm g}}{a_0}\right)^{D_{\rm f}}
   \end{equation}
   The size $a$ of the particles as specified by the *-a* switch is
-  interpreted as the /compact/ size of all material in the aggregate,
-  so that $N=a^3/a_0^3$, where $a_0$ is the monomer radius.  The
-  average volume filling factor $f$ can be expressed by
+  interpreted as the /compact/[fn:6] size of all material in the
+  aggregate, so that $N=a^3/a_0^3$, where $a_0$ is the monomer radius.
+  The average volume filling factor $f$ can be expressed by
   $f=N\cdot\left(\sqrt{3/5}\,a_0/R_{\rm g}\right)^3$.  To determine
   the structure of the aggregates, the user can specify a structure
   parameter.  If that parameter is larger than 1, it is interpreted as
@@ -850,6 +851,9 @@ the code.
   scattering matrix results is violated, a warning will be
   issued. However, the opacities will remain applicable.
 
+[fn:6]still including the porosity specified with the *-p* switch
+(which is porosity residing in the monomers themspelves), but not any
+"porosity" resulting from the aggregate structure
 
 * Troubleshooting
 - If you get oscillations in the opacities, in particular at long

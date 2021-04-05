@@ -112,7 +112,7 @@ the filling factor
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
-- Release 1.8.1 ::
+- Release 1.8.2 ::
 
   - New way to keep precomputed opacities in a directory and read them
     back in in python at a later time.
@@ -127,6 +127,9 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 
     : sil  = optool.particle('optool -d -a 0.001 100 0 100 ol-mg50')
     : sil_ln = sil.sizedist( np.exp(-0.5* (np.log(sil.a1/1.3)/0.2)**2) )
+
+  - The command line that was used to produce an output file is not
+    stored in the file header of each output file.
 
 - Release 1.7.3 ::
   - New built-in materials: SiO2
