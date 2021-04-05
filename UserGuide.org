@@ -32,8 +32,8 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
 and redistributed freely. The relevant references for this tool are
-listed below.  Depending on which parts of =optool= you are using,
-please reference the corresponding papers.
+listed below.  Please point to the GitHub repository and cite the
+papers that are relevant for your use case.
 
 - =optool=: [[https://github.com/cdominik/optool.git][=https://github.com/cdominik/optool.git=]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
