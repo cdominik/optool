@@ -876,7 +876,6 @@ the code.
 #+LATEX: \footnotesize
 - Bohren, C.F. and Huffman, D.R. 1998, Wiley-VCH, \\
   /Absorption and Scattering of Light by Small Particles/
-- Chapman et al. 2009, ApJ 690, 496
 - Draine, B., 2003, ApJ 598, 1017
 - Draine, B., 2003, ApJ 598, 1026
 - Dorschner, J. et al. 1995, A&A 300, 503
@@ -887,7 +886,6 @@ the code.
 - Kitamura, R. et al 2007, Applied Optics 46,33, p. 8188
 - Koike, C. et al. 1995, Icarus 114, 203
 - Laor, A. and Draine, B., ApJ 402, 441
-- Lefèvre, C.; Min,M. et al. 2020, A&A (submitted)
 - Martonchik, J. 1984, Applied Optics 23, 541
 - Min, M. et al. 2005, A&A, 432, 909
 - Min, M. et al. 2016, A&A, 585, 13
