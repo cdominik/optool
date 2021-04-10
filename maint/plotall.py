@@ -1,3 +1,12 @@
+import copy
+import numpy as np
+import matplotlib.pyplot as plt
+import math as m
+import re
+import os
+import subprocess
+from distutils.spawn import find_executable
+import random
 all_lnk_files = [
     'lnk_data/pyr-mg100-Dorschner1995.lnk',
     'lnk_data/pyr-mg95-Dorschner1995.lnk',
@@ -97,6 +106,75 @@ def plotalln():
             ax = gs1[ix,iy]
             ax.semilogx(p.lam,p.n)
             ax.set_xlim(0.05,300)
+            ax.set_ylim(0,10)
+            ax.text(0.1,9.,file[9:-4],fontsize='xx-small')
+    fig.show()
+
+def extrapolateallk():
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import optool
+
+    files = all_lnk_files
+
+    # Some example data to display
+    x = np.linspace(0, 2 * np.pi, 400)
+    y = np.sin(x ** 2)
+    nx = 6
+    ny = 6
+    fig = plt.figure(figsize=(10,9))
+    gs = fig.add_gridspec(nx,ny, hspace=0, wspace=0)
+    gs1 = gs.subplots(sharex='all',sharey='all')
+    print(gs1.shape)
+    for iy in range(ny):
+        for ix in range(nx):
+            nn = ix+iy*nx
+            #print(ix,iy,nn)
+            if (nn >= len(files)):
+                break
+            file = files[nn]
+
+            cmd = './optool -b -l 0.001 1e6 2000 '+file
+            cmd = cmd.split()
+            subprocess.Popen(cmd).wait()
+            p=optool.lnktable('blended.lnk')
+            ax = gs1[ix,iy]
+            ax.loglog(p.lam,p.k+1e-5)
+            ax.set_xlim(0.001,1e6)
+            ax.set_ylim(1e-4,1e3)
+            ax.text(0.1,100.,file[9:-4],fontsize='xx-small')
+    fig.show()
+
+def extrapolatealln():
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import optool
+
+    files = all_lnk_files
+
+    # Some example data to display
+    x = np.linspace(0, 2 * np.pi, 400)
+    y = np.sin(x ** 2)
+    nx = 6
+    ny = 6
+    fig = plt.figure(figsize=(10,9))
+    gs = fig.add_gridspec(nx,ny, hspace=0, wspace=0)
+    gs1 = gs.subplots(sharex='all',sharey='all')
+    print(gs1.shape)
+    for iy in range(ny):
+        for ix in range(nx):
+            nn = ix+iy*nx
+            #print(ix,iy,nn)
+            if (nn >= len(files)):
+                break
+            file = files[nn]
+            cmd = './optool -b -l 0.001 1e6 2000 '+file
+            cmd = cmd.split()
+            subprocess.Popen(cmd).wait()
+            p=optool.lnktable('blended.lnk')
+            ax = gs1[ix,iy]
+            ax.semilogx(p.lam,p.n)
+            ax.set_xlim(0.001,1e6)
             ax.set_ylim(0,10)
             ax.text(0.1,9.,file[9:-4],fontsize='xx-small')
     fig.show()
