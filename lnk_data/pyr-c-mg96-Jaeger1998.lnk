@@ -1,6 +1,12 @@
 # Material:  Mg_0.96 Fe_0.04 SiO3, crystalline
 # Reference: Jaeger 1998, A&A, 339, 904
 #
+# Name:       Pyroxene
+# State:      crystalline
+# Formula:    Mg_{0.96}Fe_{0.04}SiO_{3}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1998A&A...339..904J
+# BibTeX-key: 1998A&A...339..904J
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   808 2.80
      0.2000E+01     0.1543E+01     0.1275E-01

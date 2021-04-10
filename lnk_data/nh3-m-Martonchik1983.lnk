@@ -1,5 +1,12 @@
 # Ammonia ice
 # Martonchik et al 1984 Applied Optics 23, 541
+#
+# Name:       Ammonia ice
+# State:      crystalline
+# Formula:    NH_{3}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M
+# BibTeX-key: 1984ApOpt..23..541M
+#
 # The density 0.75 is a mean value for low temperatures
 # taken from Satorre et al 2013, Icarus 225, 703
 # (C. Dominik, 2021-03-10)

@@ -1,6 +1,12 @@
 # Material:  Carbon, amorphous
 # Reference: Preibisch 1993,  A&A 279,577
 #
+# Name:       Carbon
+# State:      amorphous
+# Formula:    C
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1993A&A...279..577P
+# BibTeX-key: 1993A&A...279..577P
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
 90 1.80 
 0.105	1.415	0.796

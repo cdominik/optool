@@ -1,5 +1,12 @@
 # CH3OH crystalline, 120K Gerakines & Hudson 2020, ApJ 901, 52
 # https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+#
+# Name:       Methanol ice
+# State:      crystalline
+# Formula:    CH_{3}OH
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+# BibTeX-key: 2020ApJ...901...52G
+#
 # Smoothed and reduced resolution to limit file size
 # (C. Dominik, 2021-03-10)
 #

@@ -1,6 +1,12 @@
 # Material:  Mg0.95 Fe0.05 SiO3, amorphous
 # Reference: Dorschner et al 1995, A&A 300, 503
 #
+# Name:       Pyroxene
+# State:      amorphous
+# Formula:    Mg_{0.95}Fe_{0.05}SiO_{3}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+# BibTeX-key: 1995A&A...300..503D
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
      109  2.74   
      0.20000    1.749150    0.000000

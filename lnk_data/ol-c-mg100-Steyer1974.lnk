@@ -1,5 +1,11 @@
-# Material:  Fosterite, crystalline
+# Material:  Forsterite, crystalline
 # Reference: Steyer 1974,  PhD Thesis
+#
+# Name:       Forsterite
+# State:      crystalline
+# Formula:    Mg_{2}SiO_{4}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S
+# BibTeX-key: 1974PhDT.......274S
 #
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   199 3.33

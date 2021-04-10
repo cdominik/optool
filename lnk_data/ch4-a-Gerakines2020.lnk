@@ -1,6 +1,12 @@
 # amorphous CH4 (8K) Gerakines & Hudson 2020, ApJ 901, 52
 # https://science.gsfc.nasa.gov/691/cosmicice/constants.html
 # 
+# Name:       Methane ice
+# State:      amorphous
+# Formula:    CH_{4}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+# BibTeX-key: 2020ApJ...901...52G
+#
 # I cut the data at 12 microns, because there was too much noise.
 # However, the extrapolation works without any problems into this region.
 # (C.Dominik, 2021-03-10)

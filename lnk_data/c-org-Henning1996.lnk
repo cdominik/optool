@@ -2,6 +2,14 @@
 # Recomputed.  Originally, this was from Pollack et al 1994, but the
 # data we have here is from Henning & Stognienko 1996, A&A 311,291
 #
+# Name:       Organics
+# State:      amorphous
+# Formula:    CHON
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1994ApJ...421..615P
+# BibTeX-key: 1994ApJ...421..615P
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+# BibTeX key: 1996A&A...311..291H
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
  113 1.4
  0.10000E+00 0.13014E+01 0.86125E+00

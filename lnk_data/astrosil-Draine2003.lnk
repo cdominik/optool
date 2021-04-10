@@ -2,7 +2,13 @@
 # Reference: Draine 2003, ApJ 598, 1017
 # Material is basically MgFeSiO4, but constants are smoothed
 # and partially constructed
-# 
+#
+# Name:       Astronomical silicate
+# State:      amorphous
+# Formula:    MgFeSiO_{4}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D
+# BibTeX-key: 2003ApJ...598.1017D
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   837   3.3
  6.199200e-05   9.999981e-01   1.783000e-08

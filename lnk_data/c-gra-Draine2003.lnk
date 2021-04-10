@@ -1,6 +1,12 @@
 # Graphite, mixed from axis-dependant files
 # Reference: Draine 2003, ApJ 598, 1026
 #
+# Name:       Graphite
+# State:      crystalline
+# Formula:    C
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D
+# BibTeX-key: 2003ApJ...598.1026D
+#
 # The data here is a 1/3-2/3 mix of the properties with E parallel to
 # the vector defining the graphite plane, and perpendicular to it,
 # respectively.  The data are given separately by Bruce Draine, but

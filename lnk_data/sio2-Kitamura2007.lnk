@@ -1,5 +1,11 @@
 # SiO2 at room temperature
 #
+# Name:       Quartz
+# State:      amorphous
+# Formula:    SiO_{2}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/2007ApOpt..46.8118K
+# BibTeX-key: 2007ApOpt..46.8118K
+#
 # Data from compilation by Kitamura et al 2007, Applied Optics 46, 33,
 # page 8118. The data in this file consists for the Kitamura et al fit
 # between 7 and 50 um, a hand-added point at 500um that is consistent

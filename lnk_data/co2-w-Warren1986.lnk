@@ -1,4 +1,11 @@
 # CO2 ice data as compiles by Warren 1986, Applied optice 25, 16
+#
+# Name:       dry ice
+# State:      crystalline
+# Formula:    CO_{2}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W
+# BibTeX-key: 1986ApOpt..25.2650W
+#
 # The data given by Warren contains a few gaps in the k values, in
 # these invervals:
 # 0.127-0.33 um, 25-80 um, 102-140 um, and beyond 160 um

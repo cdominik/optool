@@ -1,5 +1,12 @@
 # Material:  Iron, metallic crystalline
 # Reference: Henning 1996, A&A 311, 291
+#
+# Name:       Iron
+# State:      metallic
+# Formula:    Fe
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+# BibTeX-key: 1996A&A...311..291H
+#
 113 7.87
  0.10000E+00 0.14453E+01 0.89017E+00
  0.10500E+00 0.14696E+01 0.92110E+00

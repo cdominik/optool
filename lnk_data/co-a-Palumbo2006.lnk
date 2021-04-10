@@ -1,5 +1,11 @@
 # CO ice 16 K.  Palumbo et al. 2006 PCCP 8, 279
 #
+# Name:       CO ice
+# State:      amorphous
+# Formula:    CO
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P
+# BibTeX-key: 2006PCCP....8..279P
+#
 # According to Urso et al. 2016, A&A 594 A80, the CO band does
 # not change at higher temperatures, so this can be used for all
 # temperatures below the sublimation limit.

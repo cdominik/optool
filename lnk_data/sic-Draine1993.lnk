@@ -1,6 +1,12 @@
 # Alpha SiC
 # Laor & Draine 1993, ApJ 402, 441
 #
+# Name:       Silicon carbide
+# State:      crystalline
+# Formula:    SiC
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L
+# BibTeX-key: 1993ApJ...402..441L
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   1201 3.22
       0.0010000      0.9995441      0.0000285

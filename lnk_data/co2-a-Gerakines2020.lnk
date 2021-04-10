@@ -1,5 +1,12 @@
 # CO2 amorphous, 8K, Gerakines & Hudson 2020, ApJ 901, 52
 # https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+#
+# Name:       dry ice
+# State:      amorphous
+# Formula:    CO_{2}
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+# BibTeX-key: 2020ApJ...901...52G
+#
 # Smoothed and reduced resolution to limit file size
 # (C. Dominik, 2021-03-10)
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k

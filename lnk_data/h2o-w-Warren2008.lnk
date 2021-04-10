@@ -1,6 +1,12 @@
 # Material:  Water ice, crystalline?
 # Reference: Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
 #
+# Name:       Water ice
+# State:      crystalline
+# Formula:    H_{2}O
+# ADS-link:   https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W
+# BibTeX-key: 2008JGRD..11314220W
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
    486 0.92
    4.43000e-02   8.22800e-01   1.64000e-01
