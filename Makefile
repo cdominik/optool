@@ -68,7 +68,7 @@ BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
 # make actions 
 all:		$(PROGRAM)
 full:;		make multi=true fits=true
-cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_dir_*
+cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_dir_* optool.tex
 cleanbin:;	rm -f bin/optool*
 clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.html bin.zip bin/optool*
 		make cleanoutput
@@ -141,12 +141,6 @@ binlinux:;	make cclean
 binzip:;	rm -f bin.zip
 		(cd bin; zip ../bin.zip optool*)
 binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
-
-
-# MMF leasds to segmentation faults if I compile with OpenMP support.
-# So we use a special rule for it.
-#optool_mmf.o: optool_mmf.f90
-#	$(FC) $(FLAG_ALL_NM) $(FLAG_LINUX) $(FLAG_FITS) -c optool_mmf.f90
 
 .SUFFIXES : .o .f .f90
 

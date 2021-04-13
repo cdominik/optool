@@ -2,8 +2,25 @@
 %
 % This file contains BibTeX entries for all papers used for the
 % creation of the optool program, including the papers with the
-% measurements of the refractory materials.
+% measurements of the refractory materials.  It also contains the
+% articles for opacities available in the companion repository
+% https://github.com/cdominik/refind-for-optool.
 %
+
+% ======================================================================
+% OPTOOL ITSELF ========================================================
+% ======================================================================
+
+@misc{optool-2021,
+  author = {Dominik, C. and Min, M. and Tanaka, R.},
+  title = {Optool - a tool to compute dust opacities},
+  year = {2021},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/cdominik/optool}},
+  commit = {4e47243759144343d1da1710a46048253c0a15a6}
+}
+
 % ======================================================================
 % BOOKS ================================================================
 % ======================================================================
@@ -27,6 +44,48 @@
 % ======================================================================
 % METHODS ==============================================================
 % ======================================================================
+
+@ARTICLE{1908AnP...330..377M,
+       author = {{Mie}, Gustav},
+        title = "{Beitr{\"a}ge zur Optik tr{\"u}ber Medien, speziell kolloidaler Metall{\"o}sungen}",
+      journal = {Annalen der Physik},
+         year = 1908,
+        month = jan,
+       volume = {330},
+       number = {3},
+        pages = {377-445},
+          doi = {10.1002/andp.19083300302},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/1908AnP...330..377M},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@ARTICLE{1935AnP...416..636B,
+       author = {{Bruggeman}, D.~A.~G.},
+        title = "{Berechnung verschiedener physikalischer Konstanten von heterogenen Substanzen. I. Dielektrizit{\"a}tskonstanten und Leitf{\"a}higkeiten der Mischk{\"o}rper aus isotropen Substanzen}",
+      journal = {Annalen der Physik},
+         year = 1935,
+        month = jan,
+       volume = {416},
+       number = {7},
+        pages = {636-664},
+          doi = {10.1002/andp.19354160705},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/1935AnP...416..636B},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@ARTICLE{1904RSPTA.203..385G,
+       author = {{Garnett}, J.~C.~M.},
+        title = "{Colours in Metal Glasses and in Metallic Films}",
+      journal = {Philosophical Transactions of the Royal Society of London Series A},
+         year = 1904,
+        month = jan,
+       volume = {203},
+       number = {359-371},
+        pages = {385-420},
+          doi = {10.1098/rsta.1904.0024},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/1904RSPTA.203..385G},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
 
 @ARTICLE{1984A&A...131..237D,
        author = {{de Rooij}, W.~A. and {van der Stap}, C.~C.~A.~H.},
@@ -457,6 +516,108 @@ archivePrefix = {arXiv},
         pages = {1321-1329},
           doi = {10.1093/mnras/282.4.1321},
        adsurl = {https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+% ======================================================================
+% Below this line, these are articles for materials not included in
+% optool, but available in https://github.com/cdominik/refind-for-optool
+% ======================================================================
+
+% h2o-T176K h2o-T166K h2o-T156K h2o-T146K h2o-T136K h2o-T126K
+% h2o-T116K h2o-T106K 
+@ARTICLE{2005ApOpt..44.4102C,
+       author = {{Curtis}, Daniel B. and {Rajaram}, Bhavani and {Toon}, Owen B. and {Tolbert}, Margaret A.},
+        title = "{Measurement of the temperature-dependent optical constants of water ice in the 15-200 {\ensuremath{\mu}}m range}",
+      journal = {\ao},
+         year = 2005,
+        month = jul,
+       volume = {44},
+       number = {19},
+        pages = {4102-4118},
+          doi = {10.1364/AO.44.004102},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2005ApOpt..44.4102C},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+% for-c-T050K for-c-T100K for-c-T150K for-c-T200K for-c-T295K
+@ARTICLE{2006MNRAS.370.1599S,
+       author = {{Suto}, H. and {Sogawa}, H. and {Tachibana}, S. and {Koike}, C. and {Karoji}, H. and {Tsuchiyama}, A. and {Chihara}, H. and {Mizutani}, K. and {Akedo}, J. and {Ogiso}, K. and {Fukui}, T. and {Ohara}, S.},
+        title = "{Low-temperature single crystal reflection spectra of forsterite}",
+      journal = {\mnras},
+     keywords = {methods: laboratory: circumstellar matter: dust, extinction: ISM: lines and bands, methods: laboratory, circumstellar matter, dust, extinction, ISM: lines and bands},
+         year = 2006,
+        month = aug,
+       volume = {370},
+       number = {4},
+        pages = {1599-1606},
+          doi = {10.1111/j.1365-2966.2006.10594.x},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2006MNRAS.370.1599S},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+% themis-E-0.10 themis-E+0.00 themis-E+0.01 themis-E+0.25 themis-E+0.50
+% themis-E+0.75 themis-E+1.00 themis-E+1.25 themis-E+1.50 themis-E+1.75
+% themis-E+2.00 themis-E+2.25 themis+2.50-E+2.25 themis-E+2.67
+@ARTICLE{2012A&A...540A...2J,
+       author = {{Jones}, A.~P.},
+        title = "{Variations on a theme - the evolution of hydrocarbon solids. II. Optical property modelling - the optEC$_{(s)}$ model}",
+      journal = {\aap},
+     keywords = {dust, extinction, ISM: general, Astrophysics - Astrophysics of Galaxies},
+         year = 2012,
+        month = apr,
+       volume = {540},
+          eid = {A2},
+        pages = {A2},
+          doi = {10.1051/0004-6361/201117624},
+archivePrefix = {arXiv},
+       eprint = {1511.01682},
+ primaryClass = {astro-ph.GA},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2012A&A...540A...2J},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+% ch3oh-T010K ch3oh-T050K ch3oh-T075K ch3oh-T100K ch3oh-T120K
+% ch4-T010K ch4-T020K ch4-T030K co2-T010K co2-T030K co2-T050K
+% co2-T070K co2:ch4=20:1-010K co2:ch4=20:1-020K co2:ch4=20:1-030K
+% co2:ch4=20:1-050K co2:ch4=20:1-070K co2:ocs=20:1-T010K
+% co2:ocs=20:1-T030K co2:ocs=20:1-T070K co:ch4=20:1-T010K
+% co:ch4=20:1-T015K co:ch4=20:1-T020K co:ch4=20:1-T025K
+% co:ocs=20:1-T010K co:ocs=20:1-T020K co:ocs=20:1-T025K
+% co:ocs=20:1-T030K h2o-T010K h2o-T040K h2o-T080K h2o-T100K
+% h2o-T120K h2o-T140K h2o:ch3oh:co:nh3=100:10:1:1-T010K
+% h2o:ch3oh:co:nh3=100:10:1:1-T040K
+% h2o:ch3oh:co:nh3=100:10:1:1-T080K
+% h2o:ch3oh:co:nh3=100:10:1:1-T100K
+% h2o:ch3oh:co:nh3=100:10:1:1-T120K
+% h2o:ch3oh:co:nh3=100:10:1:1-T140K
+% h2o:ch3oh:co:nh3=100:50:1:1-T010K
+% h2o:ch3oh:co:nh3=100:50:1:1-T040K
+% h2o:ch3oh:co:nh3=100:50:1:1-T080K
+% h2o:ch3oh:co:nh3=100:50:1:1-T100K
+% h2o:ch3oh:co:nh3=100:50:1:1-T120K
+% h2o:ch3oh:co:nh3=100:50:1:1-T140K h2o:ch4=20:1-T010K
+% h2o:ch4=20:1-T040K h2o:ch4=20:1-T080K h2o:ch4=20:1-T100K
+% h2o:ch4=20:1-T120K h2o:ch4=20:1-T140K h2o:ocs=20:1-T010K
+% h2o:ocs=20:1-T040K h2o:ocs=20:1-T100K h2o:ocs=20:1-T120K
+% h2o:ocs=20:1-T140K h2o:ocs=2:1-T010K h2o:ocs=2:1-T040K
+% h2o:ocs=2:1-T080K h2o:ocs=2:1-T100K h2o:ocs=2:1-T120K
+% h2o:ocs=2:1-T140K n2:ch4=20:1-T010K n2:ch4=20:1-T020K
+% n2:ocs=20:1-T010K n2:ocs=20:1-T015K n2:ocs=20:1-T020K
+% n2:ocs=20:1-T025K o2:ch4=20:1-T010K o2:ch4=20:1-T020K
+% o2:ch4=20:1-T030K o2:ocs=20:1-T010K o2:ocs=20:1-T020K ocs-T010K
+% ocs-T050K ocs-T060K
+@ARTICLE{1993ApJS...86..713H,
+       author = {{Hudgins}, D.~M. and {Sandford}, S.~A. and {Allamandola}, L.~J. and {Tielens}, A.~G.~G.~M.},
+        title = "{Mid- and Far-Infrared Spectroscopy of Ices: Optical Constants and Integrated Absorbances}",
+      journal = {\apjs},
+     keywords = {Absorptivity, Ice, Infrared Spectroscopy, Molecular Absorption, Far Infrared Radiation, Infrared Spectra, Organic Compounds, Astronomy, LINE: IDENTIFICATION, MOLECULAR DATA},
+         year = 1993,
+        month = jun,
+       volume = {86},
+        pages = {713},
+          doi = {10.1086/191796},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/1993ApJS...86..713H},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 

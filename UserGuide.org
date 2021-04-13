@@ -353,10 +353,10 @@ carbon \fbox{c}, and (at low temperaturs) water ice \fbox{h2o}.
 | ens        | pyr-c-mg96 | Mg_{0.96}Fe_{0.04}SiO3  | cryst   |       2.8 |       *2.0* |        *99* | [[https://ui.adsabs.harvard.edu/abs/1998A%26A...339..904J][Jäger+98]]      |              | [[file:lnk_data/pyr-c-mg96-Jäger1998.lnk][pyr-c-mg96-Jäger1998.lnk]]    |
 |------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | ol         | ol-mg50    | MgFeSiO_4               | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]   |
-|            | ol-mg40    | Mg_0.8 Fe_1.2 SiO_4     | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]   |
+|            | ol-mg40    | Mg_{0.8}Fe_{1.2}SiO_4   | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]   |
 | for        | ol-c-mg100 | Mg_2 SiO_4              | cryst   |      3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]     | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
 |------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
-|            | astrosil   | MgFeSiO4                | mixed   |       3.3 |        6e-5 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D][Draine+03]]     |              | [[file:lnk_data/astrosil-Draine2003.lnk][astrosil-Draine2003.lnk]]     |
+|            | astrosil   | MgFeSiO_4               | mixed   |       3.3 |        6e-5 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D][Draine+03]]     |              | [[file:lnk_data/astrosil-Draine2003.lnk][astrosil-Draine2003.lnk]]     |
 |------------+------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | \fbox{c}   | c-z        | C                       | amorph? |       1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z][Zubko+96]]      |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]           |
 |            | c-p        | C                       | amorph  |       1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P][Preibisch+93]]  |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]       |
@@ -433,17 +433,16 @@ path/to/file.lnk 0.7 3.42=.
   ASCII file with cross sections and full scattering matrix. It is an
   extended version of the =dustkappa.dat= file.  This file has a
   format number (0), the number of wavelengths and then the number of
-  angular points after the comment section.  After an empty line, this
-  is followed by the same block of wavelengths and opacities as
-  described above for the =dustkappa.dat= file.  Another empty line is
-  followed by a list of the grid angles, yet another empty line, and
-  then the scattering matrix elements for all wavelengths and all
-  angles. The comment section at the start of the file shows the
-  structure in a formal way.  See [[#normalization][the appendix]] for information about
-  the normalization of the scattering matrix and about the angular
-  grid that is used for it.  Also, see the =-radmc= switch which will
-  modify[fn:2] the output to make sure it can be used as an input file
-  for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]].
+  angular points after the comment section.  After an empty line, the
+  same opacity block as in =dustkappa.dat= is present.  Another empty
+  line is followed by a list of the grid angles, another empty
+  line, and then the scattering matrix elements for all wavelengths
+  and all angles. The comment section at the start of the file shows
+  the structure in a formal way.  See [[#normalization][the appendix]] for information
+  about the normalization of the scattering matrix and about the
+  angular grid that is used for it.  Also, see the =-radmc= switch
+  which will modify[fn:2] the output to make sure it can be used as an
+  input file for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]].
 
 - dustkappa.fits ::
 
@@ -452,10 +451,8 @@ path/to/file.lnk 0.7 3.42=.
   block contains the cross sections per unit mass. This is an n_\lambda
   \times 4 matrix with these columns:
 
-  1. wavelength in [\mu{}m]
-  2. mass extinction cross section \kappa_ext in [cm^2/g]
-  3. mass absorption cross section \kappa_abs in [cm^2/g]
-  4. mass scattering cross section \kappa_sca in [cm^2/g]
+  - wavelength in [\mu{}m]
+  - \kappa_ext in, \kappa_abs, \kappa_sca, all in [cm^2/g]
 
   The second HDU block contains the scattering matrix elements. It is
   a n_\lambda \times 6 \times n_ang matrix, containing the 6 elements
@@ -464,6 +461,13 @@ path/to/file.lnk 0.7 3.42=.
   n_ang-1), for each wavelength value. The stored matrix elements are
   F_11, F_12, F_22, F_33, F_34, and F_44.
 
+- optool.tex ::
+  As a little gimmick, you can run =optool2tex= with the exact same
+  command line arguments as used in an =optool= run, to produce this
+  file.  It contains a paragraph of text and a table, listing the
+  composition of the grains and the computational methods, along with
+  proper references.  You can rework this text to include into your
+  paper.
 
 [fn:2] This includes a change of the angular grid and a change in the
 normalization of the scattering matrix.
@@ -868,7 +872,8 @@ the code.
 * Acknowledgments
 - [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which inspired me to add grain mantles.
 - [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
-  on github]]).
+  on github]]).  Also, it was his idea to include something like
+  =optool2tex=.
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
 
 
