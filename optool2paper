@@ -1,8 +1,13 @@
 #!/usr/bin/perl
 
-# Run a few standard cases and compare the results to stored hashes.
+print ">>> $ARGV[0]  ",length(@ARGV),"  \n";
 
-$i=0;
+if (($#ARGV == 1) and ($ARGV[0] eq "-s")) {
+  print "$#ARGV setting\n";
+  exit(0);
+}
+
+$i = 0;
 $method = 'dhs'; $fmax = 0.8;
 while (@ARGV) {
   $_ = shift;
@@ -69,10 +74,13 @@ while (@ARGV) {
   } elsif (/^-d$/) {
     # The division flag
     $divide = 1; shift if &n; next;
-  } elsif (/^-fits$/) {next}
+  } elsif (/^-fits$/) {
+    next;
   } elsif (/^-radmc$/) {
     # RADMC
     if (not &a) {shift}; next;
+  } elsif (/^-(q|n|debug|v|b|blendonly)$/) {next;
+  } else {next}
 }
 
 # Get database information about the used materials
@@ -83,6 +91,40 @@ for $i (0..$nm) {
 }
 
 # Write the paragraph and table
+
+sub n { is_number($ARGV[0]) }      # number?
+sub a { $ARGV[0]=~/^[a-zA-Z]/ }    # word, not number?
+sub o { $ARGV[0]=~/^-[a-zA-Z]/ }   # option?
+sub is_number {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?$/}
+
+sub get_record_from_file {
+  $file = shift;
+  my %hash;
+  open($fh,"<",file) or die "Cannot open file $file\n";
+  while (<$fh>) {
+    if (/^[#*!]\s+(\S+):\s+(\S.*\S)/) {
+      $hash{$1} = trim($hash{$1}." ".$2);
+      next;
+    }
+    last unless /^[#*!]/;
+  }
+  close $fh;
+  return \%hash
+}
+
+sub read_DATA {
+  my %a;
+  # FIXME: clean out at every comment line, so that we can simply append when updating?
+  while (<DATA>) {
+    next if /^\s*#/;
+    next if /^\s*$/;
+    if (/^\s*(key):\s+(\S+)/) {$key = $2; next}
+    if (/^\s*(\S+):\s+(\S+)/) {$a{$key}{$1} = trim($a{$key}{$1}." ".$2)}
+  }
+  return \%a
+}
+
+__DATA__
 
 "
 \subsection{Opacities}
@@ -97,9 +139,3 @@ Name | Chemical Formula | Bulk density | Location  | Mass fraction | Reference
 
 
 "
-
-sub n { is_number($ARGV[0]) }      # number?
-sub a { $ARGV[0]=~/^[a-zA-Z]/ }    # word, not number
-sub o { $ARGV[0]=~/^-[a-zA-Z]/ }   # option
-sub is_number {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?$/}
-    
