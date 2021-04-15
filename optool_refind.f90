@@ -185,9 +185,6 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
      endif
      do i=1, n0
         read (99, fmt=* ) x(i), y1(i), y2(i)
-        ! Catch values <= 0, those would be poison for the loglog interpolation
-        if (y1(i).le.0.d0) y1(i) = 1d-10
-        if (y2(i).le.0.d0) y2(i) = 1d-10
      end do
      close(99)
 
@@ -204,6 +201,12 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
         enddo
      endif
   end select
+
+  ! Do not allow values <= 0, those would be poison for the loglog interpolation
+  do i=1,n0
+     if (y1(i).le.0.d0) y1(i) = 1d-10
+     if (y2(i).le.0.d0) y2(i) = 1d-10
+  enddo
   
   i   = 1
   i0  = 1
@@ -299,7 +302,13 @@ subroutine astrosil(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Reference: Draine 2003, ApJ 598, 1017
   ! Material is basically MgFeSiO4, but constants are smoothed
   ! and partially constructed
-  ! 
+  !
+  ! Name:       Astronomical silicate
+  ! State:      amorphous
+  ! Formula:    MgFeSiO_{4}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D
+  ! BibTeX-key: 2003ApJ...598.1017D
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -826,6 +835,12 @@ subroutine c_gra(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/c-gra-Draine2003.lnk
   ! Graphite, mixed from axis-dependant files
   ! Reference: Draine 2003, ApJ 598, 1026
+  !
+  ! Name:       Graphite
+  ! State:      crystalline
+  ! Formula:    C
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D
+  ! BibTeX-key: 2003ApJ...598.1026D
   !
   ! The data here is a 1/3-2/3 mix of the properties with E parallel to
   ! the vector defining the graphite plane, and perpendicular to it,
@@ -1463,7 +1478,13 @@ subroutine c_nano(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/c-nano-Mutschke2004.lnk
   ! Meteoritic Diamond, Mutschke+2004, A&A 423, 983.
   ! Density measurement from Lewis+1987, Nature 326, 160
-  ! 
+  !
+  ! Name:       nano diamonds
+  ! State:      crystalline
+  ! Formula:    C
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2004A&A...423..983M
+  ! BibTeX-key: 2004A&A...423..983M
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -1515,6 +1536,14 @@ subroutine c_org(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Organic stuff
   ! Recomputed.  Originally, this was from Pollack et al 1994, but the
   ! data we have here is from Henning & Stognienko 1996, A&A 311,291
+  !
+  ! Name:       Organics
+  ! State:      amorphous
+  ! Formula:    CHON
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1994ApJ...421..615P
+  ! BibTeX-key: 1994ApJ...421..615P
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  ! BibTeX-key: 1996A&A...311..291H
   !
 
   IMPLICIT NONE
@@ -1608,6 +1637,12 @@ subroutine c_p(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  Carbon, amorphous
   ! Reference: Preibisch 1993,  A&A 279,577
   !
+  ! Name:       Carbon
+  ! State:      amorphous
+  ! Formula:    C
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1993A&A...279..577P
+  ! BibTeX-key: 1993A&A...279..577P
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -1657,6 +1692,12 @@ subroutine c_z(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/c-z-Zubko1996.lnk
   ! Material:  Carbon, amorphous
   ! Reference: Zubko 1996, MNRAS 282, 1321
+  !
+  ! Name:       Carbon
+  ! State:      amorphous
+  ! Formula:    C
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z
+  ! BibTeX-key: 1996MNRAS.282.1321Z
   !
 
   IMPLICIT NONE
@@ -2916,6 +2957,13 @@ subroutine ch3oh_a(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ch3oh-a-Gerakines2020.lnk
   ! CH3OH amorphous 10 K Gerakines & Hudson 2020, ApJ 901, 52
   ! https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+  !
+  ! Name:       Methanol ice
+  ! State:      amorphous
+  ! Formula:    CH_{3}OH
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  ! BibTeX-key: 2020ApJ...901...52G
+  !
   ! Smoothed and reduced resolution to limit file size
   ! (C. Dominik, 2021-03-10)
 
@@ -3546,6 +3594,13 @@ subroutine ch3oh_c(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ch3oh-c-Gerakines2020.lnk
   ! CH3OH crystalline, 120K Gerakines & Hudson 2020, ApJ 901, 52
   ! https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+  !
+  ! Name:       Methanol ice
+  ! State:      crystalline
+  ! Formula:    CH_{3}OH
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  ! BibTeX-key: 2020ApJ...901...52G
+  !
   ! Smoothed and reduced resolution to limit file size
   ! (C. Dominik, 2021-03-10)
   !
@@ -4178,6 +4233,12 @@ subroutine ch4_a(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! amorphous CH4 (8K) Gerakines & Hudson 2020, ApJ 901, 52
   ! https://science.gsfc.nasa.gov/691/cosmicice/constants.html
   ! 
+  ! Name:       Methane ice
+  ! State:      amorphous
+  ! Formula:    CH_{4}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  ! BibTeX-key: 2020ApJ...901...52G
+  !
   ! I cut the data at 12 microns, because there was too much noise.
   ! However, the extrapolation works without any problems into this region.
   ! (C.Dominik, 2021-03-10)
@@ -4750,6 +4811,12 @@ subroutine ch4_c(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ch4-c-Gerakines2020.lnk
   ! CH4 crystalline 31 K Gerakines & Hudson 2020, ApJ 901, 52
   ! https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+  ! 
+  ! Name:       Methane ice
+  ! State:      crystalline
+  ! Formula:    CH_{4}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  ! BibTeX-key: 2020ApJ...901...52G
   !
 
   IMPLICIT NONE
@@ -5373,6 +5440,12 @@ subroutine co_a(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/co-a-Palumbo2006.lnk
   ! CO ice 16 K.  Palumbo et al. 2006 PCCP 8, 279
   !
+  ! Name:       CO ice
+  ! State:      amorphous
+  ! Formula:    CO
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P
+  ! BibTeX-key: 2006PCCP....8..279P
+  !
   ! According to Urso et al. 2016, A&A 594 A80, the CO band does
   ! not change at higher temperatures, so this can be used for all
   ! temperatures below the sublimation limit.
@@ -5855,6 +5928,13 @@ subroutine co2_a(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/co2-a-Gerakines2020.lnk
   ! CO2 amorphous, 8K, Gerakines & Hudson 2020, ApJ 901, 52
   ! https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+  !
+  ! Name:       dry ice
+  ! State:      amorphous
+  ! Formula:    CO_{2}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  ! BibTeX-key: 2020ApJ...901...52G
+  !
   ! Smoothed and reduced resolution to limit file size
   ! (C. Dominik, 2021-03-10)
 
@@ -6497,6 +6577,13 @@ subroutine co2_c(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/co2-c-Gerakines2020.lnk
   ! CO2 crystalline, 70K, Gerakines & Hudson 2020, ApJ 901, 52
   ! https://science.gsfc.nasa.gov/691/cosmicice/constants.html
+  !
+  ! Name:       dry ice
+  ! State:      crystalline
+  ! Formula:    CO_{2}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  ! BibTeX-key: 2020ApJ...901...52G
+  !
   ! Smoothed and reduced resolution to limit file size
   ! (C. Dominik, 2021-03-10)
 
@@ -7120,6 +7207,13 @@ end subroutine co2_c
 subroutine co2_w(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/co2-w-Warren1986.lnk
   ! CO2 ice data as compiles by Warren 1986, Applied optice 25, 16
+  !
+  ! Name:       dry ice
+  ! State:      crystalline
+  ! Formula:    CO_{2}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W
+  ! BibTeX-key: 1986ApOpt..25.2650W
+  !
   ! The data given by Warren contains a few gaps in the k values, in
   ! these invervals:
   ! 0.127-0.33 um, 25-80 um, 102-140 um, and beyond 160 um
@@ -7508,6 +7602,12 @@ subroutine cor_c(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/cor-c-Koike1995.lnk
   ! Crystalline Corundum, Koike et al 1995, Icarus 114, 203
   !
+  ! Name:       Corundum
+  ! State:      crystalline
+  ! Formula:    AL_{2}O_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K
+  ! BibTeX-key: 1995Icar..114..203K
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -7665,6 +7765,13 @@ subroutine fe_c(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/fe-c-Henning1996.lnk
   ! Material:  Iron, metallic crystalline
   ! Reference: Henning 1996, A&A 311, 291
+  !
+  ! Name:       Iron
+  ! State:      metallic
+  ! Formula:    Fe
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  ! BibTeX-key: 1996A&A...311..291H
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -7755,6 +7862,12 @@ end subroutine fe_c
 subroutine fes(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/fes-Henning1996.lnk
   ! FeS, Henning & Stognienko 1996, A&A 311,291
+  !
+  ! Name:       Troilite
+  ! State:      crystalline
+  ! Formula:    FeS
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  ! BibTeX-key: 1996A&A...311..291H
   !
 
   IMPLICIT NONE
@@ -7847,6 +7960,12 @@ subroutine h2o_w(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/h2o-w-Warren2008.lnk
   ! Material:  Water ice, crystalline?
   ! Reference: Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
+  !
+  ! Name:       Water ice
+  ! State:      crystalline
+  ! Formula:    H_{2}O
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W
+  ! BibTeX-key: 2008JGRD..11314220W
   !
 
   IMPLICIT NONE
@@ -8164,6 +8283,13 @@ subroutine nh3_m(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/nh3-m-Martonchik1983.lnk
   ! Ammonia ice
   ! Martonchik et al 1984 Applied Optics 23, 541
+  !
+  ! Name:       Ammonia ice
+  ! State:      crystalline
+  ! Formula:    NH_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M
+  ! BibTeX-key: 1984ApOpt..23..541M
+  !
   ! The density 0.75 is a mean value for low temperatures
   ! taken from Satorre et al 2013, Icarus 225, 703
   ! (C. Dominik, 2021-03-10)
@@ -8296,8 +8422,14 @@ end subroutine nh3_m
 
 subroutine ol_c_mg100(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ol-c-mg100-Steyer1974.lnk
-  ! Material:  Fosterite, crystalline
+  ! Material:  Forsterite, crystalline
   ! Reference: Steyer 1974,  PhD Thesis
+  !
+  ! Name:       Forsterite
+  ! State:      crystalline
+  ! Formula:    Mg_{2}SiO_{4}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S
+  ! BibTeX-key: 1974PhDT.......274S
   !
 
   IMPLICIT NONE
@@ -8424,6 +8556,12 @@ subroutine ol_mg40(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  Mg0.8Fe1.2SiO4, amorphous
   ! Reference: Dorschner 1995, A&A 300, 503
   !
+  ! Name:       Olivine
+  ! State:      amorphous
+  ! Formula:    Mg_{0.8}Fe_{0.2}SiO_{4}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -8494,6 +8632,12 @@ subroutine ol_mg50(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  MgFeSiO4, amorphous
   ! Reference: Dorschner 1995, A&A 300,503
   !
+  ! Name:       Olivine
+  ! State:      amorphous
+  ! Formula:    MgFeSiO_{4}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -8563,6 +8707,12 @@ subroutine pyr_c_mg96(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-c-mg96-Jaeger1998.lnk
   ! Material:  Mg_0.96 Fe_0.04 SiO3, crystalline
   ! Reference: Jaeger 1998, A&A, 339, 904
+  !
+  ! Name:       Pyroxene
+  ! State:      crystalline
+  ! Formula:    Mg_{0.96}Fe_{0.04}SiO_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1998A&A...339..904J
+  ! BibTeX-key: 1998A&A...339..904J
   !
 
   IMPLICIT NONE
@@ -8992,6 +9142,12 @@ subroutine pyr_mg100(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  MgSiO3, amorphous
   ! Reference: Dorschner et al 1995, A&A 300, 503
   !
+  ! Name:       Pyroxene
+  ! State:      amorphous
+  ! Formula:    MgSiO_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -9062,6 +9218,12 @@ subroutine pyr_mg40(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  Mg0.4 Fe0.6 SiO3, amorphous
   ! Reference: Dorschner et al 1995, A&A 300, 503
   !
+  ! Name:       Pyroxene
+  ! State:      amorphous
+  ! Formula:    Mg_{0.4}Fe_{0.6}SiO_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -9130,6 +9292,12 @@ subroutine pyr_mg50(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg50-Dorschner1995.lnk
   ! Material:  Mg Fe SiO3, amorphous
   ! Reference: Dorschner et al 1995, A&A 300, 503
+  !
+  ! Name:       Pyroxene
+  ! State:      amorphous
+  ! Formula:    MgFeSiO_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
   !
 
   IMPLICIT NONE
@@ -9200,6 +9368,12 @@ subroutine pyr_mg60(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  Mg0.6 Fe0.4 SiO3, amorphous
   ! Reference: Dorschner et al 1995, A&A 300, 503
   !
+  ! Name:       Pyroxene
+  ! State:      amorphous
+  ! Formula:    Mg_{0.6}Fe_{0.4}SiO_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -9268,6 +9442,12 @@ subroutine pyr_mg70(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/pyr-mg70-Dorschner1995.lnk
   ! Material:  Mg0.7 Fe0.3 SiO3, amorphous
   ! Reference: Dorschner et al 1995, A&A 300, 503
+  !
+  ! Name:       Pyroxene
+  ! State:      amorphous
+  ! Formula:    Mg_{0.7}Fe_{0.3}SiO_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
   !
 
   IMPLICIT NONE
@@ -9339,6 +9519,12 @@ subroutine pyr_mg80(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  Mg0.8 Fe0.2 SiO3, amorphous
   ! Reference: Dorschner et al 1995, A&A 300, 503
   !
+  ! Name:       Pyroxene
+  ! State:      amorphous
+  ! Formula:    Mg_{0.8}Fe_{0.2}SiO_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -9409,6 +9595,12 @@ subroutine pyr_mg95(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  Mg0.95 Fe0.05 SiO3, amorphous
   ! Reference: Dorschner et al 1995, A&A 300, 503
   !
+  ! Name:       Pyroxene
+  ! State:      amorphous
+  ! Formula:    Mg_{0.95}Fe_{0.05}SiO_{3}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  ! BibTeX-key: 1995A&A...300..503D
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -9478,6 +9670,12 @@ subroutine sic(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/sic-Draine1993.lnk
   ! Alpha SiC
   ! Laor & Draine 1993, ApJ 402, 441
+  !
+  ! Name:       Silicon carbide
+  ! State:      crystalline
+  ! Formula:    SiC
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L
+  ! BibTeX-key: 1993ApJ...402..441L
   !
 
   IMPLICIT NONE
@@ -10109,6 +10307,12 @@ end subroutine sic
 subroutine sio2(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/sio2-Kitamura2007.lnk
   ! SiO2 at room temperature
+  !
+  ! Name:       Quartz
+  ! State:      amorphous
+  ! Formula:    SiO_{2}
+  ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2007ApOpt..46.8118K
+  ! BibTeX-key: 2007ApOpt..46.8118K
   !
   ! Data from compilation by Kitamura et al 2007, Applied Optics 46, 33,
   ! page 8118. The data in this file consists for the Kitamura et al fit

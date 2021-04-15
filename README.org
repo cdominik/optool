@@ -41,7 +41,7 @@ papers that are relevant for your use case.
 
 * Examples
 A simple grain made only of the default pyroxene, for the default
-grain size distribution ($a^{-3.5}$ powerlaw from 0.05 to 3000\mu{}m),
+grain size distribution (a^{-3.5} powerlaw from 0.05 to 3000\mu{}m),
 on the default wavelength grid (0.05\mu{}m to 1cm).
 
 : optool pyr
@@ -71,7 +71,7 @@ separate file.
 : optool pyr-mg70 0.87  c 0.13  -p 0.25  -m data/ice_hudgins.dat 0.2
 
 Pure water ice grains in a narrow size distribution from 1 to 3
-microns, with 15 sample sizes following an $f(a)\propto a^{-2.5}$
+microns, with 15 sample sizes following an f(a)\propto a^{-2.5}
 powerlaw size distribution. Also, restrict the wavelength range to
 10-100\mu{}m, and turn off DHS to get perfect spheres.
 
@@ -96,7 +96,7 @@ factor of 5%
 
 : optool pyr  -a 10 30  -mmf 0.3 0.05
 
-As before, but fix the fractal dimension $D_f=1.9$ instead of setting
+As before, but fix the fractal dimension D_f=1.9 instead of setting
 the filling factor
 
 : optool pyr  -a 10 30  -mmf 0.3 1.9
