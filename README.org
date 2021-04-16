@@ -111,7 +111,12 @@ the filling factor
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
-
+- Release 1.8.3 ::
+  - some small bug fixes
+  - implement optool2tex, a little tool that turns an optool command
+    line into a LaTeX snippet that describes the methods and the
+    refractive index data used for that computation.  This is somewhat
+    of a gimmick, but it is fun.
 - Release 1.8.2 ::
 
   - New way to keep precomputed opacities in a directory and read them
