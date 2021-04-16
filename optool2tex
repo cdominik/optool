@@ -2,7 +2,7 @@
 
 # Write a paragraph of text and a table to optool.tex, describing
 # the opacities produced by an equivalent run of optool itself.
-
+#
 # optool2tex should be called with the exact same command line
 # arguments as optool itself.  Basically, you repeat the
 # command, but replace "optool" with "optool2tex". E.g.
@@ -30,6 +30,22 @@
 #    \newcommand*\ao{Appl.~Opt.}
 #    \newcommand*\icarus{Icarus}
 #    \newcommand*\mnras{MNRAS}
+#
+# To make this process work with refractive index data not
+# included with optool, you would have to prepare the files
+# to contain additional comment lines with key-value pairs that
+# contain the name, state, chemical formula and BibTeX reference
+# key for this file. Note that the chemical formula has to be
+# written in a way that is compatible with LaTeX math mode.
+# Here is just one example - for more check any of the files
+# in the lnk_data directory.
+#
+#    # Name:       Pyroxene
+#    # State:      amorphous
+#    # Formula:    Mg_{0.7}Fe_{0.3}SiO_{3}
+#    # ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+#    # BibTeX-key: 1995A&A...300..503D
+
 
 # Update myself when called like this: optool2tex --set
 &set_database() if ($#ARGV == 0) and ($ARGV[0] eq "--set");
@@ -60,7 +76,12 @@ while (@ARGV) {
     $mftot += $mat[$i]{"mfrac"};
     $nm = $i++;
     next;
-  } elsif (/^-(mie|dhs|mmf)/) {
+  } elsif (/^-p$/) {
+    # Porosity
+    $pcore = shift;
+    if (&n) {$pmantle=shift} else {$pmantle=$pcore}
+    next;
+  } elsif (/^-(mie|dhs|fmax|mmf)/) {
     # The computational method
     $method = $1;
     $method = "dhs" if $method eq 'fmax';
@@ -80,12 +101,6 @@ while (@ARGV) {
       }
     }
     next;
-  } elsif (/^-p$/) {
-    # Porosity
-    $pcore = shift;
-    if (&n) {$pmantle=shift} else {$pmantle=$pcore}
-    next;
-
   } elsif (/^-a$/) {
     # Grain size distribution
     if (&n) {$amin = shift; if (&n) {$amax = shift; if (&n) {$apow = shift; if (&n) {$na = shift}}}}
@@ -93,6 +108,7 @@ while (@ARGV) {
   } elsif (/^-amin$/) {$amin=shift;next;
   } elsif (/^-amax$/) {$amax=shift;next;
   } elsif (/^-apow$/) {$apow=shift;next;
+  } elsif (/^-na$/)   {$nl=shift;next;
                        
   } elsif (/^-l$/) {
     # Wavelengths distribution
@@ -101,6 +117,7 @@ while (@ARGV) {
     next;
   } elsif (/^-lmin$/) {$lmin=shift;next;
   } elsif (/^-lmax$/) {$lmax=shift;next;
+  } elsif (/^-nl$/)   {$nl=shift;next;
                        
   } elsif (/^-o$/) {
     # Output directory
@@ -110,7 +127,7 @@ while (@ARGV) {
     shift if &n; next;
   } elsif (/^-chop$/) {
     # Chopping
-    if (&n) {$chop = shift;}; next;
+    if (&n) {$chop = shift;} else {$chop=2}; next;
   } elsif (/^-d$/) {
     # The division flag
     $divide = 1; shift if &n; next;
@@ -156,7 +173,7 @@ For the computation of the grain opacities, we used the
 \\textit{optool} program \\citep{optool-2021}.\n";
 
 # Write the method
-if ($method eq 'mie') {
+if ($method eq 'mie' or ($method eq 'dhs' and $fmax==0)) {
   print OUT "We assume the grains to be spherical and apply
 Mie theory \\citep{1908AnP...330..377M,1998asls.book.....B}.\n";
 } elsif ($method eq 'dhs') {
@@ -166,9 +183,9 @@ the effects of these irregularities, we apply a statistical
 approach in which we average over a shape distribution to
 compute the opacity of each grain. In particular, we use
 the Distribution of Hollow Spheres
-\\citep[DHS,][]{2005A&A...432..909M}) method with a maximum
+\\citep[DHS,][]{2005A&A...432..909M} method with a maximum
 vacuum volume fraction of \$f_{\\rm max}=$fmax\$, making use
-of the DMILAY routine \\citep{1981ApOpt..20.3657T}\n";
+of the DMILAY routine \\citep{1981ApOpt..20.3657T}.\n";
 } elsif ($method eq 'mmf') {
   if ($shape > 1) {
     $shapetype = "fractal dimension";
@@ -184,7 +201,7 @@ and is given by \$D_{\\rm f}=3\\ln N/\\ln(N/f_{\\rm fill})\$.\n";
   if ($kf>0) {
     # Explicitly chosen by user
     $ksentence = "For the pre-factor \$k_{\\rm f}\$,
-we chose the value \$k_{\\rm f}=$kf\$.\n";
+we choose the value \$k_{\\rm f}=$kf\$.\n";
   } else {
     $ksentence = "The pre-factor \$k_{\\rm f}\$ is chosen such that
 the asymptotic density for an aggregate  as small as a monomer
@@ -192,7 +209,7 @@ equals the density of the monomers themselves.\n";
   }
   print OUT "To compute opacities of fractal dust aggregates
 we use Modified Mean Field theory
-\\citep[MMF,][]{2018ApJ...860...79T,2021arXiv210406804T}).
+\\citep[MMF,][]{2018ApJ...860...79T,2021arXiv210406804T}.
 We build aggregates with monomer size \$a_0=$a0\\,\\mu\$m and
 fixed $shapetype \$$shapesym=$shape\$. In a fractal aggregate,
 the number of monomers \$N\$ (and therefore the mass \$Nm_0\$)
@@ -230,12 +247,12 @@ if ($nmantle>0) {  # there is a mantle
   if (($nmantle > 1) or ($ncore>1)) { # multiple materials 
     print OUT "The refractive index of the core and mantle components
 are computed separately by mixing the data from the contributing
-materials using the Bruggeman rule (\\citep{1935AnP...416..636B}.\n";
+materials using the Bruggeman rule \\citep{1935AnP...416..636B}.\n";
     $then = "then";
   }
   print OUT "The refractive index of the entire $particle is $then computed
 by treating the core as an inclusion in the mantle matrix, using the
-Maxwell-Garnett approximation \\citep{1904RSPTA.203..385G}\n";
+Maxwell-Garnett approximation \\citep{1904RSPTA.203..385G}.\n";
 } else {   # no mantle
   if ($ncore>0) {
     print OUT "\nThe refractive index of the particle material is

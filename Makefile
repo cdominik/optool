@@ -68,12 +68,12 @@ BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
 # make actions 
 all:		$(PROGRAM)
 full:;		make multi=true fits=true
-cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_dir_* optool.tex
+cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_dir_*
 cleanbin:;	rm -f bin/optool*
 clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.html bin.zip bin/optool*
 		make cleanoutput
-		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
-		rm -rf tmp.py __pycache__
+		rm -rf *~ \#* *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.dSYM selftest_optool optool.pdf
+		rm -rf tmp.py __pycache__ 
 cclean:;	rm -f $(OBJS) $(PROGRAM)
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
