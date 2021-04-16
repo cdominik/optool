@@ -466,8 +466,8 @@ path/to/file.lnk 0.7 3.42=.
   command line arguments as used in an =optool= run, to produce this
   file.  It contains a paragraph of text and a table, listing the
   composition of the grains and the computational methods, along with
-  proper references.  You can rework this text to include into your
-  paper.
+  proper references. You can rework this text to include into your
+  paper. For more details, read the comment section in =optool2tex=.
 
 [fn:2] This includes a change of the angular grid and a change in the
 normalization of the scattering matrix.

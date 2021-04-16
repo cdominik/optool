@@ -45,7 +45,7 @@ while (@ARGV) {
   $_ = shift;
   if (/^-[mc]$/ or /^[^-]/) {
     # The composition
-    if ($_ eq '-m')    {$_=shift;$mat[$i]{"loc"}='m';$have_mantle=1;$nmantle++}
+    if ($_ eq '-m')    {$_=shift;$mat[$i]{"loc"}='m';$nmantle++}
     elsif ($_ eq '-c') {$_=shift;$mat[$i]{"loc"}='c';$ncore++}
     else               {         $mat[$i]{"loc"}='c';$ncore++}
     $mat[$i]{"key"} = $_;
@@ -167,7 +167,8 @@ approach in which we average over a shape distribution to
 compute the opacity of each grain. In particular, we use
 the Distribution of Hollow Spheres
 \\citep[DHS,][]{2005A&A...432..909M}) method with a maximum
-vacuum volume fraction of \$f_{\\rm max}=$fmax\$.\n";
+vacuum volume fraction of \$f_{\\rm max}=$fmax\$, making use
+of the DMILAY routine \\citep{1981ApOpt..20.3657T}\n";
 } elsif ($method eq 'mmf') {
   if ($shape > 1) {
     $shapetype = "fractal dimension";
@@ -190,7 +191,8 @@ the asymptotic density for an aggregate  as small as a monomer
 equals the density of the monomers themselves.\n";
   }
   print OUT "To compute opacities of fractal dust aggregates
-we use Modified Mean Field theory \\citep[MMF,][]{2018ApJ...860...79T}).
+we use Modified Mean Field theory
+\\citep[MMF,][]{2018ApJ...860...79T,2021arXiv210406804T}).
 We build aggregates with monomer size \$a_0=$a0\\,\\mu\$m and
 fixed $shapetype \$$shapesym=$shape\$. In a fractal aggregate,
 the number of monomers \$N\$ (and therefore the mass \$Nm_0\$)
@@ -224,7 +226,23 @@ a mantle, with porosities of $pcore and $pmantle, respectively.\n";
 }
 
 # Write mixing rule
-# FIXME
+if ($nmantle>0) {  # there is a mantle
+  if (($nmantle > 1) or ($ncore>1)) { # multiple materials 
+    print OUT "The refractive index of the core and mantle components
+are computed separately by mixing the data from the contributing
+materials using the Bruggeman rule (\\citep{1935AnP...416..636B}.\n";
+    $then = "then";
+  }
+  print OUT "The refractive index of the entire $particle is $then computed
+by treating the core as an inclusion in the mantle matrix, using the
+Maxwell-Garnett approximation \\citep{1904RSPTA.203..385G}\n";
+} else {   # no mantle
+  if ($ncore>0) {
+    print OUT "\nThe refractive index of the particle material is
+computed by mixing the data from the different materials using
+the Bruggeman rule (\\citep{1935AnP...416..636B}.\n)";
+  }
+}
 
 # Write chop
 # FIXME
@@ -265,7 +283,7 @@ sub is_number {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?$/}
 sub trim {my $s=shift;$s=~s/(^\s+)|(\s+$)//g;return $s}
 
 sub get_record_from_file {
-  # Extract KEY: VALUE pairs from teh header of an lnk file
+  # Extract KEY: VALUE pairs from the header of an lnk file
   # Also, read the rho value, minimum and maximum wavelength
   # and the powerlaws for n and k extrapolation. FIXME
   $file = shift;
