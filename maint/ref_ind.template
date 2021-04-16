@@ -69,9 +69,6 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
      endif
      do i=1, n0
         read (99, fmt=* ) x(i), y1(i), y2(i)
-        ! Catch values <= 0, those would be poison for the loglog interpolation
-        if (y1(i).le.0.d0) y1(i) = 1d-10
-        if (y2(i).le.0.d0) y2(i) = 1d-10
      end do
      close(99)
 
@@ -88,6 +85,12 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
         enddo
      endif
   end select
+
+  ! Do not allow values <= 0, those would be poison for the loglog interpolation
+  do i=1,n0
+     if (y1(i).le.0.d0) y1(i) = 1d-10
+     if (y2(i).le.0.d0) y2(i) = 1d-10
+  enddo
   
   i   = 1
   i0  = 1

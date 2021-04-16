@@ -20,4 +20,12 @@ __pycache__
 auto/
 *.html
 *.tex
+*.tex
+*.aux
+*.log
+*.dvi
+*.blg
+*.bbl
+auto
 tmp.py
+optool.pdf

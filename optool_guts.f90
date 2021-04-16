@@ -1511,8 +1511,8 @@ subroutine DMiLay( rcore, rshell, wvno, rindsh, rindco, mu, &
 
   ! Comment by Carsten Dominik (taking information provided by Michiel
   ! Min): Careful, the refractive index entering into this routine use
-  ! a convention where the imaginary pard has a different singn than
-  ! what is used in morder books.
+  ! a convention where the imaginary part has a different singn than
+  ! what is used in modern books.
   
   ! **********************************************************************
   ! DOUBLE PRECISION version of MieLay, which computes electromagnetic

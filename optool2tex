@@ -1,0 +1,764 @@
+#!/usr/bin/perl
+
+# Write a paragraph of text and a table to optool.tex, describing
+# the opacities produced by an equivalent run of optool itself.
+#
+# optool2tex should be called with the exact same command line
+# arguments as optool itself.  Basically, you repeat the
+# command, but replace "optool" with "optool2tex". E.g.
+#
+# optool     pyr 0.7 c 0.3 org .3 -m h2o -mmf 0.1 1.5 
+# optool2tex pyr 0.7 c 0.3 org .3 -m h2o -mmf 0.1 1.5
+#
+# For the resulting LaTeX snippet to compile properly, your
+# setup needs to use the natbib package for citatitions with
+# BibTeX,
+#    \usepackage{natbib}
+# and the optool.bib file (also present in the optool
+# package) must be one of the database files used to produce
+# the bibliography.  The BibTeX entries are derived from the
+# NASA ADS system and contain macros for journal names, for
+# example \aap for "Astronomy and Astrophysics".  Document
+# classes for astronomical journals routinely define these
+# macros, but if you are publising in a journal that does not
+# do so, you can copy these definitions to your LaTeX file:
+#
+#    \newcommand*\aap{A\&A}
+#    \newcommand*\apj{ApJ}
+#    \newcommand*\apjl{ApJ}
+#    \newcommand*\apjs{ApJS}
+#    \newcommand*\ao{Appl.~Opt.}
+#    \newcommand*\icarus{Icarus}
+#    \newcommand*\mnras{MNRAS}
+#
+# To make this process work with refractive index data not
+# included with optool, you would have to prepare the files
+# to contain additional comment lines with key-value pairs that
+# contain the name, state, chemical formula and BibTeX reference
+# key for this file. Note that the chemical formula has to be
+# written in a way that is compatible with LaTeX math mode.
+# Here is just one example - for more check any of the files
+# in the lnk_data directory.
+#
+#    # Name:       Pyroxene
+#    # State:      amorphous
+#    # Formula:    Mg_{0.7}Fe_{0.3}SiO_{3}
+#    # ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+#    # BibTeX-key: 1995A&A...300..503D
+
+
+# Update myself when called like this: optool2tex --set
+&set_database() if ($#ARGV == 0) and ($ARGV[0] eq "--set");
+
+# Default values
+$i = 0; $nm = -1;
+$method = 'dhs'; $fmax = 0.8;
+$particle  = "particle"; $particles = "particles";
+$amin = 0.05; $amax = 3000; $apow=3.5;
+
+# Parse the command line arguments
+while (@ARGV) {
+  $_ = shift;
+  if (/^-[mc]$/ or /^[^-]/) {
+    # The composition
+    if ($_ eq '-m')    {$_=shift;$mat[$i]{"loc"}='m';$nmantle++}
+    elsif ($_ eq '-c') {$_=shift;$mat[$i]{"loc"}='c';$ncore++}
+    else               {         $mat[$i]{"loc"}='c';$ncore++}
+    $mat[$i]{"key"} = $_;
+    if (&n) {
+      $mat[$i]{"mfrac"} = shift;
+      if (&n) {
+        $mat[$i]{"rho"} = shift;
+      }
+    } else {
+      $mat[$i]{"mfrac"} = 1.0;
+    }
+    $mftot += $mat[$i]{"mfrac"};
+    $nm = $i++;
+    next;
+  } elsif (/^-p$/) {
+    # Porosity
+    $pcore = shift;
+    if (&n) {$pmantle=shift} else {$pmantle=$pcore}
+    next;
+  } elsif (/^-(mie|dhs|fmax|mmf)/) {
+    # The computational method
+    $method = $1;
+    $method = "dhs" if $method eq 'fmax';
+    $particles = 'monomers' if $method eq 'mmf';
+    $particle  = 'monomer'  if $method eq 'mmf';
+    if (&n) {
+      $p = shift;
+      $fmax = $p if $method eq 'dhs';
+      $a0   = $p if $method eq 'mmf';
+      if (&n) {
+        $p = shift;
+        $shape = $p if $method eq 'mmf';
+        if (&n) {
+          $p = shift;
+          $kf = $p if $method eq 'mmf';
+        }
+      }
+    }
+    next;
+  } elsif (/^-a$/) {
+    # Grain size distribution
+    if (&n) {$amin = shift; if (&n) {$amax = shift; if (&n) {$apow = shift; if (&n) {$na = shift}}}}
+    next;
+  } elsif (/^-amin$/) {$amin=shift;next;
+  } elsif (/^-amax$/) {$amax=shift;next;
+  } elsif (/^-apow$/) {$apow=shift;next;
+  } elsif (/^-na$/)   {$nl=shift;next;
+                       
+  } elsif (/^-l$/) {
+    # Wavelengths distribution
+    if (&n) {$lmin = shift; if (&n) {$lmax = shift; if (&n) {$nl = shift}}
+    } else {shift}   # remove the wavelength grid file
+    next;
+  } elsif (/^-lmin$/) {$lmin=shift;next;
+  } elsif (/^-lmax$/) {$lmax=shift;next;
+  } elsif (/^-nl$/)   {$nl=shift;next;
+                       
+  } elsif (/^-o$/) {
+    # Output directory
+    shift if &o; next;
+  } elsif (/^-s$/) {
+    # Scattering
+    shift if &n; next;
+  } elsif (/^-chop$/) {
+    # Chopping
+    if (&n) {$chop = shift;} else {$chop=2}; next;
+  } elsif (/^-d$/) {
+    # The division flag
+    $divide = 1; shift if &n; next;
+  } elsif (/^-fits$/) {
+    next;
+  } elsif (/^-radmc$/) {
+    # RADMC
+    if (not &a) {shift}; next;
+  } elsif (/^-(q|n|debug|v|b|blendonly)$/) {next;
+  } else {next}
+}
+
+if ($nm == -1) {
+  # No materials were specified, use the DIANA default
+  $nm=1;$mftot=1.;
+  $mat[0]{'key'}='pyr-mg70'; $mat[0]{'loc'}='c'; $mat[0]{'mfrac'}='0.87';
+  $mat[1]{'key'}='c-z';      $mat[1]{'loc'}='c'; $mat[1]{'mfrac'}='0.13';
+  $pcore = 0.25;
+}
+
+# Get database information
+$dbref = &read_DATA();
+
+# =======================================================
+# Write the latex file
+# =======================================================
+open(OUT, '>', 'optool.tex') or die $!;
+
+# Write section start
+print OUT "\\documentclass[scrtcle]{article}
+\\usepackage[DIV=15]{typearea}
+\\usepackage{natbib}
+\\usepackage{url}
+\\newcommand*\\aap{A\\&A}
+\\newcommand*\\apj{ApJ}
+\\newcommand*\\apjl{ApJ}
+\\newcommand*\\ao{Appl.~Opt.}
+\\newcommand*\\icarus{Icarus}
+\\newcommand*\\mnras{MNRAS}
+\\newcommand*\\apjs{ApJS}
+\\begin{document}\n\n
+For the computation of the grain opacities, we used the
+\\textit{optool} program \\citep{optool-2021}.\n";
+
+# Write the method
+if ($method eq 'mie' or ($method eq 'dhs' and $fmax==0)) {
+  print OUT "We assume the grains to be spherical and apply
+Mie theory \\citep{1908AnP...330..377M,1998asls.book.....B}.\n";
+} elsif ($method eq 'dhs') {
+  print OUT "We assume that the individual grains are not
+perfect spheres, but have some shape irregularities.  To simulate
+the effects of these irregularities, we apply a statistical
+approach in which we average over a shape distribution to
+compute the opacity of each grain. In particular, we use
+the Distribution of Hollow Spheres
+\\citep[DHS,][]{2005A&A...432..909M} method with a maximum
+vacuum volume fraction of \$f_{\\rm max}=$fmax\$, making use
+of the DMILAY routine \\citep{1981ApOpt..20.3657T}.\n";
+} elsif ($method eq 'mmf') {
+  if ($shape > 1) {
+    $shapetype = "fractal dimension";
+    $shapesym  = "D_{\\rm f}";
+    $extra = "";
+  } else {
+    $shapetype = "filling factor";
+    $shapesym  = "f_{\\rm fill}";
+    $extra = "The fractal dimension corresponding to this
+filling factor is dependent on the aggregate size \$N\$,
+and is given by \$D_{\\rm f}=3\\ln N/\\ln(N/f_{\\rm fill})\$.\n";
+  }
+  if ($kf>0) {
+    # Explicitly chosen by user
+    $ksentence = "For the pre-factor \$k_{\\rm f}\$,
+we choose the value \$k_{\\rm f}=$kf\$.\n";
+  } else {
+    $ksentence = "The pre-factor \$k_{\\rm f}\$ is chosen such that
+the asymptotic density for an aggregate  as small as a monomer
+equals the density of the monomers themselves.\n";
+  }
+  print OUT "To compute opacities of fractal dust aggregates
+we use Modified Mean Field theory
+\\citep[MMF,][]{2018ApJ...860...79T,2021arXiv210406804T}.
+We build aggregates with monomer size \$a_0=$a0\\,\\mu\$m and
+fixed $shapetype \$$shapesym=$shape\$. In a fractal aggregate,
+the number of monomers \$N\$ (and therefore the mass \$Nm_0\$)
+is related to the radius of gyration \$R_g\$ through the equation 
+\\begin{equation}
+ N=k_{\\rm f}\\left(\\frac{R_{\\rm g}}{a_0}\\right)^{D_{\\rm f}}
+\\end{equation}
+$extra$ksentence\n";
+}
+
+# Write size distribution
+if (not $divide) {
+  $extra = ($method eq 'mmf') ?
+    "(meaning compact size of the aggregate \$a=N^{1/3}a_0\$)" : "";
+  print OUT "The opacities are computed by averaging over
+grains in a size range $extra
+from $amin to $amax \$\\mu\$m,
+with a powerlaw size distribution \$f(a)\\propto a^{-$apow}\$.\n";
+}
+
+# Write core/mantle and porosity
+if ($nmantle) {
+  if ($pcore > 0.) {
+    print OUT "The individual $particles consist of a core and
+a mantle, with porosities of $pcore and $pmantle, respectively.\n";
+  } else {
+    print OUT "The individual $particles consist of a core and a mantle.\n";
+  }
+} elsif ($pcore > 0) {
+  print OUT "The individual $particles have a porosity of $pcore.\n";
+}
+
+# Write mixing rule
+if ($nmantle>0) {  # there is a mantle
+  if (($nmantle > 1) or ($ncore>1)) { # multiple materials 
+    print OUT "The refractive index of the core and mantle components
+are computed separately by mixing the data from the contributing
+materials using the Bruggeman rule \\citep{1935AnP...416..636B}.\n";
+    $then = "then";
+  }
+  print OUT "The refractive index of the entire $particle is $then computed
+by treating the core as an inclusion in the mantle matrix, using the
+Maxwell-Garnett approximation \\citep{1904RSPTA.203..385G}.\n";
+} else {   # no mantle
+  if ($ncore>0) {
+    print OUT "\nThe refractive index of the particle material is
+computed by mixing the data from the different materials using
+the Bruggeman rule (\\citep{1935AnP...416..636B}.\n)";
+  }
+}
+
+# Write chop
+# FIXME
+
+# Write composition table
+print OUT "The composition of each $particle is given
+in the following table:\\\\\n\n";
+print OUT "\\begin{tabular}{lllrlrp{5cm}}\n";
+print OUT 'Name & Composition & State & $\rho$ & Loc & $f_m$ & Reference\\\\\\hline',"\n";
+for $i (0..$nm) {
+  $ref = ($dbref->{$mat[$i]{'key'}} or &get_record_from_file($mat[$i]{'key'}));
+  $rho = sprintf("%5.2f",($mat[$i]{'rho'} or $ref->{'rho'}));
+  $mfrac = sprintf("%6.3f",$mat[$i]{'mfrac'}/$mftot);
+  $cite = join(',',split(/\s+/,trim($ref->{'BibTeX-key'})));
+  $loc = ($mat[$i]{'loc'} eq 'c') ? "core" : "mantle";
+  if ($cite) {$cite = '{\cite{'.$cite.'}}'};
+  printf OUT "%-10s & %-30s & %-11s & %-5s & %-7s & %-5s & %s\\\\\n",
+    $ref->{'Name'},"\$\\mathrm{$ref->{'Formula'}}\$",$ref->{'State'},
+    $rho,$loc,$mfrac,$cite;
+}
+print OUT "\\end{tabular}
+\\bibliographystyle{apalike}
+\\bibliography{optool}
+\\end{document}\n";
+
+# Close file and finish
+close(OUT);
+exit(0);
+
+# =================================================================
+# =================================================================
+# =================================================================
+
+sub n { is_number($ARGV[0])    }   # next arg is number?
+sub a { $ARGV[0]=~/^[a-zA-Z]/  }   # next arg is word, not number?
+sub o { $ARGV[0]=~/^-[a-zA-Z]/ }   # next arg is option?
+sub is_number {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?$/}
+sub trim {my $s=shift;$s=~s/(^\s+)|(\s+$)//g;return $s}
+
+sub get_record_from_file {
+  # Extract KEY: VALUE pairs from the header of an lnk file
+  # Also, read the rho value, minimum and maximum wavelength
+  # and the powerlaws for n and k extrapolation. FIXME
+  $file = shift;
+  print "Reading file >>$file<<...\n";
+  my %hash;
+  open($fh,"<",$file) or die "Cannot open file $file\n";
+  while (<$fh>) {
+    if (/^[#*!]\s+(\S+):\s+(\S.*?)\s*$/) {
+      $hash{$1} = trim($hash{$1}." ".$2);
+      next;
+    }
+    if (not /^[#*!]/) {
+      $hash{'rho'} = (split(/\s+/,trim($_)))[1];
+      last;
+    }
+  }
+  close $fh;
+  return \%hash
+}
+
+sub read_DATA {
+  # Read the material database stored in the __DATA__ section
+  # and return a hash of hashes with the information.
+  my %a;
+  while (<DATA>) {
+    if (/^\s*#/) {
+      #  Empty the hash, because there are several incarnations
+      # for the database in the file - someone did not clean up
+      %a = {};
+      next;
+    }
+    next if /^\s*$/;  # ignore empty lines
+    # Check for a new section with a key
+    if (/^\s*(key):\s+(\S+)/) {$key = $2; next}
+    # Store a KEY: VALUE pair.
+    if (/^\s*(\S+):\s+(\S.*?)\s*$/) {$a{$key}{$1} = $2}
+  }
+  return \%a
+}
+
+sub get_genhash {
+  # Extract a hash from material keys to generic keys from lnk-help.txt. This
+  # assumes that each material key has at most one generic key pointing to it.
+  my $fh,$s,%hash;
+  open($fh,"<","lnk_data/lnk-help.txt") or die "Cannot open file lnk_data/lnk-help.txt\n";
+  local $/; $s = <$fh>;
+  $hash{$2}=$1 while $s=~/(\S+)\s*->\s*(\S+)/g;
+  close $fh;
+  return \%hash;
+}
+
+sub set_database {
+  # This subroutine reads all the lnk files in the optool
+  # distribtuion and creates a database of properties.
+  # That database gets appended to this file, optool2tex,
+  # so that the program just has it available.
+  $genhash = &get_genhash();
+  my @files = glob q("lnk_data/*.lnk");
+  my @lines = ();
+  for $f (@files) {
+    # Get the material key, the start of the file name
+    if ($f=~/^(\S*)-\S+$/) {
+      $key = $1;
+      $key =~ s/.*\///;
+    } else {
+      die "Cannot extract key from file name $f\n";
+    }
+    # Extract KEY: VALUE elements from the file header
+    $hashref = get_record_from_file($f);
+    # Format the lines that will be appended to optool2tex
+    push @lines,"key: $key";
+    foreach $n (keys %$hashref) {
+      push @lines,sprintf("  %-11s  %s",$n.":",$hashref->{$n})}
+    if (exists($$genhash{$key})) {
+      push @lines,"key: $$genhash{$key}";
+      foreach $n (keys %$hashref) {
+        push @lines,sprintf("  %-11s  %s",$n.":",$hashref->{$n})}
+    }
+  }
+  # Append myself
+  $date = `date`;
+  open SELF,">> $0" or die "Unable to open SELF\n";
+  print SELF "\n\n# Database added on $date\n";
+  print SELF join("\n",@lines),"\n";
+  close SELF;  
+  exit(0);
+}
+
+__DATA__
+
+# Database added on Wed Apr 14 21:27:12 CEST 2021
+
+key: astrosil
+  Name:        Astronomical silicate
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D
+  State:       amorphous
+  Formula:     MgFeSiO_{4}
+  BibTeX-key:  2003ApJ...598.1017D
+  rho:         3.3
+  Reference:   Draine 2003, ApJ 598, 1017
+key: c-gra
+  BibTeX-key:  2003ApJ...598.1026D
+  rho:         2.16
+  Reference:   Draine 2003, ApJ 598, 1026
+  Name:        Graphite
+  Formula:     C
+  State:       crystalline
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D
+key: gra
+  BibTeX-key:  2003ApJ...598.1026D
+  rho:         2.16
+  Reference:   Draine 2003, ApJ 598, 1026
+  Name:        Graphite
+  Formula:     C
+  State:       crystalline
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D
+key: c-nano
+  BibTeX-key:  2004A&A...423..983M
+  rho:         2.3
+  Name:        nano diamonds
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2004A&A...423..983M
+  Formula:     C
+  State:       crystalline
+key: c-org
+  Name:        Organics
+  Formula:     CHON
+  State:       amorphous
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1994ApJ...421..615P https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  BibTeX-key:  1994ApJ...421..615P 1996A&A...311..291H
+  rho:         1.4
+key: org
+  Name:        Organics
+  Formula:     CHON
+  State:       amorphous
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1994ApJ...421..615P https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  BibTeX-key:  1994ApJ...421..615P 1996A&A...311..291H
+  rho:         1.4
+key: c-p
+  Reference:   Preibisch 1993,  A&A 279,577
+  BibTeX-key:  1993A&A...279..577P
+  Material:    Carbon, amorphous
+  State:       amorphous
+  Formula:     C
+  rho:         1.80
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1993A&A...279..577P
+  Name:        Carbon
+key: c-z
+  Formula:     C
+  State:       amorphous
+  BibTeX-key:  1996MNRAS.282.1321Z
+  Reference:   Zubko 1996, MNRAS 282, 1321
+  Material:    Carbon, amorphous
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z
+  Name:        Carbon
+  rho:         1.80
+key: c
+  Formula:     C
+  State:       amorphous
+  BibTeX-key:  1996MNRAS.282.1321Z
+  Reference:   Zubko 1996, MNRAS 282, 1321
+  Material:    Carbon, amorphous
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z
+  Name:        Carbon
+  rho:         1.80
+key: ch3oh-a
+  BibTeX-key:  2020ApJ...901...52G
+  rho:         0.779
+  Name:        Methanol ice
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  State:       amorphous
+  Formula:     CH_{3}OH
+key: ch3oh-c
+  BibTeX-key:  2020ApJ...901...52G
+  rho:         1.02
+  Name:        Methanol ice
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  State:       crystalline
+  Formula:     CH_{3}OH
+key: ch4-a
+  BibTeX-key:  2020ApJ...901...52G
+  rho:         0.47
+  Name:        Methane ice
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  State:       amorphous
+  Formula:     CH_{4}
+key: ch4-c
+  Formula:     CH_{4}
+  State:       crystalline
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  Name:        Methane ice
+  rho:         0.47
+  BibTeX-key:  2020ApJ...901...52G
+key: co-a
+  Name:        CO ice
+  Formula:     CO
+  State:       amorphous
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P
+  BibTeX-key:  2006PCCP....8..279P
+  rho:         0.81
+key: co
+  Name:        CO ice
+  Formula:     CO
+  State:       amorphous
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P
+  BibTeX-key:  2006PCCP....8..279P
+  rho:         0.81
+key: co2-a
+  Formula:     CO_{2}
+  State:       amorphous
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  Name:        dry ice
+  rho:         1.2
+  BibTeX-key:  2020ApJ...901...52G
+key: co2-c
+  Name:        dry ice
+  Formula:     CO_{2}
+  State:       crystalline
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
+  BibTeX-key:  2020ApJ...901...52G
+  rho:         1.67
+key: co2-w
+  Formula:     CO_{2}
+  State:       crystalline
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W
+  Name:        dry ice
+  rho:         1.6
+  BibTeX-key:  1986ApOpt..25.2650W
+key: co2
+  Formula:     CO_{2}
+  State:       crystalline
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W
+  Name:        dry ice
+  rho:         1.6
+  BibTeX-key:  1986ApOpt..25.2650W
+key: cor-c
+  BibTeX-key:  1995Icar..114..203K
+  rho:         4.0
+  Name:        Corundum
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K
+  State:       crystalline
+  Formula:     AL_{2}O_{3}
+key: cor
+  BibTeX-key:  1995Icar..114..203K
+  rho:         4.0
+  Name:        Corundum
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K
+  State:       crystalline
+  Formula:     AL_{2}O_{3}
+key: fe-c
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  Name:        Iron
+  rho:         7.87
+  State:       metallic
+  Formula:     Fe
+  Material:    Iron, metallic crystalline
+  Reference:   Henning 1996, A&A 311, 291
+  BibTeX-key:  1996A&A...311..291H
+key: iron
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  Name:        Iron
+  rho:         7.87
+  State:       metallic
+  Formula:     Fe
+  Material:    Iron, metallic crystalline
+  Reference:   Henning 1996, A&A 311, 291
+  BibTeX-key:  1996A&A...311..291H
+key: fes
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  State:       crystalline
+  Formula:     FeS
+  Name:        Troilite
+  rho:         4.83
+  BibTeX-key:  1996A&A...311..291H
+key: h2o-w
+  Formula:     H_{2}O
+  State:       crystalline
+  BibTeX-key:  2008JGRD..11314220W
+  Material:    Water ice, crystalline?
+  Reference:   Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
+  Name:        Water ice
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W
+  rho:         0.92
+key: h2o
+  Formula:     H_{2}O
+  State:       crystalline
+  BibTeX-key:  2008JGRD..11314220W
+  Material:    Water ice, crystalline?
+  Reference:   Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
+  Name:        Water ice
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W
+  rho:         0.92
+key: nh3-m
+  BibTeX-key:  1984ApOpt..23..541M
+  rho:         0.75
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M
+  Formula:     NH_{3}
+  State:       crystalline
+  Name:        Ammonia ice
+key: nh3
+  BibTeX-key:  1984ApOpt..23..541M
+  rho:         0.75
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M
+  Formula:     NH_{3}
+  State:       crystalline
+  Name:        Ammonia ice
+key: ol-c-mg100
+  rho:         3.33
+  Name:        Forsterite
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S
+  Reference:   Steyer 1974,  PhD Thesis
+  BibTeX-key:  1974PhDT.......274S
+  Material:    Forsterite, crystalline
+  Formula:     Mg_{2}SiO_{4}
+  State:       crystalline
+key: for
+  rho:         3.33
+  Name:        Forsterite
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S
+  Reference:   Steyer 1974,  PhD Thesis
+  BibTeX-key:  1974PhDT.......274S
+  Material:    Forsterite, crystalline
+  Formula:     Mg_{2}SiO_{4}
+  State:       crystalline
+key: ol-mg40
+  rho:         3.17
+  Name:        Olivine
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Reference:   Dorschner 1995, A&A 300, 503
+  BibTeX-key:  1995A&A...300..503D
+  Material:    Mg0.8Fe1.2SiO4, amorphous
+  State:       amorphous
+  Formula:     Mg_{0.8}Fe_{0.2}SiO_{4}
+key: ol-mg50
+  Name:        Olivine
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  rho:         3.71
+  State:       amorphous
+  Formula:     MgFeSiO_{4}
+  Material:    MgFeSiO4, amorphous
+  Reference:   Dorschner 1995, A&A 300,503
+  BibTeX-key:  1995A&A...300..503D
+key: ol
+  Name:        Olivine
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  rho:         3.71
+  State:       amorphous
+  Formula:     MgFeSiO_{4}
+  Material:    MgFeSiO4, amorphous
+  Reference:   Dorschner 1995, A&A 300,503
+  BibTeX-key:  1995A&A...300..503D
+key: pyr-c-mg96
+  State:       crystalline
+  Formula:     Mg_{0.96}Fe_{0.04}SiO_{3}
+  Material:    Mg_0.96 Fe_0.04 SiO3, crystalline
+  Reference:   Jaeger 1998, A&A, 339, 904
+  BibTeX-key:  1998A&A...339..904J
+  Name:        Pyroxene
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1998A&A...339..904J
+  rho:         2.80
+key: ens
+  State:       crystalline
+  Formula:     Mg_{0.96}Fe_{0.04}SiO_{3}
+  Material:    Mg_0.96 Fe_0.04 SiO3, crystalline
+  Reference:   Jaeger 1998, A&A, 339, 904
+  BibTeX-key:  1998A&A...339..904J
+  Name:        Pyroxene
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1998A&A...339..904J
+  rho:         2.80
+key: pyr-mg100
+  rho:         2.71
+  Name:        Pyroxene
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Reference:   Dorschner et al 1995, A&A 300, 503
+  BibTeX-key:  1995A&A...300..503D
+  Material:    MgSiO3, amorphous
+  Formula:     MgSiO_{3}
+  State:       amorphous
+key: pyr-mg40
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Name:        Pyroxene
+  rho:         3.3
+  State:       amorphous
+  Formula:     Mg_{0.4}Fe_{0.6}SiO_{3}
+  Material:    Mg0.4 Fe0.6 SiO3, amorphous
+  BibTeX-key:  1995A&A...300..503D
+  Reference:   Dorschner et al 1995, A&A 300, 503
+key: pyr-mg50
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Name:        Pyroxene
+  rho:         3.2
+  Formula:     MgFeSiO_{3}
+  State:       amorphous
+  Reference:   Dorschner et al 1995, A&A 300, 503
+  Material:    Mg Fe SiO3, amorphous
+  BibTeX-key:  1995A&A...300..503D
+key: pyr-mg60
+  State:       amorphous
+  Formula:     Mg_{0.6}Fe_{0.4}SiO_{3}
+  BibTeX-key:  1995A&A...300..503D
+  Reference:   Dorschner et al 1995, A&A 300, 503
+  Material:    Mg0.6 Fe0.4 SiO3, amorphous
+  Name:        Pyroxene
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  rho:         3.1
+key: pyr-mg70
+  rho:         3.01
+  Name:        Pyroxene
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Reference:   Dorschner et al 1995, A&A 300, 503
+  Material:    Mg0.7 Fe0.3 SiO3, amorphous
+  BibTeX-key:  1995A&A...300..503D
+  Formula:     Mg_{0.7}Fe_{0.3}SiO_{3}
+  State:       amorphous
+key: pyr
+  rho:         3.01
+  Name:        Pyroxene
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Reference:   Dorschner et al 1995, A&A 300, 503
+  Material:    Mg0.7 Fe0.3 SiO3, amorphous
+  BibTeX-key:  1995A&A...300..503D
+  Formula:     Mg_{0.7}Fe_{0.3}SiO_{3}
+  State:       amorphous
+key: pyr-mg80
+  rho:         2.9
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Name:        Pyroxene
+  Material:    Mg0.8 Fe0.2 SiO3, amorphous
+  BibTeX-key:  1995A&A...300..503D
+  Reference:   Dorschner et al 1995, A&A 300, 503
+  State:       amorphous
+  Formula:     Mg_{0.8}Fe_{0.2}SiO_{3}
+key: pyr-mg95
+  BibTeX-key:  1995A&A...300..503D
+  Reference:   Dorschner et al 1995, A&A 300, 503
+  Material:    Mg0.95 Fe0.05 SiO3, amorphous
+  State:       amorphous
+  Formula:     Mg_{0.95}Fe_{0.05}SiO_{3}
+  rho:         2.74
+  Name:        Pyroxene
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+key: sic
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L
+  State:       crystalline
+  Formula:     SiC
+  Name:        Silicon carbide
+  BibTeX-key:  1993ApJ...402..441L
+  rho:         3.22
+key: sio2
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2007ApOpt..46.8118K
+  State:       amorphous
+  Formula:     SiO_{2}
+  Name:        Quartz
+  BibTeX-key:  2007ApOpt..46.8118K
+  rho:         2.65
+key: qua
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2007ApOpt..46.8118K
+  State:       amorphous
+  Formula:     SiO_{2}
+  Name:        Quartz
+  BibTeX-key:  2007ApOpt..46.8118K
+  rho:         2.65

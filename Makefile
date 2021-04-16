@@ -72,8 +72,8 @@ cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_d
 cleanbin:;	rm -f bin/optool*
 clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.html bin.zip bin/optool*
 		make cleanoutput
-		rm -rf *~ \#* *.tex *.log auto optool.dSYM selftest_optool
-		rm -rf tmp.py __pycache__
+		rm -rf *~ \#* *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.dSYM selftest_optool optool.pdf
+		rm -rf tmp.py __pycache__ 
 cclean:;	rm -f $(OBJS) $(PROGRAM)
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
@@ -141,12 +141,6 @@ binlinux:;	make cclean
 binzip:;	rm -f bin.zip
 		(cd bin; zip ../bin.zip optool*)
 binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
-
-
-# MMF leasds to segmentation faults if I compile with OpenMP support.
-# So we use a special rule for it.
-#optool_mmf.o: optool_mmf.f90
-#	$(FC) $(FLAG_ALL_NM) $(FLAG_LINUX) $(FLAG_FITS) -c optool_mmf.f90
 
 .SUFFIXES : .o .f .f90
 

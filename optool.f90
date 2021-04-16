@@ -1639,7 +1639,7 @@ subroutine write_command_line(unit,width,leader)
      ltmp = len(trim(tmp))
      if ((lout+ltmp+3) .gt. width) then
         write(unit,'(A)') trim(out) // ' \'    ! ' for font lock
-        out = trim(leader) // " > " // trim(tmp)
+        out = trim(leader) // "   " // trim(tmp)
      else
         out = trim(out) // " " // trim(tmp)
      endif

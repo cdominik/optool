@@ -5,7 +5,6 @@
 use Digest::SHA qw/ sha1_hex /;
 use Getopt::Std;
 getopts('s');
-#$opt_s=1;
 $dir = 'selftest_optool';
 
 my $tests = [
@@ -207,16 +206,16 @@ sub find_accuracy {
 
 __DATA__
 
-# HASHES set on Sun Apr  4 17:52:29 CEST 2021
+# HASHES set on Fri Apr 16 20:03:39 CEST 2021
 
 noscat:::1000:da718bde67::10:da718bde67::9:da718bde67::8:da718bde67::7:da718bde67::6:da718bde67::5:3f4021068e::4:e98093c1d5::3:5523f2812f::2:787172fae1::1:275000a906
 quick:::1000:5edb7ab23d::10:5edb7ab23d::9:5edb7ab23d::8:5edb7ab23d::7:5edb7ab23d::6:5edb7ab23d::5:cac77430ea::4:762a325380::3:176d4b54ec::2:d8187069a7::1:a8814aeede
 full-diana-lowres:::1000:3ea7cb24f1::10:3ea7cb24f1::9:3ea7cb24f1::8:3ea7cb24f1::7:3ea7cb24f1::6:3ea7cb24f1::5:a246d4a9b3::4:5bc5c1ac58::3:e23f6da565::2:608bbbc793::1:ec7788cb46
-diana-plus-ice-mantle:::1000:858d3d8fff::10:858d3d8fff::9:858d3d8fff::8:858d3d8fff::7:858d3d8fff::6:858d3d8fff::5:f8a6f00abd::4:1ac5c2128d::3:a4d0abbd66::2:461d8acd3b::1:acab1a43b3
+diana-plus-ice-mantle:::1000:1dbd6b4e4a::10:1dbd6b4e4a::9:1dbd6b4e4a::8:1dbd6b4e4a::7:1dbd6b4e4a::6:1dbd6b4e4a::5:eff6e0a5e4::4:b65f5e9337::3:88699024f0::2:307539603c::1:6a8f4c4b8c
 div-in-10-parts:::1000:15b1bde278::10:15b1bde278::9:15b1bde278::8:15b1bde278::7:15b1bde278::6:15b1bde278::5:8ff3a42df3::4:848b47786a::3:9df87d1355::2:2989369c2d::1:97788937cf
 high-angular-resolution:::1000:e84201ec9b::10:e84201ec9b::9:e84201ec9b::8:e84201ec9b::7:e84201ec9b::6:e84201ec9b::5:1e88de0e26::4:fdcfc911f8::3:18e9869eda::2:ef09826527::1:8266231a22
-pure-ice-grain:::1000:7a7ea57990::10:7a7ea57990::9:7a7ea57990::8:7a7ea57990::7:7a7ea57990::6:7a7ea57990::5:1fe10762fe::4:46a81eb048::3:bc256c5312::2:ae5ccaccd4::1:1422c2e3f7
+pure-ice-grain:::1000:b06b419a5a::10:b06b419a5a::9:b06b419a5a::8:b06b419a5a::7:b06b419a5a::6:b06b419a5a::5:e970744d9e::4:586e7113d9::3:47f5d924fc::2:38d778f953::1:4446b78e80
 chop-peak:::1000:3f8926838a::10:3f8926838a::9:3f8926838a::8:3f8926838a::7:3f8926838a::6:3f8926838a::5:2813723c66::4:9af50f70a8::3:4d1b3e1eef::2:dd23a11051::1:dc7e38cf18
-mmf-scat:::1000:599b1c872f::10:599b1c872f::9:599b1c872f::8:599b1c872f::7:599b1c872f::6:599b1c872f::5:31bd074f03::4:c7441073ba::3:a82e23121e::2:2ff690b5c9::1:9d7bac931f
-mmf-opac:::1000:f1f2957c5b::10:f1f2957c5b::9:f1f2957c5b::8:f1f2957c5b::7:f1f2957c5b::6:f1f2957c5b::5:79b3ee0a98::4:8d60aeec49::3:1d29417838::2:2c0a70f3e9::1:46d9644328
+mmf-scat:::1000:cd3b6a51b9::10:cd3b6a51b9::9:cd3b6a51b9::8:cd3b6a51b9::7:cd3b6a51b9::6:cd3b6a51b9::5:cec618a88a::4:0cb36b405f::3:d00ffc2c92::2:b933b47486::1:67532246c8
+mmf-opac:::1000:0645592519::10:0645592519::9:0645592519::8:0645592519::7:0645592519::6:0645592519::5:201f044f61::4:e250a1b230::3:ad72935e47::2:a9a72fd9fe::1:f695d70aec
 
