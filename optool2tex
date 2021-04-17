@@ -157,9 +157,10 @@ $dbref = &read_DATA();
 open(OUT, '>', 'optool.tex') or die $!;
 
 # Write section start
-print OUT "\\documentclass[scrtcle]{article}
+print OUT "\\documentclass{article}
 \\usepackage[DIV=15]{typearea}
 \\usepackage{natbib}
+\\usepackage{upgreek}
 \\usepackage{url}
 \\newcommand*\\aap{A\\&A}
 \\newcommand*\\apj{ApJ}
@@ -210,7 +211,7 @@ equals the density of the monomers themselves.\n";
   print OUT "To compute opacities of fractal dust aggregates
 we use Modified Mean Field theory
 \\citep[MMF,][]{2018ApJ...860...79T,2021arXiv210406804T}.
-We build aggregates with monomer size \$a_0=$a0\\,\\mu\$m and
+We build aggregates with monomer size \$a_0=$a0\\,\\upmu\$m and
 fixed $shapetype \$$shapesym=$shape\$. In a fractal aggregate,
 the number of monomers \$N\$ (and therefore the mass \$Nm_0\$)
 is related to the radius of gyration \$R_g\$ through the equation 
@@ -226,7 +227,7 @@ if (not $divide) {
     "(meaning compact size of the aggregate \$a=N^{1/3}a_0\$)" : "";
   print OUT "The opacities are computed by averaging over
 grains in a size range $extra
-from $amin to $amax \$\\mu\$m,
+from $amin to $amax \$\\upmu\$m,
 with a powerlaw size distribution \$f(a)\\propto a^{-$apow}\$.\n";
 }
 
@@ -257,7 +258,7 @@ Maxwell-Garnett approximation \\citep{1904RSPTA.203..385G}.\n";
   if ($ncore>0) {
     print OUT "\nThe refractive index of the particle material is
 computed by mixing the data from the different materials using
-the Bruggeman rule (\\citep{1935AnP...416..636B}.\n)";
+the Bruggeman rule \\citep{1935AnP...416..636B}.\n";
   }
 }
 
