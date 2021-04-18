@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Write a paragraph of text and a table to optool.tex, describing
+# Write some text and a table to optool.tex, describing
 # the opacities produced by an equivalent run of optool itself.
 #
 # optool2tex should be called with the exact same command line
@@ -11,16 +11,17 @@
 # optool2tex pyr 0.7 c 0.3 org .3 -m h2o -mmf 0.1 1.5
 #
 # For the resulting LaTeX snippet to compile properly, your
-# setup needs to use the natbib package for citatitions with
-# BibTeX,
+# setup needs to use a few packages:
 #    \usepackage{natbib}
+#    \usepackage{upgreek}
+#    \usepackage{url}
 # and the optool.bib file (also present in the optool
 # package) must be one of the database files used to produce
 # the bibliography.  The BibTeX entries are derived from the
 # NASA ADS system and contain macros for journal names, for
 # example \aap for "Astronomy and Astrophysics".  Document
 # classes for astronomical journals routinely define these
-# macros, but if you are publising in a journal that does not
+# macros, but if you are publishing in a journal that does not
 # do so, you can copy these definitions to your LaTeX file:
 #
 #    \newcommand*\aap{A\&A}
@@ -37,33 +38,53 @@
 # contain the name, state, chemical formula and BibTeX reference
 # key for this file. Note that the chemical formula has to be
 # written in a way that is compatible with LaTeX math mode.
+# The ADS-link and BibTeX-key fields can be repeated if several
+# papers are relevant for the dataset.
 # Here is just one example - for more check any of the files
-# in the lnk_data directory.
+# in the lnk_data directory.  
 #
 #    # Name:       Pyroxene
 #    # State:      amorphous
 #    # Formula:    Mg_{0.7}Fe_{0.3}SiO_{3}
 #    # ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
 #    # BibTeX-key: 1995A&A...300..503D
+#
+# For the builtin materials of optool, the information is available
+# in the __DATA__ section of this program.  When the set of builtin
+# materials changes, that section has to be updated.  This is done
+# by running "optool2tex --set" in the optool code directory (where
+# the lnk_data directory lives).  Of course, any new lnk files need
+# to have the proper KEY: VALUE lines.
+# Running "optool2tex --set" merely appends a new version of
+# the database - you might want to remove any old versions of it
+# before or after running the command.
 
-
+# ----------------------------------------------------------------------
 # Update myself when called like this: optool2tex --set
-&set_database() if ($#ARGV == 0) and ($ARGV[0] eq "--set");
+# ----------------------------------------------------------------------
+if (($#ARGV == 0) and ($ARGV[0] eq "--set")) {
+  &set_database();
+  exit(0);
+}
 
+# ----------------------------------------------------------------------
 # Default values
+# ----------------------------------------------------------------------
 $i = 0; $nm = -1;
 $method = 'dhs'; $fmax = 0.8;
 $particle  = "particle"; $particles = "particles";
-$amin = 0.05; $amax = 3000; $apow=3.5;
+$amin=0.05;$amax=3000;$apow=3.5;$nsub=5;
 
+# ----------------------------------------------------------------------
 # Parse the command line arguments
+# ----------------------------------------------------------------------
 while (@ARGV) {
   $_ = shift;
   if (/^-[mc]$/ or /^[^-]/) {
-    # The composition
-    if ($_ eq '-m')    {$_=shift;$mat[$i]{"loc"}='m';$nmantle++}
-    elsif ($_ eq '-c') {$_=shift;$mat[$i]{"loc"}='c';$ncore++}
-    else               {         $mat[$i]{"loc"}='c';$ncore++}
+    # Composition
+    if ($_ eq '-m')    {$_=shift;$mat[$i]{"loc"}='mantle';$nmantle++}
+    elsif ($_ eq '-c') {$_=shift;$mat[$i]{"loc"}='core';$ncore++}
+    else               {         $mat[$i]{"loc"}='core';$ncore++}
     $mat[$i]{"key"} = $_;
     if (&n) {
       $mat[$i]{"mfrac"} = shift;
@@ -82,7 +103,7 @@ while (@ARGV) {
     if (&n) {$pmantle=shift} else {$pmantle=$pcore}
     next;
   } elsif (/^-(mie|dhs|fmax|mmf)/) {
-    # The computational method
+    # Computational method
     $method = $1;
     $method = "dhs" if $method eq 'fmax';
     $particles = 'monomers' if $method eq 'mmf';
@@ -103,25 +124,28 @@ while (@ARGV) {
     next;
   } elsif (/^-a$/) {
     # Grain size distribution
-    if (&n) {$amin = shift; if (&n) {$amax = shift; if (&n) {$apow = shift; if (&n) {$na = shift}}}}
+    if (&n) {$amin = &f(shift);
+             if (&n) {$amax = &f(shift);
+                      if (&n) {$apow = &f(shift);
+                               if (&n) {$na = shift}}}}
     next;
-  } elsif (/^-amin$/) {$amin=shift;next;
-  } elsif (/^-amax$/) {$amax=shift;next;
-  } elsif (/^-apow$/) {$apow=shift;next;
-  } elsif (/^-na$/)   {$nl=shift;next;
+  } elsif (/^-amin$/) {$amin=&f(shift);next;
+  } elsif (/^-amax$/) {$amax=&f(shift);next;
+  } elsif (/^-apow$/) {$apow=&f(shift);next;
+  } elsif (/^-na$/)   {$na=shift;next;
                        
   } elsif (/^-l$/) {
     # Wavelengths distribution
-    if (&n) {$lmin = shift; if (&n) {$lmax = shift; if (&n) {$nl = shift}}
+    if (&n) {$lmin = &f(shift); if (&n) {$lmax = &f(shift); if (&n) {$nl = shift}}
     } else {shift}   # remove the wavelength grid file
     next;
-  } elsif (/^-lmin$/) {$lmin=shift;next;
-  } elsif (/^-lmax$/) {$lmax=shift;next;
+  } elsif (/^-lmin$/) {$lmin=&f(shift);next;
+  } elsif (/^-lmax$/) {$lmax=&f(shift);next;
   } elsif (/^-nl$/)   {$nl=shift;next;
                        
   } elsif (/^-o$/) {
     # Output directory
-    shift if &o; next;
+    shift unless &o; next;
   } elsif (/^-s$/) {
     # Scattering
     shift if &n; next;
@@ -129,8 +153,8 @@ while (@ARGV) {
     # Chopping
     if (&n) {$chop = shift;} else {$chop=2}; next;
   } elsif (/^-d$/) {
-    # The division flag
-    $divide = 1; shift if &n; next;
+    # Division flag
+    $divide = 1; $nsub = shift if &n; next;
   } elsif (/^-fits$/) {
     next;
   } elsif (/^-radmc$/) {
@@ -142,21 +166,25 @@ while (@ARGV) {
 
 if ($nm == -1) {
   # No materials were specified, use the DIANA default
-  $nm=1;$mftot=1.;
-  $mat[0]{'key'}='pyr-mg70'; $mat[0]{'loc'}='c'; $mat[0]{'mfrac'}='0.87';
-  $mat[1]{'key'}='c-z';      $mat[1]{'loc'}='c'; $mat[1]{'mfrac'}='0.13';
-  $pcore = 0.25;
+  $nm=1;$mftot=1.;$ncore=2;$pcore=0.25;
+  $mat[0]{'key'}='pyr-mg70'; $mat[0]{'loc'}='core'; $mat[0]{'mfrac'}='0.87';
+  $mat[1]{'key'}='c-z';      $mat[1]{'loc'}='core'; $mat[1]{'mfrac'}='0.13';
 }
+
+# Sort, to make sure core and mantle materials are grouped
+@mat = sort {$$a{'loc'} cmp $$b{'loc'}} @mat;
 
 # Get database information
 $dbref = &read_DATA();
 
-# =======================================================
+# ======================================================================
 # Write the latex file
-# =======================================================
+# ======================================================================
 open(OUT, '>', 'optool.tex') or die $!;
 
-# Write section start
+# ----------------------------------------------------------------------
+# Write document start
+# ----------------------------------------------------------------------
 print OUT "\\documentclass{article}
 \\usepackage[DIV=15]{typearea}
 \\usepackage{natbib}
@@ -173,7 +201,9 @@ print OUT "\\documentclass{article}
 For the computation of the grain opacities, we used the
 \\textit{optool} program \\citep{optool-2021}.\n";
 
-# Write the method
+# ----------------------------------------------------------------------
+# Write method
+# ----------------------------------------------------------------------
 if ($method eq 'mie' or ($method eq 'dhs' and $fmax==0)) {
   print OUT "We assume the grains to be spherical and apply
 Mie theory \\citep{1908AnP...330..377M,1998asls.book.....B}.\n";
@@ -191,11 +221,13 @@ of the DMILAY routine \\citep{1981ApOpt..20.3657T}.\n";
   if ($shape > 1) {
     $shapetype = "fractal dimension";
     $shapesym  = "D_{\\rm f}";
-    $extra = "";
+    $extra = "The filling factor corresponding to the
+fractal dimension is dependent on the aggregate size \$N\$
+and is given by \$f_{\\rm fill}=N^{(D_{\\rm f}-3)/3}\$.\n";
   } else {
     $shapetype = "filling factor";
     $shapesym  = "f_{\\rm fill}";
-    $extra = "The fractal dimension corresponding to this
+    $extra = "The fractal dimension corresponding to the
 filling factor is dependent on the aggregate size \$N\$,
 and is given by \$D_{\\rm f}=3\\ln N/\\ln(N/f_{\\rm fill})\$.\n";
   }
@@ -206,7 +238,8 @@ we choose the value \$k_{\\rm f}=$kf\$.\n";
   } else {
     $ksentence = "The pre-factor \$k_{\\rm f}\$ is chosen such that
 the asymptotic density for an aggregate  as small as a monomer
-equals the density of the monomers themselves.\n";
+equals the density of the monomers
+themselves, leading to \$k_{\\rm f}=(5/3)^{D_{\\rm f}/2}\$.\n";
   }
   print OUT "To compute opacities of fractal dust aggregates
 we use Modified Mean Field theory
@@ -216,89 +249,144 @@ fixed $shapetype \$$shapesym=$shape\$. In a fractal aggregate,
 the number of monomers \$N\$ (and therefore the mass \$Nm_0\$)
 is related to the radius of gyration \$R_g\$ through the equation 
 \\begin{equation}
- N=k_{\\rm f}\\left(\\frac{R_{\\rm g}}{a_0}\\right)^{D_{\\rm f}}
+ N=k_{\\rm f}\\left(\\frac{R_{\\rm g}}{a_0}\\right)^{D_{\\rm f}} \\quad .
 \\end{equation}
 $extra$ksentence\n";
 }
 
-# Write size distribution
-if (not $divide) {
-  $extra = ($method eq 'mmf') ?
-    "(meaning compact size of the aggregate \$a=N^{1/3}a_0\$)" : "";
-  print OUT "The opacities are computed by averaging over
-grains in a size range $extra
-from $amin to $amax \$\\upmu\$m,
-with a powerlaw size distribution \$f(a)\\propto a^{-$apow}\$.\n";
-}
-
+# ----------------------------------------------------------------------
 # Write core/mantle and porosity
-if ($nmantle) {
-  if ($pcore > 0.) {
+# ----------------------------------------------------------------------
+if ($nmantle) {             # there is a mantle
+  if ($pcore == $pmantle) { # porosities are the same
+    $porosity = "a porosity of $pcore";
+  } else {                  # porosities are different
+    $porosity = "porosities of $pcore and $pmantle, respectively"
+  }
+  if ($pcore+$pmantle>0) {  # at least one non-zero porosity
     print OUT "The individual $particles consist of a core and
-a mantle, with porosities of $pcore and $pmantle, respectively.\n";
-  } else {
+a mantle, with $porosity.\n";
+  } else {                  # porosities are actually zero
     print OUT "The individual $particles consist of a core and a mantle.\n";
   }
-} elsif ($pcore > 0) {
+} elsif ($pcore > 0) {      # just a core, with porosity
   print OUT "The individual $particles have a porosity of $pcore.\n";
-}
+}                           # no core, and no porosity, say nothing
 
+# ----------------------------------------------------------------------
 # Write mixing rule
-if ($nmantle>0) {  # there is a mantle
-  if (($nmantle > 1) or ($ncore>1)) { # multiple materials 
-    print OUT "The refractive index of the core and mantle components
-are computed separately by mixing the data from the contributing
+# ----------------------------------------------------------------------
+$nc1 = $ncore   + (($ncore>0   and $pcore>0)   ? 1 : 0);
+$nm1 = $nmantle + (($nmantle>0 and $pmantle>0) ? 1 : 0);
+$consist = "consist";
+if    ($nc1>1 && $nm1 <=1) {$who = "core";  $consist.="s"}
+elsif ($nm1>1 && $nc1 <=1) {$who = "mantle";$consist.="s"}
+elsif ($nc1>1 && $nm1>1)   {$who = "core and the mantle"}
+if ($nc1>$ncore or $nm1>$nmantle) { # porosity plays a role
+  $porous = " (porosity counts as a component, is adds vacuum)"}
+
+if ($who) { # Someone needs mixing
+  print OUT "The $who $consist of more than one
+component$porous.
+We mix the refractive index data of the contributing
 materials using the Bruggeman rule \\citep{1935AnP...416..636B}.\n";
-    $then = "then";
-  }
-  print OUT "The refractive index of the entire $particle is $then computed
+  $then = " then"}
+if ($nmantle>0) {  # there is a mantle
+  print OUT "The refractive index of the entire $particle is$then computed
 by treating the core as an inclusion in the mantle matrix, using the
 Maxwell-Garnett approximation \\citep{1904RSPTA.203..385G}.\n";
-} else {   # no mantle
-  if ($ncore>0) {
-    print OUT "\nThe refractive index of the particle material is
-computed by mixing the data from the different materials using
-the Bruggeman rule \\citep{1935AnP...416..636B}.\n";
-  }
 }
 
+# ----------------------------------------------------------------------
 # Write chop
+# ----------------------------------------------------------------------
 # FIXME
 
+# ----------------------------------------------------------------------
 # Write composition table
+# ----------------------------------------------------------------------
+if ($nmantle>0) {
+  $headers = 'Location & Name & Composition & State & $\rho$ & $f_{\rm m}$ & Reference\\\\\\hline';
+  $fmt = "%-7s & %-10s & %-30s & %-11s & %-5s & %-5s & %s\\\\\n";
+  $align = "{llllrrp{5cm}}";
+} else {
+  $headers =         'Name & Composition & State & $\rho$ & $f_{\rm m}$ & Reference\\\\\\hline';
+  $fmt = "%s%-10s & %-30s & %-11s & %-5s & %-5s & %s\\\\\n";
+  $align = "{lllrrp{5cm}}";
+}
 print OUT "The composition of each $particle is given
 in the following table:\\\\\n\n";
-print OUT "\\begin{tabular}{lllrlrp{5cm}}\n";
-print OUT 'Name & Composition & State & $\rho$ & Loc & $f_m$ & Reference\\\\\\hline',"\n";
+print OUT "\\begin{tabular}$align\n";
+print OUT $headers,"\n";
 for $i (0..$nm) {
   $ref = ($dbref->{$mat[$i]{'key'}} or &get_record_from_file($mat[$i]{'key'}));
   $rho = sprintf("%5.2f",($mat[$i]{'rho'} or $ref->{'rho'}));
   $mfrac = sprintf("%6.3f",$mat[$i]{'mfrac'}/$mftot);
   $cite = join(',',split(/\s+/,trim($ref->{'BibTeX-key'})));
-  $loc = ($mat[$i]{'loc'} eq 'c') ? "core" : "mantle";
   if ($cite) {$cite = '{\cite{'.$cite.'}}'};
-  printf OUT "%-10s & %-30s & %-11s & %-5s & %-7s & %-5s & %s\\\\\n",
-    $ref->{'Name'},"\$\\mathrm{$ref->{'Formula'}}\$",$ref->{'State'},
-    $rho,$loc,$mfrac,$cite;
+  if ($nmantle) {
+    $loc = $mat[$i]{'loc'};
+    $loc = $mentioned{$loc}++ ? "" : $loc;
+  }
+  printf OUT $fmt,
+    $loc,$ref->{'Name'},"\$\\mathrm{$ref->{'Formula'}}\$",
+    $ref->{'State'},$rho,$mfrac,$cite;
+  $msum += $mfrac;
+  $vsum += $mfrac/$rho/(1.-$pcore);
 }
-print OUT "\\end{tabular}
-\\bibliographystyle{apalike}
+print OUT "\\hline\\\n";
+printf OUT $fmt,"","","","",sprintf("%5.2f",$msum/$vsum),"1.000","average denstiy";
+print OUT "\\end{tabular}\\\\[2mm]\n\n";
+
+# ----------------------------------------------------------------------
+# Write size distribution
+# ----------------------------------------------------------------------
+if ($method eq 'mmf'){
+  $sizecomment = " (meaning the compact size of the aggregate \$a=N^{1/3}a_0\$)";
+}
+if ($divide) {              # we compute opacities for many sizes
+  print OUT "We compute the opacities for $na logarithmically-spaced
+grain sizes$sizecomment
+in the range between $amin and $amax\\,\$\\upmu\$m. Each opacity
+is actually an average over $nsub samples around the given size,
+in order to smear out resonances that would otherwise lead to artifacts.\n";
+} else {                    # we compute a single opacity from all sizes
+  $apown = -1*$apow;
+  print OUT "The opacities are computed by averaging over
+grains in a size range $sizecomment
+from $amin to $amax\\,\$\\upmu\$m,
+with a powerlaw size distribution \$f(a)\\propto a^{$apown}\$.\n";
+}
+
+# ----------------------------------------------------------------------
+# Write bibliography and closing
+# ----------------------------------------------------------------------
+print OUT "\\bibliographystyle{apalike}
 \\bibliography{optool}
 \\end{document}\n";
 
+# ----------------------------------------------------------------------
 # Close file and finish
+# ----------------------------------------------------------------------
 close(OUT);
 exit(0);
 
-# =================================================================
-# =================================================================
-# =================================================================
+# ======================================================================
+# ======================================================================
+# ======================================================================
 
 sub n { is_number($ARGV[0])    }   # next arg is number?
 sub a { $ARGV[0]=~/^[a-zA-Z]/  }   # next arg is word, not number?
 sub o { $ARGV[0]=~/^-[a-zA-Z]/ }   # next arg is option?
 sub is_number {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?$/}
 sub trim {my $s=shift;$s=~s/(^\s+)|(\s+$)//g;return $s}
+sub f {
+  # Format a number like one would in text.
+  # Make sure it does not start like .5, but add the 0 to 0.5
+  my $s = shift;
+  $s =~ s/^(-?)(\.)/${1}0$2/; # Add a zero before the decimal point if necessary
+  return $s;
+}
 
 sub get_record_from_file {
   # Extract KEY: VALUE pairs from the header of an lnk file
@@ -358,6 +446,9 @@ sub set_database {
   # distribtuion and creates a database of properties.
   # That database gets appended to this file, optool2tex,
   # so that the program just has it available.
+  # If you do this repeatedly, you should clean out the old
+  # versions of the database occasionally. That is not
+  # necessary, but a bit more tidy.
   $genhash = &get_genhash();
   my @files = glob q("lnk_data/*.lnk");
   my @lines = ();
@@ -387,12 +478,9 @@ sub set_database {
   print SELF "\n\n# Database added on $date\n";
   print SELF join("\n",@lines),"\n";
   close SELF;  
-  exit(0);
 }
 
 __DATA__
-
-
 
 # Database added on Fri Apr 16 20:14:20 CEST 2021
 

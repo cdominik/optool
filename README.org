@@ -117,8 +117,8 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     line into a LaTeX snippet that describes the methods and the
     refractive index data used for that computation.  This is somewhat
     of a gimmick, but it is fun.
-- Release 1.8.2 ::
 
+- Release 1.8.2 ::
   - New way to keep precomputed opacities in a directory and read them
     back in in python at a later time.
     : # First time, the opacities are computed and stored in directory
