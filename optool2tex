@@ -83,8 +83,8 @@ while (@ARGV) {
   if (/^-[mc]$/ or /^[^-]/) {
     # Composition
     if ($_ eq '-m')    {$_=shift;$mat[$i]{"loc"}='mantle';$nmantle++}
-    elsif ($_ eq '-c') {$_=shift;$mat[$i]{"loc"}='core';$ncore++}
-    else               {         $mat[$i]{"loc"}='core';$ncore++}
+    elsif ($_ eq '-c') {$_=shift;$mat[$i]{"loc"}='core';  $ncore++}
+    else               {         $mat[$i]{"loc"}='core';  $ncore++}
     $mat[$i]{"key"} = $_;
     if (&n) {
       $mat[$i]{"mfrac"} = shift;
@@ -95,14 +95,12 @@ while (@ARGV) {
       $mat[$i]{"mfrac"} = 1.0;
     }
     $mftot += $mat[$i]{"mfrac"};
-    $nm = $i++;
-    next;
-  } elsif (/^-p$/) {
+    $nm = $i++}
+  elsif (/^-p$/) {
     # Porosity
     $pcore = shift;
-    if (&n) {$pmantle=shift} else {$pmantle=$pcore}
-    next;
-  } elsif (/^-(mie|dhs|fmax|mmf)/) {
+    if (&n) {$pmantle=shift} else {$pmantle=$pcore}}
+  elsif (/^-(mie|dhs|fmax|mmf)/) {
     # Computational method
     $method = $1;
     $method = "dhs" if $method eq 'fmax';
@@ -121,47 +119,38 @@ while (@ARGV) {
         }
       }
     }
-    next;
-  } elsif (/^-a$/) {
+  }
+  elsif (/^-a$/) {
     # Grain size distribution
     if (&n) {$amin = &f(shift);
              if (&n) {$amax = &f(shift);
                       if (&n) {$apow = &f(shift);
-                               if (&n) {$na = shift}}}}
-    next;
-  } elsif (/^-amin$/) {$amin=&f(shift);next;
-  } elsif (/^-amax$/) {$amax=&f(shift);next;
-  } elsif (/^-apow$/) {$apow=&f(shift);next;
-  } elsif (/^-na$/)   {$na=shift;next;
+                               if (&n) {$na = shift}}}}}
+  elsif (/^-amin$/) {$amin=&f(shift)}
+  elsif (/^-amax$/) {$amax=&f(shift)}
+  elsif (/^-apow$/) {$apow=&f(shift)}
+  elsif (/^-na$/)   {$na=shift}
                        
-  } elsif (/^-l$/) {
+  elsif (/^-l$/) {
     # Wavelengths distribution
     if (&n) {$lmin = &f(shift); if (&n) {$lmax = &f(shift); if (&n) {$nl = shift}}
-    } else {shift}   # remove the wavelength grid file
-    next;
-  } elsif (/^-lmin$/) {$lmin=&f(shift);next;
-  } elsif (/^-lmax$/) {$lmax=&f(shift);next;
-  } elsif (/^-nl$/)   {$nl=shift;next;
+    } else {shift}                     # remove the wavelength grid file if given
+  }
+  elsif (/^-lmin$/) {$lmin=&f(shift)}
+  elsif (/^-lmax$/) {$lmax=&f(shift)}
+  elsif (/^-nl$/)   {$nl=shift}
                        
-  } elsif (/^-o$/) {
-    # Output directory
-    shift unless &o; next;
-  } elsif (/^-s$/) {
-    # Scattering
-    shift if &n; next;
-  } elsif (/^-chop$/) {
+  elsif (/^-o$/) {shift unless &o}     # Output directory, we do not need the value
+  elsif (/^-s$/) {shift if &n}         # Scattering, we do not need nang
+  elsif (/^-chop$/) {
     # Chopping
-    if (&n) {$chop = shift;} else {$chop=2}; next;
-  } elsif (/^-d$/) {
+    if (&n) {$chop = shift;} else {$chop=2}}
+  elsif (/^-d$/) {
     # Division flag
-    $divide = 1; $nsub = shift if &n; next;
-  } elsif (/^-fits$/) {
-    next;
-  } elsif (/^-radmc$/) {
-    # RADMC
-    if (not &a) {shift}; next;
-  } elsif (/^-(q|n|debug|v|b|blendonly)$/) {next;
-  } else {next}
+    $divide = 1; $nsub = shift if &n}
+  elsif (/^-fits$/) {}
+  elsif (/^-radmc$/) {shift unless &a} # RADMC, remove label if present
+  elsif (/^-(q|n|debug|v|b|blendonly)$/) {}
 }
 
 if ($nm == -1) {
@@ -335,7 +324,7 @@ for $i (0..$nm) {
   $vsum += $mfrac/$rho/(1.-$pcore);
 }
 print OUT "\\hline\\\n";
-printf OUT $fmt,"","","","",sprintf("%5.2f",$msum/$vsum),"1.000","average denstiy";
+printf OUT $fmt,"","","","",sprintf("%5.2f",$msum/$vsum),"1.000","$particle density";
 print OUT "\\end{tabular}\\\\[2mm]\n\n";
 
 # ----------------------------------------------------------------------

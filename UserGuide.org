@@ -308,8 +308,6 @@ extend the [[#output-files][output]].
   extension of the files will be changed to =.inp=, and if you specify
   =LABEL=, it will be used in the file name(s).
 
- 
-
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
 useful list of materials is compiled into =optool=. You can also find
@@ -752,7 +750,6 @@ where electronic transitions kick in.
 [[./maint/all_k.pdf]]
 
 
-
 * How to ingest refractive index data for another material
 :PROPERTIES:
 :CUSTOM_ID: ingest
@@ -774,7 +771,6 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 4. Run =make ingest= to update =optool_refind.f90=, now with your new
    material.
 5. Recompile and install the code.
-
 
 * Internals
 :PROPERTIES:
@@ -877,7 +873,6 @@ the code.
   on github]]).  Also, it was his idea to include something like
   =optool2tex=.
 - [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
-
 
 * Bibliography
 #+LATEX: \footnotesize
