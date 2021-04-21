@@ -70,9 +70,10 @@ if (($#ARGV == 0) and ($ARGV[0] eq "--set")) {
 # ----------------------------------------------------------------------
 # Default values
 # ----------------------------------------------------------------------
-$i = 0; $nm = -1;
-$method = 'dhs'; $fmax = 0.8;
-$particle  = "particle"; $particles = "particles";
+$i=0;$nm=-1;
+$method='dhs';$fmax=.8;$a0=.1;$shape=.2;
+$particle="particle";$particles="particles";
+$gain="grain";$gains="grains";
 $amin=0.05;$amax=3000;$apow=3.5;$nsub=5;
 
 # ----------------------------------------------------------------------
@@ -82,64 +83,44 @@ while (@ARGV) {
   $_ = shift;
   if (/^-[mc]$/ or /^[^-]/) {
     # Composition
-    if ($_ eq '-m')    {$_=shift;$mat[$i]{"loc"}='mantle';$nmantle++}
+    if    ($_ eq '-m') {$_=shift;$mat[$i]{"loc"}='mantle';$nmantle++}
     elsif ($_ eq '-c') {$_=shift;$mat[$i]{"loc"}='core';  $ncore++}
     else               {         $mat[$i]{"loc"}='core';  $ncore++}
     $mat[$i]{"key"} = $_;
-    if (&n) {
-      $mat[$i]{"mfrac"} = shift;
-      if (&n) {
-        $mat[$i]{"rho"} = shift;
-      }
-    } else {
-      $mat[$i]{"mfrac"} = 1.0;
-    }
-    $mftot += $mat[$i]{"mfrac"};
-    $nm = $i++}
+    $mat[$i]{"mfrac"} = 1.0;
+    if (&n) {$mat[$i]{"mfrac"} = shift;if (&n) {$mat[$i]{"rho"} = shift}}
+    $mftot += $mat[$i]{"mfrac"}; $nm = $i++}
   elsif (/^-p$/) {
     # Porosity
     $pcore = shift;
     if (&n) {$pmantle=shift} else {$pmantle=$pcore}}
+
   elsif (/^-(mie|dhs|fmax|mmf)/) {
     # Computational method
-    $method = $1;
-    $method = "dhs" if $method eq 'fmax';
-    $particles = 'monomers' if $method eq 'mmf';
-    $particle  = 'monomer'  if $method eq 'mmf';
-    if (&n) {
-      $p = shift;
-      $fmax = $p if $method eq 'dhs';
-      $a0   = $p if $method eq 'mmf';
-      if (&n) {
-        $p = shift;
-        $shape = $p if $method eq 'mmf';
-        if (&n) {
-          $p = shift;
-          $kf = $p if $method eq 'mmf';
-        }
-      }
-    }
-  }
+    $method = $1 eq 'fmax' ? 'dhs' : $1;
+    if    ($method eq 'mie') {$method='dhs';$fmax=0}
+    elsif ($method eq 'dhs') {if (&n) {$fmax=&fs}}
+    else { # mmf
+      $particle = 'monomer';$particles='monomers';
+      $grain = 'aggregate';$grains = 'aggregates';
+      if (&n) {$a0=&fs;if (&n) {$shape=&fs; if (&n) {$kf=&fs}}}}}
+
   elsif (/^-a$/) {
     # Grain size distribution
-    if (&n) {$amin = &f(shift);
-             if (&n) {$amax = &f(shift);
-                      if (&n) {$apow = &f(shift);
-                               if (&n) {$na = shift}}}}}
-  elsif (/^-amin$/) {$amin=&f(shift)}
-  elsif (/^-amax$/) {$amax=&f(shift)}
-  elsif (/^-apow$/) {$apow=&f(shift)}
+    if (&n) {$amin=&fs;if (&n) {$amax=&fs;if (&n) {$apow=&fs;if (&n) {$na=shift}}}}}
+  elsif (/^-amin$/) {$amin=&fs}
+  elsif (/^-amax$/) {$amax=&fs}
+  elsif (/^-apow$/) {$apow=&fs}
   elsif (/^-na$/)   {$na=shift}
                        
   elsif (/^-l$/) {
     # Wavelengths distribution
-    if (&n) {$lmin = &f(shift); if (&n) {$lmax = &f(shift); if (&n) {$nl = shift}}
-    } else {shift}                     # remove the wavelength grid file if given
-  }
-  elsif (/^-lmin$/) {$lmin=&f(shift)}
-  elsif (/^-lmax$/) {$lmax=&f(shift)}
+    if (&n) {$lmin=&fs; if (&n) {$lmax=&fs; if (&n) {$nl=shift}}
+    } else {shift}}                     # skip the wavelength grid file if given
+  elsif (/^-lmin$/) {$lmin=&fs}
+  elsif (/^-lmax$/) {$lmax=&fs}
   elsif (/^-nl$/)   {$nl=shift}
-                       
+  
   elsif (/^-o$/) {shift unless &o}     # Output directory, we do not need the value
   elsif (/^-s$/) {shift if &n}         # Scattering, we do not need nang
   elsif (/^-chop$/) {
@@ -149,7 +130,7 @@ while (@ARGV) {
     # Division flag
     $divide = 1; $nsub = shift if &n}
   elsif (/^-fits$/) {}
-  elsif (/^-radmc$/) {shift unless &a} # RADMC, remove label if present
+  elsif (/^-radmc$/) {shift unless &a} # RADMC, skip label if present
   elsif (/^-(q|n|debug|v|b|blendonly)$/) {}
 }
 
@@ -187,7 +168,7 @@ print OUT "\\documentclass{article}
 \\newcommand*\\mnras{MNRAS}
 \\newcommand*\\apjs{ApJS}
 \\begin{document}\n\n
-For the computation of the grain opacities, we used the
+For the computation of the opacities, we used the
 \\textit{optool} program \\citep{optool-2021}.\n";
 
 # ----------------------------------------------------------------------
@@ -198,11 +179,11 @@ if ($method eq 'mie' or ($method eq 'dhs' and $fmax==0)) {
 Mie theory \\citep{1908AnP...330..377M,1998asls.book.....B}.\n";
 } elsif ($method eq 'dhs') {
   print OUT "We assume that the individual grains are not
-perfect spheres, but have some shape irregularities.  To simulate
-the effects of these irregularities, we apply a statistical
-approach in which we average over a shape distribution to
-compute the opacity of each grain. In particular, we use
-the Distribution of Hollow Spheres
+perfect spheres, but have some shape irregularities.  To
+simulate the effects of these irregularities, we apply a
+statistical approach in which we average over a shape
+distribution to compute the opacity of each grain. In
+particular, we use the Distribution of Hollow Spheres
 \\citep[DHS,][]{2005A&A...432..909M} method with a maximum
 vacuum volume fraction of \$f_{\\rm max}=$fmax\$, making use
 of the DMILAY routine \\citep{1981ApOpt..20.3657T}.\n";
@@ -225,10 +206,10 @@ and is given by \$D_{\\rm f}=3\\ln N/\\ln(N/f_{\\rm fill})\$.\n";
     $ksentence = "For the pre-factor \$k_{\\rm f}\$,
 we choose the value \$k_{\\rm f}=$kf\$.\n";
   } else {
-    $ksentence = "The pre-factor \$k_{\\rm f}\$ is chosen such that
-the asymptotic density for an aggregate  as small as a monomer
-equals the density of the monomers
-themselves, leading to \$k_{\\rm f}=(5/3)^{D_{\\rm f}/2}\$.\n";
+    $ksentence = "The pre-factor \$k_{\\rm f}\$ is chosen such
+that the asymptotic density for an aggregate  as small as a
+monomer equals the density of the monomers themselves,
+leading to \$k_{\\rm f}=(5/3)^{D_{\\rm f}/2}\$.\n";
   }
   print OUT "To compute opacities of fractal dust aggregates
 we use Modified Mean Field theory
@@ -238,7 +219,7 @@ fixed $shapetype \$$shapesym=$shape\$. In a fractal aggregate,
 the number of monomers \$N\$ (and therefore the mass \$Nm_0\$)
 is related to the radius of gyration \$R_g\$ through the equation 
 \\begin{equation}
- N=k_{\\rm f}\\left(\\frac{R_{\\rm g}}{a_0}\\right)^{D_{\\rm f}} \\quad .
+N=k_{\\rm f}\\left(\\frac{R_{\\rm g}}{a_0}\\right)^{D_{\\rm f}}\\quad.
 \\end{equation}
 $extra$ksentence\n";
 }
@@ -281,15 +262,10 @@ We mix the refractive index data of the contributing
 materials using the Bruggeman rule \\citep{1935AnP...416..636B}.\n";
   $then = " then"}
 if ($nmantle>0) {  # there is a mantle
-  print OUT "The refractive index of the entire $particle is$then computed
-by treating the core as an inclusion in the mantle matrix, using the
-Maxwell-Garnett approximation \\citep{1904RSPTA.203..385G}.\n";
-}
-
-# ----------------------------------------------------------------------
-# Write chop
-# ----------------------------------------------------------------------
-# FIXME
+  print OUT "The refractive index of the entire $particle
+is$then computed by treating the core as an inclusion in
+the mantle matrix, using the Maxwell-Garnett approximation
+\\citep{1904RSPTA.203..385G}.\n"}
 
 # ----------------------------------------------------------------------
 # Write composition table
@@ -323,7 +299,7 @@ for $i (0..$nm) {
   $msum += $mfrac;
   $vsum += $mfrac/$rho/(1.-$pcore);
 }
-print OUT "\\hline\\\n";
+print OUT "\\hline\n";
 printf OUT $fmt,"","","","",sprintf("%5.2f",$msum/$vsum),"1.000","$particle density";
 print OUT "\\end{tabular}\\\\[2mm]\n\n";
 
@@ -335,16 +311,26 @@ if ($method eq 'mmf'){
 }
 if ($divide) {              # we compute opacities for many sizes
   print OUT "We compute the opacities for $na logarithmically-spaced
-grain sizes$sizecomment
+$grain sizes$sizecomment
 in the range between $amin and $amax\\,\$\\upmu\$m. Each opacity
 is actually an average over $nsub samples around the given size,
 in order to smear out resonances that would otherwise lead to artifacts.\n";
 } else {                    # we compute a single opacity from all sizes
   $apown = -1*$apow;
   print OUT "The opacities are computed by averaging over
-grains in a size range $sizecomment
+$grains in a size range $sizecomment
 from $amin to $amax\\,\$\\upmu\$m,
 with a powerlaw size distribution \$f(a)\\propto a^{$apown}\$.\n";
+}
+
+# ----------------------------------------------------------------------
+# Write chop
+# ----------------------------------------------------------------------
+if ($chop) {
+  print OUT "To avoid numerical artifacts from extreme forward scattering
+we limit the scattering matrix in a cone with an opening angle of
+\$$chop^{\\circ}\$ around the forward direction to the values on the cone
+and compensate with a corresponding decrease of \$\\kappa_{\\rm scat}\$.\n"; 
 }
 
 # ----------------------------------------------------------------------
@@ -358,6 +344,7 @@ print OUT "\\bibliographystyle{apalike}
 # Close file and finish
 # ----------------------------------------------------------------------
 close(OUT);
+print "File optool.tex now contains methods and materials used in this run\n";
 exit(0);
 
 # ======================================================================
@@ -370,17 +357,17 @@ sub o { $ARGV[0]=~/^-[a-zA-Z]/ }   # next arg is option?
 sub is_number {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?$/}
 sub trim {my $s=shift;$s=~s/(^\s+)|(\s+$)//g;return $s}
 sub f {
-  # Format a number like one would in text.
-  # Make sure it does not start like .5, but add the 0 to 0.5
+  # Format a number like one would in text.  For now, we only
+  # make sure it does not start like .5, but add the 0 to 0.5
   my $s = shift;
   $s =~ s/^(-?)(\.)/${1}0$2/; # Add a zero before the decimal point if necessary
   return $s;
 }
+sub fs {&f(shift @ARGV)} # shift from ARGV and format with &f
 
 sub get_record_from_file {
   # Extract KEY: VALUE pairs from the header of an lnk file
-  # Also, read the rho value, minimum and maximum wavelength
-  # and the powerlaws for n and k extrapolation. FIXME
+  # Also, read the rho value.
   $file = shift;
   print "Reading file >>$file<<...\n";
   my %hash;
@@ -437,7 +424,7 @@ sub set_database {
   # so that the program just has it available.
   # If you do this repeatedly, you should clean out the old
   # versions of the database occasionally. That is not
-  # necessary, but a bit more tidy.
+  # necessary, but more tidy.
   $genhash = &get_genhash();
   my @files = glob q("lnk_data/*.lnk");
   my @lines = ();
