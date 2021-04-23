@@ -419,7 +419,7 @@ sub get_genhash {
 
 sub set_database {
   # This subroutine reads all the lnk files in the optool
-  # distribtuion and creates a database of properties.
+  # distribution and creates a database of properties.
   # That database gets appended to this file, optool2tex,
   # so that the program just has it available.
   # If you do this repeatedly, you should clean out the old
