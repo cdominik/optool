@@ -25,13 +25,13 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 
 * Terms of use
 
-
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
-and redistributed freely. The relevant references for this tool are
-listed below.  Please point to the GitHub repository and cite the
-papers that are relevant for your use case.
+and redistributed freely. But we do ask you to cite the code, and also
+the papers relevant to your particular application, when using
+=optool=. The references are listed below. BibTeX entries are
+available in the file =optool.bib=. =optool= is [[https://github.com/cdominik/optool.git][hosted on github]].
 
-- =optool=: [[https://github.com/cdominik/optool.git][https://github.com/cdominik/optool.git]]
+- =optool=: [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][Dominik, Min & Tanaka 2021, Optool, 1.9, Astrophysics Source Code Library, ascl:2104.009]]
 - DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
 - MMF model for aggregates: [[https://ui.adsabs.harvard.edu/abs/2018ApJ...860...79T][Tazaki & Tanaka 2018, ApJ 860, 79]]
 - DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016, A&A 586, 103]]
@@ -111,6 +111,17 @@ the filling factor
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
+- Release 1.9 ::
+  - The proper reference for optool is now the entry in the
+    [[https://ascl.net][Astrophysics Source Code Library]], please refert to it when optool
+    is used in your paper.  The reference looks like this:
+    - Dominik, C., Min, M., Tazaki, R. 2021, Optool, 1.9, Astrophysics
+      Source Code Library, record ascl:2104.009 
+    Here is a [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][pointer to the ADS entry]], from where you can also
+    download the corresponding BibTeX entry.  That BibTeX entry is
+    also in =optool.bib=, with the citation key =2021ascl.soft04010D=.
+  - Improvements to the text written by optool2tex.
+
 - Release 1.8.3 ::
   - some small bug fixes
   - implement optool2tex, a little tool that turns an optool command
