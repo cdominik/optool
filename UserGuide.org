@@ -399,7 +399,7 @@ following format:
   \lambda[\mu{}m] (sorted either up or down), and the real and
   imaginary parts of the refractive index, $n$ and $k$.
 
-You can find additional refractive index data [[https://github.com/cdominik/refind-for-optool][here]], in databases like
+You can find additional refractive index data [[https://github.com/cdominik/optool-additional-refind-data][here]], in databases like
 the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and associated with original papers in the
 literature. Don't forget to add the line with $n_\lambda$ and \rho!
 If that is not possible, =optool= will count the lines and you can
