@@ -2,6 +2,7 @@
 # Reference: Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
 #
 # Name:       Water ice
+# Class:      Ices
 # State:      crystalline
 # Formula:    H_{2}O
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W

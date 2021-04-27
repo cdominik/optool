@@ -2,6 +2,7 @@
 # Reference: Dorschner 1995, A&A 300,503
 #
 # Name:       Olivine
+# Class:      Silicates
 # State:      amorphous
 # Formula:    MgFeSiO_{4}
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D

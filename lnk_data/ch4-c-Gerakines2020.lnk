@@ -2,6 +2,7 @@
 # https://science.gsfc.nasa.gov/691/cosmicice/constants.html
 # 
 # Name:       Methane ice
+# Class:      Ices
 # State:      crystalline
 # Formula:    CH_{4}
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G

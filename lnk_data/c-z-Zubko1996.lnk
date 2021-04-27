@@ -2,6 +2,7 @@
 # Reference: Zubko 1996, MNRAS 282, 1321
 #
 # Name:       Carbon
+# Class:      Carbon
 # State:      amorphous
 # Formula:    C
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z

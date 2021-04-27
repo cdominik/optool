@@ -2,6 +2,7 @@
 # Martonchik et al 1984 Applied Optics 23, 541
 #
 # Name:       Ammonia ice
+# Class:      Ices
 # State:      crystalline
 # Formula:    NH_{3}
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M

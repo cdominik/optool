@@ -1,6 +1,7 @@
 # CO ice 16 K.  Palumbo et al. 2006 PCCP 8, 279
 #
 # Name:       CO ice
+# Class:      Ices
 # State:      amorphous
 # Formula:    CO
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P

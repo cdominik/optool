@@ -3,6 +3,7 @@
 # data we have here is from Henning & Stognienko 1996, A&A 311,291
 #
 # Name:       Organics
+# Class:      Carbon
 # State:      amorphous
 # Formula:    CHON
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/1994ApJ...421..615P

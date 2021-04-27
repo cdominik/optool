@@ -2,6 +2,7 @@
 # Reference: Dorschner et al 1995, A&A 300, 503
 #
 # Name:       Pyroxene
+# Class:      Silicates
 # State:      amorphous
 # Formula:    Mg_{0.6}Fe_{0.4}SiO_{3}
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D

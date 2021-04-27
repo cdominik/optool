@@ -1,6 +1,7 @@
 # CO2 ice data as compiles by Warren 1986, Applied optice 25, 16
 #
 # Name:       dry ice
+# Class:      Ices
 # State:      crystalline
 # Formula:    CO_{2}
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W

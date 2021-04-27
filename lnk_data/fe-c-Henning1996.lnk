@@ -2,6 +2,7 @@
 # Reference: Henning 1996, A&A 311, 291
 #
 # Name:       Iron
+# Class:      Metals
 # State:      metallic
 # Formula:    Fe
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
