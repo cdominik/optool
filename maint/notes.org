@@ -1,14 +1,5 @@
 * Actions and Ideas
 
-** TODO Mean opacities including Tstar and evaporation
-
--c material mfrac tevap
-
-Then some internal magic
-
-Need to specify a dust to gas ratio, because these should be per g
-gas.  or per gicy region? or....?????
-
 ** TODO propagate rho to fits and write it there?
 ** TODO Fix the FITS issues
 Python cannot read the headers.  I should check if Fortran actually can!?
