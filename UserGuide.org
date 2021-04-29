@@ -399,14 +399,12 @@ following format:
   \lambda[\mu{}m] (sorted either up or down), and the real and
   imaginary parts of the refractive index, $n$ and $k$.
 
-You can find additional refractive index data [[https://github.com/cdominik/optool-additional-refind-data][here]], in databases like
-the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], and associated with original papers in the
+More data ready for use with =optool= is in [[https://github.com/cdominik/optool-additional-refind-data][this repository]]. Other
+resources are the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], [[http://eodg.atm.ox.ac.uk/ARIA/][ARIA]] and original papers in the
 literature. Don't forget to add the line with $n_\lambda$ and \rho!
 If that is not possible, =optool= will count the lines and you can
 specify the density after the mass fraction, like this: =optool -c
 path/to/file.lnk 0.7 3.42=.
-
-
 
 #+LATEX: \newpage
 * Output files
@@ -463,13 +461,13 @@ path/to/file.lnk 0.7 3.42=.
 
 - optool.tex ::
   As a little gimmick, you can run =optool2tex= with the exact same
-  command line arguments as used in an =optool= run, to produce this
-  file.  It contains text and a table, describing the methods used for
-  the opacity computation and listing the composition of the
-  grains. All relevant references are given - the BibTeX
-  file =optool.bib= is required for the file to be processed
-  properly. You can rework this text to include it into your
-  paper. For more details, read the comment section in =optool2tex=.
+  command line arguments as used in an =optool= run. =optool.tex= then
+  contains text and a table, describing the methods used for the
+  opacity computation and listing the composition of the grains. All
+  relevant references are given - the BibTeX file =optool.bib= is
+  required for the file to be processed properly. You can rework this
+  text to include it into your paper. For more details, read the
+  comment section in =optool2tex=.
 
 [fn:2] This includes a change of the angular grid and a change in the
 normalization of the scattering matrix.
