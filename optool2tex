@@ -218,7 +218,7 @@ leading to \$k_{\\rm f}=(5/3)^{D_{\\rm f}/2}\$.\n";
   }
   print OUT "To compute opacities of fractal dust aggregates
 we use Modified Mean Field theory
-\\citep[MMF,][]{2018ApJ...860...79T,2021arXiv210406804T}.
+\\citep[MMF,][]{2018ApJ...860...79T,2021MNRAS.tmp.1064T}.
 We build aggregates with monomer size \$a_0=$a0\\,\\upmu\$m and
 fixed $shapetype \$$shapesym=$shape\$. In a fractal aggregate,
 the number of monomers \$N\$ (and therefore the mass \$Nm_0\$)
