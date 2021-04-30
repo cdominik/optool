@@ -561,9 +561,8 @@ will produce these plots:
   apply a dust-to-gas mass ratio to obtain opacities for a gas-dust
   mixture.
 
-The python module has a few more tricks up its sleeve.  We show a few
-examples here - full documentation is inside the Python module file
-=optool.py=.
+The python module has a few more tricks up its sleeve (for details
+check the documentation inside the Python module file =optool.py=):
 
 - A =lnktable= class to read, plot, modify and write =lnk= files.
   #+begin_src python
@@ -581,6 +580,8 @@ examples here - full documentation is inside the Python module file
   factors and adding them, or applying size distributions to a
   pre-computed set of opacities. The following page contains a number
   of examples.
+
+
 #+LATEX: \newpage
 
 Compute the opacities of 100 olivine silicate grain sizes and of 50
