@@ -36,12 +36,12 @@ the papers relevant to your particular application, when using
 =optool=. The references are listed below. BibTeX entries are
 available in the file =optool.bib=. =optool= is [[https://github.com/cdominik/optool.git][hosted on github]].
 
-- =optool=: [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][Dominik, Min & Tanaka 2021, Optool, 1.9, Astrophysics
-  Source Code Library, ascl:2104.009]]  
-- DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min et al. 2005, A&A, 432, 909]]
-- MMF model for aggregates: [[https://ui.adsabs.harvard.edu/abs/2018ApJ...860...79T][Tazaki & Tanaka 2018, ApJ 860, 79]]
-- DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, Min et al. 2016, A&A 586, 103]]
-- Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon et al. 1981, Applied Optics 20, 3657]]
+- =optool=: [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][Dominik, C., Min, M. & Tanaka, R. 2021, Optool, 1.9,
+  Astrophysics Source Code Library, ascl:2104.010]]
+- DHS model for irregular grains:  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min, M. et al. 2005, A&A, 432, 909]]
+- MMF model for aggregates: [[https://ui.adsabs.harvard.edu/abs/2018ApJ...860...79T][Tazaki, R. & Tanaka,H. 2018, ApJ 860, 79]]
+- DIANA standard Opacities: [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke,P. et al. 2016, A&A 586, 103]]
+- Third party software: [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon, O. et al. 1981, Applied Optics 20, 3657]]
 - References to [[#builtin-materials][refractive index data]] used in your particular
   application.
 
@@ -879,16 +879,16 @@ the code.
 #+LATEX: \footnotesize
 - Bohren, C.F. and Huffman, D.R. 1998, Wiley-VCH, \\
   /Absorption and Scattering of Light by Small Particles/
-- Draine, B., 2003, ApJ 598, 1017
-- Draine, B., 2003, ApJ 598, 1026
+- Draine, B. 2003, ApJ 598, 1017
+- Draine, B. 2003, ApJ 598, 1026
 - Dorschner, J. et al. 1995, A&A 300, 503
-- Gerakines, P. and Hudson, R., ApJ 901, 52
+- Gerakines, P. and Hudson, R. 2020, ApJ 901, 52
 - Henning, Th. and Stognienko, R. 1996, A&A 311,291
-- Hovenier, J, 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
+- Hovenier, J., 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
 - Jäger, C. et al. 1998, A&A 339, 904
-- Kitamura, R. et al 2007, Applied Optics 46,33, p. 8188
+- Kitamura, R. et al. 2007, Applied Optics 46,33, p. 8188
 - Koike, C. et al. 1995, Icarus 114, 203
-- Laor, A. and Draine, B., ApJ 402, 441
+- Laor, A. and Draine, B. 1993, ApJ 402, 441
 - Martonchik, J. 1984, Applied Optics 23, 541
 - Min, M. et al. 2005, A&A, 432, 909
 - Min, M. et al. 2016, A&A, 585, 13
@@ -898,17 +898,16 @@ the code.
 - Okuzumi, S. et al. 2009,  ApJ 707, 1247
 - Tazaki, R. et al. 2016, ApJ 823, 70
 - Tazaki, R. & Tanaka, H. 2018, ApJ 860,79
-- Tazaki, R. 2021, submitted
+- Tazaki, R. 2021, MNRAS, in press
 - Toon, O. & Ackerman,T. 1981, Applied Optics 20, 3657
-- Woitke, P.; Min, M. et al. 2016, A&A 586, 103
+- Woitke, P. et al. 2016, A&A 586, 103
 - Palumbo, E. et al. 2006, PCCP 8, 279
 - Preibisch, Th. et al. 1993, A&A 279, 577
 - de Rooij W. and van der Stap, C. 1984, A&A 131, 237
 - Steyer, T. 1974, PhD Thesis, The University of Arizona
 - Warren, S. and Brandt, R. 2008, JGRD,113, D14220
 - Warren, S. 1986, Applied Optics 25, 2650
-- Zubko, V. et al. 1996, MNRAS 282,1321
-
+- Zubko, V. et al. 1996, MNRAS 282, 1321
 
 # Start of Setup
 
