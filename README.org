@@ -113,14 +113,13 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 - Release 1.9 ::
   - The proper reference for optool is now the entry in the
-    [[https://ascl.net][Astrophysics Source Code Library]], please refert to it when optool
+    [[https://ascl.net][Astrophysics Source Code Library]], please refer to it when optool
     is used in your paper.  The reference looks like this:
     - Dominik, C., Min, M., Tazaki, R. 2021, Optool, 1.9, Astrophysics
-      Source Code Library, record ascl:2104.009 
+      Source Code Library, record ascl:2104.010 
     Here is a [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][pointer to the ADS entry]], from where you can also
     download the corresponding BibTeX entry.  That BibTeX entry is
     also in =optool.bib=, with the citation key =2021ascl.soft04010D=.
-  - Improvements to the text written by optool2tex.
 
 - Release 1.8.3 ::
   - implement optool2tex, a little tool that turns an optool command
