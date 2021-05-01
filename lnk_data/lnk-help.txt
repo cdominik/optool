@@ -9,8 +9,8 @@
 : quartz,corundum   sio2   cor-c                          (Kitamura07,Koike95) :
 : iron/sulfide      fe-c   fes                                     (Henning96) :
 : carbides          sic                                             (Draine93) :
-: water ice         h2o-w                                           (Warren08) :
-: other ices        co2-w  nh3-m                               (War.86,Mar.83) :
+: water ice         h2o-w  h2o-a                          (Warren08,Hudgins93) :
+: other ices        co2-w  nh3-m                       (Warren86,Martonchik83) :
 :                   co-a   co2-a/c ch4-a/c ch3oh-a/c   (Palumbo06,Gerakines20) :
 :                                                                              :
 : *** ABBREVIATIONS AND GENERIC KEYS FOR QUICK ACCESS ***                      :
