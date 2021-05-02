@@ -174,7 +174,7 @@ print OUT "\\documentclass{article}
 \\newcommand*\\apjs{ApJS}
 \\begin{document}\n\n
 For the computation of the opacities, we used the
-\\textit{optool} program \\citep{optool-2021}.\n";
+\\textit{optool} program \\citep{2021ascl.soft04010D}.\n";
 
 # ----------------------------------------------------------------------
 # Write method
