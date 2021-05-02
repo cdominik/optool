@@ -463,7 +463,7 @@ sub set_database {
 
 __DATA__
 
-# Database added on Thu Apr 29 13:06:17 CEST 2021
+# Database added on Sun May  2 18:18:58 CEST 2021
 
 key: astrosil
   ADS-link:    https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D
@@ -484,14 +484,14 @@ key: c-gra
   State:       crystalline
   rho:         2.16
 key: gra
-  BibTeX-key:  2003ApJ...598.1026D
-  rho:         2.16
-  Reference:   Draine 2003, ApJ 598, 1026
   State:       crystalline
-  Formula:     C
-  Class:       Carbon
   Name:        Graphite
+  BibTeX-key:  2003ApJ...598.1026D
+  Reference:   Draine 2003, ApJ 598, 1026
   ADS-link:    https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D
+  rho:         2.16
+  Class:       Carbon
+  Formula:     C
 key: c-nano
   ADS-link:    https://ui.adsabs.harvard.edu/abs/2004A&A...423..983M
   BibTeX-key:  2004A&A...423..983M
@@ -509,13 +509,13 @@ key: c-org
   State:       amorphous
   rho:         1.5
 key: org
-  Class:       Carbon
-  BibTeX-key:  1994ApJ...421..615P 1996A&A...311..291H
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1994ApJ...421..615P https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  Formula:     CHON
   Name:        Organics
   rho:         1.5
+  BibTeX-key:  1994ApJ...421..615P 1996A&A...311..291H
   State:       amorphous
-  Formula:     CHON
-  ADS-link:    https://ui.adsabs.harvard.edu/abs/1994ApJ...421..615P https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
+  Class:       Carbon
 key: c-p
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1993A&A...279..577P
   BibTeX-key:  1993A&A...279..577P
@@ -537,14 +537,14 @@ key: c-z
   State:       amorphous
   rho:         1.80
 key: c
-  ADS-link:    https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z
-  Name:        Carbon
-  Class:       Carbon
   Formula:     C
-  State:       amorphous
+  rho:         1.80
+  Class:       Carbon
   Reference:   Zubko 1996, MNRAS 282, 1321
   Material:    Carbon, amorphous
-  rho:         1.80
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z
+  State:       amorphous
+  Name:        Carbon
   BibTeX-key:  1996MNRAS.282.1321Z
 key: ch3oh-a
   ADS-link:    https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
@@ -587,13 +587,13 @@ key: co-a
   State:       amorphous
   rho:         0.81
 key: co
-  State:       amorphous
   ADS-link:    https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P
-  Formula:     CO
   BibTeX-key:  2006PCCP....8..279P
-  Class:       Ices
   rho:         0.81
   Name:        CO ice
+  State:       amorphous
+  Class:       Ices
+  Formula:     CO
 key: co2-a
   ADS-link:    https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G
   BibTeX-key:  2020ApJ...901...52G
@@ -619,13 +619,13 @@ key: co2-w
   State:       crystalline
   rho:         1.6
 key: co2
-  BibTeX-key:  1986ApOpt..25.2650W
+  Formula:     CO_{2}
   Class:       Ices
   rho:         1.6
   Name:        dry ice
+  BibTeX-key:  1986ApOpt..25.2650W
   State:       crystalline
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W
-  Formula:     CO_{2}
 key: cor-c
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K
   BibTeX-key:  1995Icar..114..203K
@@ -635,13 +635,13 @@ key: cor-c
   State:       crystalline
   rho:         4.0
 key: cor
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K
+  BibTeX-key:  1995Icar..114..203K
   rho:         4.0
   Name:        Corundum
-  BibTeX-key:  1995Icar..114..203K
+  State:       crystalline
   Class:       Oxides
   Formula:     AL_{2}O_{3}
-  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995Icar..114..203K
-  State:       crystalline
 key: fe-c
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
   BibTeX-key:  1996A&A...311..291H
@@ -653,14 +653,14 @@ key: fe-c
   State:       metallic
   rho:         7.87
 key: iron
-  Material:    Iron, metallic crystalline
-  rho:         7.87
-  Reference:   Henning 1996, A&A 311, 291
-  BibTeX-key:  1996A&A...311..291H
-  Formula:     Fe
   State:       metallic
+  BibTeX-key:  1996A&A...311..291H
   Name:        Iron
+  rho:         7.87
   Class:       Metals
+  Formula:     Fe
+  Material:    Iron, metallic crystalline
+  Reference:   Henning 1996, A&A 311, 291
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
 key: fes
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1996A&A...311..291H
@@ -670,6 +670,13 @@ key: fes
   Name:        Troilite
   State:       crystalline
   rho:         4.83
+key: h2o-a
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1993ApJS...86..713H
+  BibTeX-key:  1993ApJS...86..713H
+  Formula:     H_{2}O
+  Name:        H2O
+  State:       amorphous
+  rho:         0.92
 key: h2o-w
   ADS-link:    https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W
   BibTeX-key:  2008JGRD..11314220W
@@ -681,15 +688,15 @@ key: h2o-w
   State:       crystalline
   rho:         0.92
 key: h2o
-  Formula:     H_{2}O
-  State:       crystalline
-  Reference:   Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
   Material:    Water ice, crystalline?
-  rho:         0.92
-  BibTeX-key:  2008JGRD..11314220W
+  Reference:   Warren 2008, Journal of Geophysical Research, Vol. 113, D14220
   ADS-link:    https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W
-  Name:        Water ice
+  rho:         0.92
   Class:       Ices
+  Formula:     H_{2}O
+  BibTeX-key:  2008JGRD..11314220W
+  State:       crystalline
+  Name:        Water ice
 key: nh3-m
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M
   BibTeX-key:  1984ApOpt..23..541M
@@ -699,13 +706,13 @@ key: nh3-m
   State:       crystalline
   rho:         0.75
 key: nh3
-  Class:       Ices
-  BibTeX-key:  1984ApOpt..23..541M
-  Name:        Ammonia ice
-  rho:         0.75
-  State:       crystalline
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M
   Formula:     NH_{3}
+  Class:       Ices
+  State:       crystalline
+  rho:         0.75
+  BibTeX-key:  1984ApOpt..23..541M
+  Name:        Ammonia ice
 key: ol-c-mg100
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S
   BibTeX-key:  1974PhDT.......274S
@@ -717,15 +724,15 @@ key: ol-c-mg100
   State:       crystalline
   rho:         3.33
 key: for
-  Class:       Silicates
-  Name:        Forsterite
-  ADS-link:    https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S
-  BibTeX-key:  1974PhDT.......274S
-  Material:    Forsterite, crystalline
-  rho:         3.33
-  Reference:   Steyer 1974,  PhD Thesis
   State:       crystalline
+  BibTeX-key:  1974PhDT.......274S
+  Name:        Forsterite
+  rho:         3.33
+  Class:       Silicates
   Formula:     Mg_{2}SiO_{4}
+  Material:    Forsterite, crystalline
+  Reference:   Steyer 1974,  PhD Thesis
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S
 key: ol-mg40
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
   BibTeX-key:  1995A&A...300..503D
@@ -747,35 +754,35 @@ key: ol-mg50
   State:       amorphous
   rho:         3.71
 key: ol
-  BibTeX-key:  1995A&A...300..503D
-  rho:         3.71
-  Material:    MgFeSiO4, amorphous
-  Reference:   Dorschner 1995, A&A 300,503
-  State:       amorphous
   Formula:     MgFeSiO_{4}
   Class:       Silicates
-  Name:        Olivine
+  rho:         3.71
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Material:    MgFeSiO4, amorphous
+  Reference:   Dorschner 1995, A&A 300,503
+  Name:        Olivine
+  State:       amorphous
+  BibTeX-key:  1995A&A...300..503D
 key: pyr-c-mg96
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1998A&A...339..904J
   BibTeX-key:  1998A&A...339..904J
   Class:       Silicates
   Formula:     Mg_{0.96}Fe_{0.04}SiO_{3}
   Material:    Mg_0.96 Fe_0.04 SiO3, crystalline
-  Name:        Pyroxene
+  Name:        Enstatite
   Reference:   Jaeger 1998, A&A, 339, 904
   State:       crystalline
   rho:         2.80
 key: ens
-  ADS-link:    https://ui.adsabs.harvard.edu/abs/1998A&A...339..904J
-  Name:        Pyroxene
-  Class:       Silicates
-  Formula:     Mg_{0.96}Fe_{0.04}SiO_{3}
-  State:       crystalline
-  Reference:   Jaeger 1998, A&A, 339, 904
-  rho:         2.80
   Material:    Mg_0.96 Fe_0.04 SiO3, crystalline
+  Reference:   Jaeger 1998, A&A, 339, 904
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1998A&A...339..904J
+  Formula:     Mg_{0.96}Fe_{0.04}SiO_{3}
+  rho:         2.80
+  Class:       Silicates
+  Name:        Enstatite
   BibTeX-key:  1998A&A...339..904J
+  State:       crystalline
 key: pyr-mg100
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
   BibTeX-key:  1995A&A...300..503D
@@ -828,14 +835,14 @@ key: pyr-mg70
   rho:         3.01
 key: pyr
   Name:        Pyroxene
-  Class:       Silicates
-  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
-  rho:         3.01
-  Material:    Mg0.7 Fe0.3 SiO3, amorphous
-  Reference:   Dorschner et al 1995, A&A 300, 503
+  State:       amorphous
   BibTeX-key:  1995A&A...300..503D
   Formula:     Mg_{0.7}Fe_{0.3}SiO_{3}
-  State:       amorphous
+  Class:       Silicates
+  rho:         3.01
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
+  Reference:   Dorschner et al 1995, A&A 300, 503
+  Material:    Mg0.7 Fe0.3 SiO3, amorphous
 key: pyr-mg80
   ADS-link:    https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
   BibTeX-key:  1995A&A...300..503D
@@ -873,10 +880,10 @@ key: sio2
   State:       amorphous
   rho:         2.65
 key: qua
-  Class:       Oxides
+  ADS-link:    https://ui.adsabs.harvard.edu/abs/2007ApOpt..46.8118K
+  rho:         2.65
   BibTeX-key:  2007ApOpt..46.8118K
   Name:        Quartz
-  rho:         2.65
   State:       amorphous
+  Class:       Oxides
   Formula:     SiO_{2}
-  ADS-link:    https://ui.adsabs.harvard.edu/abs/2007ApOpt..46.8118K

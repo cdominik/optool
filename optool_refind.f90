@@ -7982,20 +7982,21 @@ subroutine h2o_a(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Hudgins et al. 1993, Astrophys. J. Suppl. Ser. 86, 713
   ! extracted from file 5
   ! 
-  ! Name:        H2O   at T =  10 K
+  ! Name:        H2O
   ! State:       amorphous
-  ! Formula:     H2O
-  ! Temperature: 10
+  ! Formula:     H_{2}O
   ! ADS-link:    https://ui.adsabs.harvard.edu/abs/1993ApJS...86..713H
   ! BibTeX-key:  1993ApJS...86..713H
   !
   ! Below 2.5 um we use the Warren data of crystalline since there should be
   ! no big difference in the UV with the electronic transitions.  Also, beyond
   ! 90um, the Hudgins data gets noisy, so we also here switch to the Warren et
-  ! al data.  To be honest, I am not sure this is OK.
-  ! Anyway, since this is a spliced dataset, the full data set does not
-  ! fully satisfy Kramers-Kroning relations - even though the Hudgins part
-  ! does. (C. Dominik, 2021-05-01)
+  ! al data.  This might be OK, because the dielectric absorption that kicks
+  ! in at cm wavelength should be similar in crystalline and amorphous
+  ! materials ice (hmm, ist that true? Please correct me if I am wrong here).
+  ! Anyway, since this is a spliced dataset, the data set does not fully
+  ! satisfy Kramers-Kronig relations - even though the Hudgins part does.
+  ! (C. Dominik, 2021-05-01)
   !
 
   IMPLICIT NONE
@@ -9634,7 +9635,7 @@ subroutine pyr_c_mg96(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Material:  Mg_0.96 Fe_0.04 SiO3, crystalline
   ! Reference: Jaeger 1998, A&A, 339, 904
   !
-  ! Name:       Pyroxene
+  ! Name:       Enstatite
   ! Class:      Silicates
   ! State:      crystalline
   ! Formula:    Mg_{0.96}Fe_{0.04}SiO_{3}
