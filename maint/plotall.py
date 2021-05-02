@@ -35,6 +35,7 @@ all_lnk_files = [
     'lnk_data/cor-c-Koike1995.lnk',
     
     'lnk_data/h2o-w-Warren2008.lnk',
+    'lnk_data/h2o-a-Hudgins1993.lnk',
     'lnk_data/co2-w-Warren1986.lnk',
     'lnk_data/nh3-m-Martonchik1983.lnk',
     
