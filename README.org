@@ -126,7 +126,7 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     Warren data of crystalline ice, to get a wide dataset.
 
 - Release 1.8.3 ::
-  - implement optool2tex, a little tool that turns an optool command
+  - Implement optool2tex, a little tool that turns an optool command
     line into a LaTeX snippet that describes the methods and the
     refractive index data used for that computation.  This is somewhat
     of a gimmick, but it is fun.

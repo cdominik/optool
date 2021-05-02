@@ -12,10 +12,12 @@
 # Below 2.5 um we use the Warren data of crystalline since there should be
 # no big difference in the UV with the electronic transitions.  Also, beyond
 # 90um, the Hudgins data gets noisy, so we also here switch to the Warren et
-# al data.  To be honest, I am not sure this is OK.
-# Anyway, since this is a spliced dataset, the full data set does not
-# fully satisfy Kramers-Kroning relations - even though the Hudgins part
-# does. (C. Dominik, 2021-05-01)
+# al data.  This might be OK, because the dielectric absorption that kicks
+# in at cm wavelength should be similar in crystalline and amorphous
+# materials ice (hmm, ist that true? Please correct me if I am wrong here).
+# Anyway, since this is a spliced dataset, the data set does not fully
+# satisfy Kramers-Kronig relations - even though the Hudgins part does.
+# (C. Dominik, 2021-05-01)
 #
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
   2293  0.92
