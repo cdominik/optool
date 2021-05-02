@@ -37,7 +37,7 @@ the papers relevant to your particular application, when using
 entries are available in the file [[https://github.com/cdominik/optool/blob/master/optool.bib][=optool.bib=]]. =optool= is [[https://github.com/cdominik/optool.git][hosted on
 github]] at [[https://github.com/cdominik/optool][=https://github.com/cdominik/optool=]]
 
-- *optool:* [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][Dominik, C., Min, M. & Tanaka, R. 2021, Optool, 1.9,
+- *optool:* [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][Dominik, C., Min, M. & Tazaki, R. 2021, Optool, 1.9,
   Astrophysics Source Code Library, ascl:2104.010]]
 - *DHS model for irregular grains:*  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min, M. et al. 2005, A&A, 432, 909]]
 - *MMF model for aggregates:* [[https://ui.adsabs.harvard.edu/abs/2018ApJ...860...79T][Tazaki, R. & Tanaka,H. 2018, ApJ 860, 79]]
