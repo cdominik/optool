@@ -1,0 +1,52 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "license": "https://spdx.org/licenses/MIT",
+    "codeRepository": "https://github.com/cdominik/optool",
+    "dateCreated": "2020-06-20",
+    "datePublished": "2020-09-01",
+    "dateModified": "2021-05-05",
+    "name": "optool",
+    "version": "1.9",
+    "identifier": " ascl:2104.010",
+    "description": "Optool computes dust opacities and scattering matrices",
+    "applicationCategory": "Astronomy",
+    "keywords": [
+        "optical properties of dust",
+        "light scattering"
+    ],
+    "programmingLanguage": [
+        "FORTRAN"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0002-3393-2459",
+            "givenName": "Carsten",
+            "familyName": "Dominik",
+            "email": "dominik@uva.nl",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Anton Pannekoek for Astronomy, University of Amsterdam, The Netherlands"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0001-5778-0376",
+            "givenName": "Michiel",
+            "familyName": "Min",
+            "email": "M.Min@sron.nl"
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0003-1451-6836",
+            "givenName": "Ryo",
+            "familyName": "Tazaki",
+            "email": "ryo.tazaki1205@gmail.com",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Anton Pannekoek for Astronomy, University of Amsterdam, The Netherlands"
+            }
+        }
+    ]
+}
