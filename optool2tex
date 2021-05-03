@@ -78,7 +78,7 @@ if (($#ARGV == 0) and ($ARGV[0] eq "--set")) {
 $i=0;$nm=-1;
 $method='dhs';$fmax=.8;$a0=.1;$shape=.2;
 $particle="particle";$particles="particles";
-$gain="grain";$gains="grains";
+$grain="grain";$grains="grains";
 $amin=0.05;$amax=3000;$apow=3.5;$nsub=5;
 
 # ----------------------------------------------------------------------
@@ -174,7 +174,7 @@ print OUT "\\documentclass{article}
 \\newcommand*\\apjs{ApJS}
 \\begin{document}\n\n
 For the computation of the opacities, we used the
-\\textit{optool} program \\citep{2021ascl.soft04010D}.\n";
+\\texttt{optool} program \\citep{2021ascl.soft04010D}.\n";
 
 # ----------------------------------------------------------------------
 # Write method
@@ -258,7 +258,7 @@ if    ($nc1>1 && $nm1 <=1) {$who = "core";  $consist.="s"}
 elsif ($nm1>1 && $nc1 <=1) {$who = "mantle";$consist.="s"}
 elsif ($nc1>1 && $nm1>1)   {$who = "core and the mantle"}
 if ($nc1>$ncore or $nm1>$nmantle) { # porosity plays a role
-  $porous = " (porosity counts as a component, is adds vacuum)"}
+  $porous = " (porosity counts as a component; is adds vacuum)"}
 
 if ($who) { # Someone needs mixing
   print OUT "The $who $consist of more than one
