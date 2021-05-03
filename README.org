@@ -105,11 +105,19 @@ the filling factor
 
 
 * Acknowledgments
-- [[https://www.researchgate.net/profile/Charlene_Lefevre][Charléne Lefévre]] for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which triggered me to add a grain mantle
-  using the Maxwell Garnett rule.
-- [[http://www.ita.uni-heidelberg.de/~dullemond/index.shtml?lang=en][Kees Dullemond]] for his python plotting routine =viewarr= ([[https://github.com/dullemond/interactive_plot][available
-  on GitHub]]).
-- [[https://www.mpia.de/person/32666/1415887][Jeroen Bouwman]] for some pointers to refractive index data.
+- The [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena Database of Optical Constants]] and the [[http://eodg.atm.ox.ac.uk/ARIA/][Aerosol Refractive
+  Index Archive]] for their invaluable collections of refractive index
+  datasets.
+- Rens Waters, Thomas Henning, Xander Tielens, Elisabetta Palumbo,
+  Laurent Pilon, Jeroen Bouwman, and Melissa McClure for discussions
+  around optical properties of cosmic dust analogues.
+- Charléne Lefévre for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which inspired me to add grain mantles.
+- Kees Dullemond for discussions about the [[https://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] input format and
+  the scattering matrix, for the idea to write =optool2tex= and for
+  letting me include his incredible python plotting routine =viewarr=
+  ([[https://github.com/dullemond/interactive_plot][available on github]]).
+- Gabriel-Dominique Marleau for testing and feedback, in particular on
+  =optool2tex=.
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
