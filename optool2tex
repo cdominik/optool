@@ -178,27 +178,35 @@ For the computation of the opacities, we used the
 
 # ----------------------------------------------------------------------
 # Write method
-#
-----------------------------------------------------------------------
-if ($method eq 'mie' or ($method eq 'dhs' and $fmax==0)) { print OUT
-"We assume the grains to be spherical and apply Mie theory
-\\citep{1908AnP...330..377M,1998asls.book.....B}.\n"; } elsif ($method
-eq 'dhs') { print OUT "We assume that the individual grains are not
-perfect spheres, but have some shape irregularities.  To simulate the
-effects of these irregularities, \texttt{optool} applies a statistical
-approach and averages over a shape distribution to compute the
-opacity of each grain. In particular, it used the Distribution of
-Hollow Spheres \\citep[DHS,][]{2005A&A...432..909M} method with a
-maximum vacuum volume fraction of \$f_{\\rm max}=$fmax\$, making use
-of the DMILAY routine \\citep{1981ApOpt..20.3657T}.\n"; } elsif
-($method eq 'mmf') { if ($shape > 1) { $shapetype = "fractal
-dimension"; $shapesym = "D_{\\rm f}"; $extra = "The filling factor
-corresponding to the fractal dimension is dependent on the aggregate
-size \$N\$ and is given by \$f_{\\rm fill}=N^{(D_{\\rm f}-3)/3}\$.\n";
-} else { $shapetype = "filling factor"; $shapesym = "f_{\\rm fill}";
-$extra = "The fractal dimension corresponding to the filling factor is
-dependent on the aggregate size \$N\$, and is given by \$D_{\\rm
-f}=3\\ln N/\\ln(N/f_{\\rm fill})\$.\n"; } if ($kf>0) {
+# ----------------------------------------------------------------------
+if ($method eq 'mie' or ($method eq 'dhs' and $fmax==0)) {
+  print OUT "We assume the grains to be spherical and apply
+Mie theory \\citep{1908AnP...330..377M,1998asls.book.....B}.\n";
+} elsif ($method eq 'dhs') {
+  print OUT "We assume that the individual grains are not
+perfect spheres, but have some shape irregularities.  To
+simulate the effects of these irregularities, \\texttt{optool}
+applies a statistical approach in which it averages a shape
+distribution to compute the opacity of each grain. In
+particular, it uses the Distribution of Hollow Spheres
+\\citep[DHS,][]{2005A&A...432..909M} method with a maximum
+vacuum volume fraction of \$f_{\\rm max}=$fmax\$, making use
+of the DMILAY routine \\citep{1981ApOpt..20.3657T}.\n";
+} elsif ($method eq 'mmf') {
+  if ($shape > 1) {
+    $shapetype = "fractal dimension";
+    $shapesym  = "D_{\\rm f}";
+    $extra = "The filling factor corresponding to the
+fractal dimension is dependent on the aggregate size \$N\$
+and is given by \$f_{\\rm fill}=N^{(D_{\\rm f}-3)/3}\$.\n";
+  } else {
+    $shapetype = "filling factor";
+    $shapesym  = "f_{\\rm fill}";
+    $extra = "The fractal dimension corresponding to the
+filling factor is dependent on the aggregate size \$N\$,
+and is given by \$D_{\\rm f}=3\\ln N/\\ln(N/f_{\\rm fill})\$.\n";
+  }
+  if ($kf>0) {
     # Explicitly chosen by user
     $ksentence = "For the pre-factor \$k_{\\rm f}\$,
 we choose the value \$k_{\\rm f}=$kf\$.\n";
