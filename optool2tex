@@ -112,7 +112,7 @@ while (@ARGV) {
 
   elsif (/^-a$/) {
     # Grain size distribution
-    if (&n) {$amin=&fs;if (&n) {$amax=&fs;if (&n) {$apow=&fs;if (&n) {$na=shift}}}}}
+    if (&n) {$amin=&fs;$amax=0;if (&n) {$amax=&fs;if (&n) {$apow=&fs;if (&n) {$na=shift}}}}}
   elsif (/^-amin$/) {$amin=&fs}
   elsif (/^-amax$/) {$amax=&fs}
   elsif (/^-apow$/) {$apow=&fs}
@@ -258,7 +258,7 @@ if    ($nc1>1 && $nm1 <=1) {$who = "core";  $consist.="s"}
 elsif ($nm1>1 && $nc1 <=1) {$who = "mantle";$consist.="s"}
 elsif ($nc1>1 && $nm1>1)   {$who = "core and the mantle"}
 if ($nc1>$ncore or $nm1>$nmantle) { # porosity plays a role
-  $porous = " (porosity counts as a component; is adds vacuum)"}
+  $porous = " (porosity counts as a component; it adds vacuum)"}
 
 if ($who) { # Someone needs mixing
   print OUT "The $who $consist of more than one
@@ -320,6 +320,8 @@ $grain sizes$sizecomment
 in the range between $amin and $amax\\,\$\\upmu\$m. Each opacity
 is actually an average over $nsub samples around the given size,
 in order to smear out resonances that would otherwise lead to artifacts.\n";
+} elsif ($amax==0) {        # just a single size
+  print OUT "We compute the opacity of a grain with size \$a=$amin\\,\\upmu\$m.\n";
 } else {                    # we compute a single opacity from all sizes
   $apown = -1*$apow;
   print OUT "The opacities are computed by averaging over
@@ -335,7 +337,7 @@ if ($chop) {
   print OUT "To avoid numerical artifacts from extreme forward scattering
 we limit the scattering matrix in a cone with an opening angle of
 \$$chop^{\\circ}\$ around the forward direction to the values on the cone
-and compensate with a corresponding decrease of \$\\kappa_{\\rm scat}\$.\n"; 
+and compensate with a corresponding decrease of \$\\kappa_{\\rm scat}\$.\n";
 }
 
 # ----------------------------------------------------------------------
