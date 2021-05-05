@@ -67,7 +67,7 @@
 # ----------------------------------------------------------------------
 # Update myself when called like this: optool2tex --set
 # ----------------------------------------------------------------------
-if (($#ARGV == 0) and ($ARGV[0] eq "--set")) {
+if (($#ARGV == 0) and ($ARGV[0]=~/^--?set$/)) {
   &set_database();
   exit(0);
 }
@@ -135,8 +135,8 @@ while (@ARGV) {
     # Division flag
     $divide = 1; $nsub = shift if &n}
   elsif (/^-fits$/) {}
-  elsif (/^-radmc$/) {shift unless &a} # RADMC, skip label if present
-  elsif (/^-(q|n|debug|v|b|blendonly)$/) {}
+  elsif (/^-radmc(3d)?$/) {shift unless &a} # RADMC, skip label if present
+  elsif (/^-(q|n|debug|v|b|blendonly|tex)$/) {}
 }
 
 if ($nm == -1) {

@@ -392,6 +392,9 @@ program optool
      case ('-n')
         quiet   = .true.
         justnum = .true.
+     case ('-tex')
+        ! run optool2tex with the same command line arguments
+        call run_optool2tex()
      case('-debug')
         ! More info to STDOUT
         debug = .true.
@@ -1648,6 +1651,21 @@ subroutine write_command_line(unit,width,leader)
   enddo
   write(unit,'(A)') trim(out)
 end subroutine write_command_line
+
+subroutine run_optool2tex()
+  implicit none
+  integer i
+  character*1000 :: cmd,tmp
+  i=1
+  cmd = "./optool2tex"
+  call getarg(i,tmp)
+  do while(tmp.ne.' ')
+     cmd = trim(cmd) // " '" // trim(tmp) // "'"
+     i=i+1
+     call getarg(i,tmp)
+  enddo
+  call execute_command_line(trim(cmd))
+end subroutine run_optool2tex
 
 !!! **** Reading files and checking for some consistency
 
