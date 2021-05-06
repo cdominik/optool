@@ -121,6 +121,8 @@ the filling factor
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
+- Release 1.9.1 ::
+  - New option -print, to direct output to STDOUT instead of files.
 - Release 1.9 ::
   - The proper reference for optool is now the entry in the
     [[https://ascl.net][Astrophysics Source Code Library]], please refer to it when optool

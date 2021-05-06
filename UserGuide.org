@@ -268,7 +268,7 @@ DHS with f_max=0.8.
 
 ** Controlling the output
 
-The standard output is the file =dustkappa.dat=, with the opacities
+The standard output is the file [[#output-files][=dustkappa.dat=]], with the opacities
 and the asymmetry parameter /g/. The following options control and
 extend the [[#output-files][output]].
 
@@ -288,28 +288,32 @@ extend the [[#output-files][output]].
 + =-chop [NDEG]= ::
 
   Cut out the first =NDEG= (2 if unspecified) degrees of the [[#forward-scattering-peak][forward
-  scattering peak]] and compensate by a reduction of the scattering
-  cross section.
+  scattering peak]].
 
 + =-d [NSUB]= ::
 
   Divide the computation up into =NA= parts to produce a file for each
-  grain size.  Each size will actually be an average over a small
-  range of =NSUB= grains around the real size, to smear out resonances.
-  The default for =NSUB= is 5.
+  grain size.  Each size will be an average over a range of =NSUB=
+  (default 5) grains around the real size.
 
 + =-fits= ::
 
-  Write =dustkappa.fits= with the absorption cross sections and
-  scattering matrix elements, instead of ASCII output.  With the =-d=
-  switch, =NA= files will be written.
+  Write [[#output-files][=dustkappa.fits=]] instead of ASCII output.  With =-d=, write
+  =NA= files.
 
 + =-radmc [LABEL]= ::
 
   RADMC-3D uses a different angular grid and normalization for the
-  [[#normalization][scattering matrix]], so the output has to be adapted for it.  The
-  extension of the files will be changed to =.inp=, and if you specify
-  =LABEL=, it will be used in the file name(s).
+  [[#normalization][scattering matrix]]. File names will contain =LABEL= if specified and
+  have the extension =.inp=.
+
++ =-print [VAR]= ::
+  Write to =STDOUT= instead of files. The default is to write \lambda,
+  k_abs, \kappa_scat, \kappa_ext, and g. When =VAR= is =kabs=, =ksca=,
+  =kext=, or =g=, write only that quantity.  You can use this to
+  extract a single value, for example the 850\mu{}m extinction opacity
+  of grains between 1 and 3mm: =optool -a 1000 3000 -l 850 -print
+  kext=
 
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
@@ -859,6 +863,19 @@ the code.
 [fn:6]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themspelves), but not any
 "porosity" resulting from the aggregate structure
+
+
+* COMMENT Tools
++ =-b= :: Just interpolate and extrapolate the refractive index data
+  onto the lambda grid, run the blender, and write the resulting
+  refractive index to the file =blended.lnk=.  This gives access to
+  the blending routines in =optool=.  For example, if you have
+  laboratory measurments of a crystalline material, one file with
+  measurements parallel to the c axis, and one with measurement
+  perperndicular to it, you could create refractive index data for a
+  1:2 mix of these materials like this:
+  : optool -b para.lnk 1 perp.lnk 2 -l para.lnk
++ =-tex= :: Run =optool2tex= as part of the optool run.
 
 * Troubleshooting
 - If you get oscillations in the opacities, in particular at long

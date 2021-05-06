@@ -22,7 +22,7 @@ subroutine usage()
   write(*,'("-d [NSUB]                 Write NA files for specific grain sizes")')
   write(*,'("-s [NANG]                 Add scattering matrix for NANG angles to output")')
   write(*,'("-chop [NDEG]              Remove NDEG degrees from the forward-scattering peak")')
-  write(*,'("-radmc [LABEL]; -fits     Special output options")')
+  write(*,'("-radmc; -fits; -print     Special output options (-print goes to STDOUT)")')
   write(*,'("-o [DIRECTORY]            Output to DIRECTORY instead of current working dir")')
   write(*,'("-h; -man                  Show this message; Show the full manual")')
   write(*,'("===============================================================================")')
@@ -43,7 +43,6 @@ module Defs
   logical, public                :: split     = .false. ! split to many files
   logical, public                :: quiet     = .false. ! reduce output to STDOUT
   logical, public                :: verbose   = .false. ! additional output to STDOUT
-  logical, public                :: justnum   = .false. ! Only give opacities on STDOUT 
   logical, public                :: debug     = .false. ! Additional infor to STDOUT
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
@@ -85,10 +84,11 @@ module Defs
      logical                     :: scat_ok        ! Are F11... and g_asym usable?
   end type particle
   ! ----------------------------------------------------------------------
-  ! The output directory
+  ! The output directory and other strings
   ! ----------------------------------------------------------------------
   character*500                  :: outdir = ''    ! Output directory
   character*3                    :: method         ! DHS or MMF
+  character*1                    :: justnum        ! What to print to STDOUT
 
 end module Defs
 
@@ -389,9 +389,22 @@ program optool
      case('-v')
         ! Be more noisy
         verbose = .true.
-     case ('-n')
-        quiet   = .true.
-        justnum = .true.
+     case('-print','--print')
+        quiet = .true.
+        justnum = 'x'
+        if (arg_is_value(i+1)) then
+           i=i+1; call getarg(i,value)
+           select case(trim(value))
+           case('all')              ; justnum = 'x'
+           case('kabs')             ; justnum = 'a'
+           case('ksca','kscat')     ; justnum = 's'
+           case('kext')             ; justnum = 'e'
+           case('g','gsca','gscat') ; justnum = 'g'
+           case default
+              i=i-1
+              print *,'WARNING: "',trim(value),'" is not a -print variable. Trying core material...';
+           endselect
+        endif
      case ('-tex')
         ! run optool2tex with the same command line arguments
         call run_optool2tex()
@@ -673,8 +686,8 @@ program optool
 #endif
         continue
      else
-        if (justnum) then
-           call write_to_sdtout(p)
+        if (justnum .ne. ' ') then
+           call write_to_stdout(p,justnum)
         else
            call write_ascii_file(p,amin,amax,apow,na,lmin,lmax, &
                 fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
@@ -1784,7 +1797,7 @@ end subroutine read_lambda_grid
 
 !!! **** Routines to write output files
 
-subroutine write_to_sdtout(p)
+subroutine write_to_stdout(p,what)
   ! ----------------------------------------------------------------------
   ! Just write the most important numbers to STDOUT
   ! Each line has lambda kabs ksca kext g
@@ -1792,11 +1805,19 @@ subroutine write_to_sdtout(p)
   use Defs
   implicit none
   type(particle) :: p
-  integer i
+  integer        :: i
+  character*(*)  :: what
+  character*20   :: o
   do i=1,nlam
-     write(6,'(1p,5e12.3)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
+     select case(what)
+     case('x') ; write(6,'(1p,5e12.3)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
+     case('a') ; write(o,'(1p,e15.5)') p%kabs(i); write(6,'(A)') trim(adjustl(o))
+     case('s') ; write(o,'(1p,e15.5)') p%ksca(i); write(6,'(A)') trim(adjustl(o))
+     case('e') ; write(o,'(1p,e15.5)') p%kext(i); write(6,'(A)') trim(adjustl(o))
+     case('g') ; write(o,'(1p,e15.5)') p%g(i)   ; write(6,'(A)') trim(adjustl(o))
+     endselect
   enddo
-end subroutine write_to_sdtout
+end subroutine write_to_stdout
 
 subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
      pcore,pmantle,rho_av,fmax,a0,struct,mfrac,nm)

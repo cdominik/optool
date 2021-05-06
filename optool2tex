@@ -136,7 +136,8 @@ while (@ARGV) {
     $divide = 1; $nsub = shift if &n}
   elsif (/^-fits$/) {}
   elsif (/^-radmc(3d)?$/) {shift unless &a} # RADMC, skip label if present
-  elsif (/^-(q|n|debug|v|b|blendonly|tex)$/) {}
+  elsif (/^-print$/) {shift if $ARGV[0]=~/^(kabs|kscat?|kext|g(scat?)?)$/} # print, skip VAR
+  elsif (/^-(q|debug|v|b|blendonly|tex)$/) {}
 }
 
 if ($nm == -1) {
