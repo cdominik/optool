@@ -8,6 +8,13 @@
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W
 # BibTeX-key: 2008JGRD..11314220W
 #
+# Watch out at wavelengths around and beyond 10cm.  The temperature
+# dependance is huge there, and looking at the data from Westphal as
+# shown in Warren et al 1984 and the match to some of this data in
+# Matzler 1987, it may be that the rise in absorption beyond 10cm
+# may not happen for cold ice as we have it in astronomy.
+# (C. Dominik, 2021-05-06)
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
    486 0.92
    4.43000e-02   8.22800e-01   1.64000e-01
