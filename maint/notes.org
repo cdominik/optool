@@ -15,3 +15,16 @@ following format: The file may start with a number of comment lines
 - $n_\lambda$ data lines with wavelength and refractive index:
   $\mathtt{\lambda_j[\mu{}m]\quad n_j\quad k_j}$
 
+* Undocumented features
+** Tools
++ =-b= :: Just interpolate and extrapolate the refractive index data
+  onto the lambda grid, run the blender, and write the resulting
+  refractive index to the file =blended.lnk=.  This gives access to
+  the blending routines in =optool=.  For example, if you have
+  laboratory measurments of a crystalline material, one file with
+  measurements parallel to the c axis, and one with measurement
+  perperndicular to it, you could create refractive index data for a
+  1:2 mix of these materials like this:
+  : optool -b para.lnk 1 perp.lnk 2 -l para.lnk
++ =-tex= :: Run =optool2tex= as part of the optool run.
+

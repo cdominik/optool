@@ -89,7 +89,7 @@ module Defs
   ! ----------------------------------------------------------------------
   character*500                  :: outdir = ''    ! Output directory
   character*3                    :: method         ! DHS or MMF
-  character*1                    :: justnum        ! What to print to STDOUT
+  character*1                    :: justnum = ' '  ! What to print to STDOUT
 
 end module Defs
 
@@ -248,7 +248,6 @@ program optool
            print *,"ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
         endif
         i=i+1; call getarg(i,value); call uread(value,amin)
-        print *,'amin is now ',amin
         ! Let's see if there is more, we expect amax
         if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); call uread(value,amax)
@@ -1645,6 +1644,14 @@ function arg_is_number(i)
 end function arg_is_number
 
 subroutine uread(string,var)
+  ! Extract a number from STRING.  Split of a unit specified
+  ! after `*' or `/' and use that unit to convert the value
+  ! into microns. Available units include units of length,
+  ! frequencies (which will be converted to wavelengths) and
+  ! wave numbers.
+  ! This is a somewhat unusual way to deal with things, but it
+  ! is actually very helpful for (radio) astronomers and
+  ! molecular specroscopists.
   use defs
   implicit none
   integer iu
@@ -1658,7 +1665,6 @@ subroutine uread(string,var)
   else
      num = string(1:iu-1)
      unit = string(iu:len(string))
-     print *,'num=',num,'   unit=',unit
      read(num,*) var
      select case(trim(unit))
      case('*MHz','*mhz');   var = clight/(1d6*var)  * 1d4
@@ -1846,7 +1852,7 @@ subroutine write_to_stdout(p,what)
   character*20   :: o
   do i=1,nlam
      select case(what)
-     case('x') ; write(6,'(1p,5e12.3)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
+     case('x') ; write(6,'(1p,5e14.5)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
      case('a') ; write(o,'(1p,e15.5)') p%kabs(i); write(6,'(A)') trim(adjustl(o))
      case('s') ; write(o,'(1p,e15.5)') p%ksca(i); write(6,'(A)') trim(adjustl(o))
      case('e') ; write(o,'(1p,e15.5)') p%kext(i); write(6,'(A)') trim(adjustl(o))

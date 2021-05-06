@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   May 2021, version 1.9
+#+DATE:   May 2021, version 1.9.1
 
 * Introduction
 
@@ -869,18 +869,6 @@ the code.
 (which is porosity residing in the monomers themspelves), but not any
 "porosity" resulting from the aggregate structure
 
-
-* COMMENT Tools
-+ =-b= :: Just interpolate and extrapolate the refractive index data
-  onto the lambda grid, run the blender, and write the resulting
-  refractive index to the file =blended.lnk=.  This gives access to
-  the blending routines in =optool=.  For example, if you have
-  laboratory measurments of a crystalline material, one file with
-  measurements parallel to the c axis, and one with measurement
-  perperndicular to it, you could create refractive index data for a
-  1:2 mix of these materials like this:
-  : optool -b para.lnk 1 perp.lnk 2 -l para.lnk
-+ =-tex= :: Run =optool2tex= as part of the optool run.
 
 * Troubleshooting
 - If you get oscillations in the opacities, in particular at long
