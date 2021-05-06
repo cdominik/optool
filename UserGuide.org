@@ -287,19 +287,19 @@ extend the [[#output-files][output]].
 
 + =-chop [NDEG]= ::
 
-  Cut out the first =NDEG= (2 if unspecified) degrees of the [[#forward-scattering-peak][forward
+  Cap the first =NDEG= (2 if unspecified) degrees of the [[#forward-scattering-peak][forward
   scattering peak]].
 
 + =-d [NSUB]= ::
 
-  Divide the computation up into =NA= parts to produce a file for each
+  Divide the computation up into n_a parts to produce a file for each
   grain size.  Each size will be an average over a range of =NSUB=
   (default 5) grains around the real size.
 
 + =-fits= ::
 
   Write [[#output-files][=dustkappa.fits=]] instead of ASCII output.  With =-d=, write
-  =NA= files.
+  n_a files.
 
 + =-radmc [LABEL]= ::
 
@@ -663,11 +663,16 @@ my/command','arg1','arg2',...]=.
 * Units
 Due to conventions in our field, the input and output of =optool= uses
 the following units
-- *microns* for grain sizes and wavelengths
+- *microns* for grain sizes and wavelengths.[fn:6]
 - *g/cm^3* for mass densities of materials
 - *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
 - *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
   see below.
+
+[fn:6]When giving a wavelength or grain size on the command line, you
+can write 1.3*mm, 340*GHz, or 4000/cm and =optool= will do
+the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
+respectively.
 
 * Scattering Matrix: The fine print
 
@@ -825,7 +830,7 @@ the code.
    N=k_{\rm f}\left(\frac{R_{\rm g}}{a_0}\right)^{D_{\rm f}}
   \end{equation}
   The size $a$ of the particles as specified by the *-a* switch is
-  interpreted as the /compact/[fn:6] size of all material in the
+  interpreted as the /compact/[fn:7] size of all material in the
   aggregate, so that $N=a^3/a_0^3$, where $a_0$ is the monomer radius.
   The average volume filling factor $f$ can be expressed by
   $f=N\cdot\left(\sqrt{3/5}\,a_0/R_{\rm g}\right)^3$.  To determine
@@ -860,7 +865,7 @@ the code.
   scattering matrix results is violated, a warning will be
   issued. However, the opacities will remain applicable.
 
-[fn:6]still including the porosity specified with the *-p* switch
+[fn:7]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themspelves), but not any
 "porosity" resulting from the aggregate structure
 

@@ -35,7 +35,8 @@ module Defs
   ! ----------------------------------------------------------------------
   ! Physics and math constants
   ! ----------------------------------------------------------------------
-  real (kind=dp),public,parameter :: pi = 3.1415926535897932384_dp
+  real (kind=dp),public,parameter :: pi     = 3.1415926535897932384_dp
+  real (kind=dp),public,parameter :: clight = 2.99792458d10
   ! ----------------------------------------------------------------------
   ! Some global switches
   ! ----------------------------------------------------------------------
@@ -246,14 +247,15 @@ program optool
         if (.not. arg_is_number(i+1)) then
            print *,"ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
         endif
-        i=i+1; call getarg(i,value); read(value,*) amin
-        ! Let.s see if there is more, we expect amax
+        i=i+1; call getarg(i,value); call uread(value,amin)
+        print *,'amin is now ',amin
+        ! Let's see if there is more, we expect amax
         if (arg_is_number(i+1)) then
-           i=i+1; call getarg(i,value); read(value,*) amax
-           ! Let.s see if there is more, we expect apow
+           i=i+1; call getarg(i,value); call uread(value,amax)
+           ! Let's see if there is more, we expect apow
            if (arg_is_number(i+1)) then
               i=i+1; call getarg(i,value); read(value,*) apow
-              ! Let.s see if there is more, we expect na
+              ! Let's see if there is more, we expect na
               if (arg_is_number(i+1)) then
                  i=i+1; call getarg(i,value); read(value,*) na
               endif
@@ -265,9 +267,9 @@ program optool
            if (na.eq.0) na = 1;
         endif
      case('-amin','--amin')
-        i = i+1; call getarg(i,value); read(value,*) amin
+        i = i+1; call getarg(i,value); call uread(value,amin)
      case('-amax','--amax')
-        i = i+1; call getarg(i,value); read(value,*) amax
+        i = i+1; call getarg(i,value); call uread(value,amax)
      case('-apow','--apow')
         i = i+1; call getarg(i,value); read(value,*) apow
      case('-na')
@@ -290,11 +292,11 @@ program optool
            call read_lambda_grid(trim(value))
         else
            ! We have a number, should be lmin
-           i = i+1; call getarg(i,value); read(value,*) lmin
+           i = i+1; call getarg(i,value); call uread(value,lmin)
            ! Let's see if there is more, we expect lmax
            if (arg_is_number(i+1)) then
-              i = i+1; call getarg(i,value); read(value,*) lmax
-              ! Let.s see if there is more, we expect nlam
+              i = i+1; call getarg(i,value); call uread(value,lmax)
+              ! Let's see if there is more, we expect nlam
               if (arg_is_number(i+1)) then
                  i=i+1; call getarg(i,value); if (value.ne.'') read(value,*) nlam
               endif
@@ -304,9 +306,9 @@ program optool
            endif
         endif
      case('-lmin','--lmin')
-        i = i+1; call getarg(i,value); read(value,*) lmin
+        i = i+1; call getarg(i,value); call uread(value,lmin)
      case('-lmax','--lmax')
-        i = i+1; call getarg(i,value); read(value,*) lmax
+        i = i+1; call getarg(i,value); call uread(value,lmax)
      case('-nlam','--nlam','-nl','--nl')
         i = i+1; call getarg(i,value); read(value,*) nlam
 
@@ -332,7 +334,7 @@ program optool
      case('-mmf')
         method = 'MMF'
         if (arg_is_number(i+1)) then
-           i=i+1; call getarg(i,value); read(value,*) mmf_a0
+           i=i+1; call getarg(i,value); call uread(value,mmf_a0)
            if (arg_is_number(i+1)) then
               i=i+1; call getarg(i,value); read(value,*) mmf_struct
               if (arg_is_number(i+1)) then
@@ -1641,6 +1643,40 @@ function arg_is_number(i)
      arg_is_number = ((value(ic:ic).ge.'0') .and. (value(ic:ic).le.'9'))
   endif
 end function arg_is_number
+
+subroutine uread(string,var)
+  use defs
+  implicit none
+  integer iu
+  real (kind=dp) :: var
+  character*(*)  :: string
+  character*1000 :: tmp
+  character*30   :: num,unit
+  iu = scan(string,"*/")
+  if (iu .eq. 0) then
+     read(string,*) var
+  else
+     num = string(1:iu-1)
+     unit = string(iu:len(string))
+     print *,'num=',num,'   unit=',unit
+     read(num,*) var
+     select case(trim(unit))
+     case('*MHz','*mhz');   var = clight/(1d6*var)  * 1d4
+     case('*GHz','*ghz');   var = clight/(1d9*var)  * 1d4
+     case('*THz','*thz');   var = clight/(1d12*var) * 1d4
+     case('*cm-1','/cm');   var = 1.d0/var          * 1d4
+     case('*m');            var = var*100d0         * 1d4
+     case('*dm');           var = var*10d0          * 1d4
+     case('*cm');           var = var               * 1d4
+     case('*mm');           var = var*0.1d0         * 1d4
+     case('*um','*micron'); var = var/1d4           * 1d4
+     case('*nm');           var = var/1d7           * 1d4
+     case default
+        print *,"ERROR: invalid unit: ",trim(unit)
+        stop
+     endselect
+  endif
+end subroutine uread
 
 subroutine write_command_line(unit,width,leader)
   implicit none
