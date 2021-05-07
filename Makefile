@@ -68,21 +68,56 @@ BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
 # make actions 
 all:		$(PROGRAM)
 full:;		make multi=true fits=true
+
 cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_dir_*
-cleanbin:;	rm -f bin/optool*
-clean:;		rm -f $(OBJS) $(PROGRAM) *.mod *.i *.html bin.zip bin/optool*
-		make cleanoutput
-		rm -rf *~ \#* *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.dSYM selftest_optool optool.pdf
-		rm -rf tmp.py __pycache__ 
+cleanbin:;	rm -f bin/optool* bin.zip
+cleanlatex:;	rm -rf *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.pdf
+cleanpython:;	rm -rf optool.dSYM tmp.py __pycache__ 
 cclean:;	rm -f $(OBJS) $(PROGRAM)
+clean:;		make clean1
+		rm -f $(PROGRAM)
+clean1:;	rm -f $(OBJS) *.mod *.i *.html
+		make cleanoutput cleanbin cleanlatex cleanpython
+		rm -rf *~ \#*  selftest_optool
+
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
+
 manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org --batch -f org-ascii-export-to-ascii --kill
 		maint/bake_manual.pl > optool_manual.f90
 		rm UserGuide.txt
 pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l maint/bake_manual.el UserGuide.org --batch -f org-latex-export-to-pdf --kill
 ingest:;	echo Compiling in datasets in lnk_data...
 		./maint/ingestlnk.pl lnk_data/*.lnk > optool_refind.f90
+
+binmac:;	make cclean
+		make
+		mv optool bin/optool-mac
+		make cclean
+		make multi=true
+		mv optool bin/optool-mac-OpenMP
+		make cclean
+		make fits=true
+		mv optool bin/optool-mac-fits
+		make cclean
+		make multi=true fits=true
+		mv optool bin/optool-mac-fits-OpenMP
+binlinux:;	make cclean
+		make
+		mv optool bin/optool-linux
+		make cclean
+		make multi=true
+		mv optool bin/optool-linux-OpenMP
+		make cclean
+		make fits=true
+		mv optool bin/optool-linux-fits
+		make cclean
+		make multi=true fits=true
+		mv optool bin/optool-linux-fits-OpenMP
+binzip:;	rm -f bin.zip
+		(cd bin; zip ../bin.zip optool*)
+binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
+
 test:; 		echo Computing size-integrated opacities ...
 		make cleanoutput
 		make
@@ -114,33 +149,6 @@ quicktestdivchop:;	echo computing size-dependant opacities ...
 			make
 		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -d 3 -s -chop 10').plot();">tmp.py
 		ipython -i tmp.py
-binmac:;	make cclean
-		make
-		mv optool bin/optool-mac
-		make cclean
-		make multi=true
-		mv optool bin/optool-mac-OpenMP
-		make cclean
-		make fits=true
-		mv optool bin/optool-mac-fits
-		make cclean
-		make multi=true fits=true
-		mv optool bin/optool-mac-fits-OpenMP
-binlinux:;	make cclean
-		make
-		mv optool bin/optool-linux
-		make cclean
-		make multi=true
-		mv optool bin/optool-linux-OpenMP
-		make cclean
-		make fits=true
-		mv optool bin/optool-linux-fits
-		make cclean
-		make multi=true fits=true
-		mv optool bin/optool-linux-fits-OpenMP
-binzip:;	rm -f bin.zip
-		(cd bin; zip ../bin.zip optool*)
-binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
 
 .SUFFIXES : .o .f .f90
 
