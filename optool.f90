@@ -1644,7 +1644,7 @@ function arg_is_number(i)
 end function arg_is_number
 
 subroutine uread(string,var)
-  ! Extract a number from STRING.  Split of a unit specified
+  ! Extract a number from STRING.  Split off a unit specified
   ! after `*' or `/' and use that unit to convert the value
   ! into microns. Available units include units of length,
   ! frequencies (which will be converted to wavelengths) and
@@ -1661,6 +1661,7 @@ subroutine uread(string,var)
   character*30   :: num,unit
   iu = scan(string,"*/")
   if (iu .eq. 0) then
+     ! no unit specified
      read(string,*) var
   else
      num = string(1:iu-1)
@@ -1674,7 +1675,7 @@ subroutine uread(string,var)
      case('*m');            var = var*100d0         * 1d4
      case('*dm');           var = var*10d0          * 1d4
      case('*cm');           var = var               * 1d4
-     case('*mm');           var = var*0.1d0         * 1d4
+     case('*mm');           var = var/1d1           * 1d4
      case('*um','*micron'); var = var/1d4           * 1d4
      case('*nm');           var = var/1d7           * 1d4
      case default

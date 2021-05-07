@@ -285,16 +285,16 @@ extend the [[#output-files][output]].
   to cover the range of angles between 0 and 180 degrees.  The default
   for =NANG= is 180 and should normally be just fine.
 
-+ =-chop [NDEG]= ::
-
-  Cap the first =NDEG= (2 if unspecified) degrees of the [[#forward-scattering-peak][forward
-  scattering peak]].
-
 + =-d [NSUB]= ::
 
   Divide the computation up into n_a parts to produce a file for each
   grain size.  Each size will be an average over a range of =NSUB=
   (default 5) grains around the real size.
+
++ =-chop [NDEG]= ::
+
+  Cap the first =NDEG= (2 if unspecified) degrees of the [[#forward-scattering-peak][forward
+  scattering peak]].
 
 + =-fits= ::
 
@@ -303,17 +303,17 @@ extend the [[#output-files][output]].
 
 + =-radmc [LABEL]= ::
 
-  RADMC-3D uses a different angular grid and normalization for the
-  [[#normalization][scattering matrix]]. File names will contain =LABEL= if specified and
-  have the extension =.inp=.
+  RADMC-3D uses a different angular grid and [[#normalization][scattering matrix]]
+  normalization. File names will contain =LABEL= if specified and have
+  the extension =.inp=.
 
 + =-print [VAR]= ::
   Write to =STDOUT= instead of files. The default is to write \lambda,
-  k_abs, \kappa_scat, \kappa_ext, and g. When =VAR= is =kabs=, =ksca=,
-  =kext=, or =g=, write only that quantity.  You can use this to
-  extract a single value, for example the 850\mu{}m extinction opacity
-  of grains between 1 and 3mm: =optool -a 1000 3000 -l 850 -print
-  kext=
+  \kappa_abs, \kappa_sca, \kappa_ext, and g. When =VAR= is any of
+  =kabs=, =ksca=, =kext=, or =g=, write only that quantity.  You can
+  use this to extract a single value, for example the 850\mu{}m
+  extinction opacity of grains between 1 and 3mm: =optool -a 1000 3000
+  -l 850 -print kext=
 
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
@@ -669,8 +669,8 @@ the following units
 - *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
   see below.
 
-[fn:6]When giving a wavelength or grain size on the command line, you
-can write 1.3*mm, 340*GHz, or 4000/cm and =optool= will do
+[fn:6]When giving a grain size or a wavelength on the command line,
+you can write =1.3*mm=, =340*GHz=, or =4000/cm= and =optool= will do
 the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
 respectively.
 
