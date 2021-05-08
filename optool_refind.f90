@@ -12414,6 +12414,15 @@ subroutine ol_c_mg100(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S
   ! BibTeX-key: 1974PhDT.......274S
   !
+  ! This file contains a 1:1:1 Bruggemann mix of the three axis-specifix
+  ! datasets published by Steyer. This is not exactly the same as
+  ! doing computations for perfect single-structure grains with one or
+  ! the other orientation, and then average the resulting opacities
+  ! using a 1:1:1 rule.  You can look at this like this: The assumption
+  ! is that in each grain, the orientations of the forsterite crystals
+  ! are randomized in many small regions.
+  ! (C. Dominik, 2021-05-09)
+  !
 
   IMPLICIT NONE
   integer nlam,j
