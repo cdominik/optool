@@ -904,6 +904,7 @@ the code.
 - Draine, B. 2003, ApJ 598, 1017
 - Draine, B. 2003, ApJ 598, 1026
 - Dorschner, J. et al. 1995, A&A 300, 503
+- Fabian, D. et al. 2001, A&A 378, 228
 - Gerakines, P. and Hudson, R. 2020, ApJ 901, 52
 - Henning, Th. and Stognienko, R. 1996, A&A 311,291
 - Hovenier, J., 2004, [[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Report available on ADS]].
