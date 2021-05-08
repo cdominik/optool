@@ -948,6 +948,11 @@ Conversion
             wfile.write("  %16.6e %16.6e %16.6e\n" %
                         (self.lam[i],self.n[i],self.k[i]))
         wfile.close()
+    def powerlaws(self):
+        """Compute the extrapolation powerlaws."""
+        print("n: ",(np.log(self.n[-1])-np.log(self.n[-2]))/(np.log(self.lam[-1])-np.log(self.lam[-2])))
+        print("k: ",(np.log(self.k[-1])-np.log(self.k[-2]))/(np.log(self.lam[-1])-np.log(self.lam[-2])))
+
 
 def logscale_with_sign(array,bottom):
     # Take the log10 of the absolute value of ARRAY, but transfer the
