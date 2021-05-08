@@ -344,7 +344,7 @@ carbon \fbox{c}, and (at low temperaturs) water ice \fbox{h2o}.
 # #+begin_center
 # *Table 1:* Built-in materials
 # #+end_center
-#+ATTR_LATEX: :font \small\sf :align llllrrrlHH
+#+ATTR_LATEX: :font \footnotesize\sf :align llllrrrlHH
 | *-c Key*   | *-c Key*    | *Material*              | *State* |      \rho | \lambda_min | \lambda_max | *Reference*   | *Comment*    | *File*                      |
 | generic    | full key    |                         |         |    g/cm^3 |      \mu{}m |      \mu{}m |               |              |                             |
 |------------+-------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
@@ -359,7 +359,9 @@ carbon \fbox{c}, and (at low temperaturs) water ice \fbox{h2o}.
 |------------+-------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | ol         | ol-mg50     | MgFeSiO_4               | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]   |
 |            | ol-mg40     | Mg_{0.8}Fe_{1.2}SiO_4   | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]   |
-| for        | ol-c-mg100  | Mg_2 SiO_4              | cryst   |      3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]     | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
+| for        | ol-c-mg100  | Mg_{2}SiO_4             | cryst   |      3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]     | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
+|            | ol-c-mg95   | Mg_{1.9}Fe_{0.1}SiO_4   | cryst   |      3.33 |       *2.0* |        8190 | [[https://ui.adsabs.harvard.edu/abs/2001A%26A...378..228F][Fabian+01]]     | \rho ?       | [[file:lnk_data/ol-c-mg95-Fabian2001.lnk][ol-c-mg95-Fabian2001.lnk]]    |
+| fay        | ol-c-mg00   | Fe_{2}SiO_4             | cryst   |      4.39 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/2001A%26A...378..228F][Fabian+01]]     |              | [[file:lnk_data/ol-c-mg00-Fabian2001.lnk][ol-c-mg00-Fabian2001.lnk]]    |
 |------------+-------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 |            | astrosil    | MgFeSiO_4               | mixed   |       3.3 |        6e-5 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D][Draine+03]]     |              | [[file:lnk_data/astrosil-Draine2003.lnk][astrosil-Draine2003.lnk]]     |
 |------------+-------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|

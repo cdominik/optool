@@ -126,6 +126,8 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
   - Grain sizes and wavelengths can be specified on the command lines
     in units other than microns, for example mm or GHz (frequency) or
     cm^-1 (wavenumbers).
+  - Add Fayalite and also the Mg-rich Olivine from Fabian 2001.
+
 - Release 1.9 ::
   - The proper reference for optool is now the entry in the
     [[https://ascl.net][Astrophysics Source Code Library]], please refer to it when optool
