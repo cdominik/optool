@@ -19,7 +19,7 @@ all_lnk_files = [
 
     'lnk_data/ol-mg50-Dorschner1995.lnk',
     'lnk_data/ol-mg40-Dorschner1995.lnk',
-    'lnk_data/ol-c-mg100-Steyer1974.lnk',
+    'lnk_data/ol-c-mg100-Suto2006.lnk',
     'lnk_data/ol-c-mg95-Fabian2001.lnk',
     'lnk_data/ol-c-mg00-Fabian2001.lnk',
     'lnk_data/astrosil-Draine2003.lnk',

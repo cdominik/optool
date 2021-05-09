@@ -359,7 +359,7 @@ carbon \fbox{c}, and (at low temperaturs) water ice \fbox{h2o}.
 |------------+-------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | ol         | ol-mg50     | MgFeSiO_4               | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]   |
 |            | ol-mg40     | Mg_{0.8}Fe_{1.2}SiO_4   | amorph  |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]   |
-| for        | ol-c-mg100  | Mg_{2}SiO_4             | cryst   |      3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]     | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
+| for        | ol-c-mg100  | Mg_{2}SiO_4             | cryst   |      3.27 |       *5.0* |         200 | [[https://ui.adsabs.harvard.edu/abs/2006MNRAS.370.1599S][Suto+06]]       | switch out?  | [[file:lnk_data/ol-c-mg100-Suto2006.lnk][ol-c-mg100-Suto2006.lnk]]     |
 |            | ol-c-mg95   | Mg_{1.9}Fe_{0.1}SiO_4   | cryst   |      3.33 |       *2.0* |        8190 | [[https://ui.adsabs.harvard.edu/abs/2001A%26A...378..228F][Fabian+01]]     | \rho ?       | [[file:lnk_data/ol-c-mg95-Fabian2001.lnk][ol-c-mg95-Fabian2001.lnk]]    |
 | fay        | ol-c-mg00   | Fe_{2}SiO_4             | cryst   |      4.39 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/2001A%26A...378..228F][Fabian+01]]     |              | [[file:lnk_data/ol-c-mg00-Fabian2001.lnk][ol-c-mg00-Fabian2001.lnk]]    |
 |------------+-------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
@@ -387,6 +387,8 @@ carbon \fbox{c}, and (at low temperaturs) water ice \fbox{h2o}.
 |            | ch4-a / c   | CH_4 ice                | am / cr |      0.47 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch4-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch4-c-Gerakines2020.lnk][cryst]]                |
 |            | ch3oh-a / c | CH_{3}OH ice            | am / cr | 0.78/1.02 |       *2.0* |        *24* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch3oh-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch3oh-c-Gerakines2020.lnk][cryst]]                |
 
+
+# | for      | ol-c-mg100  | Mg_{2}SiO_4            | cryst   |   3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]    | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
 
 # |          | icemix-c2d | H_{2}O/CO_{2}/CO mix    | ?       |    1.0 |        0.04 |         8e6 | [[https://ui.adsabs.harvard.edu/abs/2009ApJ...690..496C][Pontoppidan]]  | \rho?        | [[file:lnk_data/icemix-c2d-Pontoppidan2009.lnk][icemix-c2d-Pontoppidan2009.lnk]] |
 
