@@ -2,7 +2,7 @@
 :===================== *** LIST OF BUILT-IN MATERIALS *** =====================:
 : amorph.pyroxenes  pyr-mg100/95/80/70/60/50/40                                :
 : amorph.olivines   ol-mg100/40                        (Dorschner95,Henning96) :
-: cryst. pyr/ol     pyr-c-mg96 ol-c-mg100/95/00    (Jäger96,Steyer74,Fabian01) :
+: cryst. pyr/ol     pyr-c-mg96 ol-c-mg100/95/00      (Jäger96,Suto06,Fabian01) :
 : other silicates   astrosil                                        (Draine03) :
 : amorphous carbon  c-z    c-p                           (Zubko96,Preibisch93) :
 : graphite,special  c-gra  c-nano  c-org                (Dra.03,Mut.04,Hen.96) :
