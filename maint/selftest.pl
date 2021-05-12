@@ -56,6 +56,12 @@ my $tests = [
    getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
+  {name => 'cde-rayleigh',
+   prepare => "rm -f $dir/dustkapscatmat.dat",
+   cmd => "./optool -q -a 0.01 0.1 3.5 10 -l 10 60 30 -s -cde -o $dir",
+   getsha => "accuracy",
+   glob => "$dir/dustkapscatmat.dat"},
+
   {name => 'mmf-scat',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool pyr 1 -q -a 10 30 -mmf 0.3 .005 -l 30 3000 20 -s -o $dir",
@@ -64,7 +70,7 @@ my $tests = [
 
   {name => 'mmf-opac',
    prepare => "rm -f $dir/dustkappa.dat",
-   cmd => "./optool pyr 1 -q -a 10 30 5 -mmf 0.3 2.2 -nlam 10 -o $dir",
+   cmd => "./optool pyr 1 -q -a 10 30 3.5 2 -mmf 0.3 2.2 -nlam 3 -o $dir",
    getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
@@ -72,7 +78,7 @@ my $tests = [
    prepare => "rm -f $dir/dustkappa.fits",
    cmd => "./optool -q -na 10 -nl 30 -s -fits -o $dir",
    getsha => "shasum $dir/dustkappa.fits",
-   sha => 'f3825e408341b92082b29b4b019d9ba6791448f4'}
+   sha => 'f9c0abb6bd112b08ad1e25edff010173fa8b3369'}
   ];
 
 # Read the hashes
@@ -206,7 +212,7 @@ sub find_accuracy {
 
 __DATA__
 
-# HASHES set on Fri Apr 16 20:03:39 CEST 2021
+# HASHES set on Thu May 13 15:40:47 CEST 2021
 
 noscat:::1000:da718bde67::10:da718bde67::9:da718bde67::8:da718bde67::7:da718bde67::6:da718bde67::5:3f4021068e::4:e98093c1d5::3:5523f2812f::2:787172fae1::1:275000a906
 quick:::1000:5edb7ab23d::10:5edb7ab23d::9:5edb7ab23d::8:5edb7ab23d::7:5edb7ab23d::6:5edb7ab23d::5:cac77430ea::4:762a325380::3:176d4b54ec::2:d8187069a7::1:a8814aeede
@@ -216,6 +222,7 @@ div-in-10-parts:::1000:15b1bde278::10:15b1bde278::9:15b1bde278::8:15b1bde278::7:
 high-angular-resolution:::1000:e84201ec9b::10:e84201ec9b::9:e84201ec9b::8:e84201ec9b::7:e84201ec9b::6:e84201ec9b::5:1e88de0e26::4:fdcfc911f8::3:18e9869eda::2:ef09826527::1:8266231a22
 pure-ice-grain:::1000:b06b419a5a::10:b06b419a5a::9:b06b419a5a::8:b06b419a5a::7:b06b419a5a::6:b06b419a5a::5:e970744d9e::4:586e7113d9::3:47f5d924fc::2:38d778f953::1:4446b78e80
 chop-peak:::1000:3f8926838a::10:3f8926838a::9:3f8926838a::8:3f8926838a::7:3f8926838a::6:3f8926838a::5:2813723c66::4:9af50f70a8::3:4d1b3e1eef::2:dd23a11051::1:dc7e38cf18
+cde-rayleigh:::1000:1461d7c082::10:1461d7c082::9:1461d7c082::8:1461d7c082::7:1461d7c082::6:1461d7c082::5:b2354b40c7::4:a3fedd3b86::3:3328804a35::2:1e44bf7ab9::1:a8f7f57541
 mmf-scat:::1000:cd3b6a51b9::10:cd3b6a51b9::9:cd3b6a51b9::8:cd3b6a51b9::7:cd3b6a51b9::6:cd3b6a51b9::5:cec618a88a::4:0cb36b405f::3:d00ffc2c92::2:b933b47486::1:67532246c8
-mmf-opac:::1000:0645592519::10:0645592519::9:0645592519::8:0645592519::7:0645592519::6:0645592519::5:201f044f61::4:e250a1b230::3:ad72935e47::2:a9a72fd9fe::1:f695d70aec
+mmf-opac:::1000:ec28210a34::10:ec28210a34::9:ec28210a34::8:ec28210a34::7:ec28210a34::6:ec28210a34::5:56d89c3302::4:1a341c612e::3:405768cc85::2:3a97e5e2a4::1:5e4701113e
 

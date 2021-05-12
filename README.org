@@ -121,13 +121,18 @@ the filling factor
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
-- Release 1.9.1 ::
+
+- Release 1.9.2 ::
   - New option -print, to direct output to STDOUT instead of files.
   - Grain sizes and wavelengths can be specified on the command lines
     in units other than microns, for example mm or GHz (frequency) or
     cm^-1 (wavenumbers).
   - Add Fayalite and also the Mg-rich Olivine from Fabian 2001.
-  - Switch out the Forsterite dataset: Steyer is gone, Suto is added.
+  - Switch out the Forsterite dataset: Steyer is out, Suto is in.
+  - Continuous Distribution of Ellipsoids (CDE) approximation has been
+    implemented.  It is only valid in the Rayleigh limit and includes
+    quite extreme particle shapes, but it is good as a comparison and
+    frequently used in the literature.
   
 - Release 1.9 ::
   - The proper reference for optool is now the entry in the

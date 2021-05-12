@@ -156,7 +156,6 @@ program optool
   nang           = 180        ! Number of angular point, has to be even
   chopangle      = 0.d0       ! Angle in degree to chop forward peak
   
-  fmax           = 0.8_dp     ! maximum volume fraction DHS
   pcore          = 0.0_dp     ! porosity core
   pmantle        = 0.0_dp     ! porosity mantle
 
@@ -164,6 +163,7 @@ program optool
   nmant          = 0          ! number of mantle materials - zero to start with
 
   method         = 'DHS'      ! method to compute the opacities
+  fmax           = 0.8_dp     ! maximum volume fraction DHS
   
   write_fits     = .false.    ! Default is to write ASCII output
   write_scatter  = .false.    ! Default is to not write scattering matrix
@@ -347,6 +347,8 @@ program optool
         else
            mmf_a0 = 0.1d0
         endif
+     case('-cde')
+        method = 'CDE'
 
         ! ----------------------------------------------------------------------
         ! Various other switches
@@ -491,6 +493,12 @@ program optool
      endif
      if (mmf_a0 .ge. amin) then
         print *,'ERROR: Minimum grain size cannot be smaller than monomer size'; stop
+     endif
+  endif
+  ! *** CDE
+  if (method .eq. 'CDE') then
+     if (lmin .le. 2.d0*pi*amax) then
+        write(*,'("WARNING: CDE requires Rayleigh limit, but 2 pi a_max/lambda_min =",1p,e8.1)') 2.d0*pi*amax/lmin
      endif
   endif
   ! *** Other checks
@@ -703,7 +711,7 @@ program optool
      deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F)
      
   endif
-  
+
 end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
@@ -755,7 +763,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   integer                        :: ilam,il,ndone    ! Counter for wavelengths
   integer                        :: err,spheres,toolarge ! Error control for Mie routines
 
-  real (kind=dp)                 :: cext, csca, cabs
+  real (kind=dp)                 :: cext, csca, cabs, dcabs, dcsca
   real (kind=dp)                 :: qext, qsca, qabs, gqsc
 
   real (kind=dp), allocatable    :: f11(:),    f12(:),    f22(:),    f33(:),    f34(:),    f44(:)
@@ -774,7 +782,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   real (kind=dp)                 :: aminlog,amaxlog,pow
   real (kind=dp)                 :: rad,r1,rcore
   real (kind=dp)                 :: tot,tot2,mtot,vtot
-  real (kind=dp)                 :: mass,vol
+  real (kind=dp)                 :: mass,vol,V
   real (kind=dp)                 :: rho_av,rho_core,rho_mantle
   real (kind=dp)                 :: wvno
 
@@ -1042,6 +1050,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
+  !$OMP private(dcsca,dcabs,V)                                            &
   !$OMP private(err,spheres,toolarge)                                     &
   !$OMP private(m1,m2,d21,s21,m,mconj,wvno,min)                           &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
@@ -1063,7 +1072,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
         f33(j) = 0d0; f34(j) = 0d0; f44(j) = 0d0
      enddo
      csca = 0d0; cabs = 0d0; cext = 0d0
-     Smat_nbad = 0   ! so far not bad scattering result atthis wavelength
+     Smat_nbad = 0    ! so far not bad scattering result at this wavelength
      mass = 0d0; vol  = 0d0
 
      ! ----------------------------------------------------------------------
@@ -1074,14 +1083,13 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
         err      = 0
         spheres  = 0
         toolarge = 0
-        ! ----------------------------------------------------------------------
-        ! Start the loop over the DHS f factors
-        ! ----------------------------------------------------------------------
         if (method .eq. 'DHS') then
+           ! ----------------------------------------------------------------------
+           ! Start the loop over the DHS f factors
+           ! ----------------------------------------------------------------------
            min = dcmplx(1d0,0d0)
            do if=1,nf
               rad  = r1 / (1d0-f(if))**(1d0/3d0)
-              wvno = 2d0*pi / lam(ilam)
               
               if (f(if) .eq. 0d0) then
                  ! solid sphere
@@ -1089,18 +1097,11 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
               else if (r1*wvno.gt.10000d0) then
                  ! Sphere is too large
                  toolarge = 1
-              else if (method(1:3) .eq. 'DHS') then 
+              else
                  rcore = rad*f(if)**(1d0/3d0)
                  ! DMiLay wants the imaginary part negative, this is a specific convention
                  mconj = dcmplx(e1blend(ilam),-e2blend(ilam))
                  call DMiLay(rcore, rad, wvno, mconj, min, mu, &
-                      nang/2, qext, qsca, qabs, gqsc, &
-                      m1, m2, s21, d21, nang ,err)
-              else
-                 rcore = rad*0.999d0
-                 ! DMiLay wants the imaginary part negative, this is a specific convention
-                 mconj = dcmplx(e1blend(ilam),-e2blend(ilam))
-                 call DMiLay(rcore, rad, wvno, min, mconj, mu, &
                       nang/2, qext, qsca, qabs, gqsc, &
                       m1, m2, s21, d21, nang ,err)
               endif
@@ -1120,35 +1121,34 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
                             Mief11,Mief12,Mief33,Mief34,nang)
                     endif
                  endif
-                 
                  Mief22 = Mief11
                  Mief44 = Mief33
-                 
               else
                  cemie = qext * pi * rad**2
                  csmie = qsca * pi * rad**2
+                 factor= 2d0*pi/csmie/wvno**2
                  do j=1,nang/2
-                    Mief11(j) = (M2(j,1) + M1(j,1))        / csmie/wvno**2*2d0*pi
-                    Mief12(j) = (M2(j,1) - M1(j,1))        / csmie/wvno**2*2d0*pi
-                    Mief22(j) = (M2(j,1) + M1(j,1))        / csmie/wvno**2*2d0*pi
-                    Mief33(j) = (S21(j,1))                 / csmie/wvno**2*2d0*pi
-                    Mief34(j) = (-D21(j,1))                / csmie/wvno**2*2d0*pi
-                    Mief44(j) = (S21(j,1))                 / csmie/wvno**2*2d0*pi
+                    Mief11(j)        = (M2(j,1) + M1(j,1)) * factor
+                    Mief12(j)        = (M2(j,1) - M1(j,1)) * factor
+                    Mief22(j)        = (M2(j,1) + M1(j,1)) * factor
+                    Mief33(j)        = (S21(j,1))          * factor
+                    Mief34(j)        = (-D21(j,1))         * factor
+                    Mief44(j)        = (S21(j,1))          * factor
                     ! Here we use the assumption that the grid is regular.  An adapted
                     ! grid is not possible if it is not symmetric around pi/2.
-                    Mief11(nang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
-                    Mief12(nang-j+1) = (M2(j,2) - M1(j,2)) / csmie/wvno**2*2d0*pi
-                    Mief22(nang-j+1) = (M2(j,2) + M1(j,2)) / csmie/wvno**2*2d0*pi
-                    Mief33(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
-                    Mief34(nang-j+1) = (-D21(j,2))         / csmie/wvno**2*2d0*pi
-                    Mief44(nang-j+1) = (S21(j,2))          / csmie/wvno**2*2d0*pi
+                    Mief11(nang-j+1) = (M2(j,2) + M1(j,2)) * factor
+                    Mief12(nang-j+1) = (M2(j,2) - M1(j,2)) * factor
+                    Mief22(nang-j+1) = (M2(j,2) + M1(j,2)) * factor
+                    Mief33(nang-j+1) = (S21(j,2))          * factor
+                    Mief34(nang-j+1) = (-D21(j,2))         * factor
+                    Mief44(nang-j+1) = (S21(j,2))          * factor
                  enddo
               endif    ! (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1)
               
-              ! make sure the scattering matrix is properly normalized by adjusting the forward peak.
-              ! ASKMICHIEL: You are only adjusting the one point a 0 degrees.
-              ! So that means that the basic normalization is already in place at this point,
-              ! and you just want to be sure that things are right on your specific grid?
+              ! Make sure the scattering matrix is properly normalized by
+              ! adjusting the forward peak. In principle, the matrix does come
+              ! back normalized from the mie routines, but since the forward peak
+              ! can be so strong, we are making sure here.
               tot  = 0d0; tot2 = 0d0
               do j=1,nang
                  ! This integration assumes that the grid is regular (linear)
@@ -1238,16 +1238,55 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
            cabs = cabs + nr(is) * cabs_mmf
            mass = mass + nr(is) * m_agg
            vol  = vol  + nr(is) * V_agg
-        else
-           print *,"ERROR: invalid method ", method
-        endif
+        
+        else if (method .eq. 'CDE') then
 
+           V     = 4d0*pi*r1**3/3d0
+           vol   = vol  + nr(is)*V
+           mass  = mass + nr(is)*rho_av*V
+           m     = dcmplx(e1blend(ilam),e2blend(ilam))
+           dcabs = 2.d0*wvno*V*aimag(m**2/(m**2-1d0)*log(m**2))
+           if (abs(e2blend(ilam)/e1blend(ilam)) .lt. 1d-6) then
+              ! Non-absorbing case
+              ! print *,"non-absorbing",e1blend(ilam),e2blend(ilam)
+              m = dcmplx(real(m),0.d0)
+              dcsca = wvno**4*V**2/(3d0*pi) * (m**2-1d0-log(m**2))
+           else
+              ! Absorbing case
+              dcsca = wvno**4*V**2*(abs(m**2-1d0))**2/(3d0*pi*aimag(m**2)) *   &
+                   aimag(m**2/(m**2-1d0)*log(m**2))
+           endif
+           cabs  = cabs + nr(is) *  dcabs
+           csca  = csca + nr(is) *        dcsca
+           cext  = cext + nr(is) * (dcabs+dcsca)
+           if ((is .eq. ns)) then
+              ! Final size, cscat is complete at this point
+              ! Compute the scattering matrix deep in the Rayleigh limit
+              lmie  = lam(ilam); rmie  = lmie/1d3
+              e1mie = e1blend(nlam); e2mie = e2blend(nlam)
+              call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
+                   Mief11,Mief12,Mief33,Mief34,nang)
+              Mief22 = Mief11; Mief44 = Mief33
+              do j=1,nang
+                 f11(j) = Mief11(j) * csca; f12(j) = Mief12(j) * csca
+                 f22(j) = Mief22(j) * csca; f33(j) = Mief33(j) * csca
+                 f34(j) = Mief34(j) * csca; f44(j) = Mief44(j) * csca
+              enddo
+           endif
+
+        else
+
+           print *,"ERROR: invalid method ", method
+
+        endif   ! end of "method" cases
+          
      enddo   ! end loop "is" over grain sizes
 
      ! ----------------------------------------------------------------------
      ! Set the cross sections
      ! ----------------------------------------------------------------------
      if (ilam .eq.1) p%rho  = mass/vol
+     ! 10^4 because length units in the computation above were microns
      p%Kext(ilam) = 1d4 * cext / mass
      p%Kabs(ilam) = 1d4 * cabs / mass
      p%Ksca(ilam) = 1d4 * csca / mass
@@ -1312,7 +1351,7 @@ subroutine ComputePart(p,amin,amax,apow,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
         tot = tot + p%F(ilam)%F11(i)*sin(pi*(real(i)-0.5d0)/dble(nang))
      enddo
      p%g(ilam) = p%g(ilam)/tot
-
+          
      if (Smat_nbad .gt. 0) then
         ! FIXME: Setting stuff to zero is brutal.  What would be better?
         ! FIXME: However, below we use a zero value of g as a signal
@@ -1888,6 +1927,8 @@ subroutine write_header (unit,cc,amin,amax,apow,na,lmin,lmax, &
         sstruct = '(filling factor)'
      endif
      write(unit,'(A," Method:   ",A3,"  a0=",f7.3,"  Struct=",f7.3,A20)') cc,method,a0,struct,trim(sstruct)
+  else if (method .eq. 'CDE') then
+     write(unit,'(A," Method:   ",A3)') cc,method
   else
      write(unit,'(A," Method:   ",A3,"  fmax=",f7.3)') cc,method,fmax
   endif

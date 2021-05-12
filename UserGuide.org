@@ -21,11 +21,11 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 - /built-in/: a curated collection of materials for applications in
   astronomy
 - external refractive index data can be used just as easily
-- two computational methods: (i) *DHS (Distribution of Hollow
-  Spheres)* for /irregular grains/ and /low-porosity/ aggregates.
-  Standard *Mie theory* for /perfect spheres/ is available as a
-  limiting case. (ii) *MMF (Modified Mean Field)* theory for
-  /high-porosity/fractal aggregates/
+- computational methods: (i) *DHS (Distribution of Hollow Spheres)*
+  for /irregular grains/ and /low-porosity/ aggregates.  Standard *Mie
+  theory* for /perfect spheres/ is available as a limiting case. (ii)
+  *MMF (Modified Mean Field)* theory for /high-porosity/fractal
+  aggregates/. (iii) *CDE* approximation in the Rayleigh limit.
 - =Python= interface module for plotting and post-processing
 
 ** Terms of use
@@ -232,6 +232,11 @@ DHS with f_max=0.8.
   1, it specifies the /fractal dimension/.  When it is less than 1, it
   is interpreted as the /volume filling factor/ of the aggregates
   instead. The default is 0.2, corresponding to a 20% filling factor.
+
++ =-cde= :: 
+
+  Compute CDE (continuous distribution of ellipsoids) Rayleigh limit
+  opacities.
 
 
 ** Grain size distribution
@@ -829,15 +834,12 @@ the code.
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
   number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
   scaling factor $k_{\rm f}$ which are related to the radius of
-  gyration $R_{\rm g}$ of the aggregate by
-  \begin{equation}
-   N=k_{\rm f}\left(\frac{R_{\rm g}}{a_0}\right)^{D_{\rm f}}
-  \end{equation}
+  gyration $R_{\rm g}$ of the aggregate by $N=k_{\rm f}(R_{\rm g}/a_0)^{D_{\rm f}}$.
   The size $a$ of the particles as specified by the *-a* switch is
   interpreted as the /compact/[fn:7] size of all material in the
   aggregate, so that $N=a^3/a_0^3$, where $a_0$ is the monomer radius.
   The average volume filling factor $f$ can be expressed by
-  $f=N\cdot\left(\sqrt{3/5}\,a_0/R_{\rm g}\right)^3$.  To determine
+  $f=N\cdot(\sqrt{3/5}\,a_0/R_{\rm g})^3$.  To determine
   the structure of the aggregates, the user can specify a structure
   parameter.  If that parameter is larger than 1, it is interpreted as
   the /fractal dimension/ $D_{\rm f}$.  Using a fixed fractal
@@ -860,14 +862,20 @@ the code.
   | $k_{\rm f}$ | $(5/3)^{D_{\rm f}/2}$ | $(5/3)^{D_{\rm f}/2}$ | *given by user*                                           |
 
   With the structure defined, =optool= then applies the formalism from
-  Tazaki & Tanaka (2018) to compute cross sections and the scattering
-  matrix.  For the determination of the geometrical cross section
-  needed in the theory, we use the general expressions from Tazaki (2021).
-  =optool= also computes the phase shift $\Delta\phi$ caused by the
-  aggregate to check the validity of the scattering matrix and the
-  asymmetry parameter.  If the condition $\Delta\phi<1$ for accurate
-  scattering matrix results is violated, a warning will be
-  issued. However, the opacities will remain applicable.
+  Tazaki & Tanaka (2018) and Tazaki (2021) to compute cross sections
+  and the scattering matrix.  =optool= also computes the phase shift
+  $\Delta\phi$ to check the validity of the scattering matrix.  If the
+  condition $\Delta\phi<1$ for accurate scattering matrix results is
+  violated, a warning will be issued. However, the opacities will
+  remain applicable.
+
+- CDE :: CDE (Continuous Distribution of Ellipsoids) is an analytical
+  formalism by Bohren & Huffman (1998) to compute the opacity of a
+  very broad shape distribution.  This method is only applicable in
+  the Rayleigh limit $x=2\pi a\ll\lambda$ and $|mx|\ll1$. =optool=
+  will issue a warning if the computation leaves the bounds of this
+  condition. The scattering matrix will be computed from a single
+  sphere in the Rayleigh limit.
 
 [fn:7]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themspelves), but not any
