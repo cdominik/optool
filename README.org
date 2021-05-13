@@ -16,11 +16,11 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 - /built-in/: a curated collection of materials for applications in
   astronomy
 - external refractive index data can be used just as easily
-- two computational methods: (i) *DHS (Distribution of Hollow
-  Spheres)* for /irregular grains/ and /low-porosity/ aggregates.
-  Standard *Mie theory* for /perfect spheres/ is available as a
-  limiting case. (ii) *MMF (Modified Mean Field)* theory for
-  /high-porosity/fractal aggregates/
+- computational methods: (i) *DHS (Distribution of Hollow Spheres)*
+  for /irregular grains/ and /low-porosity/ aggregates.  Standard *Mie
+  theory* for /perfect spheres/ is available as a limiting case. (ii)
+  *MMF (Modified Mean Field)* theory for /high-porosity/fractal
+  aggregates/.  (iii) *CDE* approximation in the Rayleigh limit.
 - =Python= interface module for plotting and post-processing
 
 * Terms of use
