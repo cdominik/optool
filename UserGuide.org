@@ -467,11 +467,11 @@ path/to/file.lnk 0.7 3.42=.
   - wavelength in [micron]
   - \kappa_ext, \kappa_abs, \kappa_sca, all in [cm^2/g]
 
-  The second HDU block contains the scattering matrix elements. It is
+  The second block contains the scattering matrix elements. It is
   a n_\lambda \times 6 \times n_ang matrix, containing the 6 elements
   of the scattering matrix for n_ang equidistant scattering angles
   from forward scattering (element 0) to backward scattering (element
-  n_ang-1), for each wavelength value. The stored matrix elements are
+  n_ang-1), for each \lambda. The matrix elements are
   F_11, F_12, F_22, F_33, F_34, and F_44.
 
 - optool.tex ::

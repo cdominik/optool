@@ -1,0 +1,35 @@
+This directory contains code snippets that read the output of optool,
+both the ASCII files and the fits files.  If you are planning to use
+opacities computed with optool in your code, this should get you
+started quickly.
+
+
+Python
+======
+
+If you are using optool from python, you can just call optool from
+your code and use the caching mechanism to store the results between
+calls:
+
+For python, you might want to use the optool module to both run optool
+and to read its output into a nice object.
+
+    import optool
+    p = optool.particle('optool -na 30 -d 5',cache='cdir1')
+    p.__dict__
+
+But if you prefer to read output files that are slaready available on
+your system, you can use the snippets in the following 2 files:
+
+ - readfits.py
+ - readascii.py
+
+FORTRAN
+=======
+
+The following 2 files contain code to read optool output files into
+Fortran code.  For the fits file, you need to link the cfitsio library
+into your program.
+
+ - readfits.f90
+ - readascii.f90
