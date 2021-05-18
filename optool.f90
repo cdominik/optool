@@ -402,7 +402,7 @@ program optool
         verbose = .true.
      case('-print','--print')
         quiet = .true.
-        justnum = 'x'
+        justnum = 'X'
         if (arg_is_value(i+1)) then
            i=i+1; call getarg(i,value)
            select case(trim(value))
@@ -1898,9 +1898,13 @@ subroutine write_to_stdout(p,what)
   integer        :: i
   character*(*)  :: what
   character*20   :: o
+  if (what .eq. 'X') then
+     write(6,'("     lam [um]      kabs          ksca          kext          gsca")')
+     write(6,'("----------------------------------------------------------------------")')
+  endif
   do i=1,nlam
      select case(what)
-     case('x') ; write(6,'(1p,5e14.5)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
+     case('x','X') ; write(6,'(1p,5e14.5)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
      case('a') ; write(o,'(1p,e15.5)') p%kabs(i); write(6,'(A)') trim(adjustl(o))
      case('s') ; write(o,'(1p,e15.5)') p%ksca(i); write(6,'(A)') trim(adjustl(o))
      case('e') ; write(o,'(1p,e15.5)') p%kext(i); write(6,'(A)') trim(adjustl(o))

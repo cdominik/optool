@@ -316,7 +316,7 @@ extend the [[#output-files][output]].
 + =-print [VAR]= ::
   Write to =STDOUT= instead of files. The default is to write \lambda,
   \kappa_abs, \kappa_sca, \kappa_ext, and g. When =VAR= is any of
-  =kabs=, =ksca=, =kext=, or =g=, write only that quantity.  You can
+  =kabs=, =ksca=, =kext=, or =g=, write only that, without header. You can
   use this to extract a single value, for example the 850\mu{}m
   extinction opacity of grains between 1 and 3mm: =optool -a 1000 3000
   -l 850 -print kext=
