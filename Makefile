@@ -90,6 +90,19 @@ pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l maint/bake_manual.el User
 ingest:;	echo Compiling in datasets in lnk_data...
 		./maint/ingestlnk.pl lnk_data/*.lnk > optool_refind.f90
 
+release:;	make clean
+		make pdf
+		make manual
+		make ingest
+		git add *
+		git commit -m "Release $(version)"
+		git tag release_$(version)
+		git push
+		git push origin release_$(version)
+		make binmac
+		make binmv
+
+
 binmac:;	make cclean
 		make
 		mv optool bin/optool-mac
