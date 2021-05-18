@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   May 2021, version 1.9.2
+#+DATE:   May 2021, version 1.9.3
 
 * Introduction
 
@@ -225,13 +225,12 @@ DHS with f_max=0.8.
 
   Use /Modified Mean Field/ theory (MMF, Tazaki & Tanaka 2018) to
   compute opacities of highly porous or fractal aggregates.  *-c*,
-  *-m*, and *-p* now determine the composition of monomers.  =A0= is
-  the monomer radius (default 0.1\mu{}m).  Particles will be
-  aggregates with a /compact size/ given by the *-a* switch, giving
-  rise to $N=a^3/a_0^3$ monomers. When =DFRAC-OR-FILL= is greater than
-  1, it specifies the /fractal dimension/.  When it is less than 1, it
-  is interpreted as the /volume filling factor/ of the aggregates
-  instead. The default is 0.2, corresponding to a 20% filling factor.
+  *-m*, and *-p* determine the composition of monomers with radius
+  =A0= (default 0.1\mu{}m).  Particles will be aggregates with a
+  /compact size/ given by the *-a* switch, giving rise to
+  $N=a^3/a_0^3$ monomers. =DFRAC-OR-FILL= specifies either the fractal
+  dimension (if >1) or the /volume filling factor/ (if <1) of the
+  aggregates. The default is 0.2, i.e. 20% filling factor.
 
 + =-cde= :: 
 
@@ -246,9 +245,11 @@ DHS with f_max=0.8.
   the size distribution powerlaw and the number of size bins.  You may
   also use options to set individual values with *-amin*, *-amax*,
   *-apow*, *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, and
-  /10 per size decade with a fixed minimum of 5/, respectively.  If
-  only a single size is specified with *-a*, then a_max=a_min and
-  n_a=1 are implied.
+  /10 per size decade with a fixed minimum of 5/, respectively.\\
+  =>= If only a single size is specified with *-a*, then a_max=a_min and
+  n_a=1 are implied.\\
+  =>= If a_max is negative, the range will be $a_{\rm min}\pm a_{\rm max}$,
+  and a_pow defaults to 0.
 
   
 ** Wavelength grid
@@ -259,8 +260,8 @@ DHS with f_max=0.8.
   wavelength and the number of wavelengths points for the construction
   of the wavelength grid.  The default values are 0.05 \mu{}m, 10000
   \mu{}m, and 300, respectively.  You may also use the options
-  *-lmin*, *-lmax*, and *-nlam* (or *-nl*) to set individual values.
-  If only one wavelength is specified with *-l*, then
+  *-lmin*, *-lmax*, and *-nlam* (or *-nl*) to set individual values.\\
+  =>= If only one wavelength is specified with *-l*, then
   \lambda_max=\lambda_min and n_\lambda=1 are implied.
 
 + =-l FILE= ::

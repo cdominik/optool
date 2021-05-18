@@ -251,6 +251,14 @@ program optool
         ! Let's see if there is more, we expect amax
         if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); call uread(value,amax)
+           if (amax .lt. 0d0) then
+              if (amin+amax .le. 0d0) then
+                 write(*,'(" ERROR: delta a cannot be larger than a: ",F10.2,F10.2)') amin,amax
+                 stop
+              endif
+              amin = amin+amax; amax = amin-2d0*amax
+              apow = 0.d0
+           endif
            ! Let's see if there is more, we expect apow
            if (arg_is_number(i+1)) then
               i=i+1; call getarg(i,value); read(value,*) apow
