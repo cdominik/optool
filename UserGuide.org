@@ -216,11 +216,6 @@ DHS with f_max=0.8.
   regular grains. For backward compatibility, *-fmax* can be used
   instead of *-dhs*.
 
-+ =-mie= ::
-
-  Do a standard /Mie/ calculation for perfect spheres. This is short
-  for *-dhs 0* .
-
 + =-mmf [A0 [DFRAC-OR-FILL]]= ::
 
   Use /Modified Mean Field/ theory (MMF, Tazaki & Tanaka 2018) to
@@ -231,6 +226,11 @@ DHS with f_max=0.8.
   $N=a^3/a_0^3$ monomers. =DFRAC-OR-FILL= specifies either the fractal
   dimension (if >1) or the /volume filling factor/ (if <1) of the
   aggregates. The default is 0.2, i.e. 20% filling factor.
+
++ =-mie= ::
+
+  Do a standard /Mie/ calculation for perfect spheres. This is short
+  for *-dhs 0* .
 
 + =-cde= :: 
 
