@@ -111,7 +111,7 @@ class particle:
              Compute opacity of a size distribution of elements of SELF
         """
     def __init__(self,cmd,cache=''):
-        """"Create a new optool.particle opject.
+        """Create a new optool.particle opject.
 
         Parameters
         ---------=
