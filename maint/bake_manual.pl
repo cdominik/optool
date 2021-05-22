@@ -9,9 +9,8 @@ $manual = do {
   <$fh>;
 };
 
-
 @lines = split(/^/,$manual);
-$manf90 = "subroutine manual(what)\n  character*(*) what\n  if (what.eq.'all') then\n";
+$manf90 = "subroutine manual(what)\n  character*(*) what\n  write(*,*)\n  if (what.eq.'all') then\n";
 $inopt = 0;
 foreach (@lines) {
   last if /^Footnotes/;
@@ -54,4 +53,4 @@ foreach (@lines) {
 }
 $manf90 .= "  endif\nend subroutine manual\n";
 
-print "$manf90\n";
+print "$manf90";

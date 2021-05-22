@@ -1,0 +1,127 @@
+#!/usr/bin/perl
+
+# Programmed completion for the optool command line
+#
+# OpTool computes dust opacities and does the entire setup on the
+# command line.  You can find it here:  https://ascl.net/2104.010
+# and here: https://github.com/cdominik/optool .
+#
+# This program make TAB completion in shells aware of the many command
+# line options and option values in OpTool.  You need to tell the shell
+# about this, and how to do that depends on the shell you are using.
+#
+# Put this file onto your execution path, make usre it is marked as
+# executable, and install into the bash shell with:
+#
+#   % complete -C optool-complete optool
+#
+# For tcsh, you have to use this instead.
+#
+#   % complete optool 'p/*/`optool-complete`/'
+#
+# For zsh, you need to write a function that sets the environment
+# variables and then calls the completion program, like this:
+# 
+#   % _optoolcompleter() { read -l; local cl="$REPLY"; read -ln; local cp="$REPLY"; reply=(`COMP_SHELL=zsh COMP_LINE="$cl" COMP_POINT="$cp" optool-complete`) }
+#   % compctl -K _optoolcompleter optool
+#
+# And also for fish, you need a similar work-around
+#
+#   % complete -c optool -s u -d 'Username' -r -f -a '(begin; set -lx COMP_SHELL fish; set -lx COMP_LINE (commandline); set -lx COMP_POINT (commandline -C); optool-complete; end)'
+#
+# Thanks to perlancar for explaining how to do this in different shells
+# on a blog post:
+# http://blogs.perl.org/users/perlancar/2014/11/comparing-programmable-tab-completion-in-bash-zsh-tcsh-and-fish.html
+
+#------------------------------------------------------------
+# Arrays with possible completions for different applications
+#------------------------------------------------------------
+@options = qw(-h -help  -c -m -p          -dhs -mmf -mie -cde 
+              -a -amin -amax -apow -na    -l -lmin -lmax -nl 
+              -o -s -d -chop -fits -radmc -print);
+
+@materials =
+  qw(pyr pyr-mg100 pyr-mg95 pyr-mg80 pyr-mg70 pyr-mg60 pyr-mg50 pyr-mg40
+     ens pyr-c-mg96 
+     ol ol-mg50 ol-mg40
+     for ol-c-mg10 ol-c-mg95 fay ol-c-mg00
+     astrosil
+     c c-z c-p gra c-gra org c-org c-nano
+     iron fe-c fes sic
+     qua sio2 cor cor-c
+     h2o h2o-w h2o-a co2 co2-w nh3 nh3-m
+     co co-a co2-a co2-c ch4-a ch4-c ch3oh-a ch3oh-c);
+
+@units = qw(MHz mhz GHz ghz THz thz cm-1 /cm m dm cm mm um micron nm);
+
+@printvars = qw(all kabs ksca kext gsca);
+
+#-------------------------------------------------------------
+# Check what we have on the command line, shell dependent
+#-------------------------------------------------------------
+($shell = $ENV{"SHELL"}) =~ s/.*\///;
+if ($shell eq tcsh) {
+  $cmdline = $ENV{"COMMAND_LINE"};
+  $pos     = length($cmdline);
+} else {
+  $cmdline = ($ENV{"COMP_LINE"};
+  $pos     = ($ENV{"COMP_POINT"};
+}
+@words = split(/ +/,substr($cmdline,0,$pos));
+if (substr($cmdline,$pos-1,1) eq ' ') {
+  $s = "";                # no partially-typed word
+  $p = $words[$#words];   # the word before
+} else {
+  $s = $words[$#words];   # partially typed word
+  $p = $words[$#words-1]; # the word before the partial one
+}
+$opt = (grep { /^-[a-zA-Z]/ } @words)[-1];
+
+#-------------------------------------------------------------
+# Compute completion values
+#-------------------------------------------------------------
+if ($s =~ /^-/) {
+  # Complete command line options ofter "-"
+  @res = grep { /^$s/ } @options;
+} elsif ($p =~ /^-h(elp)?/) {
+  # options without dash after -h or -help; with - is covered above
+  @res = grep { /^$s/ } map { s/^-//;$_ } @options;
+} elsif ($p =~ /^-print$/) {
+  # Complete variables after -print
+  @res = grep { /^\Q$s\E/ } @printvars;
+} elsif ($opt =~/^-[al](min|max)?$/
+         and $s=~/^([-+]?\.?[0-9][-+0-9.eE]*)([*\/][-a-zA-Z\/]*)?$/) {
+  # Complete units where a length is expected
+  $num = $1;
+  @res = grep {/^\Q$s\E/} map { /^\// ? "$num$_" : "$num*$_" } @units;
+} elsif ($p =~ /^-o$/) {
+  # Complete Directories after -o
+  @res = getfiles($s,1);
+} elsif ($p =~ /^-l$/) {
+  # Complete file name with wavelengths grid after -l
+  @res = getfiles($s);
+} elsif ($p =~ /^(-[cm]|[^-].*)$/) {
+  # Complete material key or lnk file after -c, -m, or with -c omitted
+  # This needs to be last, or it will match in unwanted places.
+  @mat = grep { /^$s/ } @materials;
+  @fls = getfiles($s) if $s ne "";
+  @res = (@mat,@fls);
+}
+
+#-------------------------------------------------------------
+# Write completions to SDTOUT
+#-------------------------------------------------------------
+
+print join("\n",@res),"\n";
+
+# -------------------------------------------------------------
+sub getfiles {
+  my ($start,$dirs) = @_;
+  my @files = map { (-d) ? "$_/" : $_ } glob("$start*");
+  @files = grep { -d } @files if $dirs;
+  if (scalar(@files) == 1 and $files[0]=~ /\/$/) {
+    # This is a hack to make sure competion does not insert a space after the directory name
+    push(@files,(substr($files[0],0,-1)));
+  }
+  return @files;
+}

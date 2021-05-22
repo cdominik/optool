@@ -132,13 +132,12 @@ optool pyr  -a 10 30  -mmf 0.3 1.9
 
 
 #+LATEX: \clearpage
-* Compiling =optool=
+* Installation
 :PROPERTIES:
 :CUSTOM_ID: compilation
 :END:
-On most systems, you can download and compile =optool= with these
-simple steps, using the freely available GNU FORTRAN compiler
-[[https://gcc.gnu.org/wiki/GFortran][=gfortran=]].
+You can download and compile =optool= with these simple steps, using
+the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wiki/GFortran][=gfortran=]].
 
 : git clone https://github.com/cdominik/optool.git
 : cd optool
@@ -146,15 +145,16 @@ simple steps, using the freely available GNU FORTRAN compiler
 
 The executable is called =optool=, and you should put it on your
 execution path.  To use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]], to use multiple
-cores for speed (highly recommended if your system supports it), or to
-be able to write FITS files[fn:1], use one or more of the following
-parameters during compilation:
+cores for speed (recommended!), or to be able to write FITS
+files[fn:1], use one or more of the following parameters during
+compilation:
 
 : make ifort=true        # use the Intel fortran compiler iFort
 : make multi=true        # enable multicore support
 : make  fits=true        # add support for writing FITS files[1]
 
-You can also find binaries for Mac and Linux at [[https://staff.fnwi.uva.nl/c.dominik/optool][my homepage]].
+You can also find binaries for Mac and Linux at [[https://staff.fnwi.uva.nl/c.dominik/optool][my homepage]]. For shell
+command line completion support, check the file =optool-complete=.
 
 [fn:1] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your
 system.
@@ -164,7 +164,8 @@ system.
 :CUSTOM_ID: command-line-arguments
 :END:
 
-+ =-h=   :: Show a compact help message about command line options.
++ =-h [OPT]= :: Show command line options or specific information
+  about option *=-OPT=*.
 
 ** Grain composition
 :PROPERTIES:
@@ -216,7 +217,7 @@ DHS with f_max=0.8.
   regular grains. For backward compatibility, *-fmax* can be used
   instead of *-dhs*.
 
-+ =-mmf [A0 [DFRAC-OR-FILL]]= ::
++ =-mmf [A0 [DFRAC-OR-FILL [KF]]]= ::
 
   Use /Modified Mean Field/ theory (MMF, Tazaki & Tanaka 2018) to
   compute opacities of highly porous or fractal aggregates.  *-c*,
@@ -224,8 +225,8 @@ DHS with f_max=0.8.
   =A0= (default 0.1\mu{}m).  Particles will be aggregates with a
   /compact size/ given by the *-a* switch, giving rise to
   $N=a^3/a_0^3$ monomers. =DFRAC-OR-FILL= specifies either the fractal
-  dimension (if >1) or the /volume filling factor/ (if <1) of the
-  aggregates. The default is 0.2, i.e. 20% filling factor.
+  dimension (if >1) or the /volume filling factor/ (if <1). The
+  default is 0.2. KF may be used to change the default prefactor.
 
 + =-mie= ::
 
@@ -852,7 +853,7 @@ the code.
   of size. The fractal prefactor $k_{\rm f}$ is chosen automatically
   so that the asymptotic density of small aggregates is the monomer
   material density. To force another value for the prefactor, it can
-  be given explicitly as the third value of the =-mmf= option. The
+  be given explicitly as the third value of the =mmf= option. The
   following table summarizes the relevant equations.
 
   |             | =-mmf A0 DF=          | =-mmf A0 FILL=        | =-mmf A0 DF KF=                                           |

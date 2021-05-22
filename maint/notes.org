@@ -1,12 +1,11 @@
 * Actions and Ideas
 
-** TODO propagate rho to fits and write it there?
 ** TODO Fix the FITS issues
 Python cannot read the headers.  I should check if Fortran actually can!?
-** TODO Add an amorphous water ice
+*** TODO propagate rho to fits and write it there?
+** DONE Add an amorphous water ice
 * Compact version of lnk description
 Useful if more materials need to fit into the table.
-
 
 following format: The file may start with a number of comment lines
 (lines starting with =!=, =#=, or =*=), followed by
