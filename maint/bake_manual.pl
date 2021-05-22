@@ -11,31 +11,47 @@ $manual = do {
 
 
 @lines = split(/^/,$manual);
-$manf90 = "subroutine manual()\n";
+$manf90 = "subroutine manual(what)\n  character*(*) what\n  if (what.eq.'all') then\n";
+$inopt = 0;
 foreach (@lines) {
+  last if /^Footnotes/;
   if ($skip and /^$/) {
     $skip = 0;
     next;
-  } elsif ($skip) {
+  }
+  if ($skip) {
     next;
-  } elsif (/^[[]/) {
+  }
+  if (/^[[]/) {
     $skip = 1;
     next;
-  } elsif (/^Footnotes/) {
-    last;
-  } else {
-    chomp;
-    if (length($_) >= 110) {
-      $_ = substr($_,2,65) . substr($_,91,14);
-      s/\*/ /g;
-      s/{//g;
-      s/}/  /g;
-    }
-    s/'/ /g;
-    s/`/ /g;
-    $manf90 .= "  write(*,'(\"$_\")')\n"
   }
+  if (/^ +`\[?-([a-zA-Z]+)/) {
+    # Start of an option
+    $inopt = 1;
+    $manf90 .= "  endif\n  if((what.eq.'-$1').or.(what.eq.'all')) then\n";
+  }
+  if ($inopt and /^\S/) {
+    $inopt = 0;
+    $manf90 .= "  endif\n  if(what.eq.'all') then\n";
+  }
+  if (length($_) >= 110) {
+    # This is the table, do special stuff to make it look ok.
+    $a = substr($_,2,58);
+    $b = substr($_,98,14);
+    $b =~ s/\]\s*$//;
+    $_ = "$a $b";
+    s/\*/ /g;
+    s/{//g;
+    s/}/  /g;
+  }
+  chomp;
+  s/'/ /g;
+  s/`/ /g;
+  next if ($last eq "") and ($_ eq "");
+  $last = $_;
+  $manf90 .= "     write(*,'(\"$_\")')\n";
 }
-$manf90 .= "end subroutine manual\n";
+$manf90 .= "  endif\nend subroutine manual\n";
 
 print "$manf90\n";
