@@ -37,7 +37,7 @@
 # Arrays with possible completions for different applications
 #------------------------------------------------------------
 @options = qw(-h -help  -c -m -p          -dhs -mmf -mie -cde 
-              -a -amin -amax -apow -na    -l -lmin -lmax -nl 
+              -a -amin -amax -apow -na    -l -lmin -lmax -nl -nlam
               -o -s -d -chop -fits -radmc -print);
 
 @materials =

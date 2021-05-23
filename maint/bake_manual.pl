@@ -28,7 +28,13 @@ foreach (@lines) {
   if (/^ +`\[?-([a-zA-Z]+)/) {
     # Start of an option
     $inopt = 1;
-    $manf90 .= "  endif\n  if((what.eq.'-$1').or.(what.eq.'all')) then\n";
+    if ($1 eq "a") {
+      $manf90 .= "  endif\n  if((what.eq.'-a').or.(what.eq.'-amin').or.(what.eq.'-amax').or.(what.eq.'-apow').or.(what.eq.'-na').or.(what.eq.'all')) then\n";
+    } elsif ($1 eq "l") {
+      $manf90 .= "  endif\n  if((what.eq.'-l').or.(what.eq.'-lmin').or.(what.eq.'-lmax').or.(what.eq.'-nl').or.(what.eq.'-nlam').or.(what.eq.'all')) then\n";
+    } else {
+      $manf90 .= "  endif\n  if((what.eq.'-$1').or.(what.eq.'all')) then\n";
+    }
   }
   if ($inopt and /^\S/) {
     $inopt = 0;

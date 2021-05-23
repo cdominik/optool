@@ -274,7 +274,7 @@ subroutine manual(what)
      write(*,'("~~~~~~~~~~~~~~~~~~~~~~~~~~~")')
      write(*,'("")')
   endif
-  if((what.eq.'-a').or.(what.eq.'all')) then
+  if((what.eq.'-a').or.(what.eq.'-amin').or.(what.eq.'-amax').or.(what.eq.'-apow').or.(what.eq.'-na').or.(what.eq.'all')) then
      write(*,'("   -a AMIN [AMAX [APOW [NA]]] ")')
      write(*,'("        Specify (minimum) grain radius, and optionally maximum grain")')
      write(*,'("        radius, the size distribution powerlaw and the number of size")')
@@ -293,7 +293,7 @@ subroutine manual(what)
      write(*,'("~~~~~~~~~~~~~~~~~~~")')
      write(*,'("")')
   endif
-  if((what.eq.'-l').or.(what.eq.'all')) then
+  if((what.eq.'-l').or.(what.eq.'-lmin').or.(what.eq.'-lmax').or.(what.eq.'-nl').or.(what.eq.'-nlam').or.(what.eq.'all')) then
      write(*,'("   -l LMIN [LMAX [NLAM]] ")')
      write(*,'("        Specify the (minimum) wavelength, and optionally the maximum")')
      write(*,'("        wavelength and the number of wavelengths points for the")')
@@ -305,7 +305,7 @@ subroutine manual(what)
      write(*,'("        lambda_max=lambda_min and n_lambda=1 are implied.")')
      write(*,'("")')
   endif
-  if((what.eq.'-l').or.(what.eq.'all')) then
+  if((what.eq.'-l').or.(what.eq.'-lmin').or.(what.eq.'-lmax').or.(what.eq.'-nl').or.(what.eq.'-nlam').or.(what.eq.'all')) then
      write(*,'("   -l FILE ")')
      write(*,'("        Read the wavelength grid from  FILE .  The file may start with")')
      write(*,'("        comment lines, and the first non-comment line needs to contain")')
