@@ -68,7 +68,9 @@ BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
 # make actions 
 all:		$(PROGRAM)
 full:;		make multi=true fits=true
-
+it:;		make clean
+		make full
+		make clean1
 cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_dir_*
 cleanbin:;	rm -f bin/optool* bin.zip
 cleanlatex:;	rm -rf *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.pdf
@@ -83,10 +85,12 @@ clean1:;	rm -f $(OBJS) *.mod *.i *.html
 install:	$(PROGRAM)
 		mv $(PROGRAM) $(DEST)
 
-manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org --batch -f org-ascii-export-to-ascii --kill
+manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org \
+		     --batch -f org-ascii-export-to-ascii --kill
 		maint/bake_manual.pl > optool_manual.f90
 		rm UserGuide.txt
-pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l maint/bake_manual.el UserGuide.org --batch -f org-latex-export-to-pdf --kill
+pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l maint/bake_manual.el \
+		     UserGuide.org --batch -f org-latex-export-to-pdf --kill
 ingest:;	echo Compiling in datasets in lnk_data...
 		./maint/ingestlnk.pl lnk_data/*.lnk > optool_refind.f90
 
