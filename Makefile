@@ -61,14 +61,19 @@ OBJS	= optool.o optool_guts.o optool_manual.o optool_refind.o optool_fractal.o o
 
 # Program name and install location
 PROGRAM       = optool
-DEST	      = ${HOME}/bin
+bindir	      = ${HOME}/bin
 BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
 
 
 # make actions 
 all:		$(PROGRAM)
-full:;		make multi=true fits=true
+install:	$(PROGRAM)
+		cp optool optool2tex optool-complete $(bindir)
 
+full:;		make multi=true fits=true
+it:;		make clean
+		make full
+		make clean1
 cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_tmp_output_dir_*
 cleanbin:;	rm -f bin/optool* bin.zip
 cleanlatex:;	rm -rf *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.pdf
@@ -80,13 +85,12 @@ clean1:;	rm -f $(OBJS) *.mod *.i *.html
 		make cleanoutput cleanbin cleanlatex cleanpython
 		rm -rf *~ \#*  selftest_optool
 
-install:	$(PROGRAM)
-		mv $(PROGRAM) $(DEST)
-
-manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org --batch -f org-ascii-export-to-ascii --kill
+manual:;        /Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org \
+		     --batch -f org-ascii-export-to-ascii --kill
 		maint/bake_manual.pl > optool_manual.f90
 		rm UserGuide.txt
-pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l maint/bake_manual.el UserGuide.org --batch -f org-latex-export-to-pdf --kill
+pdf:;		/Applications/Emacs.app/Contents/MacOS/Emacs -l maint/bake_manual.el \
+		     UserGuide.org --batch -f org-latex-export-to-pdf --kill
 ingest:;	echo Compiling in datasets in lnk_data...
 		./maint/ingestlnk.pl lnk_data/*.lnk > optool_refind.f90
 
@@ -101,7 +105,6 @@ release:;	make clean
 		git push origin release_$(version)
 		make binmac
 		make binmv
-
 
 binmac:;	make cclean
 		make
@@ -130,38 +133,6 @@ binlinux:;	make cclean
 binzip:;	rm -f bin.zip
 		(cd bin; zip ../bin.zip optool*)
 binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
-
-test:; 		echo Computing size-integrated opacities ...
-		make cleanoutput
-		make
-		echo "import optool; import time;optool.particle('./optool -na 10 -nl 10 -s').plot();">tmp.py
-		ipython -i tmp.py
-
-testdiv:;	echo computing size-dependant opacities ...
-		make cleanoutput
-		make
-		echo "import optool; import time;optool.particle('./optool -d -na 20 -s').plot();">tmp.py
-		ipython -i tmp.py
-quicktest:;	echo Computing size-integrated opacities ...
-		make cleanoutput
-		make
-		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -s').plot();">tmp.py
-		ipython -i tmp.py
-quicktestchop:;	echo Computing size-integrated opacities ...
-		make cleanoutput
-		make
-		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -s -chop 5').plot();">tmp.py
-		ipython -i tmp.py
-quicktestdiv:;	echo computing size-dependant opacities ...
-		make cleanoutput
-		make
-		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -d 3 -s').plot();">tmp.py
-		ipython -i tmp.py
-quicktestdivchop:;	echo computing size-dependant opacities ...
-			make cleanoutput
-			make
-		echo "import optool; import time;optool.particle('./optool -na 10 -nl 30 -d 3 -s -chop 10').plot();">tmp.py
-		ipython -i tmp.py
 
 .SUFFIXES : .o .f .f90
 

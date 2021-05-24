@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   May 2021, version 1.9.3
+#+DATE:   May 2021, version 1.9.4
 
 * Introduction
 
@@ -136,25 +136,25 @@ optool pyr  -a 10 30  -mmf 0.3 1.9
 :PROPERTIES:
 :CUSTOM_ID: compilation
 :END:
-You can download and compile =optool= with these simple steps, using
-the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wiki/GFortran][=gfortran=]].
+You can download, compile, and install =optool= with these simple
+steps, using the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wiki/GFortran][=gfortran=]].
 
 : git clone https://github.com/cdominik/optool.git
 : cd optool
-: make multi=true
+: make multi=true                   # compile with multicore support
+: make install bindir=~/bin/        # copy the binaries to binary path
+: pip install -e .                  # install the python module
 
-The executable is called =optool=, and you should put it on your
-execution path.  To use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]], to use multiple
-cores for speed (recommended!), or to be able to write FITS
-files[fn:1], use one or more of the following parameters during
-compilation:
+In the compilation step, use =multi=true= to add multicore support
+(recommended!), =ifort=true= to use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]] instead
+of =gfortran=, and =fits=true= to add support for writing FITS
+files[fn:1]. The executable is called =optool=. The =make
+install= step copies it and also =optool2tex= and =optool-complete=
+into =bindir=.
 
-: make ifort=true        # use the Intel fortran compiler iFort
-: make multi=true        # enable multicore support
-: make  fits=true        # add support for writing FITS files[1]
-
-You can also find binaries for Mac and Linux at [[https://staff.fnwi.uva.nl/c.dominik/optool][my homepage]]. For shell
-command line completion support, check the file =optool-complete=.
+If compiling the code is a problem, you can also find binaries for Mac
+and Linux at [[https://staff.fnwi.uva.nl/c.dominik/optool][my homepage]]. For shell command line completion support,
+check the file =optool-complete=.
 
 [fn:1] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your
 system.
