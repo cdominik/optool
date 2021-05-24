@@ -1,0 +1,20 @@
+You can download, compile, and install `optool' with these simple
+steps, using the freely available GNU FORTRAN compiler gfortran.
+
+   git clone https://github.com/cdominik/optool.git        # clone repository
+   cd optool                      # enter code directory
+   make multi=true                # compile with multicore support
+   make install bindir=~/bin/     # copy the binaries to binary path
+   pip install -e .               # install the python module (with the dot!)
+
+In the compilation step, use `multi=true' to add multicore support
+(recommended!), `ifort=true' to use the [Intel fortran compiler]
+instead of `gfortran', and `fits=true' to add support for writing FITS
+files[1]. The executable is called `optool'. The `make install' step
+copies it and also `optool2tex' and `optool-complete' into `bindir'.
+
+If compiling the code is a problem, you can also find binaries for Mac
+and Linux at https://staff.fnwi.uva.nl/c.dominik/optool.
+
+For shell command line completion support, check the file
+`optool-complete'.
