@@ -49,6 +49,7 @@ foreach (@lines) {
     s/\*/ /g;
     s/{//g;
     s/}/  /g;
+    s/\\fbox/     /g;
   }
   chomp;
   s/'/ /g;
