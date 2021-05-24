@@ -6,7 +6,7 @@
 # command line.  You can find it here:  https://ascl.net/2104.010
 # and here: https://github.com/cdominik/optool .
 #
-# This program make TAB completion in shells aware of the many command
+# This script makes TAB completion in shells aware of the many command
 # line options and option values in OpTool.  You need to tell the shell
 # about this, and how to do that depends on the shell you are using.
 #

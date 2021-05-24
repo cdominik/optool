@@ -139,11 +139,11 @@ optool pyr  -a 10 30  -mmf 0.3 1.9
 You can download, compile, and install =optool= with these simple
 steps, using the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wiki/GFortran][=gfortran=]].
 
-: git clone https://github.com/cdominik/optool.git
-: cd optool
-: make multi=true                   # compile with multicore support
-: make install bindir=~/bin/        # copy the binaries to binary path
-: pip install -e .                  # install the python module
+: git clone https://github.com/cdominik/optool.git        # clone repository
+: cd optool                      # enter code directory
+: make multi=true                # compile with multicore support
+: make install bindir=~/bin/     # copy the binaries to binary path
+: pip install -e .               # install the python module (with the dot!)
 
 In the compilation step, use =multi=true= to add multicore support
 (recommended!), =ifort=true= to use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]] instead
