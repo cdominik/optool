@@ -26,11 +26,10 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 * Terms of use
 
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
-and redistributed freely. But we do ask you to cite the code, and also
-the papers relevant to your particular application, when using
-=optool=. The references are listed below and the corresponding BibTeX
-entries are available in the file =optool.bib=. =optool= is [[https://github.com/cdominik/optool.git][hosted on
-github]].
+and redistributed freely. But we do ask you to provide a reference to
+=optool= when using it.  Relevant references are listed below and the
+corresponding BibTeX entries are available in the file
+=optool.bib=. =optool= is [[https://github.com/cdominik/optool.git][hosted on github]].
 
 - *optool:* [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][Dominik, C., Min, M. & Tazaki, R. 2021, Optool, 1.9,
   Astrophysics Source Code Library, ascl:2104.010]]

@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   May 2021, version 1.9.4
+#+DATE:   June 2021, version 1.9.4
 
 * Introduction
 
@@ -31,11 +31,10 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
 ** Terms of use
 
 =optool= is distributed under the [[https://opensource.org/licenses/MIT][MIT license]] and can be used, changed
-and redistributed freely. But we do ask you to cite the code, and also
-the papers relevant to your particular application, when using
-=optool=. The references are listed below and the corresponding BibTeX
-entries are available in the file [[https://github.com/cdominik/optool/blob/master/optool.bib][=optool.bib=]]. =optool= is [[https://github.com/cdominik/optool.git][hosted on
-github]] at [[https://github.com/cdominik/optool][=https://github.com/cdominik/optool=]]
+and redistributed freely. But we do ask you to provide a reference to
+=optool= when using it.  Relevant references are listed below and the
+corresponding BibTeX entries are available in the file
+=optool.bib=. =optool= is [[https://github.com/cdominik/optool.git][hosted on github]].
 
 - *optool:* [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][Dominik, C., Min, M. & Tazaki, R. 2021, Optool, 1.9,
   Astrophysics Source Code Library, ascl:2104.010]]
@@ -152,9 +151,9 @@ files[fn:1]. The executable is called =optool=. The =make
 install= step copies it and also =optool2tex= and =optool-complete=
 into =bindir=.
 
-If compiling the code is a problem, you can also find binaries for Mac
-and Linux at [[https://staff.fnwi.uva.nl/c.dominik/optool][my homepage]]. For shell command line completion support,
-check the file =optool-complete=.
+If compiling the code is a problem, use the [[https://staff.fnwi.uva.nl/c.dominik/optool][binaries for Mac and Linux]]
+we provide. For shell command line completion support, check the file
+=optool-complete=.
 
 [fn:1] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your
 system.
