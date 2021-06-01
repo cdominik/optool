@@ -9,9 +9,12 @@
 # This script makes TAB completion in shells aware of the many command
 # line options and option values in OpTool.  You need to tell the shell
 # about this, and how to do that depends on the shell you are using.
+# Below, we have instructions for bash, tcsh, zsh, and fish.
 #
-# Put this file onto your execution path, make usre it is marked as
-# executable, and install into the bash shell with:
+# Put this file onto your execution path, make sure it is marked as
+# executable.
+#
+# For bash, istall the script with this command (e.g. in .bashrc):
 #
 #   % complete -C optool-complete optool
 #
@@ -19,8 +22,10 @@
 #
 #   % complete optool 'p/*/`optool-complete`/'
 #
-# For zsh, you need to write a function that sets the environment
-# variables and then calls the completion program, like this:
+# In zsh, the environment variables holding the command line and
+# cursor position are not set automatically, so you  need to write
+# a function that does so and then calls the completion program,
+# like this:
 # 
 #   % _optoolcompleter() { read -l; local cl="$REPLY"; read -ln; local cp="$REPLY"; reply=(`COMP_SHELL=zsh COMP_LINE="$cl" COMP_POINT="$cp" optool-complete`) }
 #   % compctl -K _optoolcompleter optool
@@ -30,11 +35,11 @@
 #   % complete -c optool -s u -d 'Username' -r -f -a '(begin; set -lx COMP_SHELL fish; set -lx COMP_LINE (commandline); set -lx COMP_POINT (commandline -C); optool-complete; end)'
 #
 # Thanks to perlancar for explaining how to do this in different shells
-# on a blog post:
+# in a blog post:
 # http://blogs.perl.org/users/perlancar/2014/11/comparing-programmable-tab-completion-in-bash-zsh-tcsh-and-fish.html
 
 #------------------------------------------------------------
-# Arrays with possible completions for different applications
+# Arrays with possible completions
 #------------------------------------------------------------
 @options = qw(-h -help  -c -m -p          -dhs -mmf -mie -cde 
               -a -amin -amax -apow -na    -l -lmin -lmax -nl -nlam
@@ -54,7 +59,7 @@
 
 @units = qw(MHz mhz GHz ghz THz thz cm-1 /cm m dm cm mm um micron nm);
 
-@printvars = qw(all kabs ksca kext gsca);
+@printvars = qw(all kabs ksca kext g gsca);
 
 #-------------------------------------------------------------
 # Check what we have on the command line, shell dependent
@@ -64,8 +69,8 @@ if ($shell eq tcsh) {
   $cmdline = $ENV{"COMMAND_LINE"};
   $pos     = length($cmdline);
 } else {
-  $cmdline = ($ENV{"COMP_LINE"};
-  $pos     = ($ENV{"COMP_POINT"};
+  $cmdline = $ENV{"COMP_LINE"};
+  $pos     = $ENV{"COMP_POINT"};
 }
 @words = split(/ +/,substr($cmdline,0,$pos));
 if (substr($cmdline,$pos-1,1) eq ' ') {
