@@ -695,7 +695,7 @@ being used in the literature and in computational tools. The
 differences are significant, and it is important to be aware of the
 choice. For =optool= we are using a convention ([[https://ui.adsabs.harvard.edu/abs/2004nsm..rept....1H][Hovenier (2004)]]) in
 which the average over all directions of the 1-1 element of the
-scattering matrix equals unity, i.e.
+scattering matrix equals unity, i.e. the integral will be 4\pi:
 
 \begin{equation}
 \label{eq:1}
@@ -716,8 +716,9 @@ which uses instead
 The books by Bohren & Huffman and by Mishchenko use different
 normalizations again. You can change the normalization of the
 scattering matrix in the python interface with the =scatnorm()=
-method. By default, it checks the current normalization.  Using an
-argument ='r'=, ='b'=, ='m'=, or ='h'= will modify the normalization.
+method. By default, that method checks the current normalization.
+Using an argument ='r'=, ='b'=, ='m'=, or ='h'= will modify the
+normalization.
 
 ** Forward-scattering peak
 :PROPERTIES:
@@ -746,7 +747,7 @@ interaction at all/ with the grain.
 :CUSTOM_ID: angular-grid
 :END:
 
-=optool= uses an angular grid in one degree steps from 0 to 180
+=optool= uses an angular grid in one-degree steps from 0 to 180
 degrees.  The full degrees are the cell /interfaces/ of that
 grid. =optool= computes the scattering matrix at the cell /midpoints/,
 i.e. at 0.5\deg, 1.5\deg etc to 179.5\deg, for a total of 180 values.
@@ -893,9 +894,10 @@ the code.
 #+LATEX: \newpage
 
 * Acknowledgments
-- The [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena Database of Optical Constants]] and the [[http://eodg.atm.ox.ac.uk/ARIA/][Aerosol Refractive
-  Index Archive]] for their invaluable collections of refractive index
-  datasets.
+We are indebted to
+- the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena Database of Optical Constants]] and the
+  [[http://eodg.atm.ox.ac.uk/ARIA/][Aerosol Refractive Index Archive]]
+  for their invaluable collections of refractive index datasets.
 - Rens Waters, Thomas Henning, Xander Tielens, Elisabetta Palumbo,
   Laurent Pilon, Jeroen Bouwman, and Melissa McClure for discussions
   around optical properties of cosmic dust analogues.
