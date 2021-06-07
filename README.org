@@ -122,13 +122,12 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 
 
 - Release 1.9.4 ::
-  - Improve the installation process and instructions.
-  - Get help about specific command line options with, e.g.
+  - Improve installation process and instructions.
+  - Get help about specific command line options with, for example,
     =optool -h mmf=.
-  - Programmed shell completion of command line options and arguments
-    is now supported with the =optool-complete= script.  You need to
-    link it into your shell setup using the instructions in
-    =optool-complete=.
+  - Shell completion of command line options and arguments is now
+    supported with the =optool-complete= script.  You need to link it
+    into your shell setup using the instructions in =optool-complete=.
 
 - Release 1.9.3 ::
   - New option -print, to direct output to STDOUT instead of files.
