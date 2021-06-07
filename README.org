@@ -92,15 +92,14 @@ matrix, chopping 3 degrees from the scattering peak.
 
 Use MMF to compute the opacities of dust aggregates made of pyroxene
 monomers.  Use a monomer radius of 0.3 \mu{}m to construct aggregates
-with compact-volume radii between 10 and 30 \mu{}m, and a filling
-factor of 5%
-
-: optool pyr  -a 10 30  -mmf 0.3 0.05
-
-As before, but fix the fractal dimension D_f=1.9 instead of setting
-the filling factor
+with compact-volume radii between 10 and 30 \mu{}m, and a fractal
+dimension of 1.9.
 
 : optool pyr  -a 10 30  -mmf 0.3 1.9
+
+Compute the CDE approximation of small graphite grains.
+
+: optool gra  -a 0.01 0.1 -l 1 30 -cde
 
 
 * Acknowledgments

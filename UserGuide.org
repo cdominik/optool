@@ -115,18 +115,17 @@ optool -na 42 -d -s -radmc -chop 3
 
 Use MMF to compute the opacities of dust aggregates made of pyroxene
 monomers.  Use a monomer radius of 0.3 \mu{}m to construct aggregates
-with compact-volume radii between 10 and 30 \mu{}m, and a filling
-factor of 5%
-
-#+begin_src sh
-optool pyr  -a 10 30  -mmf 0.3 0.05
-#+end_src
-
-As before, but fix the fractal dimension $D_f=1.9$ instead of setting
-the filling factor
+with compact-volume radii between 10 and 30 \mu{}m, and a fractal
+dimension of 1.9.
 
 #+begin_src sh
 optool pyr  -a 10 30  -mmf 0.3 1.9
+#+end_src
+
+Compute the CDE approximation of small graphite grains.
+
+#+begin_src sh
+optool gra  -a 0.01 0.1 -l 1 30 -cde
 #+end_src
 
 
