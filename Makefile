@@ -80,7 +80,7 @@ cleanlatex:;	rm -rf *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.pdf
 cleanpython:;	rm -rf optool.dSYM tmp.py __pycache__
 cclean:;	rm -f $(OBJS) $(PROGRAM)
 clean:;		make clean1
-		rm -f $(PROGRAM) optool.egg-info
+		rm -rf $(PROGRAM) optool.egg-info
 clean1:;	rm -f $(OBJS) *.mod *.i *.html
 		make cleanoutput cleanbin cleanlatex cleanpython
 		rm -rf *~ \#*  selftest_optool
