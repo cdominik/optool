@@ -109,7 +109,7 @@ Compute the CDE approximation of small graphite grains.
 - Rens Waters, Thomas Henning, Xander Tielens, Elisabetta Palumbo,
   Laurent Pilon, Jeroen Bouwman, and Melissa McClure for discussions
   around optical properties of cosmic dust analogues.
-- Charléne Lefévre for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which inspired me to add grain mantles.
+- Charlène Lefèvre for [[https://github.com/charlenelefevre/SIGMA][SIGMA]], which inspired me to add grain mantles.
 - Kees Dullemond for discussions about the [[https://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]] input format and
   the scattering matrix, for the idea to write =optool2tex= and for
   letting me include his incredible python plotting routine =viewarr=
