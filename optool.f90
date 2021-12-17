@@ -618,7 +618,7 @@ program optool
   ! Loop for splitting the output into files by grain size
   ! ----------------------------------------------------------------------
   if (split) then
-     write(*,'("Computing opacities for ",I3," different grain size bins")') na
+     if (.not. quiet) write(*,'("Computing opacities for ",I3," different grain size bins")') na
      nsub = nsubgrains
      if (mod(nsub,2).eq.0) nsub = nsub+1
      afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
@@ -2024,7 +2024,7 @@ subroutine write_ascii_file(p,amin,amax,apow,na,lmin,lmax,fmax,a0,struct,pcore,p
 
   if (.not. scatter) then
 
-     if (progress) write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
+     if (progress .and. .not. quiet) write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,na,lmin,lmax, &
           pcore,pmantle,p%rho,fmax,a0,struct,mfrac,nm)
