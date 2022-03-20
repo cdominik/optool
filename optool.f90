@@ -757,8 +757,9 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
   !   amin       Minimum grain size to consider, in microns
   !   amax       Maximum grain size to consider, in microns
   !   apow       The powerlaw exponent for the size distribution, f(a) ~ a^{-apow}
-  !   alna0      ????????????????
-  !   alnsig     ??????????????????
+  !   alna0      Mean size [um] for log-normal size distribution
+  !                  f(a) ~ (1/a) exp(-(log(a/a0)/sig)^2)
+  !   alnsig     Standard deviation for log-normal size distribution
   !   na         The number of grains to consider between amin and amax
   !   fmax       The maximum volume fraction of vacuum for the DHS computations
   !   p_c        The porosity of the core, volume fraction of vacuum
