@@ -44,7 +44,7 @@ module Defs
   logical, public                :: split     = .false. ! split to many files
   logical, public                :: quiet     = .false. ! reduce output to STDOUT
   logical, public                :: verbose   = .false. ! additional output to STDOUT
-  logical, public                :: debug     = .false. ! Additional infor to STDOUT
+  logical, public                :: debug     = .false. ! Additional info to STDOUT
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
