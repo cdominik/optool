@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   June 2021, version 1.9.4
+#+DATE:   April 2022, version 1.9.5
 
 * Introduction
 
@@ -239,18 +239,20 @@ DHS with f_max=0.8.
 
 
 ** Grain size distribution
-+ =-a AMIN [AMAX [APOW [NA]]]= ::
 
++ =-a AMIN [AMAX [APOW [NA]]]= \hfill{}(powerlaw size distribution) ::
   Specify (minimum) grain radius, and optionally maximum grain radius,
-  the size distribution powerlaw and the number of size bins.  You may
+  the [[#internals][size distribution]] powerlaw and the number of size bins.  You may
   also use options to set individual values with *-amin*, *-amax*,
   *-apow*, *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, and
   /10 per size decade with a fixed minimum of 5/, respectively.\\
   =>= If only a single size is specified with *-a*, then a_max=a_min and
-  n_a=1 are implied.\\
-  =>= If a_max is negative, the range will be $a_{\rm min}\pm a_{\rm max}$,
-  and a_pow defaults to 0.
+  n_a=1 are implied.
 
++ =-a AMIN AMAX AMEAN:ASIG [NA]= \hfill{} (log-normal size distribution) ::
+  Specify the mean size and the logarithmic width for a log-normal
+  [[#internls][size distribution]].  You may also use *-amean* and *-asig* options to
+  set these values.
   
 ** Wavelength grid
 
@@ -266,11 +268,10 @@ DHS with f_max=0.8.
 
 + =-l FILE= ::
 
-  Read the wavelength grid from =FILE=.  The file may start with
-  comment lines, and the first non-comment line needs to contain the
-  number of wavelength values in the data block below it. In the data
-  block, the first column is expected to hold the wavelength
-  values, in \mu{}m. In particular, an [[#lnk-files][=lnk=]] file could be used here.
+  Read the wavelength grid from =FILE=.  The first non-comment line
+  needs to contain the number of wavelength values. In the data block
+  below it, the first column is expected to hold the wavelength
+  values, in \mu{}m. An [[#lnk-files][=lnk=]] file could be used here!
 
 ** Controlling the output
 
@@ -324,8 +325,7 @@ extend the [[#output-files][output]].
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
 useful list of materials is compiled into =optool=. You can also find
-and use other data.  No matter where the data is from, you should
-/always/ cite the original laboratory papers.
+and use other data.
 
 ** Built-in materials
 :PROPERTIES:
@@ -341,12 +341,11 @@ the few exceptions are highlighted by bold-face numbers.  If a
 material is being used outside of the measured region, =optool= will
 still function, using extrapolated optical properties.
 
-Even the limited number of materials we have selected to include with
-=optool= can be daunting. To get started with some kind of
-standard opacity, we recommend to work with pyroxene \fbox{pyr},
-carbon \fbox{c}, and (at low temperaturs) water ice \fbox{h2o}.
+To get started with some kind of standard opacity, we recommend to
+work with pyroxene \fbox{pyr}, carbon \fbox{c}, and (at low
+temperaturs) water ice \fbox{h2o}.
 
-#+LATEX: \newpage
+#     #+LATEX: \newpage
 # #+begin_center
 # *Table 1:* Built-in materials
 # #+end_center
@@ -491,6 +490,9 @@ normalization of the scattering matrix.
 
 #+LATEX: \newpage
 * Python interface
+:PROPERTIES:
+:CUSTOM_ID: python
+:END:
 
 =optool= comes with a [[https://www.python.org/][=python=]] module =optool.py= that runs =optool=
 in the background[fn:3] and puts all computed quantities as =numpy=
@@ -802,7 +804,17 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 This appendix describes some key aspects of the internal workings of
 the code.
 
-- Refractive Index Data :: Measured refractive index data is obtained
+- Size distribution :: =optool= can use powerlaw and log-normal size
+  distributions out of the box.  Each of these will be subject to a
+  minimum and a maximum grain size. The grain size grid is
+  logarithmic, so $da\propto a$. The powerlaw fills logarithmic
+  size bins according to $n(a)\propto a^{-p+1}$.  The log-normal
+  distribution uses $n(a)\propto
+  \exp\left[-(\log_{10} (a/a_{\rm m})\,/\sigma)^2\right]$.
+  Other size distributions can be constructed using the [[#python][python
+  interface]].
+
+- Refractive index data :: Measured refractive index data is obtained
   from data compiled into the code, or read-in from a file.  That data
   is then interpolated and extrapolated onto the wavelength grid
   requested for the computation. Extrapolation toward short
@@ -891,8 +903,6 @@ the code.
 - If you do not remember how to reproduce a specific run, just check
   the output file header. It contains the exact command that was used to
   produce the file.
-
-#+LATEX: \newpage
 
 * Acknowledgments
 We are indebted to
