@@ -45,6 +45,7 @@ module Defs
   logical, public                :: quiet     = .false. ! reduce output to STDOUT
   logical, public                :: verbose   = .false. ! additional output to STDOUT
   logical, public                :: debug     = .false. ! Additional info to STDOUT
+  logical, public                :: write_sd  = .false. ! Write out the size distribution
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
@@ -445,6 +446,9 @@ program optool
      case('-debug')
         ! More info to STDOUT
         debug = .true.
+     case('-wsd')
+        ! Write the sitze distribution sizedist.dat
+        write_sd = .true.
      case default
         if (arg_is_switch(i)) then
            write(*,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
@@ -536,6 +540,10 @@ program optool
   if (split .and. blendonly) then
      if (.not. quiet) write(*,*) 'WARNING: Turning off -s for -blendonly'
      split = .false.
+  endif
+  if (write_sd .and. split) then
+     if (.not. quiet) write(*,*) "WARNING: Turning off -wsd because of -d, don't know which size distribution to write"
+     write_sd = .false.
   endif
   ! *** Angular grid ***
   if (mod(nang,2) .eq. 1) then
@@ -917,14 +925,16 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
         nr(is)=1.d0*nr(is)/tot
      enddo
   endif
-  open(unit=20,file='sizedist.dat')
-  ! FIXME: Remove this again
-  do is=1,ns
-     nr(is)=1.d0*nr(is)/tot
-     write(20,'(2e15.5)') r(is),nr(is)
-  enddo
-  close(unit=20)
-
+  if (write_sd) then
+     open(unit=20,file='sizedist.dat')
+     write(20,'("#   agrain [um]    n(a)=f(a)dloga")')
+     write(20,*) ns
+     do is=1,ns
+        nr(is)=1.d0*nr(is)/tot
+        write(20,'(2e15.5)') r(is),nr(is)
+     enddo
+     close(unit=20)
+  endif
   
   ! ----------------------------------------------------------------------
   ! Copy the refractory index data for all materials into local arrays
