@@ -120,6 +120,9 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.9.5 ::
+  - Log-normal size distribution is now a standard option, using
+    =AMEAN:SIGMA= insteat of the powerlaw in the *-a* switch.
 
 - Release 1.9.4 ::
   - Improve installation process and instructions.
