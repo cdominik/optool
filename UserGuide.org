@@ -242,7 +242,7 @@ DHS with f_max=0.8.
 
 + =-a AMIN [AMAX [APOW [NA]]]= \hfill{}(powerlaw size distribution) ::
   Specify (minimum) grain radius, and optionally maximum grain radius,
-  the [[#internals][size distribution]] powerlaw and the number of size bins.  You may
+  the [[#internals][size distribution powerlaw]] and the number of size bins.  You may
   also use options to set individual values with *-amin*, *-amax*,
   *-apow*, *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, and
   /10 per size decade with a fixed minimum of 5/, respectively.\\
@@ -250,8 +250,8 @@ DHS with f_max=0.8.
   n_a=1 are implied.
 
 + =-a AMIN AMAX AMEAN:ASIG [NA]= \hfill{} (log-normal size distribution) ::
-  Specify the mean size and the logarithmic width for a log-normal
-  [[#internls][size distribution]].  You may also use *-amean* and *-asig* options to
+  Specify the mean size and the logarithmic width for a
+  [[#internals][log normal size distribution]].  You may also use *-amean* and *-asig* options to
   set these values.
   
 ** Wavelength grid
