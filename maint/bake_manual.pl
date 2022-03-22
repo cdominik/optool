@@ -51,6 +51,7 @@ foreach (@lines) {
     s/}/  /g;
     s/\\fbox/     /g;
   }
+  s/\\hfill\{\}/     /g;
   chomp;
   s/'/ /g;
   s/`/ /g;
