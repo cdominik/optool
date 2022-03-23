@@ -542,7 +542,7 @@ program optool
      split = .false.
   endif
   if (write_sd .and. split) then
-     if (.not. quiet) write(*,*) "WARNING: Turning off -wsd because of -d, don't know which size distribution to write"
+     if (.not. quiet) write(*,*) "WARNING: Turning off -wsd, don't use it with -d"
      write_sd = .false.
   endif
   ! *** Angular grid ***
