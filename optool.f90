@@ -278,7 +278,6 @@ program optool
               if (it .gt. 0) then
                  read(value(1:it-1),*) alna0
                  read(value(it+1:len(value)),*) alnsig
-                 print *,'WARNING: Using log-normal size distribution ',alna0,alnsig
               else if (arg_is_number(i)) then
                  read(value,*) apow
               endif
