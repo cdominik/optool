@@ -494,7 +494,7 @@ program optool
      dum = amin; amin = amax; amax = dum
   endif
   if (apow.lt.0d0) then
-     print *,'WARNING: Negative value for apow. apow=-3 means f(a)~a^(+3)'
+     print *,'WARNING: Unusual negative value for apow. apow=-3 means f(a)~a^(+3)'
   endif
   ! *** Wavelength grid ***
   if ( (lmin.le.0d0) .or. (lmax.le.0d0) ) then
