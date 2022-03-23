@@ -26,6 +26,12 @@ my $tests = [
    getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
+  {name => 'lognormal-lowres',
+   prepare => "rm -f $dir/dustkapscatmat.dat",
+   cmd  => "./optool -q -s -a 0.001 4.9 0.1:1.0 30 -nl 30 -o $dir",
+   getsha => "accuracy",
+   glob => "$dir/dustkapscatmat.dat"},
+
   {name => 'diana-plus-ice-mantle',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -q -c pyr-mg70 0.87 -c c-z 0.13 -m ice-w 0.2 -p 0.25 -s -nl 30 -na 20 -o $dir",
@@ -212,11 +218,12 @@ sub find_accuracy {
 
 __DATA__
 
-# HASHES set on Thu May 13 15:40:47 CEST 2021
+# HASHES set on Wed Mar 23 09:04:46 CET 2022
 
 noscat:::1000:da718bde67::10:da718bde67::9:da718bde67::8:da718bde67::7:da718bde67::6:da718bde67::5:3f4021068e::4:e98093c1d5::3:5523f2812f::2:787172fae1::1:275000a906
 quick:::1000:5edb7ab23d::10:5edb7ab23d::9:5edb7ab23d::8:5edb7ab23d::7:5edb7ab23d::6:5edb7ab23d::5:cac77430ea::4:762a325380::3:176d4b54ec::2:d8187069a7::1:a8814aeede
 full-diana-lowres:::1000:3ea7cb24f1::10:3ea7cb24f1::9:3ea7cb24f1::8:3ea7cb24f1::7:3ea7cb24f1::6:3ea7cb24f1::5:a246d4a9b3::4:5bc5c1ac58::3:e23f6da565::2:608bbbc793::1:ec7788cb46
+lognormal-lowres:::1000:46587e5e53::10:46587e5e53::9:46587e5e53::8:46587e5e53::7:46587e5e53::6:46587e5e53::5:ff91b21175::4:7e60d04fb6::3:4d806f3e8e::2:552ee2ebed::1:401b4da754
 diana-plus-ice-mantle:::1000:1dbd6b4e4a::10:1dbd6b4e4a::9:1dbd6b4e4a::8:1dbd6b4e4a::7:1dbd6b4e4a::6:1dbd6b4e4a::5:eff6e0a5e4::4:b65f5e9337::3:88699024f0::2:307539603c::1:6a8f4c4b8c
 div-in-10-parts:::1000:15b1bde278::10:15b1bde278::9:15b1bde278::8:15b1bde278::7:15b1bde278::6:15b1bde278::5:8ff3a42df3::4:848b47786a::3:9df87d1355::2:2989369c2d::1:97788937cf
 high-angular-resolution:::1000:e84201ec9b::10:e84201ec9b::9:e84201ec9b::8:e84201ec9b::7:e84201ec9b::6:e84201ec9b::5:1e88de0e26::4:fdcfc911f8::3:18e9869eda::2:ef09826527::1:8266231a22
