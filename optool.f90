@@ -1996,7 +1996,8 @@ subroutine write_header (unit,cc,amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
   endif
   write(unit,'(A," Parameters:")') cc
   if (alna0*alnsig .gt. 0) then
-     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",f8.3,f8.3)') &
+!     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",f8.3,f8.3)') &
+     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",g0.4,":",g0.4)') &
           cc,amin, amax, na, alna0, alnsig
   else
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
