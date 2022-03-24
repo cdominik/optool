@@ -80,6 +80,7 @@ $method='dhs';$fmax=.8;$a0=.1;$shape=.2;
 $particle="particle";$particles="particles";
 $grain="grain";$grains="grains";
 $amin=0.05;$amax=3000;$apow=3.5;$nsub=5;
+$amean=0.;$asig=0.;
 
 # ----------------------------------------------------------------------
 # Parse the command line arguments
@@ -112,11 +113,21 @@ while (@ARGV) {
 
   elsif (/^-a$/) {
     # Grain size distribution
-    if (&n) {$amin=&fs;$amax=0;if (&n) {$amax=&fs;if (&n) {$apow=&fs;if (&n) {$na=shift}}}}}
-  elsif (/^-amin$/) {$amin=&fs}
-  elsif (/^-amax$/) {$amax=&fs}
-  elsif (/^-apow$/) {$apow=&fs}
-  elsif (/^-na$/)   {$na=shift}
+    if (&n) {$amin=&fs;$amax=0;if (&n) {$amax=&fs;if (&n2) {$apow=shift;if (&n) {$na=shift}}}}
+    # Check if we need to unpack apow
+    if ($apow =~ /([-+0-9.eE]+):([-+0-9.eE]+)/) {
+      $amean = $1; $asig = $2;
+      $amean = &f($amean); @alnsig = &f($asig)
+    } else {
+      $apow = &f($apow)
+    }
+  }
+  elsif (/^-amin$/)  {$amin=&fs}
+  elsif (/^-amax$/)  {$amax=&fs}
+  elsif (/^-apow$/)  {$apow=&fs}
+  elsif (/^-amean$/) {$amean=&fs}
+  elsif (/^-asig$/)  {$asig=&fs}
+  elsif (/^-na$/)    {$na=shift}
                        
   elsif (/^-l$/) {
     # Wavelengths distribution
@@ -149,6 +160,8 @@ if ($nm == -1) {
 
 # Sort, to make sure core and mantle materials are grouped
 @mat = sort {$$a{'loc'} cmp $$b{'loc'}} @mat;
+
+
 
 # Get database information
 $dbref = &read_DATA();
@@ -323,6 +336,12 @@ is actually an average over $nsub samples around the given size,
 in order to smear out resonances that would otherwise lead to artifacts.\n";
 } elsif ($amax==0) {        # just a single size
   print OUT "We compute the opacity of a grain with size \$a=$amin\\,\\upmu\$m.\n";
+} elsif ($amean*$asig > 0.) { # log-normal distribution average
+  print OUT "The opacities are computed by averaging over
+$grains in a size range $sizecomment
+from $amin to $amax\\,\$\\upmu\$m,
+with a log-normal size distribution \$f(a)\\propto \\frac{1}{a}
+\\exp\\left[ \\left(\\frac{\\log_{10}(a/$amean\\mu\\mathrm{m})}{$asig}\\right)^2\\right]\$.\n";
 } else {                    # we compute a single opacity from all sizes
   $apown = -1*$apow;
   print OUT "The opacities are computed by averaging over
@@ -359,10 +378,12 @@ exit(0);
 # ======================================================================
 # ======================================================================
 
-sub n { is_number($ARGV[0])    }   # next arg is number?
+sub n  { is_number($ARGV[0])    }   # next arg is number?
+sub n2 { is_number2($ARGV[0])    }   # next arg is number?
 sub a { $ARGV[0]=~/^[a-zA-Z]/  }   # next arg is word, not number?
 sub o { $ARGV[0]=~/^-[a-zA-Z]/ }   # next arg is option?
 sub is_number {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?$/}
+sub is_number2 {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?(:-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?)*$/}    
 sub trim {my $s=shift;$s=~s/(^\s+)|(\s+$)//g;return $s}
 sub f {
   # Format a number like one would in text.  For now, we only
