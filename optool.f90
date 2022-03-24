@@ -912,7 +912,7 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
      do is=1,ns
         r(is)=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
         if (alna0*alnsig .gt. 0.d0) then
-           nr(is) = exp(-(alog10(r(is)/alna0)/alnsig)**2) ! log-normal
+           nr(is) = exp(-(alog(r(is)/alna0)/alnsig)**2) ! log-normal
         else
            nr(is) = r(is)**(pow+1d0)                      ! powerlaw
         endif
