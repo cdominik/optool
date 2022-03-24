@@ -810,7 +810,7 @@ the code.
   logarithmic, so $da\propto a$. The powerlaw fills logarithmic
   size bins according to $n(a)\propto a^{-p+1}$.  The log-normal
   distribution uses $n(a)\propto
-  \exp\left[-(\log_{10} (a/a_{\rm m})\,/\sigma)^2\right]$.
+  \exp\left[-(\ln (a/a_{\rm m})\,/\sigma)^2\right]$.
   Other size distributions can be constructed using the [[#python][python
   interface]].
 
