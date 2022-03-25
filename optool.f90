@@ -102,7 +102,7 @@ program optool
   integer         :: na              ! nr of sizes for size distribution
   real (kind=dp)  :: amin,amax       ! min and max size of grains
   real (kind=dp)  :: apow            ! power law index f(a) ~ a^(-apow)
-  real (kind=dp)  :: alna0,alnsig    ! mean and standard deviation for lognormal f(a)
+  real (kind=dp)  :: amean,asig      ! mean and standard deviation for lognormal f(a)
   real (kind=dp)  :: fmax            ! maximum fraction of vaccum for DHS
   real (kind=dp)  :: pcore, pmantle  ! porosity for core and mantle
 
@@ -149,8 +149,8 @@ program optool
   amin           = 0.05_dp    ! micrometer
   amax           = 3000._dp   ! micrometer
   apow           = 3.50_dp    ! a minus sign will be added internally
-  alna0          = 0.         ! a0 in micrometer for log-normal distribution
-  alnsig         = 0.         ! Sigma, not units, for log-normal distribution
+  amean          = 0.         ! a0 in micrometer for log-normal distribution
+  asig           = 0.         ! Sigma, not units, for log-normal distribution
   na             = 0          ! will be computed to 10 per decade
 
   lmin           = 0.05_dp    ! micrometer
@@ -276,8 +276,8 @@ program optool
               i=i+1; call getarg(i,value);
               it=index(value,':')
               if (it .gt. 0) then
-                 read(value(1:it-1),*) alna0
-                 read(value(it+1:len(value)),*) alnsig
+                 read(value(1:it-1),*) amean
+                 read(value(it+1:len(value)),*) asig
               else if (arg_is_number(i)) then
                  read(value,*) apow
               endif
@@ -299,9 +299,9 @@ program optool
      case('-apow','--apow')
         i = i+1; call getarg(i,value); read(value,*) apow
      case('-amean','--amean')
-        i = i+1; call getarg(i,value); read(value,*) alna0
+        i = i+1; call getarg(i,value); read(value,*) amean
      case('-asig','--asig')
-        i = i+1; call getarg(i,value); read(value,*) alnsig
+        i = i+1; call getarg(i,value); read(value,*) asig
      case('-na')
         i = i+1; call getarg(i,value); read(value,*) na
 
@@ -633,7 +633,7 @@ program optool
   ! Write a setup summary to the screen
   ! ----------------------------------------------------------------------
   if (.not. quiet) then
-     call write_header(6,'',amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
+     call write_header(6,'',amin,amax,apow,amean,asig,na,lmin,lmax, &
           pcore,pmantle,0.0d0,fmax,mmf_a0,mmf_struct,mat_mfr,mat_nm)
   endif
 
@@ -650,7 +650,7 @@ program optool
      
      !$OMP parallel do if (split)                                      &
      !$OMP default(none)                                               &
-     !$OMP shared(amin,afact,afsub,nsub,apow,alna0,alnsig)             &
+     !$OMP shared(amin,afact,afsub,nsub,apow,amean,asig)               &
      !$OMP shared(fmax,pcore,pmantle)                                  &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
@@ -674,7 +674,7 @@ program optool
         asplit    = amin  *afact**real(ia-1d0+0.5d0)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
-        call ComputePart(p,aminsplit,amaxsplit,apow,alna0,alnsig,nsub,fmax,mmf_a0,mmf_struct,mmf_kf, &
+        call ComputePart(p,aminsplit,amaxsplit,apow,amean,asig,nsub,fmax,mmf_a0,mmf_struct,mmf_kf, &
              pcore,pmantle,mat_mfr,mat_nm,.false.)
 
         ! Outout is done serially, to avoid file handle conflicts
@@ -689,12 +689,12 @@ program optool
 #ifdef USE_FITSIO
            write(fitsfile,'(A,"_",A,".fits")') "dustkappa",trim(label)
            fitsfile = make_file_path(outdir,fitsfile)
-           call write_fits_file(p,aminsplit,amaxsplit,apow,alna0,alnsig,nsub, &
+           call write_fits_file(p,aminsplit,amaxsplit,apow,amean,asig,nsub, &
                 fmax,pcore,pmantle,mat_nm,mat_mfr,mat_rho,fitsfile)
 #endif
         else
            if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
-           call write_ascii_file(p,aminsplit,amaxsplit,apow,alna0,alnsig,nsub,lmin,lmax, &
+           call write_ascii_file(p,aminsplit,amaxsplit,apow,amean,asig,nsub,lmin,lmax, &
                 fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
                 label,write_scatter,for_radmc,.false.)
         endif
@@ -718,7 +718,7 @@ program optool
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
-     call ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
+     call ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
           pcore,pmantle,mat_mfr,nm,.true.)
      
      ! ----------------------------------------------------------------------
@@ -729,7 +729,7 @@ program optool
      endif
      if (write_fits) then
 #ifdef USE_FITSIO
-        call write_fits_file(p,amin,amax,apow,alna0,alnsig,na, &
+        call write_fits_file(p,amin,amax,apow,amean,asig,na, &
              fmax,pcore,pmantle,mat_nm,mat_mfr,mat_rho,fitsfile)
 #endif
         continue
@@ -737,7 +737,7 @@ program optool
         if (justnum .ne. ' ') then
            call write_to_stdout(p,justnum)
         else
-           call write_ascii_file(p,amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
+           call write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax, &
                 fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
                 radmclbl,write_scatter,for_radmc,.true.)
         endif
@@ -755,7 +755,7 @@ end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
 
-subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
+subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      p_c,p_m,mfrac0,nm,progress)
   ! ----------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
@@ -764,9 +764,9 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
   !   amin       Minimum grain size to consider, in microns
   !   amax       Maximum grain size to consider, in microns
   !   apow       The powerlaw exponent for the size distribution, f(a) ~ a^{-apow}
-  !   alna0      Mean size [um] for log-normal size distribution
+  !   amean      Mean size [um] for log-normal size distribution
   !                  f(a) ~ (1/a) exp(-(log(a/a0)/sig)^2)
-  !   alnsig     Standard deviation for log-normal size distribution
+  !   asig       Standard deviation for log-normal size distribution
   !   na         The number of grains to consider between amin and amax
   !   fmax       The maximum volume fraction of vacuum for the DHS computations
   !   p_c        The porosity of the core, volume fraction of vacuum
@@ -784,7 +784,7 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
   implicit none
 
   real (kind=dp)                 :: amin,amax,apow   ! min and max grain size, and power law exp
-  real (kind=dp)                 :: alna0,alnsig     ! for log-normal size distribution
+  real (kind=dp)                 :: amean,asig       ! for log-normal size distribution
   real (kind=dp)                 :: fmax             ! maximum fraction of vaccum for DHS
   real (kind=dp)                 :: p_c,p_m          ! porosity, core and mantle
 
@@ -911,9 +911,9 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
      ! Size distribution
      do is=1,ns
         r(is)=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
-        if (alna0*alnsig .gt. 0.d0) then
+        if (amean*asig .gt. 0.d0) then
            ! log-normal size distribution
-           expo = (alog(r(is)/alna0)/alnsig)**2
+           expo = (alog(r(is)/amean)/asig)**2
            if (expo > 99d0) then
               nr(is) = 0.d0
            else
@@ -1972,7 +1972,7 @@ subroutine write_to_stdout(p,what)
   enddo
 end subroutine write_to_stdout
 
-subroutine write_header (unit,cc,amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
+subroutine write_header (unit,cc,amin,amax,apow,amean,asig,na,lmin,lmax, &
      pcore,pmantle,rho_av,fmax,a0,struct,mfrac,nm)
   ! ----------------------------------------------------------------------
   ! Write a header describing the full setup of the calculation
@@ -1982,13 +1982,13 @@ subroutine write_header (unit,cc,amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
   implicit none
   integer        :: unit
   integer        :: na,i,nm
-  real (kind=dp) :: amin,amax,apow,alna0,alnsig,lmin,lmax,pcore,pmantle,rho_av
+  real (kind=dp) :: amin,amax,apow,amean,asig,lmin,lmax,pcore,pmantle,rho_av
   real (kind=dp) :: fmax,a0,struct,mfrac(nm)
   real (kind=dp) :: ameans(3)
   character*(*)  :: cc
   character*20   :: sstruct
 
-  call sdmeans(amin,amax,apow,alna0,alnsig,ameans)
+  call sdmeans(amin,amax,apow,amean,asig,ameans)
   write(unit,'(A,"============================================================================")') cc
   write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,ameans
   if (method .eq. 'MMF') then
@@ -2004,10 +2004,10 @@ subroutine write_header (unit,cc,amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
      write(unit,'(A," Method:   ",A3,"  fmax=",f7.3)') cc,method,fmax
   endif
   write(unit,'(A," Parameters:")') cc
-  if (alna0*alnsig .gt. 0) then
+  if (amean*asig .gt. 0) then
 !     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",f8.3,f8.3)') &
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",g0.4,":",g0.4)') &
-          cc,amin, amax, na, alna0, alnsig
+          cc,amin, amax, na, amean, asig
   else
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
   endif
@@ -2034,7 +2034,7 @@ subroutine write_header (unit,cc,amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
   write(unit,'(A,"============================================================================")') cc
 end subroutine write_header
 
-subroutine write_ascii_file(p,amin,amax,apow,alna0,alnsig,na,lmin,lmax,fmax,a0,struct,pcore,pmantle,&
+subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,struct,pcore,pmantle,&
      mfrac,nm,label,scatter,for_radmc,progress)
   ! ----------------------------------------------------------------------
   ! Write an ASCII file with opacaties.
@@ -2046,7 +2046,7 @@ subroutine write_ascii_file(p,amin,amax,apow,alna0,alnsig,na,lmin,lmax,fmax,a0,s
   ! ----------------------------------------------------------------------
   use Defs
   implicit none
-  real (kind=dp) :: amin,amax,apow,alna0,alnsig,fmax,a0,struct,pcore,pmantle,mfrac(nm)
+  real (kind=dp) :: amin,amax,apow,amean,asig,fmax,a0,struct,pcore,pmantle,mfrac(nm)
   real (kind=dp) :: lmin,lmax,f
   type(particle) :: p
   integer        :: na,i,ilam,iang,nm,i1,i2
@@ -2084,7 +2084,7 @@ subroutine write_ascii_file(p,amin,amax,apow,alna0,alnsig,na,lmin,lmax,fmax,a0,s
 
      if (progress .and. .not. quiet) write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
-     call write_header(20,'#',amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
+     call write_header(20,'#',amin,amax,apow,amean,asig,na,lmin,lmax, &
           pcore,pmantle,p%rho,fmax,a0,struct,mfrac,nm)
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkappa, no scattering matrix")')
@@ -2106,7 +2106,7 @@ subroutine write_ascii_file(p,amin,amax,apow,alna0,alnsig,na,lmin,lmax,fmax,a0,s
 
      if (progress) write(*,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
-     call write_header(20,'#',amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
+     call write_header(20,'#',amin,amax,apow,amean,asig,na,lmin,lmax, &
           pcore,pmantle,p%rho,fmax,a0,struct,mfrac,nm)
      if (for_radmc) then
         write(20,'("# Output file formatted for RADMC-3D, dustkapscatmat, RADMC normalization")')
@@ -2214,7 +2214,7 @@ subroutine write_ascii_file(p,amin,amax,apow,alna0,alnsig,na,lmin,lmax,fmax,a0,s
 end subroutine write_ascii_file
 
 #ifdef USE_FITSIO
-subroutine write_fits_file(p,amin,amax,apow,alna0,alnsig,na, &
+subroutine write_fits_file(p,amin,amax,apow,amean,asig,na, &
      fmax,pcore,pmantle, &
      nm,mfrac,rho,fitsfile)
   ! ----------------------------------------------------------------------
@@ -2224,7 +2224,7 @@ subroutine write_fits_file(p,amin,amax,apow,alna0,alnsig,na, &
   ! ----------------------------------------------------------------------
   use Defs
   implicit none
-  real (kind=dp) :: amin,amax,apow,alna0,alnsig,fmax,pcore,pmantle
+  real (kind=dp) :: amin,amax,apow,amean,asig,fmax,pcore,pmantle
   real (kind=dp) :: mfrac(nm),rho(nm)
   logical blend
   character*6 word
@@ -2271,7 +2271,7 @@ subroutine write_fits_file(p,amin,amax,apow,alna0,alnsig,na, &
   call ftpkye(unit,'r_pow',real(apow),8,'',status)
   call ftpkye(unit,'f_max',real(fmax),8,'',status)
 
-  call sdmeans(amin,amax,apow,alna0,alnsig,ameans)
+  call sdmeans(amin,amax,apow,amean,asig,ameans)
   a1 = ameans(1)
   call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
   !  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
