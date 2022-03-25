@@ -822,7 +822,7 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
   real (kind=dp)                 :: csmie, cemie
   real (kind=dp)                 :: theta
 
-  real (kind=dp)                 :: aminlog,amaxlog,pow
+  real (kind=dp)                 :: aminlog,amaxlog,pow,expo
   real (kind=dp)                 :: rad,r1,rcore
   real (kind=dp)                 :: tot,tot2,mtot,vtot
   real (kind=dp)                 :: mass,vol,V
@@ -908,13 +908,20 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
      nr(1) = r(1)**(pow+1d0) ! should be 1/r(1)^3 ???  Not important.
   else
      tot = 0d0
-     ! Power-law size distribution
+     ! Size distribution
      do is=1,ns
         r(is)=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
         if (alna0*alnsig .gt. 0.d0) then
-           nr(is) = exp(-(alog(r(is)/alna0)/alnsig)**2)   ! log-normal
+           ! log-normal size distribution
+           expo = (alog(r(is)/alna0)/alnsig)**2
+           if (expo > 99d0) then
+              nr(is) = 0.d0
+           else
+              nr(is) = exp(-1.0*expo)   
+           endif
         else
-           nr(is) = r(is)**(pow+1d0)                      ! powerlaw
+           ! powerlaw size distribution
+           nr(is) = r(is)**(pow+1d0)
         endif
         ! With -d, each computation is only a piece of the size grid
         if (r(is).lt.amin .or. r(is).gt.amax) nr(is) = 0.0_dp
@@ -931,9 +938,10 @@ subroutine ComputePart(p,amin,amax,apow,alna0,alnsig,na,fmax,mmf_a0,mmf_struct,m
      write(20,*) ns
      do is=1,ns
         nr(is)=1.d0*nr(is)/tot
-        write(20,'(2e15.5)') r(is),nr(is)
+        write(20,'(2e18.5e4)') r(is),nr(is)
      enddo
      close(unit=20)
+     stop
   endif
   
   ! ----------------------------------------------------------------------
