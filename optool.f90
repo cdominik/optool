@@ -2360,13 +2360,14 @@ end subroutine write_fits_file
 
 subroutine sdmeans(a1,a2,p,mn,sig,ameans)
   ! Compute the moments of the size disribution
-  ! The results are returned in AMEANS, an array of three: <a>, <a^2>, <a^3>
+  ! The results are returned in AMEANS, an array of three: <a>, <a^2>**(1/2), <a^3>**(1/3)
   ! a1      minimum grain radius
   ! a2      maximum grain radius
   ! p       powerlaw for grain size distribution f(a) ~ a^(-p)
   ! mn      mean size for log-normal size distribution f(a) ~ (1/a) exp( ((log a/a0)/sig)**2 )
   ! sig     sigma for log-normal size distribution
-  ! ameans  vector of r, r^2 and r^3 weighted mean grain sizes
+  ! If both mn and sig are nonzero and the product is positive, we use
+  ! the log-normal size distribution.  If not, we use the powerlaw.
   implicit none
   integer, parameter     :: dp = selected_real_kind(P=15)
   integer, parameter     :: ns = 1000
