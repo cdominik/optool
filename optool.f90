@@ -1984,13 +1984,13 @@ subroutine write_header (unit,cc,amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
   integer        :: na,i,nm
   real (kind=dp) :: amin,amax,apow,alna0,alnsig,lmin,lmax,pcore,pmantle,rho_av
   real (kind=dp) :: fmax,a0,struct,mfrac(nm)
-  real (kind=dp) :: amean(3)
+  real (kind=dp) :: ameans(3)
   character*(*)  :: cc
   character*20   :: sstruct
 
-  call plmeans(amin,amax,apow,amean)   ! FIXME: This will be incorrect for log-normal
+  call sdmeans(amin,amax,apow,alna0,alnsig,ameans)
   write(unit,'(A,"============================================================================")') cc
-  write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,amean
+  write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,ameans
   if (method .eq. 'MMF') then
      if (struct.gt.1.d0) then
         sstruct = '(fractal dimension)'
@@ -2232,7 +2232,7 @@ subroutine write_fits_file(p,amin,amax,apow,alna0,alnsig,na, &
   type(particle) p
   integer nm,na,i,j,nm2
   real (kind=dp),allocatable :: array(:,:,:)
-  real (kind=dp) :: amean(3)
+  real (kind=dp) :: ameans(3)
 
   integer status,unit,blocksize,bitpix,naxis,naxes(3)
   integer group,fpixel,nelements
@@ -2271,8 +2271,8 @@ subroutine write_fits_file(p,amin,amax,apow,alna0,alnsig,na, &
   call ftpkye(unit,'r_pow',real(apow),8,'',status)
   call ftpkye(unit,'f_max',real(fmax),8,'',status)
 
-  call plmeans(amin,amax,apow,amean)    ! FIXME: This will be incorrect for log-normal
-  a1 = amean(1)
+  call sdmeans(amin,amax,apow,alna0,alnsig,ameans)
+  a1 = ameans(1)
   call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
   !  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
 
@@ -2358,35 +2358,55 @@ subroutine write_fits_file(p,amin,amax,apow,alna0,alnsig,na, &
 end subroutine write_fits_file
 #endif
 
-subroutine plmeans(a1,a2,p,amean)
-  ! Compute the moments of the size disribution f(a) ~ a^(-p)
-  ! The results are returned in AMEAN, an array of three: <a>, <a^2>, <a^3>
+subroutine sdmeans(a1,a2,p,mn,sig,ameans)
+  ! Compute the moments of the size disribution
+  ! The results are returned in AMEANS, an array of three: <a>, <a^2>, <a^3>
+  ! a1      minimum grain radius
+  ! a2      maximum grain radius
+  ! p       powerlaw for grain size distribution f(a) ~ a^(-p)
+  ! mn      mean size for log-normal size distribution f(a) ~ (1/a) exp( ((log a/a0)/sig)**2 )
+  ! sig     sigma for log-normal size distribution
+  ! ameans  vector of r, r^2 and r^3 weighted mean grain sizes
   implicit none
   integer, parameter     :: dp = selected_real_kind(P=15)
-  real (kind=dp) :: a1,a2,p,amean(3),e1,e2,e3,numerator,denominator
-  integer :: n
-  if (abs((a2-a1)/a1) .lt. 1d-6) then
-     amean(1) = a1; amean(2) = a1; amean(3) = a1
-  else 
-     e2 = 1.d0-p
-     if (abs(e2).lt.1e-3) then
-        denominator = log(a2)-log(a1)
-     else
-        denominator = (a2**e2-a1**e2)/e2
-     endif
-     do n=1,3
-        e1 = 1.d0-p+n
-        e3 = 1.d0/n
-        if (abs(e1).lt.1e-3) then
-           numerator = log(a2)-log(a1)
-        else
-           numerator  = (a2**e1-a1**e1)/e1
-        endif
-        amean(n) = (numerator/denominator)**e3
-     enddo
-  endif
-end subroutine plmeans
+  integer, parameter     :: ns = 1000
+  real (kind=dp) :: a1,a2,p,mn,sig,ameans(3)
+  real (kind=dp) :: r,nr,tot(3),totn
+  real (kind=dp) :: aminlog,amaxlog,expo,pow
+  integer :: n,is
 
+  aminlog = log10(a1)
+  amaxlog = log10(a2)
+  pow = -p
+
+  if (abs((a2-a1)/a1) .lt. 1d-6) then
+     ameans(1) = a1; ameans(2) = a1; ameans(3) = a1
+  else 
+     tot(1) = 0.d0; tot(2) = 0.d0; tot(3) = 0.d0
+     do is=1,ns
+        r=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
+        if (mn*sig .gt. 0.d0) then
+           ! log-normal size distribution
+           expo = (alog(r/mn)/sig)**2
+           if (expo > 99d0) then
+              nr = 0.d0
+           else
+              nr = exp(-1.0*expo)   
+           endif
+        else
+           ! powerlaw size distribution
+           nr = r**(pow+1d0)
+        endif
+        totn = totn+nr
+        tot(1) = tot(1) + nr*r
+        tot(2) = tot(2) + nr*r**2
+        tot(3) = tot(3) + nr*r**3
+     enddo
+     ameans(1) = tot(1)/totn
+     ameans(2) = sqrt(tot(2)/totn)
+     ameans(3) = (tot(3)/totn)**(1.d0/3.d0)
+  endif
+end subroutine sdmeans
 
 !!! **** File Variables
 
