@@ -1988,7 +1988,7 @@ subroutine write_header (unit,cc,amin,amax,apow,alna0,alnsig,na,lmin,lmax, &
   character*(*)  :: cc
   character*20   :: sstruct
 
-  call plmeans(amin,amax,apow,amean)   ! ????????? How to deal with log-normal
+  call plmeans(amin,amax,apow,amean)   ! FIXME: This will be incorrect for log-normal
   write(unit,'(A,"============================================================================")') cc
   write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,amean
   if (method .eq. 'MMF') then
@@ -2271,7 +2271,7 @@ subroutine write_fits_file(p,amin,amax,apow,alna0,alnsig,na, &
   call ftpkye(unit,'r_pow',real(apow),8,'',status)
   call ftpkye(unit,'f_max',real(fmax),8,'',status)
 
-  call plmeans(amin,amax,apow,amean)
+  call plmeans(amin,amax,apow,amean)    ! FIXME: This will be incorrect for log-normal
   a1 = amean(1)
   call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
   !  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
