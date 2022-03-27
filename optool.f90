@@ -263,6 +263,7 @@ program optool
         if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); call uread(value,amax)
            if (amax .lt. 0d0) then
+              ! FIXME: Take this out?
               if (amin+amax .le. 0d0) then
                  write(*,'(" ERROR: delta a cannot be larger than a: ",F10.2,F10.2)') amin,amax
                  stop
@@ -911,9 +912,13 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
      ! Size distribution
      do is=1,ns
         r(is)=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
-        if (amean*asig .gt. 0.d0) then
-           ! log-normal size distribution
-           expo = 0.5*(alog(r(is)/amean)/asig)**2
+        if (abs(amean*asig) .gt. 0.d0) then
+           ! log-normal or normal size distribution
+           if (asig .lt. 0.d0) then      ! Normal distribution
+              expo = 0.5*((r(is)-amean)/asig)**2
+           else                          ! log-normal distribution
+              expo = 0.5*(alog(r(is)/amean)/asig)**2
+           endif
            if (expo > 99d0) then
               nr(is) = 0.d0
            else
@@ -2004,11 +2009,16 @@ subroutine write_header (unit,cc,amin,amax,apow,amean,asig,na,lmin,lmax, &
      write(unit,'(A," Method:   ",A3,"  fmax=",f7.3)') cc,method,fmax
   endif
   write(unit,'(A," Parameters:")') cc
-  if (amean*asig .gt. 0) then
-!     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",f8.3,f8.3)') &
+  if ((amean.gt.0d0) .and. (asig .gt. 0.d0)) then
+     ! log-normal size distribution
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",g0.4,":",g0.4)') &
           cc,amin, amax, na, amean, asig
+  else if ((amean.gt.0d0) .and. (asig .lt. 0.d0)) then
+     ! normal size distribution
+     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    norm=",g0.4,":",g0.4)') &
+          cc,amin, amax, na, amean, asig
   else
+     ! power-law size distribution
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
   endif
   write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f11.3,"  nlam=",I5,"    nang=",I6)') cc,lmin, lmax, nlam, nang
@@ -2364,8 +2374,8 @@ subroutine sdmeans(a1,a2,p,mn,sig,ameans)
   ! a1      minimum grain radius
   ! a2      maximum grain radius
   ! p       powerlaw for grain size distribution f(a) ~ a^(-p)
-  ! mn      mean size for log-normal size distribution f(a) ~ (1/a) exp( ((log a/a0)/sig)**2 )
-  ! sig     sigma for log-normal size distribution
+  ! mn      mean size for (log-)normal size distribution f(a) ~ (1/a) exp( ((log a/a0)/sig)**2 )
+  ! sig     sigma for (log-)normal size distribution
   ! If both mn and sig are nonzero and the product is positive, we use
   ! the log-normal size distribution.  If not, we use the powerlaw.
   implicit none
@@ -2386,13 +2396,17 @@ subroutine sdmeans(a1,a2,p,mn,sig,ameans)
      tot(1) = 0.d0; tot(2) = 0.d0; tot(3) = 0.d0
      do is=1,ns
         r=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
-        if (mn*sig .gt. 0.d0) then
-           ! log-normal size distribution
-           expo = 0.5*(alog(r/mn)/sig)**2
+        if (abs(mn*sig) .gt. 0.d0) then
+           ! normal or log-normal size distribution
+           if (sig.gt.0d0) then  ! normal
+              expo = 0.5*((r-mn)/sig)**2
+           else                  ! log-normal
+              expo = 0.5*(alog(r/mn)/sig)**2
+           endif
            if (expo > 99d0) then
               nr = 0.d0
            else
-              nr = exp(-1.0*expo)   
+              nr = exp(-1.0*expo)
            endif
         else
            ! powerlaw size distribution
@@ -2403,6 +2417,7 @@ subroutine sdmeans(a1,a2,p,mn,sig,ameans)
         tot(2) = tot(2) + nr*r**2
         tot(3) = tot(3) + nr*r**3
      enddo
+     if (totn .eq. 0.d0) totn = 1.d0
      ameans(1) = tot(1)/totn
      ameans(2) = sqrt(tot(2)/totn)
      ameans(3) = (tot(3)/totn)**(1.d0/3.d0)

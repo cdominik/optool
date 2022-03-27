@@ -60,10 +60,10 @@ class particle:
              Number of sizes averaged for each particle
         apow : float[np]
              Negative size distribution power law (e.g. 3.5)
-        alna0 : float[np]
-             Mean size for log-nornal size distribution
-        alnsig : float[np]
-             Standard deviation for log-normal distribution
+        amean : float[np]
+             Mean size for (log-)nornal size distributions
+        asig : float[np]
+             Standard deviation for (log-)normal distribution
         a1 : float[np]
             Mean grain radius
         a2 : float[np]
@@ -327,8 +327,8 @@ class particle:
         x.amax    = x.amax[i:j]
         x.nsub    = x.nsub[i:j]
         x.apow    = x.apow[i:j]
-        x.alna0   = x.alna0[i:j]
-        x.alnsig  = x.alnsig[i:j]
+        x.amean   = x.amean[i:j]
+        x.asig    = x.asig[i:j]
         x.a1      = x.a1[i:j]
         x.a2      = x.a2[i:j]
         x.a3      = x.a3[i:j]
@@ -385,8 +385,8 @@ class particle:
         x.amax    = x.a1[-1:]
         x.nsub    = self.nsub[0]*self.np
         x.apow    = x.apow[0:1]
-        x.alna0   = x.alna0[0:1]
-        x.alnsig  = x.alnsig[0:1]
+        x.amean   = x.amean[0:1]
+        x.asig    = x.asig[0:1]
         x.a1 = x.a2 = x.a3 = -1;
         x.rho     = x.rho[0:1]
         x.chop    = x.chop[0:1]
@@ -653,8 +653,8 @@ class particle:
         if (x.amax    != o.amax   ): x.amax    = -1
         if (x.nsub    != o.nsub   ): x.nsub    = -1
         if (x.apow    != o.apow   ): x.apow    = -1
-        if (x.alna0   != o.alna0  ): x.alna0   = -1
-        if (x.alnsig  != o.alnsig ): x.alnsig  = -1
+        if (x.amean   != o.amean  ): x.amean   = -1
+        if (x.asig    != o.asig   ): x.asig    = -1
         if (x.rho     != o.rho    ): x.rho     = -1
         if (x.chop    != o.chop   ): x.chop    = -1
         x.a1,x.a2,x.a3 = -1,-1,-1
@@ -997,7 +997,7 @@ def parse_headers(headers,b):
     # Extract information on run parameters from headers
     n = len(headers)
     b.amin  = np.zeros(n); b.amax = np.zeros(n);
-    b.apow  = np.zeros(n); b.alna0 = np.zeros(n); b.alnsig = np.zeros(n);
+    b.apow  = np.zeros(n); b.amean = np.zeros(n); b.asig = np.zeros(n);
     b.a1    = np.zeros(n); b.a2 = np.zeros(n); b.a3 = np.zeros(n);
     b.nsub  = np.zeros(n,dtype=np.int8)
     b.pcore = np.zeros(n); b.pmantle = np.zeros(n); b.fmax = np.zeros(n);
@@ -1029,9 +1029,9 @@ def parse_headers(headers,b):
     if m:
         b.apow[i]=float(m.group(1))
     # lgnm may or may not be present, so we need to test
-    m = re.search(r" lgnm\s*=\s*(-?[0-9.]+):(-?[0-9.]+)",headers[0])
+    m = re.search(r" (lgnm|norm)\s*=\s*(-?[-0-9.eE]+):(-?[-0-9.eE]+)",headers[0])
     if m:
-        b.alna0[i]=float(m.group(1)); b.alnsig[i]=float(m.group(2))
+        b.amean[i]=float(m.group(2)); b.asig[i]=float(m.group(3))
     m = re.search(r" porosity\s*=\s*([0-9.]+)",headers[0])
     b.pcore[i]=float(m.group(1))
     m = re.search(r" p_mantle\s*=\s*(-?[0-9.]+)",headers[0])
