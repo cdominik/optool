@@ -218,13 +218,12 @@ sub find_accuracy {
 
 __DATA__
 
-
-# HASHES set on Fri Mar 25 13:20:00 CET 2022
+# HASHES set on Sun Mar 27 06:03:15 CEST 2022
 
 noscat:::1000:077bd185ef::10:077bd185ef::9:077bd185ef::8:077bd185ef::7:077bd185ef::6:077bd185ef::5:a0e06da804::4:bdf2b3c38b::3:0170e29183::2:6d765fd545::1:735d6b4bfc
 quick:::1000:a249e33c13::10:a249e33c13::9:a249e33c13::8:a249e33c13::7:a249e33c13::6:a249e33c13::5:806d4b1bbc::4:abe3f69e71::3:8c5c50d5a4::2:d16721d259::1:14d89d1054
 full-diana-lowres:::1000:7070acaeaa::10:7070acaeaa::9:7070acaeaa::8:7070acaeaa::7:7070acaeaa::6:7070acaeaa::5:230b165f34::4:07b1088604::3:4b40e25219::2:e032d8624a::1:4ba2dd4760
-lognormal-lowres:::1000:b96ed289f6::10:b96ed289f6::9:b96ed289f6::8:b96ed289f6::7:b96ed289f6::6:b96ed289f6::5:bee54f27e0::4:a43d0dc6d5::3:042e54807f::2:bf80c9649d::1:c3a7b40f49
+lognormal-lowres:::1000:9a5463a7e7::10:9a5463a7e7::9:9a5463a7e7::8:9a5463a7e7::7:9a5463a7e7::6:9a5463a7e7::5:cd403588ab::4:97dc5f6674::3:166e6697c7::2:1c5bebd5c1::1:394ce026d4
 diana-plus-ice-mantle:::1000:513a252da4::10:513a252da4::9:513a252da4::8:513a252da4::7:513a252da4::6:513a252da4::5:ccdee59d3d::4:3c418647fe::3:eaa9538293::2:68059b4c9d::1:74d047f164
 div-in-10-parts:::1000:acce7c2fe4::10:acce7c2fe4::9:acce7c2fe4::8:acce7c2fe4::7:acce7c2fe4::6:acce7c2fe4::5:93f5da2375::4:620a92bb5d::3:7fae3c9644::2:44b39c4d52::1:97788937cf
 high-angular-resolution:::1000:de72aef699::10:de72aef699::9:de72aef699::8:de72aef699::7:de72aef699::6:de72aef699::5:453a236f12::4:d73340af63::3:dcd9b16702::2:d4d74ce802::1:9390bb469b

@@ -919,6 +919,8 @@ We are indebted to
   ([[https://github.com/dullemond/interactive_plot][available on github]]).
 - Gabriel-Dominique Marleau for testing and feedback, in particular on
   =optool2tex=.
+- Thiébaut Schirmer for triggering the addition of a log-normal size
+  distribution.
 
 * Bibliography
 #+LATEX: \footnotesize
