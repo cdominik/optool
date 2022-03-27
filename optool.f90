@@ -913,11 +913,11 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
         r(is)=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
         if (amean*asig .gt. 0.d0) then
            ! log-normal size distribution
-           expo = (alog(r(is)/amean)/asig)**2
+           expo = 0.5*(alog(r(is)/amean)/asig)**2
            if (expo > 99d0) then
               nr(is) = 0.d0
            else
-              nr(is) = exp(-1.0*expo)   
+              nr(is) = exp(-1.0*expo)
            endif
         else
            ! powerlaw size distribution
@@ -2388,7 +2388,7 @@ subroutine sdmeans(a1,a2,p,mn,sig,ameans)
         r=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
         if (mn*sig .gt. 0.d0) then
            ! log-normal size distribution
-           expo = (alog(r/mn)/sig)**2
+           expo = 0.5*(alog(r/mn)/sig)**2
            if (expo > 99d0) then
               nr = 0.d0
            else

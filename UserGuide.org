@@ -658,7 +658,7 @@ log-normal size distribution for the silicate grains, with a
 peak abundance at a size of a_m=1.3 microns, and a logarithmic width
 of \sigma=1.2:
 #+begin_src python
-sil_ln = sil.sizedist( np.exp( (np.log(sil.a1/1.3)/1.2)**2) )
+sil_ln = sil.sizedist( np.exp( -0.5*(np.log(sil.a1/1.3)/1.2)**2) )
 sil_ln.write('dkap_ln.dat')       # write opacity to a file
 #+end_src
 
@@ -810,7 +810,7 @@ the code.
   logarithmic, so $da\propto a$. The powerlaw fills logarithmic
   size bins according to $n(a)\propto a^{-p+1}$.  The log-normal
   distribution uses $n(a)\propto
-  \exp\left[-(\ln (a/a_{\rm m})\,/\sigma)^2\right]$.
+  \exp\left[-\frac{1}{2}(\ln (a/a_{\rm m})\,/\sigma)^2\right]$.
   Other size distributions can be constructed using the [[#python][python
   interface]].
 
