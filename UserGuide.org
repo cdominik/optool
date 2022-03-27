@@ -249,10 +249,11 @@ DHS with f_max=0.8.
   =>= If only a single size is specified with *-a*, then a_max=a_min and
   n_a=1 are implied.
 
-+ =-a AMIN AMAX AMEAN:ASIG [NA]= \hfill{} (log-normal size distribution) ::
-  Specify the mean size and the logarithmic width for a
-  [[#internals][log normal size distribution]].  You may also use *-amean* and *-asig* options to
-  set these values.
++ =-a AMIN AMAX AMEAN:ASIG [NA]= \hfill{} ([log-]normal size distribution) ::
+  Specify centroid size and logarithmic width for a [[#internals][log-normal
+  size distribution]]. You may also use *-amean* and *-asig* options to
+  set these values. If =ASIG= is negative, its value is in \mu{}m and
+  it then triggers a [[#internals][normal distribution around =AMEAN=]].
   
 ** Wavelength grid
 
@@ -514,48 +515,49 @@ be arrays with the first dimension equal to $n_p$, even if
 $n_p=1$. The resulting object will have the following attributes:
 
 #+ATTR_LATEX: :font \small  :align llp{7cm}
-| *Attribute*         | *Type/Shape*          | *Quantity*                                      |
-|---------------------+-----------------------+-------------------------------------------------|
-| =cmd=               | =string=              | The full command given in the particle() call   |
-|---------------------+-----------------------+-------------------------------------------------|
-| =radmc=             | =boolean=             | Output follows RADMC conventions                |
-| =scat=              | =boolean=             | Scattering matrix is available                  |
-|---------------------+-----------------------+-------------------------------------------------|
-| =nlam=              | =int=                 | Number of wavelength points                     |
-| =lam=               | =float[nlam]=         | The wavelength grid                             |
-| =nang=              | =int=                 | Number of scattering angles                     |
-| =scatang=           | =float[nang]=         | The angular grid                                |
-|---------------------+-----------------------+-------------------------------------------------|
-| =materials=         | =[[[...]...]... ]=    | Lists with [location,m_{frac},\rho,material]    |
-|---------------------+-----------------------+-------------------------------------------------|
-| =np=                | =int=                 | Number of particles, either 1 or (with -d) n_a  |
-|---------------------+-----------------------+-------------------------------------------------|
-| =fmax=              | =float[np]=           | Maximum volume fraction of vacuum for DHS       |
-| =pcore=, =pmantle=  | =float[np]=           | Porosity of the core/mantle material            |
-|---------------------+-----------------------+-------------------------------------------------|
-| =amin=, =amax=      | =float[np]=           | min/max grain size used for each particle       |
-| =nsub=              | =int[np]=             | Number of sizes averaged for each particle      |
-| =apow=              | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
-| =a1=, =a2=, =a3=    | =float[np]=           | Mean <a>, $\sqrt{<a^2>}$, and $\sqrt[3]{<a^3>}$ |
-| =rho=               | =float[np]=           | Specific density of grains                      |
-|---------------------+-----------------------+-------------------------------------------------|
-| =kabs,ksca,kext=    | =float[np,nlam]=      | Absorption,scattering,extinction cross section  |
-| =gsca=              | =float[np,nlam]=      | Asymmetry parameter                             |
-|---------------------+-----------------------+-------------------------------------------------|
-| =f11=, ..., =f44=   | =float[np,nlam,nang]= | Scattering matrix element F_11, ... ,F_44       |
-| =chop=              | =float[np]=           | Degrees chopped off forward scattering          |
-|---------------------+-----------------------+-------------------------------------------------|
-| =plot()=            | =method=              | Plot the cross sections and matrix elements     |
-|---------------------+-----------------------+-------------------------------------------------|
-| =computemean()=     | =method=              | Compute Planck/Rosseland mean opacities         |
-| =tmin,tmax,ntemp=   | =float,float,int=     | Temperature grid for mean opacities             |
-| =temp=              | =float[ntemp]=        | Temperatures used for mean opacities            |
-| =kplanck,kross=     | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
-|---------------------+-----------------------+-------------------------------------------------|
-| =norm=              | =string=              | Current scattering matrix normalization         |
-| =scatnorm()=        | =method=              | Check/change scat. matrix normalization         |
-|---------------------+-----------------------+-------------------------------------------------|
-| =sizedist()=        | =method=              | Sum opacities over a size distribution          |
+| *Attribute*        | *Type/Shape*          | *Quantity*                                      |
+|--------------------+-----------------------+-------------------------------------------------|
+| =cmd=              | =string=              | The full command given in the particle() call   |
+|--------------------+-----------------------+-------------------------------------------------|
+| =radmc=            | =boolean=             | Output follows RADMC conventions                |
+| =scat=             | =boolean=             | Scattering matrix is available                  |
+|--------------------+-----------------------+-------------------------------------------------|
+| =nlam=             | =int=                 | Number of wavelength points                     |
+| =lam=              | =float[nlam]=         | The wavelength grid                             |
+| =nang=             | =int=                 | Number of scattering angles                     |
+| =scatang=          | =float[nang]=         | The angular grid                                |
+|--------------------+-----------------------+-------------------------------------------------|
+| =materials=        | =[[[...]...]... ]=    | Lists with [location,m_{frac},\rho,material]    |
+|--------------------+-----------------------+-------------------------------------------------|
+| =np=               | =int=                 | Number of particles, either 1 or (with -d) n_a  |
+|--------------------+-----------------------+-------------------------------------------------|
+| =fmax=             | =float[np]=           | Maximum volume fraction of vacuum for DHS       |
+| =pcore=, =pmantle= | =float[np]=           | Porosity of the core/mantle material            |
+|--------------------+-----------------------+-------------------------------------------------|
+| =amin=, =amax=     | =float[np]=           | min/max grain size used for each particle       |
+| =nsub=             | =int[np]=             | Number of sizes averaged for each particle      |
+| =apow=             | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
+| =amean=, =asig=    | =float[np]=           | Centroid and width of (log-)normal distrbution  |
+| =a1=, =a2=, =a3=   | =float[np]=           | Mean <a>, $\sqrt{<a^2>}$, and $\sqrt[3]{<a^3>}$ |
+| =rho=              | =float[np]=           | Specific density of grains                      |
+|--------------------+-----------------------+-------------------------------------------------|
+| =kabs,ksca,kext=   | =float[np,nlam]=      | Absorption,scattering,extinction cross section  |
+| =gsca=             | =float[np,nlam]=      | Asymmetry parameter                             |
+|--------------------+-----------------------+-------------------------------------------------|
+| =f11=, ..., =f44=  | =float[np,nlam,nang]= | Scattering matrix element F_11, ... ,F_44       |
+| =chop=             | =float[np]=           | Degrees chopped off forward scattering          |
+|--------------------+-----------------------+-------------------------------------------------|
+| =plot()=           | =method=              | Plot the cross sections and matrix elements     |
+|--------------------+-----------------------+-------------------------------------------------|
+| =computemean()=    | =method=              | Compute Planck/Rosseland mean opacities         |
+| =tmin,tmax,ntemp=  | =float,float,int=     | Temperature grid for mean opacities             |
+| =temp=             | =float[ntemp]=        | Temperatures used for mean opacities            |
+| =kplanck,kross=    | =float[np,ntemp]=     | Mean opacities, after calling =computemean()=   |
+|--------------------+-----------------------+-------------------------------------------------|
+| =norm=             | =string=              | Current scattering matrix normalization         |
+| =scatnorm()=       | =method=              | Check/change scat. matrix normalization         |
+|--------------------+-----------------------+-------------------------------------------------|
+| =sizedist()=       | =method=              | Sum opacities over a size distribution          |
 
 #+CAPTION: Screenshot of plots created by running =p.plot()= on an optool particle.
 #+ATTR_LATEX: :width 14.8cm :options angle=0
@@ -804,15 +806,18 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 This appendix describes some key aspects of the internal workings of
 the code.
 
-- Size distribution :: =optool= can use powerlaw and log-normal size
-  distributions out of the box.  Each of these will be subject to a
-  minimum and a maximum grain size. The grain size grid is
-  logarithmic, so $da\propto a$. The powerlaw fills logarithmic
-  size bins according to $n(a)\propto a^{-p+1}$.  The log-normal
-  distribution uses $n(a)\propto
-  \exp\left[-\frac{1}{2}(\ln (a/a_{\rm m})\,/\sigma)^2\right]$.
+- Size distribution :: =optool= implements powerlaw, log-normal, and
+  normal size distributions.  Each of these will be
+  subject to a minimum and a maximum grain size. The grain size grid
+  is logarithmic, so $da\propto a$. The logarithmic bins are then
+  filled according to:
+  | powerlaw                            | \quad $n(a)\propto a^{-p+1}$                                                               |
+  | log-normal, triggered by $\sigma>0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
+  | normal, triggered by $\sigma<0$     | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_m}{\sigma}\right)^2\right]$       |
   Other size distributions can be constructed using the [[#python][python
-  interface]].
+  interface]].  A normal distribution is not sampled symmetrically on a
+  logarithmic size grid - please make sure your samling is fine enough
+  around the mean size.
 
 - Refractive index data :: Measured refractive index data is obtained
   from data compiled into the code, or read-in from a file.  That data
