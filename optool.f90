@@ -2009,11 +2009,11 @@ subroutine write_header (unit,cc,amin,amax,apow,amean,asig,na,lmin,lmax, &
      write(unit,'(A," Method:   ",A3,"  fmax=",f7.3)') cc,method,fmax
   endif
   write(unit,'(A," Parameters:")') cc
-  if ((amean.gt.0d0) .and. (asig .gt. 0.d0)) then
+  if ((amean.gt.0d0) .and. (asig.gt.0.d0)) then
      ! log-normal size distribution
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",g0.4,":",g0.4)') &
           cc,amin, amax, na, amean, asig
-  else if ((amean.gt.0d0) .and. (asig .lt. 0.d0)) then
+  else if ((amean.gt.0d0) .and. (asig.lt.0.d0)) then
      ! normal size distribution
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    norm=",g0.4,":",g0.4)') &
           cc,amin, amax, na, amean, asig
@@ -2389,11 +2389,10 @@ subroutine sdmeans(a1,a2,p,mn,sig,ameans)
   aminlog = log10(a1)
   amaxlog = log10(a2)
   pow = -p
-
   if (abs((a2-a1)/a1) .lt. 1d-6) then
      ameans(1) = a1; ameans(2) = a1; ameans(3) = a1
   else 
-     tot(1) = 0.d0; tot(2) = 0.d0; tot(3) = 0.d0
+     tot(1) = 0.d0; tot(2) = 0.d0; tot(3) = 0.d0; totn=0.d0
      do is=1,ns
         r=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
         if (abs(mn*sig) .gt. 0.d0) then
