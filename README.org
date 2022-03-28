@@ -122,7 +122,10 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 
 - Release 1.9.5 ::
   - Log-normal size distribution is now a standard option, using
-    =AMEAN:SIGMA= insteat of the powerlaw in the *-a* switch.
+    =AMEAN:ASIG= insteat of the powerlaw in the *-a* switch.  A
+    negative value for =ASIG= triggers a normal (not log-normal)
+    distribution around =AMEAN=, with =ASIG= interpreted as the width
+    in micrometers.
 
 - Release 1.9.4 ::
   - Improve installation process and instructions.
