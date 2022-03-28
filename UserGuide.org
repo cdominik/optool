@@ -97,6 +97,11 @@ powerlaw size distribution. Also, restrict the wavelength range to
 optool h2o  -a 1 3 2.5 15  -l 10 100 -mie
 #+end_src
 
+Use a log-normal size distribution around 2 \mu{}m with \sigma=0.7 instead.
+#+begin_src sh
+optool h2o  -a 0.1 30 2.0:0.7  -l 10 100 -mie
+#+end_src
+
 For silicon carbide, compute the opacity of a single grain size (2.5\mu{}m)
 at \lambda=8.9\mu{}m.
 
@@ -122,11 +127,8 @@ dimension of 1.9.
 optool pyr  -a 10 30  -mmf 0.3 1.9
 #+end_src
 
-Compute the CDE approximation of small graphite grains.
-
-#+begin_src sh
-optool gra  -a 0.01 0.1 -l 1 30 -cde
-#+end_src
+Compute CDE for small graphite grains: =optool gra  -a 0.01 0.1 -l 1 30 -cde=
+# #+end_src
 
 
 #+LATEX: \clearpage
@@ -537,7 +539,7 @@ $n_p=1$. The resulting object will have the following attributes:
 | =amin=, =amax=     | =float[np]=           | min/max grain size used for each particle       |
 | =nsub=             | =int[np]=             | Number of sizes averaged for each particle      |
 | =apow=             | =float[np]=           | Negative size distribution power law (e.g. 3.5) |
-| =amean=, =asig=    | =float[np]=           | Centroid and width of (log-)normal distrbution  |
+| =amean=, =asig=    | =float[np]=           | Centroid & width of (log-)normal distrbution    |
 | =a1=, =a2=, =a3=   | =float[np]=           | Mean <a>, $\sqrt{<a^2>}$, and $\sqrt[3]{<a^3>}$ |
 | =rho=              | =float[np]=           | Specific density of grains                      |
 |--------------------+-----------------------+-------------------------------------------------|
@@ -688,6 +690,21 @@ you can write =1.3*mm=, =340*GHz=, or =4000/cm= and =optool= will do
 the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
 respectively.
 
+* Size distribution
+=optool= implements powerlaw, log-normal, and normal size
+distributions.  Each of these will be subject to a minimum and a
+maximum grain size. The grain size grid is logarithmic, so $da\propto
+a$. The logarithmic bins are then filled according to:
+| powerlaw                            | \quad $n(a)\propto a^{-p+1}$                                                                     |
+| log-normal, triggered by $\sigma>0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
+| normal, triggered by $\sigma<0$     | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
+|                                     |                                                                                                  |
+Other size distributions can be constructed using the [[#python][python
+interface]].  A normal distribution is not sampled symmetrically on a
+logarithmic size grid - please make sure your samling is fine enough
+around the mean size.
+
+
 * Scattering Matrix: The fine print
 
 
@@ -764,19 +781,6 @@ RADMC-3D requires the values of the scattering matrix on the cell
 values.  For the input files for RADMC-3D, we interpolate and extend
 the computed values to the cell boundaries.
 
-* Overview of optical properties
-
-This grid plot shows the imaginary parts of all built-in materials, in
-the wavelength range from 0.05 to 300 \mu{}m.  Some if the ices have
-only data in a small range, where the vibrational transitions lie.
-However, these materials can be used over a much broader wavelength
-range, because the extrapolation becomes problematic only in the UV
-where electronic transitions kick in.
-
-#+ATTR_LATEX: :width 14.cm :options angle=0
-[[./maint/all_k.pdf]]
-
-
 * How to ingest refractive index data for another material
 :PROPERTIES:
 :CUSTOM_ID: ingest
@@ -799,25 +803,26 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
    material.
 5. Recompile and install the code.
 
+* Overview of optical properties
+
+This grid plot shows the imaginary parts of all built-in materials, in
+the wavelength range from 0.05 to 300 \mu{}m.  Some if the ices have
+only data in a small range, where the vibrational transitions lie.
+However, these materials can be used over a much broader wavelength
+range, because the extrapolation becomes problematic only in the UV
+where electronic transitions kick in.
+
+#+ATTR_LATEX: :width 14.cm :options angle=0
+[[./maint/all_k.pdf]]
+
+
+#+LaTeX: \newpage
 * Internals
 :PROPERTIES:
 :CUSTOM_ID: internals
 :END:
 This appendix describes some key aspects of the internal workings of
 the code.
-
-- Size distribution :: =optool= implements powerlaw, log-normal, and
-  normal size distributions.  Each of these will be
-  subject to a minimum and a maximum grain size. The grain size grid
-  is logarithmic, so $da\propto a$. The logarithmic bins are then
-  filled according to:
-  | powerlaw                            | \quad $n(a)\propto a^{-p+1}$                                                               |
-  | log-normal, triggered by $\sigma>0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
-  | normal, triggered by $\sigma<0$     | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_m}{\sigma}\right)^2\right]$       |
-  Other size distributions can be constructed using the [[#python][python
-  interface]].  A normal distribution is not sampled symmetrically on a
-  logarithmic size grid - please make sure your samling is fine enough
-  around the mean size.
 
 - Refractive index data :: Measured refractive index data is obtained
   from data compiled into the code, or read-in from a file.  That data
@@ -927,6 +932,7 @@ We are indebted to
 - Thiébaut Schirmer for triggering the addition of a log-normal size
   distribution.
 
+#+LaTeX: \newpage
 * Bibliography
 #+LATEX: \footnotesize
 - Bohren, C.F. and Huffman, D.R. 1998, Wiley-VCH, \\
