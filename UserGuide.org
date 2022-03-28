@@ -2,7 +2,7 @@
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
 #+DATE:   April 2022, version 1.9.5
-
+#+LaTeX: \textheight=650pt
 * Introduction
 
 This tool produces complex dust particle opacities right from the
@@ -127,8 +127,10 @@ dimension of 1.9.
 optool pyr  -a 10 30  -mmf 0.3 1.9
 #+end_src
 
-Compute CDE for small graphite grains: =optool gra  -a 0.01 0.1 -l 1 30 -cde=
-# #+end_src
+Compute CDE for small graphite grains
+#+begin_src sh
+optool gra  -a 0.01 0.1 -l 1 30 -cde
+#+end_src
 
 
 #+LATEX: \clearpage
