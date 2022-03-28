@@ -40,8 +40,24 @@ foreach (@lines) {
     $inopt = 0;
     $manf90 .= "  endif\n  if(what.eq.'all') then\n";
   }
-  if (length($_) >= 110) {
-    # This is the table, do special stuff to make it look ok.
+  if (length($_) >= 110 and /\\quad/) {
+    # This is the size distribution table. Fix it for this purpose.
+    $_=~ s/\\left//g;
+    $_=~ s/\\right//g;
+    $_=~ s/\{\\rm m\}/m/g;
+    $_=~ s/\\sigma\b/sig/g;
+    $_=~ s/\\exp/exp\b/g;
+    $_=~ s/\\ln\b/ln/g;
+    $_=~ s/\\propto\b/ ~/g;
+    $_=~ s/\$//g;
+    $_=~ s/\\quad\b/  /g;
+    $_=~ s/\\frac\{1\}\{2\}/0.5/g;
+    $_=~ s/|//g;
+    $_=~ s/[ \t]+$//;
+    $_=~ s/powerlaw     /powerlaw/;
+  }
+    elsif (length($_) >= 110) {
+    # This is the material table, do special stuff to make it look ok.
     $a = substr($_,2,58);
     $b = substr($_,98,14);
     $b =~ s/\]\s*$//;
