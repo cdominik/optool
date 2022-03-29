@@ -144,6 +144,7 @@ steps, using the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wik
 : git clone https://github.com/cdominik/optool.git        # clone repository
 : cd optool                      # enter code directory
 : make multi=true                # compile with multicore support
+: 
 : make install bindir=~/bin/     # optional: copy binaries to binary path
 : pip install -e .               # optional: install the python module
 
@@ -246,7 +247,7 @@ DHS with f_max=0.8.
 
 + =-a AMIN [AMAX [APOW [NA]]]= \hfill{}(powerlaw size distribution) ::
   Specify (minimum) grain radius, and optionally maximum grain radius,
-  the [[#internals][size distribution powerlaw]] and the number of size bins.  You may
+  the [[#sizedist][size distribution powerlaw]] and the number of size bins.  You may
   also use options to set individual values with *-amin*, *-amax*,
   *-apow*, *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, and
   /10 per size decade with a fixed minimum of 5/, respectively.\\
@@ -254,10 +255,11 @@ DHS with f_max=0.8.
   n_a=1 are implied.
 
 + =-a AMIN AMAX AMEAN:ASIG [NA]= \hfill{} ([log-]normal size distribution) ::
-  Specify centroid size and logarithmic width for a [[#internals][log-normal
+  Specify the centroid size and the logarithmic width for a [[#sizedist][log-normal
   size distribution]]. You may also use *-amean* and *-asig* options to
-  set these values. If =ASIG= is negative, its value is in \mu{}m and
-  it then triggers a [[#internals][normal distribution around =AMEAN=]].
+  set these values. If =ASIG= is negative, its value is interpreted to
+  denote the width (in \mu{}m) of a [[#sizedist][normal distribution]] around
+  =AMEAN=.
   
 ** Wavelength grid
 
@@ -273,10 +275,12 @@ DHS with f_max=0.8.
 
 + =-l FILE= ::
 
-  Read the wavelength grid from =FILE=.  The first non-comment line
-  needs to contain the number of wavelength values. In the data block
-  below it, the first column is expected to hold the wavelength
-  values, in \mu{}m. An [[#lnk-files][=lnk=]] file could be used here!
+  Read the wavelength grid from =FILE=. Lines in the file starting
+  with =*=, =!=, or =#= are treated as comment lines.  The first
+  non-comment line needs to start with the number of wavelength
+  values. In the data block below it, the first column is expected to
+  hold the wavelength values, in \mu{}m. An [[#lnk-files][=lnk=]] file could be used
+  here!
 
 ** Controlling the output
 
@@ -346,14 +350,14 @@ the few exceptions are highlighted by bold-face numbers.  If a
 material is being used outside of the measured region, =optool= will
 still function, using extrapolated optical properties.
 
-To get started with some kind of standard opacity, we recommend to
-work with pyroxene \fbox{pyr}, carbon \fbox{c}, and (at low
-temperaturs) water ice \fbox{h2o}.
+Even the limited number of materials we have selected to include with
+=optool= can be daunting. To get started with some kind of standard
+opacity, we recommend to work with pyroxene \fbox{pyr}, carbon
+\fbox{c}, and, at low temperatures, water ice \fbox{h2o} (Woitke+
+2016). If you need to account for sulfur, you may want to include
+troilite \fbox{tro} (Birnstiel+ 2016).
 
-#     #+LATEX: \newpage
-# #+begin_center
-# *Table 1:* Built-in materials
-# #+end_center
+#+LaTeX: \newpage\centerline{\textit{Table 1: Built-in materials}}
 #+ATTR_LATEX: :font \footnotesize\sf :align llllrrrlHH
 | *-c Key*   | *-c Key*    | *Material*              | *State* |      \rho | \lambda_min | \lambda_max | *Reference*   | *Comment*    | *File*                      |
 | generic    | full key    |                         |         |    g/cm^3 |      \mu{}m |      \mu{}m |               |              |                             |
@@ -382,7 +386,7 @@ temperaturs) water ice \fbox{h2o}.
 |            | c-nano      | C nano-diamond          | cryst   |       2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]   |              | [[file:lnk_data/c-nano-Mutschke2004.lnk][c-nano-Mutschke2004.lnk]]     |
 |------------+-------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | iron       | fe-c        | Fe                      | metal   |      7.87 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/fe-c-Henning1996.lnk][fe-c-Henning1996.lnk]]        |
-|            | fes         | FeS                     | metal   |      4.83 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/fes-Henning1996.lnk][fes-Henning1996.lnk]]         |
+| \fbox{tro} | fes         | FeS                     | metal   |      4.83 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/fes-Henning1996.lnk][fes-Henning1996.lnk]]         |
 |            | sic         | SiC                     | cryst   |      3.22 |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/1993ApJ...402..441L][Laor93]]        |              | [[file:lnk_data/sic-Draine1993.lnk][sic-Draine1993.lnk]]          |
 |------------+-------------+-------------------------+---------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | qua        | sio2        | SiO_2                   | amorph  |      2.65 |      0.0006 |         500 | [[https://ui.adsabs.harvard.edu/abs/2007ApOpt..46.8118K][Kitamura+07]]   | \rho ?       | [[file:lnk_data/sio2-Kitamura2007.lnk][si02-Kitamura2007.lnk]]       |
@@ -399,7 +403,6 @@ temperaturs) water ice \fbox{h2o}.
 
 
 # | for      | ol-c-mg100  | Mg_{2}SiO_4            | cryst   |   3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]    | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
-
 # |          | icemix-c2d | H_{2}O/CO_{2}/CO mix    | ?       |    1.0 |        0.04 |         8e6 | [[https://ui.adsabs.harvard.edu/abs/2009ApJ...690..496C][Pontoppidan]]  | \rho?        | [[file:lnk_data/icemix-c2d-Pontoppidan2009.lnk][icemix-c2d-Pontoppidan2009.lnk]] |
 
 
@@ -419,12 +422,13 @@ following format:
   \lambda[\mu{}m] (sorted either up or down), and the real and
   imaginary parts of the refractive index, $n$ and $k$.
 
-More data ready for use with =optool= is in [[https://github.com/cdominik/optool-additional-refind-data][this repository]]. Other
-resources are the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], [[http://eodg.atm.ox.ac.uk/ARIA/][ARIA]] and original papers in the
-literature. Don't forget to add the line with $n_\lambda$ and \rho!
-If that is not possible, =optool= will count the lines and you can
-specify the density after the mass fraction, like this: =optool -c
-path/to/file.lnk 0.7 3.42=.
+We provide additional data ready for use with =optool= is in [[https://github.com/cdominik/optool-additional-refind-data][this
+repository]]. Other resources are the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], [[http://eodg.atm.ox.ac.uk/ARIA/][ARIA]] and original
+papers in the literature. Don't forget to add the line with
+$n_\lambda$ and \rho!  If that is not possible, =optool= will count
+the lines and you can specify the density after the mass fraction,
+like this: =optool -c path/to/file.lnk 0.7 3.42=.  Please do not forget
+to include references for any optical properties used in your study.
 
 #+LATEX: \newpage
 * Output files
@@ -567,6 +571,7 @@ $n_p=1$. The resulting object will have the following attributes:
 #+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./maint/inspect.png]]
 
+#+LaTeX: \newpage
 Applying the =plot()= method to a =particle= object like =p.plot()=
 will produce these plots:
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
@@ -693,6 +698,10 @@ the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
 respectively.
 
 * Size distribution
+:PROPERTIES:
+:CUSTOM_ID: sizedist
+:END:
+
 =optool= implements powerlaw, log-normal, and normal size
 distributions.  Each of these will be subject to a minimum and a
 maximum grain size. The grain size grid is logarithmic, so $da\propto
@@ -703,7 +712,7 @@ a$. The logarithmic bins are then filled according to:
 |                                     |                                                                                                  |
 Other size distributions can be constructed using the [[#python][python
 interface]].  A normal distribution is not sampled symmetrically on a
-logarithmic size grid - please make sure your samling is fine enough
+logarithmic size grid - please make sure your sampling is fine enough
 around the mean size.
 
 
@@ -804,7 +813,7 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 4. Run =make ingest= to update =optool_refind.f90=, now with your new
    material.
 5. Recompile and install the code.
-
+#+LaTeX: \newpage
 * Overview of optical properties
 
 This grid plot shows the imaginary parts of all built-in materials, in
@@ -904,7 +913,7 @@ the code.
   sphere in the Rayleigh limit.
 
 [fn:7]still including the porosity specified with the *-p* switch
-(which is porosity residing in the monomers themspelves), but not any
+(which is porosity residing in the monomers themselves), but not any
 "porosity" resulting from the aggregate structure
 
 
@@ -937,6 +946,7 @@ We are indebted to
 #+LaTeX: \newpage
 * Bibliography
 #+LATEX: \footnotesize
+- Birnstiel, T. et al. 2016, ApJ 869, 45
 - Bohren, C.F. and Huffman, D.R. 1998, Wiley-VCH, \\
   /Absorption and Scattering of Light by Small Particles/
 - Draine, B. 2003, ApJ 598, 1017
