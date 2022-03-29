@@ -17,6 +17,6 @@
 : pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      h2o  -> h2o-w     :
 : ol   -> ol-mg50      gra  -> c-gra       qua  -> sio2      co   -> co-a      :
 : ens  -> pyr-c-mg96   org  -> c-org       cor  -> cor-c     co2  -> co2-w     :
-: for  -> ol-c-mg100                                         nh3  -> nh3-m     :
+: for  -> ol-c-mg100                       tro  -> fes       nh3  -> nh3-m     :
 : fay  -> ol-c-mg00                                                            :
 ================================================================================
