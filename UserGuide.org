@@ -257,9 +257,12 @@ DHS with f_max=0.8.
 + =-a AMIN AMAX AMEAN:ASIG [NA]= \hfill{} ([log-]normal size distribution) ::
   Specify the centroid size and the logarithmic width for a [[#sizedist][log-normal
   size distribution]]. You may also use *-amean* and *-asig* options to
-  set these values. If =ASIG= is negative, its value is interpreted to
-  denote the width (in \mu{}m) of a [[#sizedist][normal distribution]] around
-  =AMEAN=.
+  set these values. If =ASIG= is negative, create a [[#sizedist][normal distribution]]
+  with that width (in \mu{}m) around =AMEAN=.
+
++ =-a FILE= ::
+  Read the size distribution from a file. The file format is described
+  in [[#sizedist][appendix B]].
   
 ** Wavelength grid
 
@@ -686,13 +689,13 @@ my/command','arg1','arg2',...]=.
 * Units
 Due to conventions in our field, the input and output of =optool= uses
 the following units
-- *microns* for grain sizes and wavelengths.[fn:6]
+- *microns* for grain sizes and wavelengths.[fn:5]
 - *g/cm^3* for mass densities of materials
 - *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
 - *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
   see below.
 
-[fn:6]When giving a grain size or a wavelength on the command line,
+[fn:5]When giving a grain size or a wavelength on the command line,
 you can write =1.3*mm=, =340*GHz=, or =4000/cm= and =optool= will do
 the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
 respectively.
@@ -708,14 +711,26 @@ maximum grain size. The grain size grid is logarithmic, so $da\propto
 a$. The logarithmic bins are then filled according to:
 | powerlaw                            | \quad $n(a)\propto a^{-p+1}$                                                                     |
 | log-normal, triggered by $\sigma>0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
-| normal, triggered by $\sigma<0$     | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
+| normal[fn:6], triggered by $\sigma<0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
 |                                     |                                                                                                  |
 Other size distributions can be constructed using the [[#python][python
-interface]].  A normal distribution is not sampled symmetrically on a
+interface]].  Finally, =optool= can also read a size distribution from a
+file.  The format of this file is as follows:
+
+#+LaTeX: \footnotesize
+#+begin_example 
+! Comment lines start with !, *, or #
+! Any number of comment lines are allowed at the beginning of the file
+NA             ! number of grain sizes in the file
+R(1)   NR(1)   ! Size in micrometer, and number of grains in this bin
+...    ...
+R(NA)  NR(NA)  ! Size in micrometer, and number of grains in this bin
+#+end_example
+#+LaTeX: \normalsize
+
+[fn:6]   A normal distribution is not sampled symmetrically on a
 logarithmic size grid - please make sure your sampling is fine enough
 around the mean size.
-
-
 * Scattering Matrix: The fine print
 
 

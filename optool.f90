@@ -89,6 +89,8 @@ module Defs
   ! The output directory and other strings
   ! ----------------------------------------------------------------------
   character*500                  :: outdir = ''    ! Output directory
+  character*500                  :: sdfile = ''    ! Size distribution file
+  real (kind=dp)                 :: ameans_file(3) ! for size means from file
   character*3                    :: method         ! DHS or MMF
   character*1                    :: justnum = ' '  ! What to print to STDOUT
 
@@ -125,6 +127,7 @@ program optool
   logical         :: arg_is_switch   ! functions to test arguments
   logical         :: arg_is_value    ! functions to test arguments
   logical         :: arg_is_number   ! functions to test arguments
+  logical         :: file_exists     ! functions to test arguments
   character*500   :: fitsfile        ! file name for FITS output
   character*500   :: meanfile        ! file name for mean opacity output
   character*500   :: make_file_path  ! function
@@ -253,45 +256,65 @@ program optool
         ! ----------------------------------------------------------------------
      case('-a')
         ! ----------------------------------------------------------------------
-        ! -a expects 1, 2, 3, ro 4 values:  amin [amax [apow [na]]]
+        ! -a expects 1, 2, 3, or 4 values:  amin [amax [apow [na]]]
+        !                                   amin amax amean:asig [na]
+        !                                   sizedist_file
         ! ----------------------------------------------------------------------
         if (.not. arg_is_number(i+1)) then
-           print *,"ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
-        endif
-        i=i+1; call getarg(i,value); call uread(value,amin)
-        ! Let's see if there is more, we expect amax
-        if (arg_is_number(i+1)) then
-           i=i+1; call getarg(i,value); call uread(value,amax)
-           if (amax .lt. 0d0) then
-              ! FIXME: Take this out?
-              if (amin+amax .le. 0d0) then
-                 write(*,'(" ERROR: delta a cannot be larger than a: ",F10.2,F10.2)') amin,amax
+           if (arg_is_present(i+1)) then
+              if (arg_is_switch(i+1)) then
+                 print *,"ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
+              endif
+              i=i+1
+              call getarg(i,sdfile)
+              inquire (file=trim(sdfile),exist=file_exists)
+              if (file_exists) then
+                 call checkout_sdfile(sdfile,amin,amax,na)
+              else
+                 print *,"Size distribution file does not exist: ",trim(sdfile)
                  stop
               endif
-              amin = amin+amax; amax = amin-2d0*amax
-              apow = 0.d0
+           else
+              print *,"ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
            endif
-           ! Let's see if there is more, we expect apow, or other sizedistribution parameters
-           if (arg_is_present(i+1) .and. (.not. arg_is_switch(i+1))) then
-              ! OK, we have something
-              i=i+1; call getarg(i,value);
-              it=index(value,':')
-              if (it .gt. 0) then
-                 read(value(1:it-1),*) amean
-                 read(value(it+1:len(value)),*) asig
-              else if (arg_is_number(i)) then
-                 read(value,*) apow
+        endif
+        if (trim(sdfile).eq.'') then
+           ! There are numbers present, get the values
+           i=i+1; call getarg(i,value); call uread(value,amin)
+           ! Let's see if there is more, we expect amax
+           if (arg_is_number(i+1)) then
+              i=i+1; call getarg(i,value); call uread(value,amax)
+              if (amax .lt. 0d0) then
+                 ! FIXME: Take this out?
+                 if (amin+amax .le. 0d0) then
+                    write(*,'(" ERROR: delta a cannot be larger than a: ",F10.2,F10.2)') amin,amax
+                    stop
+                 endif
+                 amin = amin+amax; amax = amin-2d0*amax
+                 apow = 0.d0
               endif
-              ! Let's see if there is more, we expect na
-              if (arg_is_number(i+1)) then
-                 i=i+1; call getarg(i,value); read(value,*) na
+              ! Let's see if there is more, we expect apow, or other sizedistribution parameters
+              if (arg_is_present(i+1) .and. (.not. arg_is_switch(i+1))) then
+                 ! OK, we have something
+                 i=i+1; call getarg(i,value);
+                 it=index(value,':')
+                 if (it .gt. 0) then
+                    read(value(1:it-1),*) amean
+                    read(value(it+1:len(value)),*) asig
+                 else if (arg_is_number(i)) then
+                    read(value,*) apow
+                 endif
+                 ! Let's see if there is more, we expect na
+                 if (arg_is_number(i+1)) then
+                    i=i+1; call getarg(i,value); read(value,*) na
+                 endif
               endif
+           else
+              ! there was only 1 number.  Set up single grain size computation
+              ! If na has already been set, do not change it.
+              amax = amin;
+              if (na.eq.0) na = 1;
            endif
-        else
-           ! there was only 1 number.  Set up single grain size computation
-           ! If na has already been set, do not change it.
-           amax = amin;
-           if (na.eq.0) na = 1;
         endif
      case('-amin','--amin')
         i = i+1; call getarg(i,value); call uread(value,amin)
@@ -544,6 +567,10 @@ program optool
   if (write_sd .and. split) then
      if (.not. quiet) write(*,*) "WARNING: Turning off -wsd, don't use it with -d"
      write_sd = .false.
+  endif
+  if (split .and. ((amax.gt.0d0).or. (trim(sdfile).ne.''))) then
+     write(*,*) "ERROR: Please only use -d with a powerlaw size distribution"
+     stop
   endif
   ! *** Angular grid ***
   if (mod(nang,2) .eq. 1) then
@@ -844,7 +871,7 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
   integer                        :: iqsca,iqcor,iqgeo,nang2,Smat_nbad
   real (kind=dp)                 :: m_mono,m_agg,V_agg,nmono,Dfrac,kfrac
   real (kind=dp)                 :: cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor
-  real (kind=dp)                 :: deltaphi
+  real (kind=dp)                 :: deltaphi,atot(4)
   real (kind=dp), allocatable    :: Smat_mmf(:,:)
 
   integer ichop
@@ -907,6 +934,9 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
      ! Just one size
      r(1)  = 10d0**((aminlog+amaxlog)/2d0)
      nr(1) = r(1)**(pow+1d0) ! should be 1/r(1)^3 ???  Not important.
+  elseif (trim(sdfile).ne.'') then
+     ! Read the size distribution from a file
+     call read_size_distribution(sdfile,ns,r,nr,ameans_file)
   else
      tot = 0d0
      ! Size distribution
@@ -1922,6 +1952,72 @@ function count_data_lines (file)
   count_data_lines = n
 end function count_data_lines
 
+subroutine checkout_sdfile (file,amin,amax,na)
+  ! Return the number of bins and the minimum and maximum grain size
+  ! the size distribution file FILE
+  implicit none
+  integer, parameter     :: dp = selected_real_kind(P=15)
+  character*(*)   :: file
+  character*(500) :: line
+  real (kind=dp) amin,amax,a
+  integer na,i
+  open(99,file=trim(file))
+1 continue
+  read(99,'(A)') line
+  line = trim(adjustl(line))
+  ! Skip commented lines at the beginning of the file
+  if (line(1:1).eq.'#' .or. line(1:1).eq.'!' .or. line(1:1).eq.'*') goto 1
+  ! OK, here we have the first real line
+  read(line,*) na
+  amin =  1e99
+  amax = -1e99
+  do i=1,na
+     read(99,*) a
+     amin = min(a,amin)
+     amax = max(a,amax)
+  enddo
+  close(99)
+end subroutine checkout_sdfile
+
+subroutine read_size_distribution(file,na,r,nr,sdmns)
+  ! Read a size distribution file FILE, of which we already
+  ! know (and will double-check) that there are NA lines of data.
+  ! Return the size grid R and the number NR of particles in each bin.
+  ! Also, compute the moments <a>, sqrt(<a**2>), and (<a**3>)**(1/3)
+  ! and return them in SDMNS
+  implicit none
+  integer, parameter     :: dp = selected_real_kind(P=15)
+  character*(*)   :: file
+  character*(500) :: line
+  real (kind=dp)  :: r(na),nr(na),sdmns(3),totn,tot(3)
+  integer i, idum, na
+  open(99,file=trim(file))
+1 continue
+  read(99,'(A)') line
+  line = trim(adjustl(line))
+  ! Skip commented lines at the beginning of the file
+  if (line(1:1).eq.'#' .or. line(1:1).eq.'!' .or. line(1:1).eq.'*') goto 1
+  ! OK, here we have the first real line
+  read(line,*) idum
+  if (idum.ne.na) then
+     close(99)
+     print *,"Error: inconsistent number of size bins in file ", file
+     stop
+  endif
+  tot(1)=0.d0; tot(2)=0.d0; tot(3)=0.d0; totn=0.d0
+  do i=1,na
+     read(99,*) r(i),nr(i)
+     totn   = totn+nr(i)
+     tot(1) = tot(1)+nr(i)*r(i)
+     tot(2) = tot(2)+nr(i)*r(i)**2
+     tot(3) = tot(3)+nr(i)*r(i)**3
+  enddo
+  close(99)
+  sdmns(1) = tot(1)/totn
+  sdmns(2) = (tot(2)/totn)**(0.5d0)
+  sdmns(3) = (tot(3)/totn)**(1.d0/3.d0)
+end subroutine read_size_distribution
+
 subroutine read_lambda_grid(file)
   ! Read the lambda grid from a file.
   ! The file can start with comment lines (* or ! or #).
@@ -1995,7 +2091,12 @@ subroutine write_header (unit,cc,amin,amax,apow,amean,asig,na,lmin,lmax, &
 
   call sdmeans(amin,amax,apow,amean,asig,ameans)
   write(unit,'(A,"============================================================================")') cc
-  write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,ameans
+
+  if (trim(sdfile).ne.'') then
+     write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,ameans_file
+  else
+     write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,ameans
+  endif
   if (method .eq. 'MMF') then
      if (struct.gt.1.d0) then
         sstruct = '(fractal dimension)'
@@ -2009,7 +2110,11 @@ subroutine write_header (unit,cc,amin,amax,apow,amean,asig,na,lmin,lmax, &
      write(unit,'(A," Method:   ",A3,"  fmax=",f7.3)') cc,method,fmax
   endif
   write(unit,'(A," Parameters:")') cc
-  if ((amean.gt.0d0) .and. (asig.gt.0.d0)) then
+  if (trim(sdfile).ne.'') then
+     ! size distribution comes from a file
+     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    file=",A)') &
+          cc,amin, amax, na, trim(sdfile)
+  else if ((amean.gt.0d0) .and. (asig.gt.0.d0)) then
      ! log-normal size distribution
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",g0.4,":",g0.4)') &
           cc,amin, amax, na, amean, asig
