@@ -113,13 +113,17 @@ while (@ARGV) {
 
   elsif (/^-a$/) {
     # Grain size distribution
-    if (&n) {$amin=&fs;$amax=0;if (&n) {$amax=&fs;if (&n2) {$apow=shift;if (&n) {$na=shift}}}}
-    # Check if we need to unpack apow
-    if ($apow =~ /([-+0-9.eE]+):([-+0-9.eE]+)/) {
-      $amean = $1; $asig = $2;
-      $amean = &f($amean); @asig = &f($asig)
+    if (not &n) {
+      $afile = shift;
     } else {
-      $apow = &f($apow)
+      if (&n) {$amin=&fs;$amax=0;if (&n) {$amax=&fs;if (&n2) {$apow=shift;if (&n) {$na=shift}}}}
+      # Check if we need to unpack apow
+      if ($apow =~ /([-+0-9.eE]+):([-+0-9.eE]+)/) {
+        $amean = $1; $asig = $2;
+        $amean = &f($amean); @asig = &f($asig)
+      } else {
+        $apow = &f($apow)
+      }
     }
   }
   elsif (/^-amin$/)  {$amin=&fs}
@@ -334,6 +338,9 @@ $grain sizes$sizecomment
 in the range between $amin and $amax\\,\$\\upmu\$m. Each opacity
 is actually an average over $nsub samples around the given size,
 in order to smear out resonances that would otherwise lead to artifacts.\n";
+} elsif ($afile) {
+  print OUT "The opacities are computed by averaging over a size distribution
+defined in file $afile.\n"
 } elsif ($amax==0) {        # just a single size
   print OUT "We compute the opacity of a grain with size \$a=$amin\\,\\upmu\$m.\n";
 } elsif ($amean*$asig > 0.) { # log-normal distribution average
@@ -341,14 +348,16 @@ in order to smear out resonances that would otherwise lead to artifacts.\n";
 $grains in a size range $sizecomment
 from $amin to $amax\\,\$\\upmu\$m,
 with a log-normal size distribution \$f(a)\\propto \\frac{1}{a}
-\\exp\\left[ -\\frac{1}{2}\\left(\\frac{\\ln(a/$amean\\mu\\mathrm{m})}{$asig}\\right)^2\\right]\$.\n";
+\\exp\\left[ -\\frac{1}{2}\\left(\\frac{\\ln(a/a_{\\mathrm{m}})}{\\sigma}\\right)^2\\right]\$,
+with \$a_{\\mathrm{m}}=$amean\\,\\mu\$m and \$\\sigma=$asig\$.\n";
 } elsif ($amean*$asig < 0.) { # normal distribution average
   $asig =~ s/^-//;
   print OUT "The opacities are computed by averaging over
 $grains in a size range $sizecomment
 from $amin to $amax\\,\$\\upmu\$m,
 with a normal size distribution \$f(a)\\propto \\frac{1}{a}
-\\exp\\left[ -\\frac{1}{2}\\left(\\frac{a-$amean\\mu\\mathrm{m}}{$asig\\mu\\mathrm{m}}\\right)^2\\right]\$.\n";
+\\exp\\left[ -\\frac{1}{2}\\left(\\frac{a-a_{\\mathrm{m}}}{\\sigma}\\right)^2\\right]\$,
+with \$a_{\\mathrm{m}}=$amean\\,\\mu\$m and \$\\sigma=$asig\\,\\mu\$m.\n";
 } else {                    # we compute a single opacity from all sizes
   $apown = -1*$apow;
   print OUT "The opacities are computed by averaging over
