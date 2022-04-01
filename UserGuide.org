@@ -170,6 +170,7 @@ system.
 + =-h [OPT]= :: Show command line options or specific information
   about option *=-OPT=*.
 + =-q= :: Reduce output to STDOUT to essential warnings and errors.
++ =-v= :: More verbose output to STDOUT.
 
 ** Grain composition
 :PROPERTIES:
