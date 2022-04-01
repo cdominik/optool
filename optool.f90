@@ -16,8 +16,9 @@ subroutine usage()
   write(*,'("-p POROSITY [PMANTLE]      Set porosity, possibly different for core and mantle")')
   write(*,'("-dhs VHMAX                 Maximum volume fraction of vacuum in DHS computation")')
   write(*,'("-mmf [A0 [DF-or-FILL]]     Use MMF with monom.sz. A0 and frac.dim or fill")')
-  write(*,'("-l LMIN [LMAX [NLAM]]      Set up wavelength grid          (unit: micron)")')
   write(*,'("-a AMIN [AMAX [SD [NA]]]   Grain size [micron] dist. SD=P (>PL) or M:S (>log-n)")')
+  write(*,'("-a FILE                    Read grain size distribution from a file")')
+  write(*,'("-l LMIN [LMAX [NLAM]]      Set up wavelength grid          (unit: micron)")')
   write(*,'("-l FILE                    Read wavelength grid from file, e.g. some/file.lnk")')
   write(*,'("-d [NSUB]                  Write NA files for specific grain sizes")')
   write(*,'("-s [NANG]                  Add scattering matrix for NANG angles to output")')
@@ -305,7 +306,7 @@ program optool
                     ! (log-)normal size distribution
                     read(value(1:it-1),*) amean
                     read(value(it+1:len(value)),*) asig
-                    sdkind = 'norm'
+                    sdkind = 'norm'  ! could still also be lgnm, decide later
                  else if (arg_is_number(i)) then
                     read(value,*) apow
                     sdkind = 'apow'
