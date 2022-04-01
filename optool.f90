@@ -92,6 +92,7 @@ module Defs
   character*500                  :: sdfile = ''    ! Size distribution file
   real (kind=dp)                 :: ameans_file(3) ! for size means from file
   character*3                    :: method         ! DHS or MMF
+  character*4                    :: sdkind         ! apow, lgnm, norm, or file
   character*1                    :: justnum = ' '  ! What to print to STDOUT
 
 end module Defs
@@ -155,6 +156,7 @@ program optool
   amean          = 0.         ! a0 in micrometer for log-normal distribution
   asig           = 0.         ! Sigma, not units, for log-normal distribution
   na             = 0          ! will be computed to 10 per decade
+  sdkind         = 'apow'     ! size distribution method
 
   lmin           = 0.05_dp    ! micrometer
   lmax           = 10000.0_dp ! micrometer
@@ -270,6 +272,7 @@ program optool
               inquire (file=trim(sdfile),exist=file_exists)
               if (file_exists) then
                  call checkout_sdfile(sdfile,amin,amax,na)
+                 sdkind = 'file'
               else
                  print *,"Size distribution file does not exist: ",trim(sdfile)
                  stop
@@ -299,10 +302,13 @@ program optool
                  i=i+1; call getarg(i,value);
                  it=index(value,':')
                  if (it .gt. 0) then
+                    ! (log-)normal size distribution
                     read(value(1:it-1),*) amean
                     read(value(it+1:len(value)),*) asig
+                    sdkind = 'norm'
                  else if (arg_is_number(i)) then
                     read(value,*) apow
+                    sdkind = 'apow'
                  endif
                  ! Let's see if there is more, we expect na
                  if (arg_is_number(i+1)) then
@@ -324,8 +330,10 @@ program optool
         i = i+1; call getarg(i,value); read(value,*) apow
      case('-amean','--amean')
         i = i+1; call getarg(i,value); read(value,*) amean
+        sdkind = 'norm'
      case('-asig','--asig')
         i = i+1; call getarg(i,value); read(value,*) asig
+        sdkind = 'norm'
      case('-na')
         i = i+1; call getarg(i,value); read(value,*) na
 
@@ -494,6 +502,7 @@ program optool
   ! ----------------------------------------------------------------------
   ! Sanity checks and preparations
   ! ----------------------------------------------------------------------
+
   ! *** Materials ***
   if (nm .ge. 10) then
      print *,'ERROR: Too many materials'; stop
@@ -501,10 +510,12 @@ program optool
   if ( (nm.eq.nmant) .and. (nm.gt.0) ) then
      print *,"ERROR: at least one core material must be specified"; stop
   endif
+
   ! *** Porosity ***
   if ( (pcore.lt.0d0).or.(pcore.ge.1d0).or.(pmantle.lt.0d0).or.(pmantle.ge.1d0) ) then
      print *,"ERROR: prosities must be 0 <= p < 1"; stop
   endif
+
   ! *** Grain size distribution ***
   if (na .eq. 0) then
      ! set sampling of the grain radius: 10 per decade, min 5
@@ -517,9 +528,28 @@ program optool
      ! Swap min and max values
      dum = amin; amin = amax; amax = dum
   endif
-  if (apow.lt.0d0) then
-     print *,'WARNING: Unusual negative value for apow. apow=-3 means f(a)~a^(+3)'
+  if (sdkind .eq. 'apow') then
+     if (apow .lt. 0d0) then
+        print *,'WARNING: Unusual negative value for apow. apow=-3 means f(a)~a^(+3)'
+     endif
+     amean = 0.d0; asig=0.d0
+  else if (sdkind .eq. 'file') then
+     !amean = 0.d0; asig=0.d0; apow = 0.d0
+  else if (sdkind .eq. 'norm') then
+     !apow = 0.d0
+     if (amean .le. 0.d0) then
+        print *,"ERROR: amean must be positive for (log-)normal distribution"
+        stop
+     endif
+     if (asig .eq. 0.d0) then
+        print *,"ERROR: amean cannot be zero for (log-)normal distribution"
+     else if (asig .gt. 0.d0) then
+        sdkind = 'lgnm'
+   else if (asig .lt. 0.d0) then
+        sdkind = 'norm'  ! redundant, but for clarity
+     endif
   endif
+       
   ! *** Wavelength grid ***
   if ( (lmin.le.0d0) .or. (lmax.le.0d0) ) then
      print *,'ERROR: Both lmin and lmax need to be positive numbers',lmin,lmax; stop
@@ -535,12 +565,14 @@ program optool
      print *,'WARNING: Setting nlam=1 because lmin=lmax'
      nlam = 1
   endif
+
   ! *** DHS
   if (method .eq. 'DHS') then
      if ((fmax.lt.0.d0) .or. (fmax.ge.1.d0)) then
         print *,'ERROR: fmax for DHS must be >0 and <1'
      endif
   endif
+
   ! *** MMF
   if (method .eq. 'MMF') then
      if (mmf_struct .gt. 3.0d0) then
@@ -553,12 +585,14 @@ program optool
         print *,'ERROR: Minimum grain size cannot be smaller than monomer size'; stop
      endif
   endif
+
   ! *** CDE
   if (method .eq. 'CDE') then
      if (lmin .le. 2.d0*pi*amax) then
         write(*,'("WARNING: CDE requires Rayleigh limit, but 2 pi a_max/lambda_min =",1p,e8.1)') 2.d0*pi*amax/lmin
      endif
   endif
+
   ! *** Other checks
   if (split .and. blendonly) then
      if (.not. quiet) write(*,*) 'WARNING: Turning off -s for -blendonly'
@@ -568,15 +602,17 @@ program optool
      if (.not. quiet) write(*,*) "WARNING: Turning off -wsd, don't use it with -d"
      write_sd = .false.
   endif
-  if (split .and. ((amax.gt.0d0).or. (trim(sdfile).ne.''))) then
+  if (split .and. (sdkind .ne. 'apow')) then
      write(*,*) "ERROR: Please only use -d with a powerlaw size distribution"
      stop
   endif
+
   ! *** Angular grid ***
   if (mod(nang,2) .eq. 1) then
      write(*,*) 'ERROR: The number of angles in -s NANG must be even'
      stop
   endif
+
   ! *** Output files ***
 #ifndef USE_FITSIO
   if (write_fits) then
@@ -591,6 +627,7 @@ program optool
   endif
   meanfile       = make_file_path(outdir,"dustkapmean.dat")
   fitsfile       = make_file_path(outdir,"dustkappa.fits")
+
   ! ----------------------------------------------------------------------
   ! Default grain composition if nothing is specified
   ! ----------------------------------------------------------------------
@@ -660,7 +697,7 @@ program optool
   ! ----------------------------------------------------------------------
   ! Write a setup summary to the screen
   ! ----------------------------------------------------------------------
-  if (.not. quiet) then
+  if (verbose) then
      call write_header(6,'',amin,amax,apow,amean,asig,na,lmin,lmax, &
           pcore,pmantle,0.0d0,fmax,mmf_a0,mmf_struct,mat_mfr,mat_nm)
   endif
@@ -934,7 +971,7 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
      ! Just one size
      r(1)  = 10d0**((aminlog+amaxlog)/2d0)
      nr(1) = r(1)**(pow+1d0) ! should be 1/r(1)^3 ???  Not important.
-  elseif (trim(sdfile).ne.'') then
+  elseif (sdkind .eq. 'file') then
      ! Read the size distribution from a file
      call read_size_distribution(sdfile,ns,r,nr,ameans_file)
   else
@@ -942,7 +979,7 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
      ! Size distribution
      do is=1,ns
         r(is)=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
-        if (abs(amean*asig) .gt. 0.d0) then
+        if ((sdkind.eq.'norm') .or. (sdkind.eq.'lgnm')) then
            ! log-normal or normal size distribution
            if (asig .lt. 0.d0) then      ! Normal distribution
               expo = 0.5*((r(is)-amean)/asig)**2
@@ -2092,7 +2129,7 @@ subroutine write_header (unit,cc,amin,amax,apow,amean,asig,na,lmin,lmax, &
   call sdmeans(amin,amax,apow,amean,asig,ameans)
   write(unit,'(A,"============================================================================")') cc
 
-  if (trim(sdfile).ne.'') then
+  if (sdkind .eq. 'file') then
      write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,ameans_file
   else
      write(unit,'(A," Opacities computed by OpTool        <a^n>=",1p,3e11.4e1)') cc,ameans
@@ -2110,15 +2147,15 @@ subroutine write_header (unit,cc,amin,amax,apow,amean,asig,na,lmin,lmax, &
      write(unit,'(A," Method:   ",A3,"  fmax=",f7.3)') cc,method,fmax
   endif
   write(unit,'(A," Parameters:")') cc
-  if (trim(sdfile).ne.'') then
+  if (sdkind.eq.'file') then
      ! size distribution comes from a file
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    file=",A)') &
           cc,amin, amax, na, trim(sdfile)
-  else if ((amean.gt.0d0) .and. (asig.gt.0.d0)) then
+  else if (sdkind.eq.'lgnm') then
      ! log-normal size distribution
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    lgnm=",g0.4,":",g0.4)') &
           cc,amin, amax, na, amean, asig
-  else if ((amean.gt.0d0) .and. (asig.lt.0.d0)) then
+  else if (sdkind.eq.'norm') then
      ! normal size distribution
      write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    norm=",g0.4,":",g0.4)') &
           cc,amin, amax, na, amean, asig
