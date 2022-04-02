@@ -17,15 +17,15 @@ subroutine usage()
   write(*,'("-dhs VHMAX                 Maximum volume fraction of vacuum in DHS computation")')
   write(*,'("-mmf [A0 [DF-or-FILL]]     Use MMF with monom.sz. A0 and frac.dim or fill")')
   write(*,'("-a AMIN [AMAX [SD [NA]]]   Grain size [micron] dist. SD=P (>PL) or M:S (>log-n)")')
-  write(*,'("-a FILE                    Read grain size distribution from a file")')
   write(*,'("-l LMIN [LMAX [NLAM]]      Set up wavelength grid          (unit: micron)")')
-  write(*,'("-l FILE                    Read wavelength grid from file, e.g. some/file.lnk")')
+  write(*,'("-a FILE; -l FILE           Read size distribution or lambda grid from a file")')
   write(*,'("-d [NSUB]                  Write NA files for specific grain sizes")')
   write(*,'("-s [NANG]                  Add scattering matrix for NANG angles to output")')
   write(*,'("-chop [NDEG]               Remove NDEG degrees from the forward-scattering peak")')
   write(*,'("-radmc; -fits; -print [V]  Special output options (-print goes to STDOUT)")')
   write(*,'("-o [DIRECTORY]             Output to DIRECTORY instead of current working dir")')
   write(*,'("-h [OPT]; -man             Show this msg or help on -OPT; Show the full manual")')
+  write(*,'("-q; -v                     Quite or more verbose on STDOUT")')
   write(*,'("===============================================================================")')
 end subroutine usage
 
@@ -47,6 +47,7 @@ module Defs
   logical, public                :: verbose   = .false. ! additional output to STDOUT
   logical, public                :: debug     = .false. ! Additional info to STDOUT
   logical, public                :: write_sd  = .false. ! Write out the size distribution
+  logical, public                :: write_lam = .false. ! Write out the wavelength grid
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
@@ -481,6 +482,9 @@ program optool
      case('-wsd')
         ! Write the sitze distribution sizedist.dat
         write_sd = .true.
+     case('-wlam')
+        ! Write the wavelength grid as file lambda.dat
+        write_lam = .true.
      case default
         if (arg_is_switch(i)) then
            write(*,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
@@ -543,7 +547,8 @@ program optool
         stop
      endif
      if (asig .eq. 0.d0) then
-        print *,"ERROR: amean cannot be zero for (log-)normal distribution"
+        print *,"ERROR: asig cannot be zero for (log-)normal distribution"
+        stop
      else if (asig .gt. 0.d0) then
         sdkind = 'lgnm'
    else if (asig .lt. 0.d0) then
@@ -678,6 +683,19 @@ program optool
            lam(i)=10.0_dp**(log10(lmin)+log10(lmax/lmin)*(i-1)/(nlam-1))
         enddo
      endif
+  endif
+
+  if (write_lam) then
+     if (.not. quiet) write(*,'("Writing wavelength grid to file lambda.dat")')
+     open(unit=20,file='lambda.dat')
+     write(20,'("# Wavelength grid written by optool, can be read back in with -l lambda.dat")')
+     write(20,'("# First line: number of wavelengths")')
+     write(20,'("# Then one lambda per line, in micrometer")')
+     write(20,*) nlam
+     do i=1,nlam
+        write(20,'(e18.5)') lam(i)
+     enddo
+     close(unit=20)
   endif
   
   ! Allocate space for the refractive indices
@@ -1006,15 +1024,21 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
      enddo
   endif
   if (write_sd) then
+     if (.not. quiet) write(*,'("Writing size distribution to file sizedist.dat")')
      open(unit=20,file='sizedist.dat')
-     write(20,'("#   agrain [um]    n(a)=f(a)dloga")')
+     write(20,'("# Size distribution written by optool, can be read in with -a sizedist.dat")')
+     write(20,'("# First line: Number of grain size bins NA")')
+     write(20,'("# Then NA lines with:  agrain[um]  n(a)")')
+     write(20,'("#   n(a) is the number of grains in the bin.")')
+     write(20,'("#   In a linear grid,      this would be n(a) = f(a)*da")')
+     write(20,'("#   In a logarithmic grid, this would be n(a) = f(a)*a*dloga.")')
+     write(20,'("#   In an arbitrary grid,  just give the number of grains in the bin.")')
      write(20,*) ns
      do is=1,ns
         nr(is)=1.d0*nr(is)/tot
         write(20,'(2e18.5e4)') r(is),nr(is)
      enddo
      close(unit=20)
-     stop
   endif
   
   ! ----------------------------------------------------------------------

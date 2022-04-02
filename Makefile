@@ -74,7 +74,7 @@ full:;		make multi=true fits=true
 it:;		make clean
 		make full
 		make clean1
-cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk sizedist.dat optool_tmp_output_dir_*
+cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk sizedist.dat lambda.dat optool_tmp_output_dir_*
 cleanbin:;	rm -f bin/optool* bin.zip
 cleanlatex:;	rm -rf *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.pdf
 cleanpython:;	rm -rf optool.dSYM tmp.py __pycache__

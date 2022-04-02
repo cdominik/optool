@@ -263,7 +263,8 @@ DHS with f_max=0.8.
 
 + =-a FILE= ::
   Read the size distribution from a file. The file format is described
-  in [[#sizedist][appendix B]].
+  in [[#sizedist][appendix B]].  To get an example file =sizedist.dat=, run =optool=
+  with the option *-wsd*.
   
 ** Wavelength grid
 
@@ -279,12 +280,9 @@ DHS with f_max=0.8.
 
 + =-l FILE= ::
 
-  Read the wavelength grid from =FILE=. Lines in the file starting
-  with =*=, =!=, or =#= are treated as comment lines.  The first
-  non-comment line needs to start with the number of wavelength
-  values. In the data block below it, the first column is expected to
-  hold the wavelength values, in \mu{}m. An [[#lnk-files][=lnk=]] file could be used
-  here!
+  Read the wavelength grid from =FILE=. To get an example file
+  =lambda.dat=, run =optool= with the option *-wlam*. An [[#lnk-files][=lnk=]] file
+  could be used here as well!
 
 ** Controlling the output
 
@@ -416,7 +414,7 @@ troilite \fbox{tro} (Birnstiel+ 2016).
 :END:
 
 =optool= can use external refractive index data in files with the
-following format:
+following format[fn:2]:
 - The file may start with several comment lines (lines starting with
   =!=, =#=, or =*=).
 - The next line contains two numbers, the number of wavelengths
@@ -433,6 +431,9 @@ $n_\lambda$ and \rho!  If that is not possible, =optool= will count
 the lines and you can specify the density after the mass fraction,
 like this: =optool -c path/to/file.lnk 0.7 3.42=.  Please do not forget
 to include references for any optical properties used in your study.
+
+[fn:2]This file structure is also compatible with what is
+needed to set the wavelength grid with *-l FILE*.
 
 #+LATEX: \newpage
 * Output files
@@ -467,7 +468,7 @@ to include references for any optical properties used in your study.
   the structure in a formal way.  See [[#normalization][the appendix]] for information
   about the normalization of the scattering matrix and about the
   angular grid that is used for it.  Also, see the =-radmc= switch
-  which will modify[fn:2] the output to make sure it can be used as an
+  which will modify[fn:3] the output to make sure it can be used as an
   input file for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]].
 
 - dustkappa.fits ::
@@ -497,10 +498,21 @@ to include references for any optical properties used in your study.
   text to include it into your paper. For more details, read the
   comment section in =optool2tex=.
 
-[fn:2] This includes a change of the angular grid and a change in the
+[fn:3] This includes a change of the angular grid and a change in the
 normalization of the scattering matrix.
+* COMMENT Input files
+=optool= has been designed to work without input files, pretty much
+everything can be done right from the command line.  However, for
+non-regular wavelength grids or special grain size distribution, you
+can use an input file non-the-less.  This section describes the
+structure of these files.
 
+All the input files can start with a comment section of lines that
+start with =*=, =!=, or =#=.
 
+- wavelength grid ::
+- dust size distribution ::
+- lnk file :: 
 #+LATEX: \newpage
 * Python interface
 :PROPERTIES:
@@ -508,7 +520,7 @@ normalization of the scattering matrix.
 :END:
 
 =optool= comes with a [[https://www.python.org/][=python=]] module =optool.py= that runs =optool=
-in the background[fn:3] and puts all computed quantities as =numpy=
+in the background[fn:4] and puts all computed quantities as =numpy=
 arrays into a python object.  This makes it straight forward to
 inspect and further process the output. Here is how to use it:
 
@@ -518,7 +530,7 @@ p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
 #+end_src
 
 The argument to =optool.particle()= must be a valid shell
-command[fn:4] to run =optool=, if necessary with the full path to the
+command[fn:5] to run =optool=, if necessary with the full path to the
 =optool= binary.  Depending on the presence of the =optool='s *-d*
 switch, the command will produce opacities either for $n_p=1$
 particle, or for $n_p=n_a$ particles. Most of the attributes (with the
@@ -677,10 +689,10 @@ sil_ln = sil.sizedist( np.exp( -0.5*(np.log(sil.a1/1.3)/1.2)**2) )
 sil_ln.write('dkap_ln.dat')       # write opacity to a file
 #+end_src
 
-[fn:3] The module runs the command as a subprocess, with output to a
+[fn:4] The module runs the command as a subprocess, with output to a
 temporary subdirectory.
 
-[fn:4] As a string, or as a list like =['/path/to
+[fn:5] As a string, or as a list like =['/path/to
 my/command','arg1','arg2',...]=. 
 
 \appendix
@@ -690,13 +702,13 @@ my/command','arg1','arg2',...]=.
 * Units
 Due to conventions in our field, the input and output of =optool= uses
 the following units
-- *microns* for grain sizes and wavelengths.[fn:5]
+- *microns* for grain sizes and wavelengths.[fn:6]
 - *g/cm^3* for mass densities of materials
 - *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
 - *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
   see below.
 
-[fn:5]When giving a grain size or a wavelength on the command line,
+[fn:6]When giving a grain size or a wavelength on the command line,
 you can write =1.3*mm=, =340*GHz=, or =4000/cm= and =optool= will do
 the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
 respectively.
@@ -710,26 +722,19 @@ respectively.
 distributions.  Each of these will be subject to a minimum and a
 maximum grain size. The grain size grid is logarithmic, so $da\propto
 a$. The logarithmic bins are then filled according to:
-| powerlaw                            | \quad $n(a)\propto a^{-p+1}$                                                                     |
-| log-normal, triggered by $\sigma>0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
-| normal[fn:6], triggered by $\sigma<0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
-|                                     |                                                                                                  |
+| powerlaw                                           | \quad $n(a)\propto a^{-p+1}$                                                                     |
+| log-normal distribution, triggered by $\sigma>0$   | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
+| normal[fn:7] distribution, triggered by $\sigma<0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
+
 Other size distributions can be constructed using the [[#python][python
 interface]].  Finally, =optool= can also read a size distribution from a
-file.  The format of this file is as follows:
+file, and this is also the way to provide an arbitrary size grid. The
+first data line in the file gives the number of grain size bins,
+followed by lines with two numbers each: grain size in micron and
+number of grains in the corresponding bin. To get an example file, run
+=optool= with the option *-wsd*):
 
-#+LaTeX: \footnotesize
-#+begin_example 
-! Comment lines start with !, *, or #
-! Any number of comment lines are allowed at the beginning of the file
-NA             ! number of grain sizes in the file
-R(1)   NR(1)   ! Size in micrometer, and number of grains in this bin
-...    ...
-R(NA)  NR(NA)  ! Size in micrometer, and number of grains in this bin
-#+end_example
-#+LaTeX: \normalsize
-
-[fn:6]   A normal distribution is not sampled symmetrically on a
+[fn:7]   A normal distribution is not sampled symmetrically on a
 logarithmic size grid - please make sure your sampling is fine enough
 around the mean size.
 * Scattering Matrix: The fine print
@@ -887,7 +892,7 @@ the code.
   scaling factor $k_{\rm f}$ which are related to the radius of
   gyration $R_{\rm g}$ of the aggregate by $N=k_{\rm f}(R_{\rm g}/a_0)^{D_{\rm f}}$.
   The size $a$ of the particles as specified by the *-a* switch is
-  interpreted as the /compact/[fn:7] size of all material in the
+  interpreted as the /compact/[fn:8] size of all material in the
   aggregate, so that $N=a^3/a_0^3$, where $a_0$ is the monomer radius.
   The average volume filling factor $f$ can be expressed by
   $f=N\cdot(\sqrt{3/5}\,a_0/R_{\rm g})^3$.  To determine
@@ -928,7 +933,7 @@ the code.
   condition. The scattering matrix will be computed from a single
   sphere in the Rayleigh limit.
 
-[fn:7]still including the porosity specified with the *-p* switch
+[fn:8]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
 "porosity" resulting from the aggregate structure
 
