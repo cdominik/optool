@@ -132,6 +132,8 @@ Compute CDE for small graphite grains
 optool gra  -a 0.01 0.1 -l 1 30 -cde
 #+end_src
 
+# DSHARP
+# astrosil 0.3291 h2o 0.2 tro 0.0743 org 0.3966 -p 0
 
 #+LATEX: \clearpage
 * Installation
@@ -500,19 +502,7 @@ needed to set the wavelength grid with *-l FILE*.
 
 [fn:3] This includes a change of the angular grid and a change in the
 normalization of the scattering matrix.
-* COMMENT Input files
-=optool= has been designed to work without input files, pretty much
-everything can be done right from the command line.  However, for
-non-regular wavelength grids or special grain size distribution, you
-can use an input file non-the-less.  This section describes the
-structure of these files.
 
-All the input files can start with a comment section of lines that
-start with =*=, =!=, or =#=.
-
-- wavelength grid ::
-- dust size distribution ::
-- lnk file :: 
 #+LATEX: \newpage
 * Python interface
 :PROPERTIES:

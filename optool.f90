@@ -212,6 +212,10 @@ program optool
      case('??','-man','--man','-manual','--manual')
         call manual('all'); stop
 
+     case('-version','--version')
+        print *,"OpTool version 1.9.6, April 2022, (c) C. Dominik, M. Min & R. Tazaki"
+        stop
+
         ! ----------------------------------------------------------------------
         ! Definition of a material for the mix
         ! ----------------------------------------------------------------------

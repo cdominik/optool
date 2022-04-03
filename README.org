@@ -120,6 +120,8 @@ Compute the CDE approximation of small graphite grains.
   ([[https://github.com/dullemond/interactive_plot][available on github]]).
 - Gabriel-Dominique Marleau for testing and feedback, in particular on
   =optool2tex=.
+- Thiébaut Schirmer for triggering the addition of a log-normal size
+  distribution.
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
