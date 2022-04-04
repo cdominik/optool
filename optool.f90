@@ -91,6 +91,8 @@ module Defs
   ! ----------------------------------------------------------------------
   character*500                  :: outdir = ''    ! Output directory
   character*500                  :: sdfile = ''    ! Size distribution file
+  character*500                  :: sdoutfile = '' ! Size distribution file
+  character*500                  :: lamoutfile = ''! Size distribution file
   real (kind=dp)                 :: ameans_file(3) ! for size means from file
   character*3                    :: method         ! DHS or MMF
   character*4                    :: sdkind         ! apow, lgnm, norm, or file
@@ -629,6 +631,8 @@ program optool
   endif
   meanfile       = make_file_path(outdir,"dustkapmean.dat")
   fitsfile       = make_file_path(outdir,"dustkappa.fits")
+  sdoutfile      = make_file_path(outdir,"optool_sd.dat")
+  lamoutfile     = make_file_path(outdir,"optool_lam.dat")
 
   ! ----------------------------------------------------------------------
   ! Default grain composition if nothing is specified
@@ -683,7 +687,7 @@ program optool
 
   if (write_grd) then
      if (.not. quiet) write(*,'("Writing wavelength grid to file optool_lam.dat")')
-     open(unit=20,file='optool_lam.dat')
+     open(unit=20,file=lamoutfile)
      write(20,'("# Wavelength grid written by optool, can be read back in with -l optool_lam.dat")')
      write(20,'("# First line: number of wavelengths")')
      write(20,'("# Then one lambda per line, in micrometer")')
@@ -1022,7 +1026,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   endif
   if (write_grd .and. (isplit.le.1)) then
      if (.not. quiet) write(*,'("Writing size distribution to file optool_sd.dat")')
-     open(unit=20,file='optool_sd.dat')
+     open(unit=20,file=sdoutfile)
      write(20,'("# Size distribution written by optool, can be read in with -a optool_sd.dat")')
      if (isplit.eq.1) then
         write(20,'("# This is only the first subparticle because of the -d switch")')

@@ -267,7 +267,7 @@ DHS with f_max=0.8.
 + =-a FILE= ::
   Read the size distribution from a file. The file format is described
   in [[#sizedist][appendix B]].  To get an example file =optool_sd.dat=, run =optool=
-  with the option *-w*.
+  with the option *-wgrid*.
   
 ** Wavelength grid
 
@@ -284,7 +284,7 @@ DHS with f_max=0.8.
 + =-l FILE= ::
 
   Read the wavelength grid from =FILE=. To get an example file
-  =optool_lam.dat=, run =optool= with the option *-w*. An [[#lnk-files][=lnk=]]
+  =optool_lam.dat=, run =optool= with the option *-wgrid*. An [[#lnk-files][=lnk=]]
   file could be used here as well!
 
 ** Controlling the output
