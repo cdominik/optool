@@ -133,6 +133,10 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     distribution around =AMEAN=, with =ASIG= interpreted as the width
     in micrometers.
   - The size distribution can also be read from a file.
+  - The new option *-wgrid* makes =optool= write the size distribution
+    and the wavelength grid into files =optool_sd.dat= and
+    =optool_lam.dat=, respectively. These also serve as examples of
+    what kind of file can be read in by =-l FILE= and =-a FILE=.
 
 - Release 1.9.4 ::
   - Improve installation process and instructions.

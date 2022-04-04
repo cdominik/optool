@@ -46,8 +46,7 @@ module Defs
   logical, public                :: quiet     = .false. ! reduce output to STDOUT
   logical, public                :: verbose   = .false. ! additional output to STDOUT
   logical, public                :: debug     = .false. ! Additional info to STDOUT
-  logical, public                :: write_sd  = .false. ! Write out the size distribution
-  logical, public                :: write_lam = .false. ! Write out the wavelength grid
+  logical, public                :: write_grd = .false. ! Write out the size distribution and wavelength grid
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
@@ -483,12 +482,9 @@ program optool
      case('-debug')
         ! More info to STDOUT
         debug = .true.
-     case('-wsd')
+     case('-wgrid')
         ! Write the sitze distribution sizedist.dat
-        write_sd = .true.
-     case('-wlam')
-        ! Write the wavelength grid as file lambda.dat
-        write_lam = .true.
+        write_grd = .true.
      case default
         if (arg_is_switch(i)) then
            write(*,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
@@ -608,10 +604,6 @@ program optool
      if (.not. quiet) write(*,*) 'WARNING: Turning off -s for -blendonly'
      split = .false.
   endif
-  if (write_sd .and. split) then
-     if (.not. quiet) write(*,*) "WARNING: Turning off -wsd, don't use it with -d"
-     write_sd = .false.
-  endif
   if (split .and. (sdkind .ne. 'apow')) then
      write(*,*) "ERROR: Please only use -d with a powerlaw size distribution"
      stop
@@ -689,10 +681,10 @@ program optool
      endif
   endif
 
-  if (write_lam) then
-     if (.not. quiet) write(*,'("Writing wavelength grid to file lambda.dat")')
-     open(unit=20,file='lambda.dat')
-     write(20,'("# Wavelength grid written by optool, can be read back in with -l lambda.dat")')
+  if (write_grd) then
+     if (.not. quiet) write(*,'("Writing wavelength grid to file optool_lam.dat")')
+     open(unit=20,file='optool_lam.dat')
+     write(20,'("# Wavelength grid written by optool, can be read back in with -l optool_lam.dat")')
      write(20,'("# First line: number of wavelengths")')
      write(20,'("# Then one lambda per line, in micrometer")')
      write(20,*) nlam
@@ -762,7 +754,7 @@ program optool
         asplit    = amin  *afact**real(ia-1d0+0.5d0)
         aminsplit = asplit*afsub**real(-nsub/2)
         amaxsplit = asplit*afsub**real(+nsub/2)
-        call ComputePart(p,aminsplit,amaxsplit,apow,amean,asig,nsub,fmax,mmf_a0,mmf_struct,mmf_kf, &
+        call ComputePart(p,ia,aminsplit,amaxsplit,apow,amean,asig,nsub,fmax,mmf_a0,mmf_struct,mmf_kf, &
              pcore,pmantle,mat_mfr,mat_nm,.false.)
 
         ! Outout is done serially, to avoid file handle conflicts
@@ -806,7 +798,7 @@ program optool
      ! ----------------------------------------------------------------------
      ! Call the main routine to compute the opacities and scattering matrix
      ! ----------------------------------------------------------------------
-     call ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
+     call ComputePart(p,0,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
           pcore,pmantle,mat_mfr,nm,.true.)
      
      ! ----------------------------------------------------------------------
@@ -843,7 +835,7 @@ end program optool
 
 ! **** ComputePart, the central routine avaraging properties over sizes
 
-subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
+subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf_kf, &
      p_c,p_m,mfrac0,nm,progress)
   ! ----------------------------------------------------------------------
   ! Main routine to compute absorption cross sections and the scattering matrix.
@@ -888,6 +880,7 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
   logical                        :: progress
 
   integer                        :: i,j              ! counters for various loops
+  integer                        :: isplit           ! index of the split runs, 0 if not split
   integer                        :: na               ! Number of grains sizes between amin and amax
   integer                        :: nf,if            ! Number of DHS volume fractions
   integer                        :: ns,is            ! Number of grains sizes
@@ -1027,20 +1020,24 @@ subroutine ComputePart(p,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_struct,mmf
         nr(is)=1.d0*nr(is)/tot
      enddo
   endif
-  if (write_sd) then
-     if (.not. quiet) write(*,'("Writing size distribution to file sizedist.dat")')
-     open(unit=20,file='sizedist.dat')
-     write(20,'("# Size distribution written by optool, can be read in with -a sizedist.dat")')
+  if (write_grd .and. (isplit.le.1)) then
+     if (.not. quiet) write(*,'("Writing size distribution to file optool_sd.dat")')
+     open(unit=20,file='optool_sd.dat')
+     write(20,'("# Size distribution written by optool, can be read in with -a optool_sd.dat")')
+     if (isplit.eq.1) then
+        write(20,'("# This is only the first subparticle because of the -d switch")')
+     endif
      write(20,'("# First line: Number of grain size bins NA")')
      write(20,'("# Then NA lines with:  agrain[um]  n(a)")')
      write(20,'("#   n(a) is the number of grains in the bin.")')
-     write(20,'("#   In a linear grid,      this would be n(a) = f(a)*da")')
-     write(20,'("#   In a logarithmic grid, this would be n(a) = f(a)*a*dloga.")')
+     write(20,'("#   In a linear grid      (da   =const), this would be n(a) = f(a)*da")')
+     write(20,'("#   In a logarithmic grid (dloga=const), this would be n(a) = f(a)*a*dloga.")')
      write(20,'("#   In an arbitrary grid,  just give the number of grains in the bin.")')
+     write(20,'("# No normalization is necessary, it is done automatically.")')
      write(20,*) ns
      do is=1,ns
         nr(is)=1.d0*nr(is)/tot
-        write(20,'(2e18.5e4)') r(is),nr(is)
+        write(20,'(e18.5,e18.5e4)') r(is),nr(is)
      enddo
      close(unit=20)
   endif

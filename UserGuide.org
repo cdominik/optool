@@ -265,8 +265,8 @@ DHS with f_max=0.8.
 
 + =-a FILE= ::
   Read the size distribution from a file. The file format is described
-  in [[#sizedist][appendix B]].  To get an example file =sizedist.dat=, run =optool=
-  with the option *-wsd*.
+  in [[#sizedist][appendix B]].  To get an example file =optool_sd.dat=, run =optool=
+  with the option *-w*.
   
 ** Wavelength grid
 
@@ -283,8 +283,8 @@ DHS with f_max=0.8.
 + =-l FILE= ::
 
   Read the wavelength grid from =FILE=. To get an example file
-  =lambda.dat=, run =optool= with the option *-wlam*. An [[#lnk-files][=lnk=]] file
-  could be used here as well!
+  =optool_lam.dat=, run =optool= with the option *-w*. An [[#lnk-files][=lnk=]]
+  file could be used here as well!
 
 ** Controlling the output
 
@@ -334,6 +334,10 @@ extend the [[#output-files][output]].
   use this to extract a single value, for example the 850\mu{}m
   extinction opacity of grains between 1 and 3mm: =optool -a 1000 3000
   -l 850 -print kext=
+
++ =-wgrid= ::
+  Write the files =optool_sd.dat= and =optool_lam.dat= with the grain
+  size distribution and the wavelengths grid, respectively.
 
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
@@ -714,7 +718,7 @@ maximum grain size. The grain size grid is logarithmic, so $da\propto
 a$. The logarithmic bins are then filled according to:
 | powerlaw                                           | \quad $n(a)\propto a^{-p+1}$                                                                     |
 | log-normal distribution, triggered by $\sigma>0$   | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
-| normal[fn:7] distribution, triggered by $\sigma<0$ | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
+| normal distribution[fn:7], triggered by $\sigma<0$       | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
 
 Other size distributions can be constructed using the [[#python][python
 interface]].  Finally, =optool= can also read a size distribution from a
@@ -722,7 +726,7 @@ file, and this is also the way to provide an arbitrary size grid. The
 first data line in the file gives the number of grain size bins,
 followed by lines with two numbers each: grain size in micron and
 number of grains in the corresponding bin. To get an example file, run
-=optool= with the option *-wsd*):
+=optool= with the option *-wgrid*):
 
 [fn:7]   A normal distribution is not sampled symmetrically on a
 logarithmic size grid - please make sure your sampling is fine enough

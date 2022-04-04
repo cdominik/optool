@@ -29,6 +29,6 @@ auto/
 auto
 tmp.py
 optool.pdf
-sizedist.dat
-lambda.dat
+optool_sd.dat
+optool_lam.dat
 plotsd.py
