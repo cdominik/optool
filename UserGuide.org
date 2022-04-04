@@ -157,8 +157,9 @@ files[fn:1]. The executable is called =optool=. The =make
 install= step copies it and also =optool2tex= and =optool-complete=
 into =bindir=.
 
-If compiling the code is a problem, use the [[https://staff.fnwi.uva.nl/c.dominik/optool][binaries for Mac and Linux]]
-we provide. For shell command line completion support, check the file
+# If compiling the code is a problem, use the [[https://staff.fnwi.uva.nl/c.dominik/optool][binaries for Mac and Linux]]
+# we provide.
+For shell command line completion support, check the file
 =optool-complete=.
 
 [fn:1] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your
@@ -253,7 +254,7 @@ DHS with f_max=0.8.
   the [[#sizedist][size distribution powerlaw]] and the number of size bins.  You may
   also use options to set individual values with *-amin*, *-amax*,
   *-apow*, *-na*. The defaults are 0.05 \mu{}m, 3000 \mu{}m, 3.5, and
-  /10 per size decade with a fixed minimum of 5/, respectively.\\
+  /15 per size decade with a fixed minimum of 5/, respectively.\\
   =>= If only a single size is specified with *-a*, then a_max=a_min and
   n_a=1 are implied.
 

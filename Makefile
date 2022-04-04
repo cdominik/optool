@@ -71,6 +71,7 @@ install:	$(PROGRAM)
 		cp optool optool2tex optool-complete $(bindir)
 
 full:;		make multi=true fits=true
+multi:;		make multi=true
 it:;		make clean
 		make full
 		make clean1
@@ -103,36 +104,6 @@ release:;	make clean
 		git tag release_$(version)
 		git push
 		git push origin release_$(version)
-		make binmac
-		make binmv
-
-binmac:;	make cclean
-		make
-		mv optool bin/optool-mac
-		make cclean
-		make multi=true
-		mv optool bin/optool-mac-OpenMP
-		make cclean
-		make fits=true
-		mv optool bin/optool-mac-fits
-		make cclean
-		make multi=true fits=true
-		mv optool bin/optool-mac-fits-OpenMP
-binlinux:;	make cclean
-		make
-		mv optool bin/optool-linux
-		make cclean
-		make multi=true
-		mv optool bin/optool-linux-OpenMP
-		make cclean
-		make fits=true
-		mv optool bin/optool-linux-fits
-		make cclean
-		make multi=true fits=true
-		mv optool bin/optool-linux-fits-OpenMP
-binzip:;	rm -f bin.zip
-		(cd bin; zip ../bin.zip optool*)
-binmv:;		mv bin/optool* ~/Dropbox/Websites/uva.nl/WWW/optool/
 
 .SUFFIXES : .o .f .f90
 

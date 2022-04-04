@@ -137,6 +137,9 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     and the wavelength grid into files =optool_sd.dat= and
     =optool_lam.dat=, respectively. These also serve as examples of
     what kind of file can be read in by =-l FILE= and =-a FILE=.
+  - We no longer provide binary versions of =optool=.
+  - The default number of size bins has been increased to 15 per grain
+    size decade, to get better results out of the box.
 
 - Release 1.9.4 ::
   - Improve installation process and instructions.

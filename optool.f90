@@ -524,7 +524,7 @@ program optool
   ! *** Grain size distribution ***
   if (na .eq. 0) then
      ! set sampling of the grain radius: 10 per decade, min 5
-     na = max(5,int((log10(amax)-log10(amin))*10d0+1d0))
+     na = max(5,int((log10(amax)-log10(amin))*15d0+1d0))
   endif
   if ( (amin.le.0d0) .or. (amax.le.0d0) ) then
      print *,'ERROR: Both amin and amax need to be positive numbers',amin,amax; stop
