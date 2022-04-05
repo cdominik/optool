@@ -149,6 +149,7 @@ while (@ARGV) {
   elsif (/^-d$/) {
     # Division flag
     $divide = 1; $nsub = shift if &n}
+  elsif (/^-wgrid$/) {}
   elsif (/^-fits$/) {}
   elsif (/^-radmc(3d)?$/) {shift unless &a} # RADMC, skip label if present
   elsif (/^-print$/) {shift if $ARGV[0]=~/^(kabs|kscat?|kext|g(scat?)?)$/} # print, skip VAR
