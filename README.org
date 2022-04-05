@@ -139,7 +139,8 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     what kind of file can be read in by =-l FILE= and =-a FILE=.
   - We no longer provide binary versions of =optool=.
   - The default number of size bins has been increased to 15 per grain
-    size decade, to get better results out of the box.
+    size decade, to get better results at long wavelengths out of the
+    box. This slows down the computation by 50%.
 
 - Release 1.9.4 ::
   - Improve installation process and instructions.
@@ -175,44 +176,3 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
   - Add an amophous water ice, from Hudgins 1993.
     This dataset is amended at short and long wavelengths with the
     Warren data of crystalline ice, to get a wide dataset.
-
-- Release 1.8.3 ::
-  - Implement optool2tex, a little tool that turns an optool command
-    line into a LaTeX snippet that describes the methods and the
-    refractive index data used for that computation.  This is somewhat
-    of a gimmick, but it is fun.
-  - New way to keep precomputed opacities in a directory and read them
-    back in in python at a later time.
-  - New =sizedist()= method for quickly applying size distributions to
-    a set of precomputed opacities.
-  - The command line that was used to produce an output file is now
-    stored in the file header of each output file - very handy if you
-    are trying to reproduce a run.
-
-- Release 1.7.3 ::
-  - New built-in materials: SiO2
-  - Stabilization of the interpolation and extrapolation of refractive
-    index data.  Zero values did cause problems with the loglog
-    scheme.  This is now fixed by using a floor of 1e-10 for both n
-    and k values.
-  - New =select()= method for the =optool.particle class=, to pull a
-    particle size out of an object with many particle sizes in it
-    (because it was computed by =optool= with the -d switch).
-  - Implementation of particle arithmetic in the python module, to
-    allow constructing grain models by adding separate grain types.
-
-- Release 1.7 ::
-  - New built-in materials (ices!): CO, CO2, CH3OH, CH4, and NH3.
-  - Mean opacities can be computed in the Python module.
-  - the =scatnorm= method in the Python module allows to renormalize
-    the scattering matrix to various conventions used in the
-    literature.
-  - The python module contains a class for =lnk= files, that can be used
-    to read tables, convert units, sort, smooth and decimate the
-    data.  This is not described in the UserGuide, but after loading
-    =optool.py=, the documentation will be available in python.
-- Release 1.5 ::
-  - An implementation of the Modified Mean Field Theory (MMF, Tazaki &
-    Tanaka 2018) to treat opacities of very porous or fractal
-    aggregates has been added.
-    
