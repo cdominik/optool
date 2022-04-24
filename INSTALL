@@ -13,8 +13,5 @@ instead of `gfortran', and `fits=true' to add support for writing FITS
 files[1]. The executable is called `optool'. The `make install' step
 copies it and also `optool2tex' and `optool-complete' into `bindir'.
 
-If compiling the code is a problem, you can also find binaries for Mac
-and Linux at https://staff.fnwi.uva.nl/c.dominik/optool.
-
 For shell command line completion support, check the file
 `optool-complete'.
