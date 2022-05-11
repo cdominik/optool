@@ -8,14 +8,18 @@
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
 # BibTeX-key: 1995A&A...300..503D
 #
+# At the shortest wavelengths, the original data has no measurement
+# for the imaginary part of the refractive index. We have set a small
+# positive value (0.000001) to work around this issue.
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
      109  2.71
-     0.20000    1.691660    0.000000
-     0.22000    1.659980    0.000000
-     0.24000    1.641870    0.000000
-     0.26000    1.626080    0.000000
-     0.28000    1.614980    0.000000
-     0.30000    1.606160    0.000000
+     0.20000    1.691660    0.000001
+     0.22000    1.659980    0.000001
+     0.24000    1.641870    0.000001
+     0.26000    1.626080    0.000001
+     0.28000    1.614980    0.000001
+     0.30000    1.606160    0.000001
      0.32000    1.597520    0.000120
      0.34000    1.592440    0.000056
      0.36000    1.591220    0.000032

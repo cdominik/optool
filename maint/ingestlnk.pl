@@ -74,6 +74,12 @@ while ($file = shift) {
     $line_number++;
     $line = <$fh>;
     ($l,$n,$k) = (split(' ',$line));
+    if ($n<=0) {
+      print STDERR "WARNING: non-positive value of n at lambda=$l in file $file\n";
+    }
+    if ($k<=0) {
+      print STDERR "WARNING: non-positive value of k at lambda=$l in file $file\n";
+    }
     if (not ($l and $n and $k)) {
       $line =~ s/[ \t]+\n?$//;
       die "Error in line $line_number in file $file\nThe line is: $line\nMore lnk data was expected.";

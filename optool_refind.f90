@@ -20501,6 +20501,10 @@ subroutine pyr_mg100(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
   ! BibTeX-key: 1995A&A...300..503D
   !
+  ! At the shortest wavelengths, the original data has no measurement
+  ! for the imaginary part of the refractive index. We have set a small
+  ! positive value (0.000001) to work around this issue.
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -20543,7 +20547,7 @@ subroutine pyr_mg100(l_lnk,n_lnk,k_lnk,nlam,rho)
   2.517130,2.528010,2.542010,2.549340,2.557520,2.561610,2.571840, &
   2.579850,2.580000,2.580000,2.580000/
   data (k0(j),j=1,109) / &
-  0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000120, &
+  0.000001,0.000001,0.000001,0.000001,0.000001,0.000001,0.000120, &
   0.000056,0.000032,0.000023,0.000020,0.000020,0.000020,0.000021, &
   0.000022,0.000024,0.000026,0.000027,0.000029,0.000031,0.000034, &
   0.000037,0.000039,0.000041,0.000043,0.000045,0.000046,0.000048, &
@@ -20960,6 +20964,10 @@ subroutine pyr_mg95(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! ADS-link:   https://ui.adsabs.harvard.edu/abs/1995A&A...300..503D
   ! BibTeX-key: 1995A&A...300..503D
   !
+  ! At the shortest wavelengths, the original data has no measurement
+  ! for the imaginary part of the refractive index. We have set a small
+  ! positive value (0.000001) to work around this issue.
+  !
 
   IMPLICIT NONE
   integer nlam,j
@@ -21002,7 +21010,7 @@ subroutine pyr_mg95(l_lnk,n_lnk,k_lnk,nlam,rho)
   2.521820,2.532000,2.553140,2.548360,2.543450,2.544950,2.551280, &
   2.555340,2.558940,2.558940,2.558940/
   data (k0(j),j=1,109) / &
-  0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000, &
+  0.000000,0.000001,0.000001,0.000001,0.000001,0.000001,0.000001, &
   0.001657,0.000883,0.000535,0.000400,0.000338,0.000309,0.000290, &
   0.000302,0.000310,0.000327,0.000351,0.000384,0.000423,0.000507, &
   0.000581,0.000623,0.000645,0.000630,0.000617,0.000634,0.000647, &
