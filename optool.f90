@@ -1293,6 +1293,20 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                  Mief22 = Mief11
                  Mief44 = Mief33
               else
+                 if (qext .lt. qsca) then
+                    ! Oops, this is not physical and happens in DHS, when absorption
+                    ! is very weak compared to scattering.
+                    if ((abs(qext-qsca) .lt. 0.001*qext) .and. (.not. debug)) then
+                       ! Fix it silently
+                       qext=qsca
+                    else
+                       ! Fix it loudly
+                       ! print *,'WARNING: Fixing qext<qsca',qext,qsca,(qext-qsca)/qext,lam(ilam)
+                       write(*,'("WARNING: Fixing qext<qsca, lam=",e7.1," r="e7.1," f=",e7.1," err=",1p,e7.1)') &
+                            & lam(ilam),r1,f(if),abs(qext-qsca)/qext
+                       qext=qsca
+                    endif
+                 endif
                  cemie = qext * pi * rad**2
                  csmie = qsca * pi * rad**2
                  factor= 2d0*pi/csmie/wvno**2
