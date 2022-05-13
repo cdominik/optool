@@ -1301,7 +1301,6 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                        qext=qsca
                     else
                        ! Fix it loudly
-                       ! print *,'WARNING: Fixing qext<qsca',qext,qsca,(qext-qsca)/qext,lam(ilam)
                        write(*,'("WARNING: Fixing qext<qsca, lam=",e7.1," r="e7.1," f=",e7.1," err=",1p,e7.1)') &
                             & lam(ilam),r1,f(if),abs(qext-qsca)/qext
                        qext=qsca
