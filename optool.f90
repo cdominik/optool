@@ -904,7 +904,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
 
   real (kind=dp)                 :: rmie, lmie
   real (kind=dp)                 :: e1mie, e2mie
-  real (kind=dp)                 :: csmie, cemie
+  real (kind=dp)                 :: csmie, cemie, camie
   real (kind=dp)                 :: theta
 
   real (kind=dp)                 :: aminlog,amaxlog,pow,expo
@@ -1218,7 +1218,8 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !$OMP shared(quiet,verbose)                                             &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
-  !$OMP private(cemie,csmie,e1mie,e2mie,rmie,lmie,qabs,qsca,qext,gqsc)    &
+  !$OMP private(cemie,csmie,camie,e1mie,e2mie,rmie,lmie)                  &
+  !$OMP private(qabs,qsca,qext,gqsc)                                      &
   !$OMP private(dcsca,dcabs,V)                                            &
   !$OMP private(err,spheres,toolarge)                                     &
   !$OMP private(m1,m2,d21,s21,m,mconj,wvno,min)                           &
@@ -1293,19 +1294,6 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                  Mief22 = Mief11
                  Mief44 = Mief33
               else
-                 if (qext .lt. qsca) then
-                    ! Oops, this is not physical and happens in DHS, when absorption
-                    ! is very weak compared to scattering.
-                    if ((abs(qext-qsca) .lt. 0.001*qext)) then
-                       ! Fix it silently
-                       qext=qsca
-                    else
-                       ! Fix it loudly
-                       write(*,'("WARNING: Fixing qext<qsca, lam=",e7.1," r="e7.1," f=",e7.1," err=",1p,e7.1)') &
-                            & lam(ilam),r1,f(if),abs(qext-qsca)/qext
-                       qext=qsca
-                    endif
-                 endif
                  cemie = qext * pi * rad**2
                  csmie = qsca * pi * rad**2
                  factor= 2d0*pi/csmie/wvno**2
@@ -1349,9 +1337,17 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                  f34(j) = f34(j) + wf(if)*nr(is)*Mief34(j)*csmie
                  f44(j) = f44(j) + wf(if)*nr(is)*Mief44(j)*csmie
               enddo
+              camie = cemie-csmie
+              if (camie .lt. cemie*1d-4) then
+                 ! Catches the case when there is no absorption
+                 ! Also catches the numerical problem with DMiLay,
+                 ! where csabs can become negative
+                 camie = cemie*1d-4
+                 cemie = camie+csmie
+              endif
               cext = cext + wf(if)*nr(is)*cemie
               csca = csca + wf(if)*nr(is)*csmie
-              cabs = cabs + wf(if)*nr(is)*(cemie-csmie)
+              cabs = cabs + wf(if)*nr(is)*camie
               mass = mass + wf(if)*nr(is)*rho_av*4d0*pi*r1**3/3d0
               vol  = vol  + wf(if)*nr(is)*4d0*pi*r1**3/3d0
            enddo    ! end loop "nf" over form factors
