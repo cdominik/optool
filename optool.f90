@@ -1296,7 +1296,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                  if (qext .lt. qsca) then
                     ! Oops, this is not physical and happens in DHS, when absorption
                     ! is very weak compared to scattering.
-                    if ((abs(qext-qsca) .lt. 0.001*qext) .and. (.not. debug)) then
+                    if ((abs(qext-qsca) .lt. 0.001*qext)) then
                        ! Fix it silently
                        qext=qsca
                     else
