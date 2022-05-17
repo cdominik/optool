@@ -893,6 +893,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
 
   real (kind=dp)                 :: cext, csca, cabs, dcabs, dcsca
   real (kind=dp)                 :: qext, qsca, qabs, gqsc
+  real (kind=dp)                 :: qabsdqext_min = 1d-4 ! qabs no smaller than this fraction
 
   real (kind=dp), allocatable    :: f11(:),    f12(:),    f22(:),    f33(:),    f34(:),    f44(:)
   real (kind=dp), allocatable    :: Mief11(:), Mief12(:), Mief22(:), Mief33(:), Mief34(:), Mief44(:)
@@ -1215,7 +1216,8 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method)                 &
   !$OMP shared(nf,ns,p_c,rho_av,wf,f)                                     &
   !$OMP shared(split,progress,ndone,nang,chopangle)                       &
-  !$OMP shared(quiet,verbose)                                             &
+  !$OMP shared(quiet,debug,verbose)                                       &
+  !$OMP shared(qabsdqext_min)                                             &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,camie,e1mie,e2mie,rmie,lmie)                  &
@@ -1338,10 +1340,11 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                  f44(j) = f44(j) + wf(if)*nr(is)*Mief44(j)*csmie
               enddo
               camie = cemie-csmie
-              if (camie .lt. cemie*1d-4) then
+              if (camie .lt. cemie*qabsdqext_min) then
                  ! Catches the case when there is no absorption
                  ! Also catches the numerical problem with DMiLay,
                  ! where csabs can become negative
+                 if (debug) print *,"WARNING: Fixing too small qabs at lam=",lam(ilam),"a=",r1
                  camie = cemie*1d-4
                  cemie = camie+csmie
               endif

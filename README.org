@@ -126,6 +126,10 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.9.7 (upcoming) ::
+  - Do not allow qabs to drop below 1e-4*qext, to avoid numerical
+    problems.
+
 - Release 1.9.6 ::
   - Log-normal size distribution is now a standard option, using
     =AMEAN:ASIG= insteat of the powerlaw in the *-a* switch.  A
