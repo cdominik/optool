@@ -25,7 +25,7 @@ subroutine usage()
   write(*,'("-radmc; -fits; -print [V]  Special output options (-print goes to STDOUT)")')
   write(*,'("-o [DIRECTORY]             Output to DIRECTORY instead of current working dir")')
   write(*,'("-h [OPT]; -man             Show this msg or help on -OPT; Show the full manual")')
-  write(*,'("-q; -v                     Quite or more verbose on STDOUT")')
+  write(*,'("-q; -v                     Quiet or more verbose on STDOUT")')
   write(*,'("===============================================================================")')
 end subroutine usage
 
