@@ -18,7 +18,7 @@ and to read its output into a nice object.
     p = optool.particle('optool -na 30 -d 5',cache='cdir1')
     p.__dict__
 
-But if you prefer to read output files that are slaready available on
+But if you prefer to read output files that are already available on
 your system, you can use the snippets in the following 2 files:
 
  - readfits.py
