@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 
+# Program to extract the text from UserGuide.org and bake it into
+# a fortran routine so that the manual and parts of it can be displayed
+# by optool.
+
 $cmd = "/Applications/Emacs.app/Contents/MacOS/Emacs UserGuide.org --batch -f org-ascii-export-to-ascii --kill";
 system($cmd);
 

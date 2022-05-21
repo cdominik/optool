@@ -4,16 +4,6 @@
 Python cannot read the headers.  I should check if Fortran actually can!?
 *** TODO propagate rho to fits and write it there?
 ** DONE Add an amorphous water ice
-* Compact version of lnk description
-Useful if more materials need to fit into the table.
-
-following format: The file may start with a number of comment lines
-(lines starting with =!=, =#=, or =*=), followed by
-- a line specifying the number of datalines $n_\lambda$ and the
-  material density \rho[g/cm^{3}]
-- $n_\lambda$ data lines with wavelength and refractive index:
-  $\mathtt{\lambda_j[\mu{}m]\quad n_j\quad k_j}$
-
 * Undocumented features
 ** Tools
 + =-b= :: Just interpolate and extrapolate the refractive index data

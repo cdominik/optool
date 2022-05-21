@@ -62,8 +62,6 @@ OBJS	= optool.o optool_guts.o optool_manual.o optool_refind.o optool_fractal.o o
 # Program name and install location
 PROGRAM       = optool
 bindir	      = ${HOME}/bin
-BINRELEASE    = ~/Dropbox/Websites/uva.nl/WWW/optool
-
 
 # make actions 
 all:		$(PROGRAM)
@@ -73,6 +71,9 @@ install:	$(PROGRAM)
 full:;		make multi=true fits=true
 multi:;		make multi=true
 it:;		make clean
+		make multi=true
+		make clean1
+it2:;		make clean
 		make full
 		make clean1
 cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_sd.dat optool_lam.dat optool_tmp_output_dir_*

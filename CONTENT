@@ -1,0 +1,39 @@
+CONTENT                 This file
+INSTALL                 Brief installation instructions (also in UserGuide)
+LICENSE                 License information
+Makefile                Makefile to aid compilation and installation
+README.org              Short introduction, source for githup site
+UserGuide.org           The User guide, an Emacs Org-mode file
+UserGuide.pdf           PDF version of UserGuide.org
+code4reading            Directory with code snippets to read optool output
+codemeta.jason          Matadata for optool
+lnk_data                Directory with refractive index data
+maint                   Directory with scripts aiding maintenance
+optool                  Binary program, only present after running "make"
+optool-complete         Code for shell-completion of switched and arguments
+optool.bib              BibTeX file with all relevant references
+optool.f90              Main code file for optool
+optool_guts.f90         Code that does the grunt work for computing opacities
+optool_fractal.f90      Code implementing modified mean field theory
+optool_geofractal.f90   Code computing aggregate geometric cross sections
+optool_manual.f90       The Manual extracted from UserGuide.org
+optool_refind.f90       Refractive index data as fortran code
+optool.py               Python module for working with optool
+optool2tex              Perl program to turn optool command into LaTeX text
+setup.py                Code for python module installation
+
+
+In directory maint
+==================
+RELEASE                 Description of how to produce a release
+all_k.pdf               Plot of k values, made with plotall.py, used in manual
+bake_manual.pl          Perl program to turn UserGuide.org into fortran code
+bake_manual.el          Emacs Lisp code to extract ASCII from UserGuide.org
+ingestlnk.pl            Perl program to produce optool_refind.f90
+ref_ind.template        Template needed by ingestlnk.pl
+inspect.png             Plots created with plot() method, for UserGuide.pdf
+notes.org               Notes about stuff I still might want to work on
+plotall.py              Python code to plot all refractive index data
+run_examples            Script running all examples from the manual
+selftest.pl             Perl program to run a bunch of tests with optool
+

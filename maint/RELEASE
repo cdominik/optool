@@ -12,14 +12,10 @@ How too make a release
    Also, make sure that optool-complete gets to know about any new options.
 
 4. Run
+
       make release version=1.2.3
 
-5. Go to the Linux virtual machine
-      git pull
-      make binlinux
-      make binzip
-   The transport the zip file to the main computer and put the files
-   into the Website directories.
-
-6. Edit index.org on the website directory and change the version
-   number.
+   The will create the files UserGuide.pdf, optool_refind.f90, and
+   optool_manual.f90.  The all changes willbe committed, the current
+   the current state will get a release tag, and then changes and tag
+   are pushed to GitHub.

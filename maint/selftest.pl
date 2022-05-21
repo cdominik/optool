@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 
 # Run a few standard cases and compare the results to stored hashes.
+# When run with -s, the hashes at the end of the file are set.  You may
+# want to clean out the old velues by hand.
 
 use Digest::SHA qw/ sha1_hex /;
 use Getopt::Std;
