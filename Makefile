@@ -100,6 +100,7 @@ release:;	make clean
 		make pdf
 		make manual
 		make ingest
+		make clean
 		git add *
 		git commit -m "Release $(version)"
 		git tag release_$(version)
