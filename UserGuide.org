@@ -880,7 +880,13 @@ the code.
   of 10^4, no DHS averaging is used.  A standard Mie calculation is
   performed, using the routine =MeerhoffMie= (de Rooij+ 1984), for a
   fixed size parameter of 5000, with proper scaling to the actual size
-  of the particle.
+  of the particle.\\
+  Numerical inaccuracies in the =DMiLay= routine can lead to an
+  unphysical result with $q_{\rm sca}>q_{\rm ext}$, implying a
+  negative $q_{\rm abs}$, in a situation where the imaginary part of
+  the refractive index is extremely small.  =optool= therefore
+  enforces $q_{\rm abs}>q_{\rm ext}/10^4$, with no consequences for
+  practical applications.
 
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
   number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
