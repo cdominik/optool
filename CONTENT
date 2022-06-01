@@ -1,4 +1,4 @@
-List of files in the Optool distribution
+List of files in the optool distribution
 ========================================
 
 CONTENT                 This file
@@ -54,32 +54,35 @@ readfits.py             Python  program to read FITS output
 In directory lnk_data
 =====================
 lnk-help.txt                   The help screen shown by optool -c
+retired                        Directory with retired datasets
 
+The refractive index datasets in the lnk_data directory
+-------------------------------------------------------
 astrosil-Draine2003.lnk        astronomical silicate
-c-gra-Draine2003.lnk           graphite
-c-nano-Mutschke2004.lnk        nano-Diamonds
-c-org-Henning1996.lnk          organic carbon material
-c-p-Preibisch1993.lnk          amorphous carbon
-c-z-Zubko1996.lnk              amorphous carbon
-ch3oh-a-Gerakines2020.lnk      methanol ice (amorphous)
-ch3oh-c-Gerakines2020.lnk      methanol ice (crystalline)
-ch4-a-Gerakines2020.lnk        methane ice (amorphous)
-ch4-c-Gerakines2020.lnk        methane ice (crystalline)
-co-a-Palumbo2006.lnk           CO ice (amorphous)
-co2-a-Gerakines2020.lnk        CO2 ice (amorphous)
-co2-c-Gerakines2020.lnk        CO2 ice (crystalline)
-co2-w-Warren1986.lnk           CO2 ice
-cor-c-Koike1995.lnk            corundum
-fe-c-Henning1996.lnk           iron
-fes-Henning1996.lnk            iron sulfide
-h2o-a-Hudgins1993.lnk          water ice (amorphous)
-h2o-w-Warren2008.lnk           water ice
-nh3-m-Martonchik1983.lnk       ammonia ice
-ol-c-mg00-Fabian2001.lnk         0% Mg olivine (crystalline)
-ol-c-mg95-Fabian2001.lnk        95% Mg olivine (crystalline)
-ol-c-mg100-Suto2006.lnk        100% Mg olivine (crystalline)
-ol-mg40-Dorschner1995.lnk       40% Mg olivine (amorphous)
-ol-mg50-Dorschner1995.lnk       50% Mg olivine (amorphous)
+c-gra-Draine2003.lnk           graphite         (crystalline)
+c-nano-Mutschke2004.lnk        nano-Diamonds    (crystalline)
+c-org-Henning1996.lnk          organic material (amorphous)
+c-p-Preibisch1993.lnk          carbon           (amorphous)
+c-z-Zubko1996.lnk              carbon           (amorphous)
+ch3oh-a-Gerakines2020.lnk      methanol ice     (amorphous)
+ch3oh-c-Gerakines2020.lnk      methanol ice     (crystalline)
+ch4-a-Gerakines2020.lnk        methane ice      (amorphous)
+ch4-c-Gerakines2020.lnk        methane ice      (crystalline)
+co-a-Palumbo2006.lnk           CO ice           (amorphous)
+co2-a-Gerakines2020.lnk        CO2 ice          (amorphous)
+co2-c-Gerakines2020.lnk        CO2 ice          (crystalline)
+co2-w-Warren1986.lnk           CO2 ice          (amorphous/crystalline)
+cor-c-Koike1995.lnk            corundum         (crystalline)
+fe-c-Henning1996.lnk           iron             (metal)
+fes-Henning1996.lnk            iron sulfide     (metal)
+h2o-a-Hudgins1993.lnk          water ice        (amorphous)
+h2o-w-Warren2008.lnk           water ice        (crystalline)
+nh3-m-Martonchik1983.lnk       ammonia ice      (crystalline)
+ol-c-mg00-Fabian2001.lnk         0% Mg olivine  (crystalline)
+ol-c-mg95-Fabian2001.lnk        95% Mg olivine  (crystalline)
+ol-c-mg100-Suto2006.lnk        100% Mg olivine  (crystalline)
+ol-mg40-Dorschner1995.lnk       40% Mg olivine  (amorphous)
+ol-mg50-Dorschner1995.lnk       50% Mg olivine  (amorphous)
 pyr-c-mg96-Jaeger1998.lnk       96% Mg pyroxene (crystalline)
 pyr-mg40-Dorschner1995.lnk      40% Mg pyroxene (amorphous) 
 pyr-mg50-Dorschner1995.lnk      50% Mg pyroxene (amorphous) 
@@ -88,5 +91,5 @@ pyr-mg70-Dorschner1995.lnk      70% Mg pyroxene (amorphous)
 pyr-mg80-Dorschner1995.lnk      80% Mg pyroxene (amorphous) 
 pyr-mg95-Dorschner1995.lnk      95% Mg pyroxene (amorphous) 
 pyr-mg100-Dorschner1995.lnk    100% Mg pyroxene (amorphous) 
-sic-Draine1993.lnk             silicon carbide
-sio2-Kitamura2007.lnk          quartz
+sic-Draine1993.lnk             silicon carbide  (crystalline)
+sio2-Kitamura2007.lnk          quartz           (amorphous)
