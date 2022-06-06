@@ -557,7 +557,7 @@ program optool
         sdkind = 'norm'  ! redundant, but for clarity
      endif
   endif
-       
+  
   ! *** Wavelength grid ***
   if ( (lmin.le.0d0) .or. (lmax.le.0d0) ) then
      print *,'ERROR: Both lmin and lmax need to be positive numbers',lmin,lmax; stop
@@ -708,6 +708,11 @@ program optool
   do im=1,nm
      call GetAndRegridLNK(mat_lnk(im),lam(1:nlam),e1d(1:nlam),e2d(1:nlam), &
           nlam,.true.,mat_rho(im))
+     if (mat_rho(im) .le. 0.d0) then
+        write(*,'("ERROR: Density of material must be >0, but rho=",f6.2," in ",A)') &
+             mat_rho(im),trim(mat_lnk(im))
+        stop
+     endif
      mat_e1(im,1:nlam)    = e1d(1:nlam)
      mat_e2(im,1:nlam)    = e2d(1:nlam)
   enddo
