@@ -67,6 +67,9 @@ while ($file = shift) {
     # There is a third value on the first non-comment line
     die "File seems to be missing the npoints rho line: $file\n";
   }
+  if ($rho <= 0.) {
+    die "rho=$rho in $file, must be larger than 0\n";
+  }
 
   # Read the data, line by line
   @ll = (); @nn = (); @kk = ();
