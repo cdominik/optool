@@ -1,0 +1,4 @@
+This directory contains lnk datasets that used to be compiled into
+optool but have now been replaced with another dataset. We keep these
+files available here to allow backward-compatible computations for
+early users of optool.

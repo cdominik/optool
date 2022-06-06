@@ -1,3 +1,6 @@
+List of files in the optool distribution
+========================================
+
 CONTENT                 This file
 INSTALL                 Brief installation instructions (also in UserGuide)
 LICENSE                 License information
@@ -9,18 +12,18 @@ code4reading            Directory with code snippets to read optool output
 codemeta.jason          Matadata for optool
 lnk_data                Directory with refractive index data
 maint                   Directory with scripts aiding maintenance
-optool                  Binary program, only present after running "make"
-optool-complete         Code for shell-completion of switched and arguments
-optool.bib              BibTeX file with all relevant references
 optool.f90              Main code file for optool
 optool_guts.f90         Code that does the grunt work for computing opacities
 optool_fractal.f90      Code implementing modified mean field theory
-optool_geofractal.f90   Code computing aggregate geometric cross sections
-optool_manual.f90       The Manual extracted from UserGuide.org
+optool_geofractal.f90   Code computing geometric aggregate cross sections
+optool_manual.f90       The Manual extracted from UserGuide.org, baked into f90
 optool_refind.f90       Refractive index data as fortran code
+optool                  Binary program, only present after running "make"
 optool.py               Python module for working with optool
-optool2tex              Perl program to turn optool command into LaTeX text
 setup.py                Code for python module installation
+optool2tex              Perl program to turn optool command into LaTeX text
+optool-complete         Code for shell-completion of switches and arguments
+optool.bib              BibTeX file with all relevant references
 
 
 In directory maint
@@ -37,3 +40,56 @@ plotall.py              Python code to plot all refractive index data
 run_examples            Script running all examples from the manual
 selftest.pl             Perl program to run a bunch of tests with optool
 
+
+In directory code4reading
+=========================
+Makefile                Makefile to compile the fortran snippets
+README                  Information about how to use the snippets
+readascii.f90           Fortran program to read ASCII output
+readascii.py            Python  program to read ASCII output
+readfits.f90            Fortran program to read FITS output
+readfits.py             Python  program to read FITS output
+
+
+In directory lnk_data
+=====================
+lnk-help.txt                   The help screen shown by optool -c
+retired                        Directory with retired datasets
+
+The refractive index datasets in the lnk_data directory
+-------------------------------------------------------
+astrosil-Draine2003.lnk        astronomical silicate
+c-gra-Draine2003.lnk           graphite         (crystalline)
+c-nano-Mutschke2004.lnk        nano-Diamonds    (crystalline)
+c-org-Henning1996.lnk          organic material (amorphous)
+c-p-Preibisch1993.lnk          carbon           (amorphous)
+c-z-Zubko1996.lnk              carbon           (amorphous)
+ch3oh-a-Gerakines2020.lnk      methanol ice     (amorphous)
+ch3oh-c-Gerakines2020.lnk      methanol ice     (crystalline)
+ch4-a-Gerakines2020.lnk        methane ice      (amorphous)
+ch4-c-Gerakines2020.lnk        methane ice      (crystalline)
+co-a-Palumbo2006.lnk           CO ice           (amorphous)
+co2-a-Gerakines2020.lnk        CO2 ice          (amorphous)
+co2-c-Gerakines2020.lnk        CO2 ice          (crystalline)
+co2-w-Warren1986.lnk           CO2 ice          (amorphous/crystalline)
+cor-c-Koike1995.lnk            corundum         (crystalline)
+fe-c-Henning1996.lnk           iron             (metal)
+fes-Henning1996.lnk            iron sulfide     (metal)
+h2o-a-Hudgins1993.lnk          water ice        (amorphous)
+h2o-w-Warren2008.lnk           water ice        (crystalline)
+nh3-m-Martonchik1983.lnk       ammonia ice      (crystalline)
+ol-c-mg00-Fabian2001.lnk         0% Mg olivine  (crystalline)
+ol-c-mg95-Fabian2001.lnk        95% Mg olivine  (crystalline)
+ol-c-mg100-Suto2006.lnk        100% Mg olivine  (crystalline)
+ol-mg40-Dorschner1995.lnk       40% Mg olivine  (amorphous)
+ol-mg50-Dorschner1995.lnk       50% Mg olivine  (amorphous)
+pyr-c-mg96-Jaeger1998.lnk       96% Mg pyroxene (crystalline)
+pyr-mg40-Dorschner1995.lnk      40% Mg pyroxene (amorphous) 
+pyr-mg50-Dorschner1995.lnk      50% Mg pyroxene (amorphous) 
+pyr-mg60-Dorschner1995.lnk      60% Mg pyroxene (amorphous) 
+pyr-mg70-Dorschner1995.lnk      70% Mg pyroxene (amorphous) 
+pyr-mg80-Dorschner1995.lnk      80% Mg pyroxene (amorphous) 
+pyr-mg95-Dorschner1995.lnk      95% Mg pyroxene (amorphous) 
+pyr-mg100-Dorschner1995.lnk    100% Mg pyroxene (amorphous) 
+sic-Draine1993.lnk             silicon carbide  (crystalline)
+sio2-Kitamura2007.lnk          quartz           (amorphous)
