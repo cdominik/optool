@@ -19,7 +19,7 @@ ifeq ($(multi),true)
     endif
 endif
 
-# Debugging flags, including array checks
+# Debugging flags
 ifeq ($(debug),true)
   ifeq ($(ifort),true)
     DEBUGGING = -check all -traceback -check bounds -O0 -g -check -fpe1
@@ -41,25 +41,20 @@ endif
 # Platform specific compilation options
 ifeq ($(ifort),true)
   FLAG_ALL      = -O3 -g -extend-source -zero -prec-div $(DEBUGGING) $(MULTICORE)
+  FLAG_ALL_NM   = -O3 -g -extend-source -zero -prec-div $(DEBUGGING)
   FLAG_LINUX    = -xHOST -fpp
   FLAG_MAC      = -xHOST -opt-prefetch -static-intel -fpp
 else
   FLAG_ALL      = -O3 -g -fdefault-double-8 -fdefault-real-8 $(DEBUGGING) $(MULTICORE)
+  FLAG_ALL_NM   = -O3 -g -fdefault-double-8 -fdefault-real-8 $(DEBUGGING)
   FLAG_LINUX    = -cpp
   FLAG_MAC      = -m64 -cpp
 endif
 
 # Combine the flags
-ifeq ($(shell uname),Linux)
-  FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
-  LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
-  LIBS    = $(LIBS_FITS)
-endif
-ifeq ($(shell uname),Darwin)
-  FFLAGS  = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS)
-  LDFLAGS = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS)
-  LIBS    = $(LIBS_FITS)
-endif
+FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
+LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
+LIBS    = $(LIBS_FITS)
 
 # Object files to link
 OBJS	= optool.o optool_guts.o optool_manual.o optool_refind.o optool_fractal.o optool_geofractal.o
