@@ -179,3 +179,16 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   
   return
 end subroutine GetAndRegridLNK
+
+function is_material_key (name)
+  implicit none
+  character*(*) name
+  logical is_material_key
+  logical file_exists
+  is_material_key = .false.
+  inquire (file=trim(name),exist=file_exists)
+  if (file_exists) then
+     is_material_key = .true.
+KEYCHEKBLOCK
+  endif
+end function is_material_key

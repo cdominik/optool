@@ -306,6 +306,182 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   return
 end subroutine GetAndRegridLNK
 
+function is_material_key (name)
+  implicit none
+  character*(*) name
+  logical is_material_key
+  logical file_exists
+  is_material_key = .false.
+  inquire (file=trim(name),exist=file_exists)
+  if (file_exists) then
+     is_material_key = .true.
+  else if (trim(name) .eq. "astrosil") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c-gra") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c_gra") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "gra") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c-nano") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c_nano") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c-org") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c_org") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "org") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c-p") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c_p") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c-z") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c_z") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ch3oh-a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ch3oh_a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ch3oh-c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ch3oh_c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ch4-a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ch4_a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ch4-c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ch4_c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co-a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co_a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co2-a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co2_a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co2-c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co2_c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co2-w") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co2_w") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "co2") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "cor-c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "cor_c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "cor") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "fe-c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "fe_c") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "iron") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "fes") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "tro") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "h2o-a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "h2o_a") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "h2o-w") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "h2o_w") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "h2o") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "nh3-m") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "nh3_m") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "nh3") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol-c-mg00") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol_c_mg00") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "fay") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol-c-mg100") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol_c_mg100") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "for") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol-c-mg95") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol_c_mg95") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol-mg40") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol_mg40") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol-mg50") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol_mg50") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ol") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr-c-mg96") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr_c_mg96") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "ens") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr-mg100") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr_mg100") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr-mg40") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr_mg40") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr-mg50") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr_mg50") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr-mg60") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr_mg60") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr-mg70") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr_mg70") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr-mg80") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr_mg80") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr-mg95") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "pyr_mg95") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "sic") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "sio2") then
+    is_material_key=.true.
+  else if (trim(name) .eq. "qua") then
+    is_material_key=.true.
+  endif
+end function is_material_key
+
 subroutine astrosil(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/astrosil-Draine2003.lnk
   ! "Astronomical Silicate"

@@ -132,6 +132,7 @@ program optool
   logical         :: arg_is_value    ! functions to test arguments
   logical         :: arg_is_number   ! functions to test arguments
   logical         :: file_exists     ! functions to test arguments
+  logical         :: is_material_key ! functions to test arguments
   character*500   :: fitsfile        ! file name for FITS output
   character*500   :: meanfile        ! file name for mean opacity output
   character*500   :: make_file_path  ! function
@@ -193,9 +194,17 @@ program optool
   ! Process the command line arguments
   ! ----------------------------------------------------------------------
 
+  ! Prescan to get -q,-v,-debug, so they can be active during arg processing
+  i = 1; call getarg(i,tmp)
+  do while(tmp.ne.' ')
+     if (tmp.eq.'-q')     quiet   = .true.
+     if (tmp.eq.'-v')     verbose = .true.
+     if (tmp.eq.'-debug') debug   = .true.
+     i = i+1; call getarg(i,tmp)
+  enddo
+  
   ! Loop over all command line arguments
-  call getarg(1,tmp)
-  i = 1
+  i = 1; call getarg(i,tmp)
   
   do while(tmp.ne.' ')
      select case(tmp)
@@ -214,7 +223,7 @@ program optool
         call manual('all'); stop
 
      case('-version','--version')
-        print *,"OpTool version 1.9.6, April 2022, (c) C. Dominik, M. Min & R. Tazaki"
+        print *,"OpTool version 1.9.7, April 2022, (c) C. Dominik, M. Min & R. Tazaki"
         stop
 
         ! ----------------------------------------------------------------------
@@ -443,6 +452,11 @@ program optool
      case('-radmc','-radmc3d')
         for_radmc = .true.
         if (arg_is_value(i+1)) then
+           call getarg(i+1,value)
+           if ((.not. quiet) .and. is_material_key(trim(value))) then
+              print *,"WARNING: Ambiguous argument could be meant as (another) material key"
+              print *,"         ... but is read as optional RADMC-3D label: ",trim(tmp)," ",trim(value)
+           endif
            i=i+1
            call getarg(i,radmclbl)
         endif

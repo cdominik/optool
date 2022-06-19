@@ -43,7 +43,9 @@ while ($file = shift) {
     $ref = $3;
     # Set the name of the subroutine
     $sbrname = $key;
+    push @allkeys,$sbrname;
     $sbrname =~ s/-/_/g;
+    push @allkeys,$sbrname;
   } else {
     die "File $file does not have a name like key-reference2017.lnk\n";
   }
@@ -101,6 +103,7 @@ while ($file = shift) {
   # Is there q quick key for this dataset?
   $quick = $key_to_quick{$key};
   if ($quick and $quick ne $key) {
+    push @allkeys,$quick;
     $quick = ",'" . $quick . "'";
   } else {
     $quick = "";
@@ -152,6 +155,7 @@ $cases     = substr($cases,0,-3);
 $code =~ s/EXTERNAL_DEFS/$externals/;
 $code =~ s/CASE_DEFS/$cases/;
 $code =~ s/HELPBLOCK/&makehelpblock()/e;
+$code =~ s/KEYCHEKBLOCK/&makekeycheckblock/e;
 print $code;
 
 exit(0);
@@ -195,5 +199,20 @@ sub makehelpblock {
   return $helpblock;
 }
 
-
-
+sub makekeycheckblock {
+  my @unique;
+  my %seen;
+  my $str = "";
+ 
+  foreach my $value (@allkeys) {
+    if (! $seen{$value}) {
+      push @unique, $value;
+      $seen{$value} = 1;
+    }
+  }
+  foreach my $key (@unique) {
+    $str .= "  else if (trim(name) .eq. \"$key\") then\n    is_material_key=.true.\n";
+  }
+  chomp($str);
+  return $str;
+}
