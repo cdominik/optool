@@ -34,7 +34,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   case default
      ! read data from file
      rho_in = rho
-     call check_for_file(input)
+     call require_file(input)
      nd = count_data_lines(input)
      open(99,file=input)
      n0 = 0
@@ -52,7 +52,8 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
            n0  = nd-1
         else
            ! No way to recover, error out.
-           write(*,'("ERROR: no line with NLAM and RHO values in file: ",A)') trim(input)
+           write(*,'("ERROR: no line with NLAM and RHO values in lnk file: ",A)') trim(input)
+           write(*,'("Or maybe this is not even an lnk file?")')
            write(*,'("This is the relevant line: ",A)') trim(line)
            write(*,'("The line seems to contain ",I3," numbers to read, but should have 2.")') nn
            write(*,'("If you do not want to edit the file, specify rho on the")')
@@ -180,15 +181,16 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   return
 end subroutine GetAndRegridLNK
 
-function is_material_key (name)
+function is_key_or_file (name,or_file)
   implicit none
   character*(*) name
-  logical is_material_key
+  logical is_key_or_file,or_file
   logical file_exists
-  is_material_key = .false.
+  is_key_or_file = .false.
   inquire (file=trim(name),exist=file_exists)
-  if (file_exists) then
-     is_material_key = .true.
-KEYCHEKBLOCK
+  if (or_file .and. file_exists) then
+     is_key_or_file = .true.
+KEYCHECKBLOCK
   endif
-end function is_material_key
+end function is_key_or_file
+

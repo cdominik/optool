@@ -131,8 +131,9 @@ program optool
   logical         :: arg_is_switch   ! functions to test arguments
   logical         :: arg_is_value    ! functions to test arguments
   logical         :: arg_is_number   ! functions to test arguments
-  logical         :: file_exists     ! functions to test arguments
-  logical         :: is_material_key ! functions to test arguments
+  logical         :: is_key_or_file  ! functions to test arguments
+  logical         :: is_file         ! functions to test arguments
+  logical         :: file_exists     ! return value
   character*500   :: fitsfile        ! file name for FITS output
   character*500   :: meanfile        ! file name for mean opacity output
   character*500   :: make_file_path  ! function
@@ -242,6 +243,13 @@ program optool
         if ((value .eq. '?') .or. (value .eq. '')) then
            call ListBuiltinMaterials(); stop
         endif
+
+        ! Check if this is a valid material key or a file
+        if (.not. is_key_or_file(trim(value),.true.)) then
+           print *,"ERROR: not a material key or lnk file: ",trim(value)
+           stop
+        endif
+                
         ! Second value is the mass fraction
         if (.not. arg_is_number(i+1)) then
            if (.not. quiet) print *, "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
@@ -365,7 +373,7 @@ program optool
         else if (.not. arg_is_number(i+1)) then
            ! Could be a file name.  If yes, read the lambda grid from it
            call getarg(i+1,value)
-           call check_for_file(trim(value))
+           call require_file(trim(value))
            i=i+1
            call read_lambda_grid(trim(value))
         else
@@ -453,12 +461,20 @@ program optool
         for_radmc = .true.
         if (arg_is_value(i+1)) then
            call getarg(i+1,value)
-           if ((.not. quiet) .and. is_material_key(trim(value))) then
+           if ((.not. quiet) .and. is_key_or_file(trim(value),.false.)) then
+              ! The optional -radmc label is also a material key, this is ambiguous
               print *,"WARNING: Ambiguous argument could be meant as (another) material key"
               print *,"         ... but is read as optional RADMC-3D label: ",trim(tmp)," ",trim(value)
+              print *,"         ... Use -c or reorder args to disambiguate"
            endif
-           i=i+1
-           call getarg(i,radmclbl)
+           if (is_file(trim(value)) .or. (scan(value,"/").gt.0)) then
+              ! It is a file, treat as core material
+              tmp = 'FoRcE_-c_FoRcE'
+              i=i+1
+           else
+              i=i+1
+              call getarg(i,radmclbl)
+           endif
         endif
      case('-fits')
         write_fits = .true.
@@ -1758,7 +1774,14 @@ subroutine tellertje(i,n,quiet)
   return
 end subroutine tellertje
 
-subroutine check_for_file (file)
+function is_file (file)
+  ! Throw an error if FILE does not exist
+  character*(*) file
+  logical is_file
+  inquire (file=trim(file),exist=is_file)
+end function is_file
+
+subroutine require_file (file)
   ! Throw an error if FILE does not exist
   character*(*) file
   logical file_exists
@@ -1767,7 +1790,7 @@ subroutine check_for_file (file)
      write(*,'("ERROR: File ",A, " does not exist")') trim(file)
      stop
   endif
-end subroutine check_for_file
+end subroutine require_file
 
 subroutine remove_file_if_exists (file)
   ! Remove FILE if it already exists
@@ -2127,7 +2150,7 @@ subroutine read_lambda_grid(file)
   integer i
   character*(*) file
   character*(500) line
-  call check_for_file(file)
+  call require_file(file)
   open(99,file=file)
 1 continue
   read(99,'(A)') line

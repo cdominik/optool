@@ -155,7 +155,7 @@ $cases     = substr($cases,0,-3);
 $code =~ s/EXTERNAL_DEFS/$externals/;
 $code =~ s/CASE_DEFS/$cases/;
 $code =~ s/HELPBLOCK/&makehelpblock()/e;
-$code =~ s/KEYCHEKBLOCK/&makekeycheckblock/e;
+$code =~ s/KEYCHECKBLOCK/&makekeycheckblock/e;
 print $code;
 
 exit(0);
@@ -203,7 +203,6 @@ sub makekeycheckblock {
   my @unique;
   my %seen;
   my $str = "";
- 
   foreach my $value (@allkeys) {
     if (! $seen{$value}) {
       push @unique, $value;
@@ -211,7 +210,7 @@ sub makekeycheckblock {
     }
   }
   foreach my $key (@unique) {
-    $str .= "  else if (trim(name) .eq. \"$key\") then\n    is_material_key=.true.\n";
+    $str .= "  else if (trim(name) .eq. \"$key\") then\n    is_key_or_file=.true.\n";
   }
   chomp($str);
   return $str;
