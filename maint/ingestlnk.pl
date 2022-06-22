@@ -36,6 +36,7 @@ close $fh;
 # ------------------------------------------------------------------
 # Loop over the files
 # ------------------------------------------------------------------
+push @allkeys,"ice-w"; # hardcoded for backward compatibility
 while ($file = shift) {
   # Extract the material key and the Reference
   if ($file =~ /(.*\/)?(.+)-(\w+[0-9]+).lnk$/) {

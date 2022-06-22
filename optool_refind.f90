@@ -316,6 +316,8 @@ function is_key_or_file (name,or_file)
   inquire (file=trim(name),exist=file_exists)
   if (or_file .and. file_exists) then
      is_key_or_file = .true.
+  else if (trim(name) .eq. "ice-w") then
+    is_key_or_file=.true.
   else if (trim(name) .eq. "astrosil") then
     is_key_or_file=.true.
   else if (trim(name) .eq. "c-gra") then
