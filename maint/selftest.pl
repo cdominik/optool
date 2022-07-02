@@ -42,9 +42,9 @@ my $tests = [
 
   {name => 'div-in-10-parts',
    prepare => "rm -f $dir/dust*",
-   cmd  => "./optool -q -na 10 -nl 30 -s -d 3 -o $dir",
+   cmd  => "./optool -q -na 10 -nl 30 -d 3 -o $dir",
    getsha => "accuracy",
-   glob => "$dir/dustkapscatmat_*.dat"},
+   glob => "$dir/dustkappa_*.dat"},
 
   {name => 'high-angular-resolution',
    prepare => "rm -f $dir/dust*",
@@ -219,14 +219,14 @@ sub find_accuracy {
 
 __DATA__
 
-# HASHES set on Tue Apr  5 06:26:27 CEST 2022
+# HASHES set on Sat Jul  2 15:06:54 CEST 2022
 
 noscat:::1000:077bd185ef::10:077bd185ef::9:077bd185ef::8:077bd185ef::7:077bd185ef::6:077bd185ef::5:a0e06da804::4:bdf2b3c38b::3:0170e29183::2:6d765fd545::1:735d6b4bfc
 quick:::1000:a249e33c13::10:a249e33c13::9:a249e33c13::8:a249e33c13::7:a249e33c13::6:a249e33c13::5:806d4b1bbc::4:abe3f69e71::3:8c5c50d5a4::2:d16721d259::1:14d89d1054
 full-diana-lowres:::1000:cda9716178::10:cda9716178::9:cda9716178::8:cda9716178::7:cda9716178::6:cda9716178::5:9b5296f714::4:06e7ea87ce::3:20e5ef7ffd::2:d5d7146404::1:be75245e33
 lognormal-lowres:::1000:0657684c37::10:0657684c37::9:0657684c37::8:0657684c37::7:0657684c37::6:0657684c37::5:d95a419365::4:e5839a581e::3:1ebfb49e26::2:feb2f63812::1:62ce857d5f
 diana-plus-ice-mantle:::1000:513a252da4::10:513a252da4::9:513a252da4::8:513a252da4::7:513a252da4::6:513a252da4::5:ccdee59d3d::4:3c418647fe::3:eaa9538293::2:68059b4c9d::1:74d047f164
-div-in-10-parts:::1000:acce7c2fe4::10:acce7c2fe4::9:acce7c2fe4::8:acce7c2fe4::7:acce7c2fe4::6:acce7c2fe4::5:93f5da2375::4:620a92bb5d::3:7fae3c9644::2:44b39c4d52::1:97788937cf
+div-in-10-parts:::1000:07c1b55c22::10:07c1b55c22::9:07c1b55c22::8:07c1b55c22::7:07c1b55c22::6:07c1b55c22::5:0144994e03::4:85b952108d::3:318b03ff0d::2:d129481573::1:e26623ab20
 high-angular-resolution:::1000:de72aef699::10:de72aef699::9:de72aef699::8:de72aef699::7:de72aef699::6:de72aef699::5:453a236f12::4:d73340af63::3:dcd9b16702::2:d4d74ce802::1:9390bb469b
 pure-ice-grain:::1000:1f1dc3247e::10:1f1dc3247e::9:1f1dc3247e::8:1f1dc3247e::7:1f1dc3247e::6:1f1dc3247e::5:4cd021606f::4:2a2008a9cd::3:bf7aa7396f::2:81724ae0fd::1:4446b78e80
 chop-peak:::1000:52b2184721::10:52b2184721::9:52b2184721::8:52b2184721::7:52b2184721::6:52b2184721::5:082dccd07c::4:7372efb2fd::3:9ccd5f2fcd::2:8c51c41c65::1:9004b2c868
