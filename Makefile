@@ -43,14 +43,22 @@ endif
 ifeq ($(ifort),true)
   FLAG_ALL      = -O3 -g -extend-source -zero -prec-div $(DEBUGGING) $(MULTICORE)
   FLAG_LINUX    = -xHOST -fpp
+  FLAG_OTHER    = -xHOST -fpp
   FLAG_MAC      = -xHOST -opt-prefetch -static-intel -fpp
 else
   FLAG_ALL      = -O3 -g -fdefault-double-8 -fdefault-real-8 $(DEBUGGING) $(MULTICORE)
   FLAG_LINUX    = -cpp
+  FLAG_OTHER    = -cpp
   FLAG_MAC      = -m64 -cpp
 endif
 
 # Combine the flags
+# First some defaults for operating systems I know little about
+# including WINDOWS.
+FFLAGS  = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS)
+LDFLAGS = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS)
+LIBS    = $(LIBS_FITS)
+# Now the well-tested settings for Linux and Mac
 ifeq ($(shell uname),Linux)
   FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
   LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
