@@ -47,6 +47,7 @@ module Defs
   logical, public                :: verbose   = .false. ! additional output to STDOUT
   logical, public                :: debug     = .false. ! Additional info to STDOUT
   logical, public                :: write_grd = .false. ! Write out the size distribution and wavelength grid
+  logical                        :: mmfss     = .false. ! Force single scattering result id phase shift is too large
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
@@ -84,7 +85,9 @@ module Defs
      real (kind=dp), allocatable :: Kabs(:),Ksca(:),Kext(:) ! Opacities
      real (kind=dp), allocatable :: g(:)           ! asymmetry parameter
      TYPE(MUELLER),  allocatable :: F(:)           ! Mueller matrix elements
+     logical       , allocatable :: testscat(:)    ! Can we trust the scattering matrix?
      logical                     :: scat_ok        ! Are F11... and g_asym usable?
+     real (kind=dp)              :: scat_ok_lmin   ! last lambda with bad scattering
   end type particle
   ! ----------------------------------------------------------------------
   ! The output directory and other strings
@@ -417,8 +420,13 @@ program optool
         else
            fmax = 0.8
         endif
-     case('-mmf')
+     case('-mmf','-mmfss')
         method = 'MMF'
+        if (tmp.eq.'-mmfss') then
+           print *,"WARNING: We will use the assumption of single scattering to compute the"
+           print *,"         MMF matrix elements when the phase shift is too large. See UserGuide."
+           mmfss = .true.
+        endif
         if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); call uread(value,mmf_a0)
            if (arg_is_number(i+1)) then
@@ -773,7 +781,7 @@ program optool
      !$OMP shared(fmax,pcore,pmantle)                                  &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
-     !$OMP shared(quiet,mmf_a0,mmf_struct,mmf_kf)                      &
+     !$OMP shared(quiet,mmf_a0,mmf_struct,mmf_kf,mmfss)                &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
 
@@ -785,6 +793,7 @@ program optool
         ! because the allocation/deallocation is then repeated na times,
         ! unnecessarily.
         allocate(p%Kabs(nlam),p%Kext(nlam),p%Ksca(nlam),p%g(nlam),p%F(nlam))
+        allocate(p%testscat(nlam))
         do i=1,nlam
            allocate(p%F(i)%F11(nang),p%F(i)%F12(nang),p%F(i)%F22(nang))
            allocate(p%F(i)%F33(nang),p%F(i)%F34(nang),p%F(i)%F44(nang))
@@ -801,8 +810,16 @@ program optool
         ndone = ndone + 1
         call tellertje(ndone,na,quiet)
         write(label,'(I3.3)') ia
-        if ((.not. p%scat_ok).and.(.not. quiet)) then
-           write(*,'("WARNING: opacities OK, but F_nn and g_asym not accurate for particle ",I3,", a=",F10.3)') ia,asplit
+        if ((.not. p%scat_ok) .and. (.not. quiet)) then
+           if (mmfss) then
+              write(*,'("WARNING: opacities OK, but some F_nn,g_asym may not be accurate")')
+              write(*,'("         particle ",I3,", a=",F10.3," lam<=",F10.3)') &
+                   ia,asplit,p%scat_ok_lmin
+           else
+              write(*,'("WARNING: opacities OK, but some F_nn,g_asym set to zero")')
+              write(*,'("         particle ",I3,", a=",F10.3," lam<=",F10.3)') &
+                   ia,asplit,p%scat_ok_lmin
+           endif
         endif
         if (write_fits) then
 #ifdef USE_FITSIO
@@ -821,7 +838,7 @@ program optool
         do i=1,nlam
            deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
         enddo
-        deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F)
+        deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F,p%testscat)
      enddo
      !$OMP end parallel DO
      stop
@@ -830,6 +847,7 @@ program optool
 
      ! Allocate the particle structure
      allocate(p%Kabs(nlam),p%Kext(nlam),p%Ksca(nlam),p%g(nlam),p%F(nlam))
+     allocate(p%testscat(nlam))
      do i=1,nlam
         allocate(p%F(i)%F11(nang),p%F(i)%F12(nang),p%F(i)%F22(nang))
         allocate(p%F(i)%F33(nang),p%F(i)%F34(nang),p%F(i)%F44(nang))
@@ -844,7 +862,11 @@ program optool
      ! Write the output
      ! ----------------------------------------------------------------------
      if ((.not. p%scat_ok).and.(.not. quiet)) then
-        write(*,'("WARNING: opacities OK, but F_nn and g_asym not accurate")')
+        if (mmfss) then
+           write(*,'("WARNING: opacities OK, but some F_nn,g_asym may not be accurate. lam<=",F10.3)') p%scat_ok_lmin
+        else
+           write(*,'("WARNING: opacities OK, but some F_nn,g_asym are set to zero. lam<=",F10.3)') p%scat_ok_lmin
+        endif
      endif
      if (write_fits) then
 #ifdef USE_FITSIO
@@ -866,7 +888,7 @@ program optool
      do i=1,nlam
         deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
      enddo
-     deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F)
+     deallocate(p%Kabs,p%Kext,p%Ksca,p%g,p%F,p%testscat)
      
   endif
 
@@ -1262,7 +1284,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !$OMP private(m1,m2,d21,s21,m,mconj,wvno,min)                           &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
-  !$OMP shared(mmf_a0,mmf_struct,mmf_kf)                                  &
+  !$OMP shared(mmf_a0,mmf_struct,mmf_kf,mmfss)                            &
   !$OMP private(iqsca,iqcor,iqgeo,nang2)                                  &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,kfrac)                     &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
@@ -1561,6 +1583,8 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
      ! A regular angular grid is assumed for this computation
      tot = 0.0_dp
      p%g(ilam) = 0.d0
+     p%testscat(ilam) = .true.
+     if (Smat_nbad.gt.0) p%testscat(ilam) = .false.
      do i=1,nang
         p%g(ilam) = p%g(ilam) + p%F(ilam)%F11(i)*cos(pi*(real(i)-0.5d0)/dble(nang)) &
              *sin(pi*(real(i)-0.5d0)/dble(nang))
@@ -1568,7 +1592,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
      enddo
      p%g(ilam) = p%g(ilam)/tot
           
-     if (Smat_nbad .gt. 0) then
+     if ((Smat_nbad .gt. 0) .and. (.not.mmfss)) then
         ! FIXME: Setting stuff to zero is brutal.  What would be better?
         ! FIXME: However, below we use a zero value of g as a signal
         p%g(ilam) = 0.d0   ! Set to isotropic scattering.
@@ -1587,8 +1611,12 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
 
   ! Check if any g values exactly zero, pointing to issues with the scattering calculations 
   p%scat_ok = .true.
+  p%scat_ok_lmin = 0.
   do ilam=1,nlam
-     if (p%g(ilam) .eq. 0d0) p%scat_ok = .false.
+     if (.not. p%testscat(ilam)) then
+        p%scat_ok = .false.
+        p%scat_ok_lmin = lam(ilam)
+     endif
   enddo
 
   deallocate(e1,e2)

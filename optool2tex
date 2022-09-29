@@ -101,7 +101,7 @@ while (@ARGV) {
     $pcore = shift;
     if (&n) {$pmantle=shift} else {$pmantle=$pcore}}
 
-  elsif (/^-(mie|dhs|fmax|mmf)/) {
+  elsif (/^-(mie|dhs|fmax|mmf|mmfss)/) {
     # Computational method
     $method = $1 eq 'fmax' ? 'dhs' : $1;
     if    ($method eq 'mie') {$method='dhs';$fmax=0}
@@ -211,7 +211,7 @@ particular, it uses the Distribution of Hollow Spheres
 \\citep[DHS,][]{2005A&A...432..909M} method with a maximum
 vacuum volume fraction of \$f_{\\rm max}=$fmax\$, making use
 of the DMILAY routine \\citep{1981ApOpt..20.3657T}.\n";
-} elsif ($method eq 'mmf') {
+} elsif (($method eq 'mmf') or ($method eq 'mmfss')) {
   if ($shape > 1) {
     $shapetype = "fractal dimension";
     $shapesym  = "D_{\\rm f}";
@@ -330,7 +330,7 @@ print OUT "\\end{tabular}\\\\[2mm]\n\n";
 # ----------------------------------------------------------------------
 # Write size distribution
 # ----------------------------------------------------------------------
-if ($method eq 'mmf'){
+if (($method eq 'mmf') or ($method eq 'mmfss')) {
   $sizecomment = " (meaning the compact size of the aggregate \$a=N^{1/3}a_0\$)";
 }
 if ($divide) {              # we compute opacities for many sizes
