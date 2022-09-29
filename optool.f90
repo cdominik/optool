@@ -1593,8 +1593,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
      p%g(ilam) = p%g(ilam)/tot
           
      if ((Smat_nbad .gt. 0) .and. (.not.mmfss)) then
-        ! FIXME: Setting stuff to zero is brutal.  What would be better?
-        ! FIXME: However, below we use a zero value of g as a signal
+        ! To make sure the user understands, we replace uncertain data with zeros
         p%g(ilam) = 0.d0   ! Set to isotropic scattering.
         do j=1,nang
            p%F(ilam)%F11(j) = 0.d0; p%F(ilam)%F12(j) = 0.d0; p%F(ilam)%F22(j) = 0.d0
