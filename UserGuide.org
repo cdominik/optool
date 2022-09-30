@@ -898,10 +898,10 @@ the code.
   monomer radius.  The average volume filling factor $f$ can be
   expressed by $f=N\cdot(\sqrt{3/5}\,a_0/R_{\rm g})^3$.  To determine
   the structure of the aggregates, the user can specify a structure
-  parameter.  If that parameter is $>1$, it is interpreted as
+  parameter.  If that parameter is >1, it is interpreted as
   the /fractal dimension/ $D_{\rm f}$.  Using a fixed fractal
   dimension means that the volume filling factor will decrease with
-  aggregate size.  If the parameter is $\le1$, it is interpreted as a
+  aggregate size.  If the parameter is <1, it is interpreted as a
   fixed /volume filling factor/ $f$ that applies to all aggregate
   sizes - with the implication that then the fractal dimension
   increases as a function of size. The fractal prefactor $k_{\rm f}$
@@ -929,9 +929,9 @@ the code.
   scattering at wavelengths where the phase shift is too large. This
   result maybe usable for absorbing materials, but we do not have a
   clear criterion on when it will be accurate. To get this result, use
-  the *-mmfss* instead of *-mmf*. The optool run will let you know
-  below which wavelength the scattering matrix needs to be used with
-  caution.
+  the *-mmfss* instead of *-mmf*. The optool run will then let you
+  know below which wavelength the scattering matrix needs to be used
+  with caution.
 
 - CDE :: CDE (Continuous Distribution of Ellipsoids) is an analytical
   formalism by Bohren & Huffman (1998) to compute the opacity of a
