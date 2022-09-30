@@ -924,13 +924,13 @@ the code.
   $\Delta\phi$ to check the validity of the scattering matrix.  If the
   condition $\Delta\phi<1$ for accurate scattering matrix results is
   violated, a warning will be issued and the scattering matrix will be
-  set to zero. However, the opacities will remain applicable. You can
-  request to get the result computed under the assumption of single
-  scattering at wavelengths where the phase shift is too large. This
-  result maybe usable for absorbing materials, but we do not have a
-  clear criterion on when it will be accurate. To get this result, use
-  the *-mmfss* instead of *-mmf*. The optool run will then let you
-  know below which wavelength the scattering matrix needs to be used
+  set to zero at the relevant wavelengths. However, the opacities will
+  remain applicable. You can request to get the result computed under
+  the assumption of single scattering at wavelengths where the phase
+  shift is too large. This may be usable for absorbing materials, but
+  we do not have a clear criterion on when it will be accurate. For
+  this result, use *-mmfss* instead of *-mmf*. =optool= will then also print
+  the wavelength below which the scattering matrix needs to be used
   with caution.
 
 - CDE :: CDE (Continuous Distribution of Ellipsoids) is an analytical
