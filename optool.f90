@@ -47,7 +47,7 @@ module Defs
   logical, public                :: verbose   = .false. ! additional output to STDOUT
   logical, public                :: debug     = .false. ! Additional info to STDOUT
   logical, public                :: write_grd = .false. ! Write out the size distribution and wavelength grid
-  logical                        :: mmfss     = .false. ! Force single scattering result id phase shift is too large
+  logical                        :: mmfss     = .false. ! Force single scattering result if phase shift is too large
   ! ----------------------------------------------------------------------
   ! Lambda is shared, because multiple routines need it
   ! ----------------------------------------------------------------------
