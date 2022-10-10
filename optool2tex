@@ -143,6 +143,7 @@ while (@ARGV) {
   
   elsif (/^-o$/) {shift unless &o}     # Output directory, we do not need the value
   elsif (/^-s$/) {shift if &n}         # Scattering, we do not need nang
+  elsif (/^-(sparse|sp)$/) {shift if &n;shift if &n} # Sparse, skip the wavelengths
   elsif (/^-chop$/) {
     # Chopping
     if (&n) {$chop = shift;} else {$chop=2}}
@@ -395,8 +396,8 @@ exit(0);
 # ======================================================================
 # ======================================================================
 
-sub n  { is_number($ARGV[0])    }   # next arg is number?
-sub n2 { is_number2($ARGV[0])    }   # next arg is number?
+sub n  { is_number($ARGV[0])   }   # next arg is number?
+sub n2 { is_number2($ARGV[0])  }   # next arg is number?
 sub a { $ARGV[0]=~/^[a-zA-Z]/  }   # next arg is word, not number?
 sub o { $ARGV[0]=~/^-[a-zA-Z]/ }   # next arg is option?
 sub is_number {$_[0] =~ /^-?\.?[0-9][.0-9]*([eE]-?[0-9]+)?$/}

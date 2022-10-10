@@ -301,10 +301,10 @@ extend the [[#output-files][output]].
 
 + =-s [NANG]= ::
 
-  Include the full scattering matrix in the output. =NANG= can
-  optionally specify the number of equally-spaced [[#angular-grid][angular grid points]]
-  to cover the range of angles between 0 and 180 degrees.  The default
-  for =NANG= is 180 and should normally be just fine.
+  Include the scattering matrix in the output. NANG may optionally
+  change the the number of equally-spaced [[#angular-grid][angular grid points]] to cover
+  the range of angles between 0 and 180 degrees.  The default for
+  =NANG= is 180 and should normally be just fine.
 
 + =-d [NSUB]= ::
 
@@ -431,13 +431,14 @@ following format[fn:2]:
   \lambda[\mu{}m] (sorted either up or down), and the real and
   imaginary parts of the refractive index, $n$ and $k$.
 
-We provide additional data ready for use with =optool= is in [[https://github.com/cdominik/optool-additional-refind-data][this
+We provide additional data ready for use with =optool= in [[https://github.com/cdominik/optool-additional-refind-data][a separate
 repository]]. Other resources are the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena database]], [[http://eodg.atm.ox.ac.uk/ARIA/][ARIA]] and original
 papers in the literature. Don't forget to add the line with
 $n_\lambda$ and \rho!  If that is not possible, =optool= will count
 the lines and you can specify the density after the mass fraction,
-like this: =optool -c path/to/file.lnk 0.7 3.42=.  Please do not forget
-to include references for any optical properties used in your study.
+like this: =optool -c path/to/file.lnk 0.7 3.42=.  Please do not
+forget to include references for any optical properties used in your
+study.
 
 [fn:2]This file structure is also compatible with what is
 needed to set the wavelength grid with *-l FILE*.
@@ -478,22 +479,23 @@ needed to set the wavelength grid with *-l FILE*.
   which will modify[fn:3] the output to make sure it can be used as an
   input file for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]].
 
+  To save space, =optool= can write a /sparse file/ that stores the
+  full scattering matrix only for some wavelengths (e.g. the ones that
+  will be used for image generation). Use =-sparse LAM= or =-sparse
+  LAM1 LAM2= to define a wavelength (interval) for the matrix to be
+  stored. Multiple =-sparse= switches are allowed.
+
 - dustkappa.fits ::
 
-  The FITS-file (ending in ’.fits’) is written instead of the ASCII
-  output when using the =-fits= switch. It has two HDU blocks. The first
-  block contains the cross sections per unit mass. This is an n_\lambda
-  \times 4 matrix with these columns:
-
-  - wavelength in [micron]
-  - \kappa_ext, \kappa_abs, \kappa_sca, all in [cm^2/g]
-
-  The second block contains the scattering matrix elements. It is
-  a n_\lambda \times 6 \times n_ang matrix, containing the 6 elements
-  of the scattering matrix for n_ang equidistant scattering angles
-  from forward scattering (element 0) to backward scattering (element
-  n_ang-1), for each \lambda. The matrix elements are
-  F_11, F_12, F_22, F_33, F_34, and F_44.
+  The FITS-file is written when using the =-fits= switch. It has two
+  HDU blocks. The first contains the cross sections per unit mass
+  (units cm^2/g). It is a n_\lambda \times 4 matrix with these columns:
+  wavelength in micron, \kappa_ext, \kappa_abs, \kappa_sca.  The
+  second block is a n_\lambda \times 6 \times n_ang matrix, containing
+  the 6 elements of the scattering matrix (F_11, F_12, F_22, F_33,
+  F_34, and F_44) for n_ang equidistant scattering angles from forward
+  scattering (element 0) to backward scattering (element n_ang-1), for
+  each \lambda.
 
 - optool.tex ::
   As a little gimmick, you can run =optool2tex= with the exact same

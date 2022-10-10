@@ -59,6 +59,12 @@ module Defs
   integer                        :: nang
   real (kind=dp)                 :: chopangle
   ! ----------------------------------------------------------------------
+  ! Control for sparse scattering files
+  ! ----------------------------------------------------------------------
+  real (kind=dp)                 :: scatlammin(30),scatlammax(30) ! 30 should be plenty?
+  integer                        :: nsparse=0 ! nr of lam intervals
+  integer (kind=dp), allocatable :: iscatlam(:) ! flag for scatmat
+  ! ----------------------------------------------------------------------
   ! Material properties
   ! ----------------------------------------------------------------------
   integer         :: mat_nm       ! number of materials specified
@@ -115,7 +121,7 @@ program optool
   real (kind=dp)  :: fmax            ! maximum fraction of vaccum for DHS
   real (kind=dp)  :: pcore, pmantle  ! porosity for core and mantle
 
-  real (kind=dp)  :: lmin,lmax       ! min and max wavelength
+  real (kind=dp)  :: lmin,lmax,l1,l2 ! min and max wavelength
 
   logical         :: write_scatter   ! Should the scattering matrix be written?
   logical         :: write_fits      ! Should a fits file be written?
@@ -457,7 +463,32 @@ program optool
      case('-s','-scatter','-scat')
         write_scatter=.true.
         if (arg_is_number(i+1)) then
+           ! Change size of the angle grid
            i=i+1; call getarg(i,value); read(value,*) nang
+        endif
+     case('-sp','-sparse')
+        write_scatter=.true.
+        if (arg_is_number(i+1) .and. (arg_is_number(i+2))) then
+           ! Two number. This is a wavelength range for a sparse file
+           nsparse = nsparse+1
+           if (nsparse.gt.10) then
+              print *,"ERROR: To many sparse file ranges (10 is max)"
+              stop
+           endif
+           i=i+1; call getarg(i,value); call uread(value,l1)
+           i=i+1; call getarg(i,value); call uread(value,l2)
+           if (l1.lt.l2) then
+              scatlammin(nsparse) = l1; scatlammax(nsparse) = l2
+           else
+              scatlammin(nsparse) = l2; scatlammax(nsparse) = l1
+           endif
+        else if (arg_is_number(i+1)) then
+           i=i+1; call getarg(i,value); call uread(value,l1)
+           nsparse = nsparse+1
+           scatlammin(nsparse) = l1; scatlammax(nsparse) = l1
+        else
+           print *,"ERROR: -sparse needs one or two wavelengths"
+           stop
         endif
      case('-chop')
         if (.not. arg_is_value(i+1)) then
@@ -611,7 +642,10 @@ program optool
      print *,'WARNING: Setting nlam=1 because lmin=lmax'
      nlam = 1
   endif
-
+  if ((nsparse.gt.0) .and. (.not. quiet)) then
+     print *,'WARNING: Creating a sparse scattering matrix file'
+  endif
+  
   ! *** DHS
   if (method .eq. 'DHS') then
      if ((fmax.lt.0.d0) .or. (fmax.ge.1.d0)) then
@@ -722,6 +756,10 @@ program optool
         enddo
      endif
   endif
+  allocate(iscatlam(nlam)); iscatlam=0
+  if (nsparse.gt.0) then
+     call prepare_sparse()
+  endif  
 
   if (write_grd) then
      if (.not. quiet) write(*,'("Writing wavelength grid to file optool_lam.dat")')
@@ -2192,6 +2230,34 @@ subroutine read_lambda_grid(file)
   close(99)
 end subroutine read_lambda_grid
 
+subroutine prepare_sparse()
+  ! Set the flags for the wavelengths at which a scattering matrix
+  ! should be written.
+  use Defs
+  implicit none
+  integer i,il
+  real (kind=dp) f
+  f = lam(nlam)/lam(nlam-1)
+  ! Make sure the intervals span at least one grid step
+  do i=1,nsparse
+     if (scatlammax(i)/scatlammin(i).lt.f) then
+        scatlammin(i) = scatlammin(i)/sqrt(f)/1.0001
+        scatlammax(i) = scatlammax(i)*sqrt(f)*1.0001
+     endif
+  enddo
+  ! Set the flags
+  do il=1,nlam
+     do i=1,nsparse
+        if ((lam(il).ge.scatlammin(i)) .and. (lam(il).le.scatlammax(i))) then
+           iscatlam(il) = 1
+           iscatlam(max(il-1,1)) = 1
+           iscatlam(min(il+1,nlam)) = 1
+           goto 1
+        endif
+     enddo
+1    continue
+  enddo
+end subroutine prepare_sparse
 
 !!! **** Routines to write output files
 
@@ -2379,10 +2445,16 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
      write(20,'("#    iformat                                     ! format number")')
      write(20,'("#    nlam                                        ! number of wavelengths")')
      write(20,'("#    nang                                        ! number of angles 0-180")')
-     write(20,'("#")')
-     write(20,'("#    lam(1)    kabs(1)    ksca(1)    g(1)        ! um, cm^2/g, cm^2/g, none")')
-     write(20,'("#    ...")')
-     write(20,'("#    lam(nlam) kabs(nlam) ksca(nlam) g(nlam)")')
+     write(20,'("#")') 
+     if (nsparse.eq.0) then
+        write(20,'("#    lam(1)    kabs(1)    ksca(1)    g(1)        ! um, cm^2/g, cm^2/g, none")')
+        write(20,'("#    ...")')
+        write(20,'("#    lam(nlam) kabs(nlam) ksca(nlam) g(nlam)")')
+     else
+        write(20,'("#    lam(1) kabs(1) ksca(1) g(1) imat(1)         ! um, 2x cm^2/g, none, flg")')
+        write(20,'("#    ...")')
+        write(20,'("#    lam(nlam) kabs(nlam) ksca(nlam) g(nlam) imat(nlam)")')
+     endif
      write(20,'("#")')
      write(20,'("#    ang(1)                                      ! ang(1)    must be 0")')
      write(20,'("#    ...")')
@@ -2397,9 +2469,14 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
      write(20,'("#============================================================================")')
 
      if (for_radmc) then
-        write(20,*) 1    ! iformat
+        if (nsparse.eq.0) then
+           write(20,*) 1    ! iformat
+        else
+           write(20,*) 2    ! iformat for sparse file
+        endif
+        
      else
-        write(20,*) 0    ! This is supposed to cause an error when RADMC-3D is reading it
+        write(20,*) 0   ! This is supposed to cause an error when RADMC-3D is reading it
      endif
 
      write(20,*) nlam   ! Number of wavelength points
@@ -2411,7 +2488,11 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
      write(20,*)         ! an empty line
      ! The opacities as function of lambda
      do ilam=1,nlam
-        write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
+        if (nsparse.eq.0) then
+           write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam)
+        else
+           write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,i5)') lam(ilam),p%Kabs(ilam),p%Ksca(ilam),p%g(ilam),iscatlam(ilam)
+        endif
      enddo
 
      write(20,*)      ! an empty line
@@ -2433,42 +2514,44 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
         allocate(f33(0:nang),f34(0:nang),f44(0:nang))
      endif
      do ilam=1,nlam
-        if (for_radmc) then
-           ! We need the values at the cell boundaries, this requires
-           ! interpolation and extrapolation, and then renormalization.
-           ! First, interpolate and extrapolate.  For the extrapolation,
-           ! we assume  the same value that we had for the cell center.
-           do iang=0,nang
-              i1 = max(1,iang); i2=min(iang+1,nang)
-              f11(iang) = 0.5d0 * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) )
-              f12(iang) = 0.5d0 * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) )
-              f22(iang) = 0.5d0 * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) )
-              f33(iang) = 0.5d0 * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) )
-              f34(iang) = 0.5d0 * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) )
-              f44(iang) = 0.5d0 * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
-           enddo
-           ! Do the integration of f11
-           tot = 0.d0
-           do iang=1,nang
-              theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)/dble(nang) * pi
-              mu1 = cos(theta1); mu2 = cos(theta2); dmu = mu1-mu2
-              tot = tot + 0.5d0 * (f11(iang-1)+f11(iang)) * dmu
-           enddo
-           tot = 2.d0 * pi * tot
-           ! Comppute the scaling factor
-           f = p%ksca(ilam)/tot
-           ! Apply the scaling factor while writing the numbers
-           do iang=0,nang
-              write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') &
-                   f * f11(iang), f * f12(iang), f * f22(iang), &
-                   f * f33(iang), f * f34(iang), f * f44(iang)
-           enddo
-        else
-           do i=1,nang
-              write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') &
-                   p%F(ilam)%F11(i),p%F(ilam)%F12(i),p%F(ilam)%F22(i), &
-                   p%F(ilam)%F33(i),p%F(ilam)%F34(i),p%F(ilam)%F44(i)
-           enddo
+        if ((nsparse.eq.0) .or. (iscatlam(ilam).eq.1)) then
+           if (for_radmc) then
+              ! We need the values at the cell boundaries, this requires
+              ! interpolation and extrapolation, and then renormalization.
+              ! First, interpolate and extrapolate.  For the extrapolation,
+              ! we assume  the same value that we had for the cell center.
+              do iang=0,nang
+                 i1 = max(1,iang); i2=min(iang+1,nang)
+                 f11(iang) = 0.5d0 * ( p%F(ilam)%F11(i1) + p%F(ilam)%F11(i2) )
+                 f12(iang) = 0.5d0 * ( p%F(ilam)%F12(i1) + p%F(ilam)%F12(i2) )
+                 f22(iang) = 0.5d0 * ( p%F(ilam)%F22(i1) + p%F(ilam)%F22(i2) )
+                 f33(iang) = 0.5d0 * ( p%F(ilam)%F33(i1) + p%F(ilam)%F33(i2) )
+                 f34(iang) = 0.5d0 * ( p%F(ilam)%F34(i1) + p%F(ilam)%F34(i2) )
+                 f44(iang) = 0.5d0 * ( p%F(ilam)%F44(i1) + p%F(ilam)%F44(i2) )
+              enddo
+              ! Do the integration of f11
+              tot = 0.d0
+              do iang=1,nang
+                 theta1 = dble(iang-1)/dble(nang) * pi; theta2 = dble(iang)/dble(nang) * pi
+                 mu1 = cos(theta1); mu2 = cos(theta2); dmu = mu1-mu2
+                 tot = tot + 0.5d0 * (f11(iang-1)+f11(iang)) * dmu
+              enddo
+              tot = 2.d0 * pi * tot
+              ! Comppute the scaling factor
+              f = p%ksca(ilam)/tot
+              ! Apply the scaling factor while writing the numbers
+              do iang=0,nang
+                 write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') &
+                      f * f11(iang), f * f12(iang), f * f22(iang), &
+                      f * f33(iang), f * f34(iang), f * f44(iang)
+              enddo
+           else
+              do i=1,nang
+                 write(20,'(1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6,1p,e15.6)') &
+                      p%F(ilam)%F11(i),p%F(ilam)%F12(i),p%F(ilam)%F22(i), &
+                      p%F(ilam)%F33(i),p%F(ilam)%F34(i),p%F(ilam)%F44(i)
+              enddo
+           endif
         endif
      enddo ! end do ilam=1,nlam
      if (for_radmc) deallocate(f11,f12,f22,f33,f34,f44)
