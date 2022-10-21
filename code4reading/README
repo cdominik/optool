@@ -3,6 +3,8 @@ both the ASCII files and the fits files.  If you are planning to use
 opacities computed with optool in your code, this should get you
 started quickly.
 
+WARNING: Currently, these snippets do NOT deal with sparse files.
+
 
 Python
 ======

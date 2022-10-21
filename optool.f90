@@ -285,7 +285,27 @@ program optool
         if (arg_is_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) mat_rho(nm)
         endif
-
+        ! ----------------------------------------------------------------------
+        ! Special compositions known in the literature
+        ! ----------------------------------------------------------------------
+     case('-diana','--diana','-dsharp','--dsharp')
+        if (nm.gt.0) then
+           print *,"ERROR: Standard mixtures must be specified before any additional materials"
+           stop
+        endif
+        if ((tmp.eq.'-diana').or.(tmp.eq.'--diana')) then
+           nm = 2
+           mat_lnk(1) = 'pyr-mg70' ; mat_loc(1)  = 'core' ; mat_mfr(1) = 0.87d0
+           mat_lnk(2) = 'c-z'      ; mat_loc(2)  = 'core' ; mat_mfr(2) = 0.1301d0
+           pcore      = 0.25d0
+        elseif ((tmp.eq.'-dsharp').or.(tmp.eq.'--dsharp')) then
+           nm = 4
+           mat_lnk(1) = 'astrosil' ; mat_loc(1)  = 'core' ; mat_mfr(1) = 0.3291d0
+           mat_lnk(2) = 'c-org'    ; mat_loc(2)  = 'core' ; mat_mfr(2) = 0.3966d0
+           mat_lnk(3) = 'fes'      ; mat_loc(3)  = 'core' ; mat_mfr(3) = 0.0743d0
+           mat_lnk(4) = 'h2o-w'    ; mat_loc(4)  = 'core' ; mat_mfr(4) = 0.2000d0
+           pcore      = 0.d0
+        endif
         ! ----------------------------------------------------------------------
         ! Grain size setup
         ! ----------------------------------------------------------------------
