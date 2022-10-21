@@ -210,8 +210,7 @@ applies a statistical approach in which it averages a shape
 distribution to compute the opacity of each grain. In
 particular, it uses the Distribution of Hollow Spheres
 \\citep[DHS,][]{2005A&A...432..909M} method with a maximum
-vacuum volume fraction of \$f_{\\rm max}=$fmax\$, making use
-of the DMILAY routine \\citep{1981ApOpt..20.3657T}.\n";
+vacuum volume fraction of \$f_{\\rm max}=$fmax\$.\n";
 } elsif (($method eq 'mmf') or ($method eq 'mmfss')) {
   if ($shape > 1) {
     $shapetype = "fractal dimension";
