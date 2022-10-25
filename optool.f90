@@ -217,9 +217,13 @@ program optool
   i = 1; call getarg(i,tmp)
   
   do while(tmp.ne.' ')
+
+     ! If the are two dashes, keep only one.
+     if (tmp(1:2).eq.'--') tmp = tmp(2:)
+
      select case(tmp)
 
-     case('?','-h','--help','-help','help')
+     case('?','-h','-help','help')
         if (.not. arg_is_present(i+1)) then
            call usage(); stop
         endif
@@ -229,10 +233,10 @@ program optool
         call manual(trim(value))
         stop
 
-     case('??','-man','--man','-manual','--manual')
+     case('??','-man','-manual')
         call manual('all'); stop
 
-     case('-version','--version')
+     case('-version')
         print *,"OpTool version 1.9.7, April 2022, (c) C. Dominik, M. Min & R. Tazaki"
         stop
 
@@ -288,22 +292,28 @@ program optool
         ! ----------------------------------------------------------------------
         ! Special compositions known in the literature
         ! ----------------------------------------------------------------------
-     case('-diana','--diana','-dsharp','--dsharp')
+     case('-diana','-dsharp','-dsharp-no-ice')
         if (nm.gt.0) then
            print *,"ERROR: Standard mixtures must be specified before any additional materials"
            stop
         endif
-        if ((tmp.eq.'-diana').or.(tmp.eq.'--diana')) then
+        if (tmp.eq.'-diana') then
            nm = 2
-           mat_lnk(1) = 'pyr-mg70' ; mat_loc(1)  = 'core' ; mat_mfr(1) = 0.87d0
-           mat_lnk(2) = 'c-z'      ; mat_loc(2)  = 'core' ; mat_mfr(2) = 0.1301d0
-           pcore      = 0.25d0
-        elseif ((tmp.eq.'-dsharp').or.(tmp.eq.'--dsharp')) then
+           mat_lnk(1) = 'pyr-mg70'; mat_loc(1) = 'core'; mat_mfr(1) = 0.87d0
+           mat_lnk(2) = 'c-z'     ; mat_loc(2) = 'core'; mat_mfr(2) = 0.1301d0
+           pcore     =0.25d0
+        elseif (tmp.eq.'-dsharp') then
            nm = 4
-           mat_lnk(1) = 'astrosil' ; mat_loc(1)  = 'core' ; mat_mfr(1) = 0.3291d0
-           mat_lnk(2) = 'c-org'    ; mat_loc(2)  = 'core' ; mat_mfr(2) = 0.3966d0
-           mat_lnk(3) = 'fes'      ; mat_loc(3)  = 'core' ; mat_mfr(3) = 0.0743d0
-           mat_lnk(4) = 'h2o-w'    ; mat_loc(4)  = 'core' ; mat_mfr(4) = 0.2000d0
+           mat_lnk(1) = 'astrosil'; mat_loc(1) = 'core'; mat_mfr(1) = 0.3291d0
+           mat_lnk(2) = 'c-org'   ; mat_loc(2) = 'core'; mat_mfr(2) = 0.3966d0
+           mat_lnk(3) = 'fes'     ; mat_loc(3) = 'core'; mat_mfr(3) = 0.0743d0
+           mat_lnk(4) = 'h2o-w'   ; mat_loc(4) = 'core'; mat_mfr(4) = 0.2000d0
+           pcore      = 0.d0
+        elseif (tmp.eq.'-dsharp-no-ice') then
+           nm = 3
+           mat_lnk(1) = 'astrosil'; mat_loc(1) = 'core'; mat_mfr(1) = 0.3291d0
+           mat_lnk(2) = 'c-org'   ; mat_loc(2) = 'core'; mat_mfr(2) = 0.3966d0
+           mat_lnk(3) = 'fes'     ; mat_loc(3) = 'core'; mat_mfr(3) = 0.0743d0
            pcore      = 0.d0
         endif
         ! ----------------------------------------------------------------------
@@ -375,16 +385,16 @@ program optool
               if (na.eq.0) na = 1;
            endif
         endif
-     case('-amin','--amin')
+     case('-amin')
         i = i+1; call getarg(i,value); call uread(value,amin)
-     case('-amax','--amax')
+     case('-amax')
         i = i+1; call getarg(i,value); call uread(value,amax)
-     case('-apow','--apow')
+     case('-apow')
         i = i+1; call getarg(i,value); read(value,*) apow
-     case('-amean','--amean')
+     case('-amean')
         i = i+1; call getarg(i,value); read(value,*) amean
         sdkind = 'norm'
-     case('-asig','--asig')
+     case('-asig')
         i = i+1; call getarg(i,value); read(value,*) asig
         sdkind = 'norm'
      case('-na')
@@ -420,17 +430,17 @@ program optool
               lmax = lmin; nlam = 1;
            endif
         endif
-     case('-lmin','--lmin')
+     case('-lmin')
         i = i+1; call getarg(i,value); call uread(value,lmin)
-     case('-lmax','--lmax')
+     case('-lmax')
         i = i+1; call getarg(i,value); call uread(value,lmax)
-     case('-nlam','--nlam','-nl','--nl')
+     case('-nlam','-nl')
         i = i+1; call getarg(i,value); read(value,*) nlam
 
         ! ----------------------------------------------------------------------
         ! Grain geometry, including method DHS versus MMF
         ! ----------------------------------------------------------------------
-     case('-p','-porosity','--porosity')
+     case('-p','-porosity')
         i = i+1;  call getarg(i,value); read(value,*) pcore
         if (arg_is_number(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) pmantle
@@ -542,7 +552,7 @@ program optool
         if (arg_is_value(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) nsubgrains
         endif
-     case('-b','-blendonly','--blendonly')
+     case('-b','-blendonly')
         ! Write blended refractive index to file and exit
         blendonly = .true.
      case('-q')
@@ -551,7 +561,7 @@ program optool
      case('-v')
         ! Be more noisy
         verbose = .true.
-     case('-print','--print')
+     case('-print')
         quiet = .true.
         justnum = 'X'
         if (arg_is_value(i+1)) then
