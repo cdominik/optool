@@ -229,6 +229,7 @@ program optool
         endif
         i=i+1
         call getarg(i,value)
+        if (value(1:2).eq.'--') value = value(2:)
         if (.not. (value(1:1).eq.'-')) value = '-' // value
         call manual(trim(value))
         stop
