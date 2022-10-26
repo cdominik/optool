@@ -158,6 +158,21 @@ while (@ARGV) {
   elsif (/^-radmc(3d)?$/) {shift unless &a} # RADMC, skip label if present
   elsif (/^-print$/) {shift if $ARGV[0]=~/^(kabs|kscat?|kext|g(scat?)?)$/} # print, skip VAR
   elsif (/^-(q|debug|v|b|blendonly|tex)$/) {}
+  elsif (/^-diana$/) {
+    $nm=1;$mftot=1.;$ncore=2;$pcore=0.25;
+    $mat[0]{'key'}='pyr-mg70'; $mat[0]{'loc'}='core'; $mat[0]{'mfrac'}='0.87';
+    $mat[1]{'key'}='c-z';      $mat[1]{'loc'}='core'; $mat[1]{'mfrac'}='0.13';}
+  elsif (/^-dsharp$/) {
+    $nm = 3;$mftot=1.;$ncore=4;$pcore=0.;
+    $mat[0]{'key'}='astrosil';$mat[0]{'loc'}='core'; $mat[0]{'mfrac'}='0.3291';
+    $mat[1]{'key'}='c-org'  ; $mat[1]{'loc'}='core'; $mat[1]{'mfrac'}='0.3966';
+    $mat[2]{'key'}='fes'    ; $mat[2]{'loc'}='core'; $mat[2]{'mfrac'}='0.0743';
+    $mat[3]{'key'}='h2o-w'  ; $mat[3]{'loc'}='core'; $mat[3]{'mfrac'}='0.2000';}
+  elsif (/^-dsharp-no-ice$/) {
+    $nm = 2;$mftot=0.8;$ncore=3;$pcore=0.;
+    $mat[0]{'key'}='astrosil';$mat[0]{'loc'}='core'; $mat[0]{'mfrac'}='0.3291';
+    $mat[1]{'key'}='c-org'  ; $mat[1]{'loc'}='core'; $mat[1]{'mfrac'}='0.3966';
+    $mat[2]{'key'}='fes'    ; $mat[2]{'loc'}='core'; $mat[2]{'mfrac'}='0.0743';}
 }
 
 if ($nm == -1) {

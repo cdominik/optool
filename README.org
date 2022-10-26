@@ -126,6 +126,13 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.9.8 ::
+  - Sparse scattering matrix files can safe space if the target program
+    can read them.
+  - Literature standard compositions DIANA and DSHARP have been built
+    in. They are accessible with the options -diana, -dsharp, and
+    -dsharp-no-ice.
+
 - Release 1.9.7 ::
   - Do not allow qabs to drop below 1e-4*qext, to avoid numerical
     problems.

@@ -238,7 +238,7 @@ program optool
         call manual('all'); stop
 
      case('-version')
-        print *,"OpTool version 1.9.7, April 2022, (c) C. Dominik, M. Min & R. Tazaki"
+        print *,"OpTool version 1.9.8, October 2022, (c) C. Dominik, M. Min & R. Tazaki"
         stop
 
         ! ----------------------------------------------------------------------
