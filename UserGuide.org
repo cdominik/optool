@@ -209,8 +209,8 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
   mantle, but a second value will be specific for the mantle (and may
   be 0).
 
-+ =-diana, -dsharp= :: Use literature standard compositions DIANA
-  (Woitke+2016) or DSHARP (Birnstiel+2018).
++ =-diana, -dsharp=, =-dsharp-no-ice= :: Use literature standard
+  compositions DIANA (Woitke+2016) or DSHARP (Birnstiel+2018).
 
 
 ** Grain geometry and computational method
