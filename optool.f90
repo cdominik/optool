@@ -613,7 +613,7 @@ program optool
   ! ----------------------------------------------------------------------
 
   ! *** Materials ***
-  if (nm .ge. 10) then
+  if (nm .ge. 20) then
      print *,'ERROR: Too many materials'; stop
   endif
   if ( (nm.eq.nmant) .and. (nm.gt.0) ) then
