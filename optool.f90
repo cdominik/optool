@@ -706,6 +706,12 @@ program optool
      endif
   endif
 
+  ! *** Angular grid ***
+  if (mod(nang,2) .eq. 1) then
+     write(*,*) 'ERROR: The number of angles in -s NANG must be even'
+     stop
+  endif
+
   ! *** Other checks
   if (split .and. blendonly) then
      if (.not. quiet) write(*,*) 'WARNING: Turning off -s for -blendonly'
@@ -713,12 +719,6 @@ program optool
   endif
   if (split .and. (sdkind .ne. 'apow')) then
      write(*,*) "ERROR: Please only use -d with a powerlaw size distribution"
-     stop
-  endif
-
-  ! *** Angular grid ***
-  if (mod(nang,2) .eq. 1) then
-     write(*,*) 'ERROR: The number of angles in -s NANG must be even'
      stop
   endif
 
