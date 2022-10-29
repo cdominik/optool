@@ -416,8 +416,7 @@ program optool
            call require_file(trim(value))
            i=i+1
            call read_lambda_grid(trim(value))
-           lmin = minval(lam)
-           lmax = maxval(lam)
+           lmin = minval(lam); lmax = maxval(lam)
         else
            ! We have a number, should be lmin
            i = i+1; call getarg(i,value); call uread(value,lmin)
