@@ -501,7 +501,7 @@ program optool
      case('-sp','-sparse')
         write_scatter=.true.
         if (arg_is_number(i+1) .and. (arg_is_number(i+2))) then
-           ! Two number. This is a wavelength range for a sparse file
+           ! Two numbers. This is a wavelength range for a sparse file
            nsparse = nsparse+1
            if (nsparse.gt.10) then
               print *,"ERROR: To many sparse file ranges (10 is max)"
@@ -515,6 +515,7 @@ program optool
               scatlammin(nsparse) = l2; scatlammax(nsparse) = l1
            endif
         else if (arg_is_number(i+1)) then
+           ! One numbers. One specific wavelength
            i=i+1; call getarg(i,value); call uread(value,l1)
            nsparse = nsparse+1
            scatlammin(nsparse) = l1; scatlammax(nsparse) = l1
@@ -2282,6 +2283,7 @@ subroutine prepare_sparse()
      do i=1,nsparse
         if ((lam(il).ge.scatlammin(i)) .and. (lam(il).le.scatlammax(i))) then
            iscatlam(il) = 1
+           ! Make sure we can safely interpolate
            iscatlam(max(il-1,1)) = 1
            iscatlam(min(il+1,nlam)) = 1
            goto 1
