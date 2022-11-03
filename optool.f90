@@ -2504,13 +2504,16 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
 
      if (for_radmc) then
         if (nsparse.eq.0) then
-           write(20,*) 1    ! iformat
+           write(20,*) 1    ! iformat for RADMC-3D
         else
-           write(20,*) 2    ! iformat for sparse file
+           write(20,*) 101  ! iformat for sparse RADMC-3D file
         endif
-        
      else
-        write(20,*) 0   ! This is supposed to cause an error when RADMC-3D is reading it
+        if (nsparse.eq.0) then
+           write(20,*) 0    ! iformat standard file
+        else
+           write(20,*) 100  ! iformat for sparse stnadard file
+        endif
      endif
 
      write(20,*) nlam   ! Number of wavelength points

@@ -481,11 +481,11 @@ needed to set the wavelength grid with *-l FILE*.
   which will modify[fn:3] the output to make sure it can be used as an
   input file for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]].
 
-  To save space, =optool= can write a /sparse file/ that stores the
-  full scattering matrix only for selected wavelengths (for example,
-  the ones that will be used for image generation). Use =-sparse LAM=
-  or =-sparse LAM1 LAM2= to define a wavelength (interval)[fn:4] for the
-  matrix to be stored. Multiple =-sparse= switches are allowed.
+  To save space, =optool= can write a /sparse file/ (iformat=100) that
+  stores the full scattering matrix only for selected wavelengths (for
+  example, the ones that will be used for image generation). Use =-sp
+  LAM= or =-sp LAM1 LAM2= to define a wavelength (interval)[fn:4] for
+  the matrix to be stored. Multiple =-sp= switches are allowed.
 
 - dustkappa.fits ::
 
@@ -510,7 +510,8 @@ needed to set the wavelength grid with *-l FILE*.
   comment section in =optool2tex=.
 
 [fn:3] This includes a change of the angular grid and a change in the
-normalization of the scattering matrix.
+normalization of the scattering matrix. The format number will be 1
+(or 101 for a sparse file).
 
 [fn:4] The file will always have the matrix for at least two adjacent
 wavelengths around the specified \lambda, so that an interpolation to
