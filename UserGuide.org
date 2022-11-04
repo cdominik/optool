@@ -962,6 +962,14 @@ the code.
 - If you do not remember how to reproduce a specific run, just check
   the output file header. It contains the exact command that was used to
   produce the file.
+- =optool= internally limits the size parameter $x=2\pi a/\lambda$ to
+  speed up calculations significantly. This is normally not a problem,
+  since the opacities at short wavelengths are usually dominated by
+  smaller grains. However, if the size distribution is completely
+  dominated by large grains, or if you are computing the opacity of a
+  single large grain, you may notice a jump in the short wavelength
+  opacity due to this numerical trick.  You may change the internal
+  size limit using the switch =-xlim 1e6=.
 
 * Acknowledgments
 We are indebted to
