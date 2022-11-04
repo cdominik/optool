@@ -65,6 +65,11 @@ module Defs
   integer                        :: nsparse=0 ! nr of lam intervals
   integer (kind=dp), allocatable :: iscatlam(:) ! flag for scatmat
   ! ----------------------------------------------------------------------
+  ! Control trick at large size parameters
+  ! ----------------------------------------------------------------------
+  real (kind=dp) :: xlim_dhs = 1d4 ! size parameter limit in DHS
+  real (kind=dp) :: xlim     = 1d4 ! size parameter to switch to Mie
+  ! ----------------------------------------------------------------------
   ! Material properties
   ! ----------------------------------------------------------------------
   integer         :: mat_nm       ! number of materials specified
@@ -458,6 +463,18 @@ program optool
         else
            fmax = 0.8
         endif
+     case('-xlim')
+        if (arg_is_number(i+1)) then
+           i = i+1; call getarg(i,value); read(value,*) xlim
+        else
+           print *,"ERROR: -xlim needs a numeric value"; stop
+        endif
+     case('-xlim_dhs')
+        if (arg_is_number(i+1)) then
+           i = i+1; call getarg(i,value); read(value,*) xlim_dhs
+        else
+           print *,"ERROR: -xlim_dhs needs a numeric value"; stop
+        endif
      case('-mmf','-mmfss')
         method = 'MMF'
         if (tmp.eq.'-mmfss') then
@@ -504,8 +521,7 @@ program optool
            ! Two numbers. This is a wavelength range for a sparse file
            nsparse = nsparse+1
            if (nsparse.gt.10) then
-              print *,"ERROR: To many sparse file ranges (10 is max)"
-              stop
+              print *,"ERROR: To many sparse file ranges (10 is max)"; stop
            endif
            i=i+1; call getarg(i,value); call uread(value,l1)
            i=i+1; call getarg(i,value); call uread(value,l2)
@@ -1041,7 +1057,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   real (kind=dp)                 :: tot,tot2,mtot,vtot
   real (kind=dp)                 :: mass,vol,V
   real (kind=dp)                 :: rho_av,rho_core,rho_mantle
-  real (kind=dp)                 :: wvno
+  real (kind=dp)                 :: wvno,wvno1
 
   ! Effective refractive index
   real (kind=dp)                 :: e1mg,       e2mg
@@ -1050,7 +1066,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   real (kind=dp), allocatable    :: e1mantle(:),e2mantle(:)
   real (kind=dp), allocatable    :: vfrac(:),vfm(:)
   complex (kind=dp), allocatable :: e_in(:)
-  complex (kind=dp)              :: m,mconj,min,e_out
+  complex (kind=dp)              :: m,mconj,m_in,e_out
 
   ! MMF variables
   real (kind=dp)                 :: mmf_a0,mmf_struct,mmf_kf
@@ -1346,13 +1362,14 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !$OMP shared(split,progress,ndone,nang,chopangle)                       &
   !$OMP shared(quiet,debug,verbose)                                       &
   !$OMP shared(qabsdqext_min)                                             &
+  !$OMP shared(xlim,xlim_dhs)                                             &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,camie,e1mie,e2mie,rmie,lmie)                  &
   !$OMP private(qabs,qsca,qext,gqsc)                                      &
   !$OMP private(dcsca,dcabs,V)                                            &
   !$OMP private(err,spheres,toolarge)                                     &
-  !$OMP private(m1,m2,d21,s21,m,mconj,wvno,min)                           &
+  !$OMP private(m1,m2,d21,s21,m,mconj,wvno,wvno1,m_in)                     &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
   !$OMP shared(mmf_a0,mmf_struct,mmf_kf,mmfss)                            &
@@ -1387,25 +1404,31 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
            ! ----------------------------------------------------------------------
            ! Start the loop over the DHS f factors
            ! ----------------------------------------------------------------------
-           min = dcmplx(1d0,0d0)
+           m_in = dcmplx(1d0,0d0)
            do if=1,nf
               rad  = r1 / (1d0-f(if))**(1d0/3d0)
               
               if (f(if) .eq. 0d0) then
                  ! solid sphere
                  spheres = 1
-              else if (r1*wvno.gt.10000d0) then
+              else if (r1*wvno.gt.xlim) then
                  ! Sphere is too large
                  toolarge = 1
               else
                  rcore = rad*f(if)**(1d0/3d0)
                  ! DMiLay wants the imaginary part negative, this is a specific convention
                  mconj = dcmplx(e1blend(ilam),-e2blend(ilam))
-                 call DMiLay(rcore, rad, wvno, mconj, min, mu, &
+                 ! Limit the wavenumber for DMiLay
+                 wvno1 = wvno; if (wvno*rad .gt. xlim_dhs) wvno1 = xlim_dhs/rad
+                 ! Run the DMiLay routine
+                 call DMiLay(rcore, rad, wvno1, mconj, m_in, mu, &
                       nang/2, qext, qsca, qabs, gqsc, &
-                      m1, m2, s21, d21, nang ,err)
+                      m1, m2, s21, d21, nang, err)
               endif
               if (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1) then
+                 !if (err.eq.1) print *,'err',lam(ilam),r1,rad
+                 !if (spheres.eq.1) print *,'sph',lam(ilam),r1,rad
+                 !if (toolarge.eq.1) print *,'tol',lam(ilam),r1,rad
                  rad   = r1
                  rcore = rad
                  rmie  = rad
