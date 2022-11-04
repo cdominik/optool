@@ -237,7 +237,7 @@ class particle:
                 print("Cleaning up temporary directory "+dir)
                 os.system('rm -rf '+dir)
 
-    def plot(self):
+    def plot(self,minkap=1e0):
         """Create interactive plots of the opacities in SELF.
 
         Furthermore, a plot for the scattering matric elements and, if the
@@ -260,9 +260,11 @@ class particle:
         ksca   = np.copy(self.ksca)
         kext   = kabs+ksca
         gg     = np.copy(self.gsca)
+        maxkap = np.amax(kabs)
+        if (maxkap<minkap*100):
+            print('WARNING: you may want to change minkap to ',maxkap/100,' or smaller')
     
         # limit the kappa plotting range
-        minkap = 1e0
         kabs   = np.maximum(kabs,minkap)
         ksca   = np.maximum(ksca,minkap)
         kext   = np.maximum(kext,minkap)
