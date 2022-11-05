@@ -65,20 +65,20 @@ module Defs
   integer                        :: nsparse=0 ! nr of lam intervals
   integer (kind=dp), allocatable :: iscatlam(:) ! flag for scatmat
   ! ----------------------------------------------------------------------
-  ! Control trick at large size parameters
+  ! Control tricks at large size parameters
   ! ----------------------------------------------------------------------
+  real (kind=dp) :: xlim     = 1d8 ! size parameter to switch to Mie
   real (kind=dp) :: xlim_dhs = 1d4 ! size parameter limit in DHS
-  real (kind=dp) :: xlim     = 1d4 ! size parameter to switch to Mie
   ! ----------------------------------------------------------------------
   ! Material properties
   ! ----------------------------------------------------------------------
-  integer         :: mat_nm       ! number of materials specified
-  integer         :: mat_nmc      ! number of core materials specified
-  integer         :: mat_nmm      ! number of mantle materials specified
-  character*500   :: mat_loc(21)  ! either 'core' or 'mantle'
-  character*500   :: mat_lnk(21)  ! the lnk key of file path
-  real (kind=dp)  :: mat_rho(21)  ! specific mass density of material
-  real (kind=dp)  :: mat_mfr(21)  ! mass fraction of each component
+  integer         :: mat_nm        ! number of materials specified
+  integer         :: mat_nmc       ! number of core materials specified
+  integer         :: mat_nmm       ! number of mantle materials specified
+  character*500   :: mat_loc(21)   ! either 'core' or 'mantle'
+  character*500   :: mat_lnk(21)   ! the lnk key of file path
+  real (kind=dp)  :: mat_rho(21)   ! specific mass density of material
+  real (kind=dp)  :: mat_mfr(21)   ! mass fraction of each component
   real (kind=dp), allocatable  :: mat_e1(:,:)  ! Real      part of refractive index
   real (kind=dp), allocatable  :: mat_e2(:,:)  ! Imaginary part of refractive index
   ! ----------------------------------------------------------------------
@@ -1030,7 +1030,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   integer                        :: i,j              ! counters for various loops
   integer                        :: isplit           ! index of the split runs, 0 if not split
   integer                        :: na               ! Number of grains sizes between amin and amax
-  integer                        :: nf,if            ! Number of DHS volume fractions
+  integer                        :: nf,if,ifmn       ! Number of DHS volume fractions
   integer                        :: ns,is            ! Number of grains sizes
   integer                        :: ilam,il,ndone    ! Counter for wavelengths
   integer                        :: err,spheres,toolarge ! Error control for Mie routines
@@ -1099,9 +1099,12 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   ! Set the number of f values between 0 and fmax, for DHS
   if (fmax .eq. 0e0) then
      ! DHS is turned off by setting fmax to 0.
-     nf = 1
+     nf   = 1
+     ifmn = 1
   else
      nf = 20
+     ! ifmn = floor(sqrt(1.d0*nf*(nf+1)*(2*nf+1)/6d0/nf)+.5d0)
+     ifmn = 12 ! Since nf is fixed, we can fix ifmn
   endif
   allocate(r(ns),nr(ns))
   allocate(f(nf),wf(nf))
@@ -1358,7 +1361,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !$OMP default(none)                                                     &
   !$OMP private(f11,f12,f22,f33,f34,f44)                                  &
   !$OMP shared(r,lam,nlam,mu,e1blend,e2blend,p,nr,method)                 &
-  !$OMP shared(nf,ns,p_c,rho_av,wf,f)                                     &
+  !$OMP shared(nf,ifmn,ns,p_c,rho_av,wf,f)                                &
   !$OMP shared(split,progress,ndone,nang,chopangle)                       &
   !$OMP shared(quiet,debug,verbose)                                       &
   !$OMP shared(qabsdqext_min)                                             &
@@ -1369,7 +1372,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !$OMP private(qabs,qsca,qext,gqsc)                                      &
   !$OMP private(dcsca,dcabs,V)                                            &
   !$OMP private(err,spheres,toolarge)                                     &
-  !$OMP private(m1,m2,d21,s21,m,mconj,wvno,wvno1,m_in)                     &
+  !$OMP private(m1,m2,d21,s21,m,mconj,wvno,wvno1,m_in)                    &
   !$OMP private(Mief11,Mief12,Mief22,Mief33,Mief34,Mief44)                &
   !$OMP private(tot,tot2)                                                 &
   !$OMP shared(mmf_a0,mmf_struct,mmf_kf,mmfss)                            &
