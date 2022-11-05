@@ -883,26 +883,26 @@ the code.
   shapes, or the properties of low-porosity aggregates), =optool=
   averages the opacities of grains with an inner empty region, over a
   range of volume fractions of this inner region between 0 and $f_{\rm
-  max}$.  The subroutine used to compute the opacities and scattering
+  max}$. The subroutine used to compute the opacities and scattering
   matrix elements for these structures is =DMiLay= (Toon & Ackerman
-  1981).  When the size parameter $x=2 \pi a/\lambda$ exceeds a value
-  of 10^4, no DHS averaging is used.  A standard Mie calculation is
-  performed, using the routine =MeerhoffMie= (de Rooij+ 1984), for a
-  fixed size parameter of 5000, with proper scaling to the actual size
-  of the particle.\\
-  Numerical inaccuracies in the =DMiLay= routine can lead to an
-  unphysical result with $q_{\rm sca}>q_{\rm ext}$, implying a
-  negative $q_{\rm abs}$, in a situation where the imaginary part of
-  the refractive index is extremely small.  =optool=
-  enforces $q_{\rm abs}>q_{\rm ext}/10^4$, with no consequences for
-  practical applications.
+  1981). When the size parameter $x=2 \pi a/\lambda$ exceeds a value
+  of 10^4, DHS runs internally with a fixed $x_{\rm lim\_dhs}=10^4$, a
+  very reasonable simplification. In rare cases, =DMiLay= might not
+  converge with large $x$. =optool= then falls back to a Mie
+  computation[fn:9], using the routine =MeerhoffMie= (de Rooij+ 1984), also
+  with a size parameter limit.\\
+  In a situation where the imaginary part of the refractive index is
+  extremely small, numerical inaccuracies in the =DMiLay= routine may
+  lead to an unphysical result with $q_{\rm sca}>q_{\rm ext}$,
+  implying a negative $q_{\rm abs}$. =optool= therefore enforces
+  $q_{\rm abs}>q_{\rm ext}/10^4$.
 
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
   number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
   scaling factor $k_{\rm f}$ which are related to the radius of
   gyration $R_{\rm g}$ of the aggregate by $N=k_{\rm f}(R_{\rm
   g}/a_0)^{D_{\rm f}}$.  The size $a$ of the particles as specified by
-  the *-a* switch is interpreted as the /compact/[fn:9] size of all
+  the *-a* switch is interpreted as the /compact/[fn:10] size of all
   material in the aggregate, so that $N=a^3/a_0^3$, where $a_0$ is the
   monomer radius.  The average volume filling factor $f$ can be
   expressed by $f=N\cdot(\sqrt{3/5}\,a_0/R_{\rm g})^3$.  To determine
@@ -950,7 +950,13 @@ the code.
   condition. The scattering matrix will be computed from a single
   sphere in the Rayleigh limit.
 
-[fn:9]still including the porosity specified with the *-p* switch
+[fn:9] You can force the switch to a Mie sphere to happen at smaller
+$x$ by using something like =-xlim 1e3=.  This will speed up the
+computations for large grains significantly, but introduce some small
+errors.  Do this only if the short wavelength opacities are dominated
+by smaller grains in your application.
+
+[fn:10]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
 "porosity" resulting from the aggregate structure
 
@@ -962,15 +968,6 @@ the code.
 - If you do not remember how to reproduce a specific run, just check
   the output file header. It contains the exact command that was used to
   produce the file.
-- =optool= internally limits the size parameter $x=2\pi a/\lambda$ to
-  speed up calculations significantly. This is normally not a problem,
-  since the opacities at short wavelengths are usually dominated by
-  smaller grains. However, if the size distribution is completely
-  dominated by large grains, or if you are computing the opacity of a
-  single large grain, you may notice a jump in the short wavelength
-  opacity due to this numerical trick.  You may change the internal
-  size limit using the switch =-xlim 1e6=.
-
 * Acknowledgments
 We are indebted to
 - the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena Database of Optical Constants]] and the

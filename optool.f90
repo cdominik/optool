@@ -1429,16 +1429,36 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                       m1, m2, s21, d21, nang, err)
               endif
               if (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1) then
+                 ! Here we can do a Mie computation under specific circumstances.
+                 ! If err=1, then we want a computation for this specific sphere, with inflated radius.
+                 ! If toolarge=1, we want to compute just once, for the mean radius, replacing DHS
+                 ! The computed values will remain, and be reused for summing over the if factors.
+                 ! If spheres=1, we want a compact sphere, and we want to compute it only once
+                 ! and then reuse the values in the loop
                  !if (err.eq.1) print *,'err',lam(ilam),r1,rad
                  !if (spheres.eq.1) print *,'sph',lam(ilam),r1,rad
                  !if (toolarge.eq.1) print *,'tol',lam(ilam),r1,rad
-                 rad   = r1
+                 ! FIXME: which radius should we pick
+                 !rad   = r1 ! The volume-equivalent radius
+                 if (err.eq.1) then
+                    ! We want a Mie calculation with the blown-up radius, just for this if value
+                    rad   = r1  / (1d0-f(if))**(1d0/3d0)
+                 elseif (spheres.eq.1) then
+                    ! Mie with compact radius
+                    rad = r1
+                 elseif (toolarge.eq.1) then
+                    ! Mie with crosssec average radius
+                    rad   = r1  / (1d0-f(ifmn))**(1d0/3d0) ! mean cross section radius
+                 endif
+                 rad = r1 !FIXME:
                  rcore = rad
                  rmie  = rad
                  lmie  = lam(ilam)
                  e1mie = e1blend(ilam)
                  e2mie = e2blend(ilam)
                  if (err.eq.1 .or. if.eq.1) then
+                    ! We get here only after an error, or if if=1
+                    ! If we get here with if=1, all the following if's will reuse the computed values
                     if (rmie/lmie.lt.5000d0) then
                        call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
                             Mief11,Mief12,Mief33,Mief34,nang)
