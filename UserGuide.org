@@ -953,7 +953,7 @@ the code.
 [fn:9] You can force the switch to a Mie sphere to happen at smaller
 $x$ by using something like =-xlim 1e3=.  This will speed up the
 computations for large grains significantly, but introduce some small
-errors.  Do this only if the short wavelength opacities are dominated
+errors. Do this only if the short wavelength opacities are dominated
 by smaller grains in your application.
 
 [fn:10]still including the porosity specified with the *-p* switch
