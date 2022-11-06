@@ -1409,56 +1409,70 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
            ! ----------------------------------------------------------------------
            m_in = dcmplx(1d0,0d0)
            do if=1,nf
-              rad  = r1 / (1d0-f(if))**(1d0/3d0)
-              
               if (f(if) .eq. 0d0) then
                  ! solid sphere
                  spheres = 1
-              else if (r1*wvno.gt.xlim) then
+              else if (r1*wvno .gt. xlim) then
                  ! Sphere is too large
                  toolarge = 1
               else
+                 ! Compute outer and inner radius of hollow sphere
+                 rad   = r1 / (1d0-f(if))**(1d0/3d0)
                  rcore = rad*f(if)**(1d0/3d0)
                  ! DMiLay wants the imaginary part negative, this is a specific convention
                  mconj = dcmplx(e1blend(ilam),-e2blend(ilam))
                  ! Limit the wavenumber for DMiLay
-                 wvno1 = wvno; if (wvno*rad .gt. xlim_dhs) wvno1 = xlim_dhs/rad
+                 wvno1 = min(wvno,xlim_dhs/rad)
                  ! Run the DMiLay routine
                  call DMiLay(rcore, rad, wvno1, mconj, m_in, mu, &
                       nang/2, qext, qsca, qabs, gqsc, &
                       m1, m2, s21, d21, nang, err)
               endif
               if (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1) then
-                 ! Here we can do a Mie computation under specific circumstances.
-                 ! If err=1, then we want a computation for this specific sphere, with inflated radius.
-                 ! If toolarge=1, we want to compute just once, for the mean radius, replacing DHS
-                 ! The computed values will remain, and be reused for summing over the if factors.
-                 ! If spheres=1, we want a compact sphere, and we want to compute it only once
-                 ! and then reuse the values in the loop
-                 !if (err.eq.1) print *,'err',lam(ilam),r1,rad
-                 !if (spheres.eq.1) print *,'sph',lam(ilam),r1,rad
-                 !if (toolarge.eq.1) print *,'tol',lam(ilam),r1,rad
-                 ! FIXME: which radius should we pick
-                 !rad   = r1 ! The volume-equivalent radius
+                 ! Here we can do a Mie computation (homogeneous sphere) under
+                 ! specific circumstances. Let's explain the logic for people
+                 ! who are not M. Min. :)
+                 !
+                 ! 1. If err=1, then DMiLay failed, and we need to replace
+                 !    that computation with a Mie Sphere. It will be just one
+                 !    of the 20 f_vac steps, so we return to the nf loop and
+                 !    may be back for another (failed) computation.
+                 !    FIXME: This may be wrong.  When err=1 once, it remains 1,
+                 !    so for the entire nf loop, we will fall back to Mie.
+                 !    Is that intentional?
+                 ! 2. If spheres=1, we need only a single Mie sphere for this
+                 !    size, because the user said they did not want DHS.
+                 ! 3. If toolarge=1, we are in a DHS situation, but the grain
+                 !    has become so big that we do not want to do the DHS
+                 !    computation, because DMiLay becomes unreliable or
+                 !    because we want more speed. We run a Mie computation
+                 !    instead, but inflate the radius so that it corresponds
+                 !    to the average outer radius cross section of the DHS
+                 !    series (the DHS spheres become a bit bigger because we
+                 !    use the same mass even though we have an empty
+                 !    core). Inflating the radius in this way makes for a
+                 !    quite smooth transition from the DHS regime. Note that
+                 !    we still are in the DHS loop. The Mie computation is
+                 !    only done once, but the results persist and are reused
+                 !    in every DHS step so that the averaging works fine.
                  if (err.eq.1) then
-                    ! We want a Mie calculation with the blown-up radius, just for this if value
-                    rad   = r1  / (1d0-f(if))**(1d0/3d0)
+                    ! Since we had an error, compute compact Mie Sphere
+                    ! as a replacement for this step in the DHS sequence
+                    rad = r1
+                    ! We could inflate, but we do not know if DMiLay failed
+                    ! the sphere was too large, or for another reason.
+                    ! rad   = r1  / (1d0-f(if))**(1d0/3d0)
                  elseif (spheres.eq.1) then
-                    ! Mie with compact radius
+                    ! The user has asked for Mie theory with compact spheres
                     rad = r1
                  elseif (toolarge.eq.1) then
-                    ! Mie with crosssec average radius
+                    ! Mie with radius resulting in the average geometric
+                    ! cross section
                     rad   = r1  / (1d0-f(ifmn))**(1d0/3d0) ! mean cross section radius
                  endif
-                 rad = r1 !FIXME:
-                 rcore = rad
-                 rmie  = rad
-                 lmie  = lam(ilam)
-                 e1mie = e1blend(ilam)
-                 e2mie = e2blend(ilam)
+                 rcore = rad; rmie  = rad; lmie  = lam(ilam)
+                 e1mie = e1blend(ilam); e2mie = e2blend(ilam)
                  if (err.eq.1 .or. if.eq.1) then
-                    ! We get here only after an error, or if if=1
-                    ! If we get here with if=1, all the following if's will reuse the computed values
                     if (rmie/lmie.lt.5000d0) then
                        call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
                             Mief11,Mief12,Mief33,Mief34,nang)
@@ -1467,8 +1481,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                             Mief11,Mief12,Mief33,Mief34,nang)
                     endif
                  endif
-                 Mief22 = Mief11
-                 Mief44 = Mief33
+                 Mief22 = Mief11; Mief44 = Mief33
               else
                  cemie = qext * pi * rad**2
                  csmie = qsca * pi * rad**2
