@@ -886,16 +886,16 @@ the code.
   max}$. The subroutine used to compute the opacities and scattering
   matrix elements for these structures is =DMiLay= (Toon & Ackerman
   1981). When the size parameter $x=2 \pi a/\lambda$ exceeds a value
-  of 10^4, DHS runs internally with a fixed $x_{\rm lim\_dhs}=10^4$, a
-  very reasonable simplification. In rare cases, =DMiLay= might not
-  converge with large $x$. =optool= then falls back to a Mie
-  computation[fn:9], using the routine =MeerhoffMie= (de Rooij+ 1984), also
-  with a size parameter limit.\\
-  In a situation where the imaginary part of the refractive index is
-  extremely small, numerical inaccuracies in the =DMiLay= routine may
-  lead to an unphysical result with $q_{\rm sca}>q_{\rm ext}$,
-  implying a negative $q_{\rm abs}$. =optool= therefore enforces
-  $q_{\rm abs}>q_{\rm ext}/10^4$.
+  of 10^4, DHS runs internally with a fixed $x_{\rm lim\_dhs}=10^4$ to
+  ensure stability. In rare cases, =DMiLay= might not converge and
+  return an error. =optool= then falls back to a Mie
+  computation[fn:9], using the routine =MeerhoffMie= (de Rooij+ 1984),
+  also with a size parameter limit to ensure stability.  In a
+  situation where the imaginary part of the refractive index is
+  extremely small, numerical inaccuracies may lead to an unphysical
+  result with $q_{\rm sca}>q_{\rm ext}$, implying a small negative
+  $q_{\rm abs}$. =optool= therefore enforces $q_{\rm abs}>q_{\rm
+  ext}/10^4$.
 
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
   number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
@@ -950,11 +950,11 @@ the code.
   condition. The scattering matrix will be computed from a single
   sphere in the Rayleigh limit.
 
-[fn:9] You can force the switch to a Mie sphere to happen at smaller
-$x$ by using something like =-xlim 1e3=.  This will speed up the
-computations for large grains significantly, but introduce some small
-errors. Do this only if the short wavelength opacities are dominated
-by smaller grains in your application.
+[fn:9] You can force the switch to Mie to happen at a specific $x$ by
+using, for example, =-xlim 1e3=.  This will speed up the computations
+for large grains significantly, but introduce some errors at larger
+$x$. Do this only if the short wavelength opacities are dominated by
+small grains in your application.
 
 [fn:10]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
