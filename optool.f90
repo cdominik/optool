@@ -1430,18 +1430,14 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
               endif
               if (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1) then
                  ! Here we can do a Mie computation (homogeneous sphere) under
-                 ! specific circumstances. Let's explain the logic for people
-                 ! who are not M. Min. :)
+                 ! specific circumstances.
                  !
                  ! 1. If err=1, then DMiLay failed, and we need to replace
-                 !    that computation with a Mie Sphere. It will be just one
-                 !    of the 20 f_vac steps, so we return to the nf loop and
-                 !    may be back for another (failed) computation.
-                 !    FIXME: This may be wrong.  When err=1 once, it remains 1,
-                 !    so for the entire nf loop, we will fall back to Mie.
-                 !    Is that intentional?
+                 !    that computation with a Mie Sphere. We will try DHS
+                 !    again for the next step in the nf loop.
                  ! 2. If spheres=1, we need only a single Mie sphere for this
-                 !    size, because the user said they did not want DHS.
+                 !    size, because the user said they did not want DHS. nf is
+                 !    1, so this is a trivial loop with one round.
                  ! 3. If toolarge=1, we are in a DHS situation, but the grain
                  !    has become so big that we do not want to do the DHS
                  !    computation, because DMiLay becomes unreliable or
@@ -1473,6 +1469,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                  rcore = rad; rmie  = rad; lmie  = lam(ilam)
                  e1mie = e1blend(ilam); e2mie = e2blend(ilam)
                  if (err.eq.1 .or. if.eq.1) then
+                    err=0 ! Reset error flag, so we try DHS again for a new f factor
                     if (rmie/lmie.lt.5000d0) then
                        call MeerhoffMie(rmie,lmie,e1mie,e2mie,csmie,cemie, &
                             Mief11,Mief12,Mief33,Mief34,nang)
