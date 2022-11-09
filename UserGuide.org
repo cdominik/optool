@@ -218,14 +218,18 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 If no method is explicitly specified, the default is *-dhs 0.8*, i.e.
 DHS with f_max=0.8.
 
-+ =-dhs [FMAX]= ::
-  Use the /Distribution of Hollow Spheres/ (DHS, Min+ 2005) approach to
-  model deviations from perfect spherical symmetry and low-porosity
++ =-dhs [FMAX]=  \hfill{}(-mie is short for -dhs 0) ::
+  Use the /Distribution of Hollow Spheres/ (DHS, Min+ 2005) approach
+  to model deviations from perfect spherical symmetry and low-porosity
   aggregates. Spheres with inner holes with volume fractions between 0
   and f_max (default 0.8) are averaged to mimic irregularities.
-  f_max=0 means to use solid spheres (Mie theory), i.e. perfectly
-  regular grains. For backward compatibility, *-fmax* can be used
-  instead of *-dhs*.
+  f_max=0 means to use solid spheres (Mie theory),
+  i.e. perfectly regular grains. For backward compatibility, *-fmax*
+  can be used instead of *-dhs*.
+
++ =-xlim XLIM= ::
+  Set size parameter (default 10^4) for [[#internals][speed-related switch from DHS
+  to Mie]].
 
 + =-mmf [A0 [DFRAC-OR-FILL [KF]]]= ::
 
@@ -237,11 +241,6 @@ DHS with f_max=0.8.
   $N=a^3/a_0^3$ monomers. =DFRAC-OR-FILL= specifies either the fractal
   dimension (if >1) or the /volume filling factor/ (if <1). The
   default is 0.2. KF may be used to change the default prefactor.
-
-+ =-mie= ::
-
-  Do a standard /Mie/ calculation for perfect spheres. This is short
-  for *-dhs 0* .
 
 + =-cde= :: 
 
