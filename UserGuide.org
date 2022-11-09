@@ -613,6 +613,12 @@ will produce:
 The python module has a few more tricks up its sleeve (for details
 check the documentation inside the Python module file =optool.py=):
 
+- You can cache results for quick reloading in a new python session.
+  When running the following command twice, optool will be called only
+  the first time.
+  #+begin_src python
+  sil = optool.particle('optool -d ol-mg50 -na 100',cache='sil')
+  #+end_src
 - A =lnktable= class to read, plot, modify and write =lnk= files.
   #+begin_src python
   x = optool.lnktable('lnk_data/sio2-Kitamura2007.lnk')
@@ -627,71 +633,8 @@ check the documentation inside the Python module file =optool.py=):
 
 - /Particle arithmetic/: multiplying =optool.particle= objects with
   factors and adding them, or applying size distributions to a
-  pre-computed set of opacities. The following page contains a number
-  of examples.
-
-
-#+LATEX: \newpage
-
-Compute the opacities of 100 olivine silicate grain sizes and of 50
-carbon grain sizes, and store the opacities in cache directories. This
-works by specifying the directory as the second argument. In a new
-session, if the directories still exist and were produced using the
-same commands, the opacities are simply read back in.
-
-#+begin_src python
-import optool
-import numpy as np
-sil  = optool.particle('optool -d -a 0.001 100 0 100 ol-mg50',cache='sil')
-carb = optool.particle('optool -d -a 0.001 3.0 0 50  c',cache='carb')
-#+end_src
-
-Apply powerlaw size distributions, and limit the size of the
-contributing grains.  Note that a power law f(a)\propto a^{-3.5}
-implies using a power a^{-2.5} when computing the number of particles
-per size bin on a logarithmic size grid. No normalization is
-necessary - the =sizedist= method will take care of that.
-
-#+begin_src python
-nsil = sil.a1**(-2.5)             # power law, no normalization required
-nsil[sil.a1<0.01] = 0             # no grains smaller than 0.01um
-nsil[sil.a1>0.3]  = 0             # no grains larger  than 0.3um
-sil_pl = sil.sizedist(nsil)       # pass the relative number for each size
-
-nc = carb.a1**(-2.5)              # power law, no normalization required
-nc[carb.a1>0.3]=0                 # no grains larger than 0.3um
-carb_pl = carb.sizedist(nc)       # pass the relative number for each size
-#+end_src
-
-=sil_pl= and =carb_pl= are now objects with a single opacity each,
-obtained by adding opacities with the weights of the size
-distribution. The opacities are still per g of total grain mass.
-Let's add these two opacities with mass weights, to get something
-resembling an interstellar dust opacity produced by a mixture of
-silicate and carbon grains:
-#+begin_src python
-ptot = 0.7*sil_pl + 0.3*carb_pl   # weights should add up to 1
-ptot.plot()                       # plot the resulting opacity
-#+end_src
-
-Now let's assume we are looking at an interstellar cloud, where the
-dust is just one percent of the total mass.  We want to have the
-opacity per unit of /gas mass/ instead, and we need Planck and
-Rosseland mean opacities:
-#+begin_src python
-p_ism = ptot * 0.01               # dilute the opacity
-p_ism.computemean(tmax=1300)      # Compute mean opacities
-p_ism.plot()                      # Plot the results
-#+end_src
-
-Other size distributions can be made just as easily.  Here is a
-log-normal size distribution for the silicate grains, with a
-peak abundance at a size of a_m=1.3 microns, and a logarithmic width
-of \sigma=1.2:
-#+begin_src python
-sil_ln = sil.sizedist( np.exp( -0.5*(np.log(sil.a1/1.3)/1.2)**2) )
-sil_ln.write('dkap_ln.dat')       # write opacity to a file
-#+end_src
+  pre-computed set of opacities. See the documentation of the optool
+  module for examples.
 
 [fn:5] The module runs the command as a subprocess, with output to a
 temporary subdirectory.
