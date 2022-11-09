@@ -828,16 +828,17 @@ the code.
   max}$. The subroutine used to compute the opacities and scattering
   matrix elements for these structures is =DMiLay= (Toon & Ackerman
   1981). When the size parameter $x=2 \pi a/\lambda$ exceeds a value
-  of 10^4, DHS runs internally with a fixed $x_{\rm lim\_dhs}=10^4$ to
-  ensure stability. In rare cases, =DMiLay= might not converge and
-  return an error. =optool= then falls back to a Mie
-  computation[fn:9], using the routine =MeerhoffMie= (de Rooij+ 1984),
-  also with a size parameter limit to ensure stability.  In a
-  situation where the imaginary part of the refractive index is
-  extremely small, numerical inaccuracies may lead to an unphysical
-  result with $q_{\rm sca}>q_{\rm ext}$, implying a small negative
-  $q_{\rm abs}$. =optool= therefore enforces $q_{\rm abs}>q_{\rm
-  ext}/10^4$.
+  of 10^4, =optool= switches from DHS to Mie for speed. Use =-xlim
+  1e8= to trade computing time for more accurate DHS results at large
+  $x$. Even then, DHS runs internally with a fixed $x=10^4$ to ensure
+  stability. In rare cases, =DMiLay= might not converge and return an
+  error. =optool= then falls back to a Mie computation, using the
+  routine =MeerhoffMie= (de Rooij+ 1984), also with a size parameter
+  limit to ensure stability.  In a situation where the imaginary part
+  of the refractive index is extremely small, numerical inaccuracies
+  may lead to an unphysical result with $q_{\rm sca}>q_{\rm ext}$,
+  implying a small negative $q_{\rm abs}$. =optool= therefore enforces
+  $q_{\rm abs}>q_{\rm ext}/10^4$.
 
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
   number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
@@ -892,24 +893,25 @@ the code.
   condition. The scattering matrix will be computed from a single
   sphere in the Rayleigh limit.
 
-[fn:9] You can force the switch to Mie to happen at a specific $x$ by
-using, for example, =-xlim 1e3=.  This will speed up the computations
-for large grains significantly, but introduce some errors at larger
-$x$. Do this only if the short wavelength opacities are dominated by
-small grains in your application.
-
 [fn:10]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
 "porosity" resulting from the aggregate structure
-
 
 * Troubleshooting
 - If you get oscillations in the opacities, in particular at long
   wavelengths, the grain size resolution is not sufficient.  Use more
   grain sizes (*-a*, *-na* and *-d* switches).
+- If you are interested the /short-wavelength/ properties of a /very
+  large grain/, you may want to use *-xlim 1e8* to make sure you get
+  the best results by avoiding the [[#internals][speed-related switch from DHS to
+  Mie]] at $x=10^4$. The opacity differences are typically small, but
+  significant changes may be seen in some scattering matrix elements.
+  A large =xlim= is currently not the default because there is a
+  significant cost in computational time, while the deviations are
+  normally fully masked by dominating small grain opacities.
 - If you do not remember how to reproduce a specific run, just check
-  the output file header. It contains the exact command that was used to
-  produce the file.
+  the output file header. It contains the exact command that was used
+  to produce the file.
 * Acknowledgments
 We are indebted to
 - the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena Database of Optical Constants]] and the
@@ -928,7 +930,6 @@ We are indebted to
 - Thiébaut Schirmer for triggering the addition of a log-normal size
   distribution.
 
-#+LaTeX: \newpage
 * Bibliography
 #+LATEX: \footnotesize
 - Birnstiel, T. et al. 2018, ApJ 869, 45
