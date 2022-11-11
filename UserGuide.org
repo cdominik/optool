@@ -218,7 +218,7 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 If no method is explicitly specified, the default is *-dhs 0.8*, i.e.
 DHS with f_max=0.8.
 
-+ =-dhs [FMAX]=  \hfill{}(-mie is short for -dhs 0) ::
++ =-dhs [FMAX]= ::
   Use the /Distribution of Hollow Spheres/ (DHS, Min+ 2005) approach
   to model deviations from perfect spherical symmetry and low-porosity
   aggregates. Spheres with inner holes with volume fractions between 0
@@ -226,10 +226,6 @@ DHS with f_max=0.8.
   f_max=0 means to use solid spheres (Mie theory),
   i.e. perfectly regular grains. For backward compatibility, *-fmax*
   can be used instead of *-dhs*.
-
-+ =-xlim XLIM= ::
-  Set size parameter (default 10^4) for [[#internals][speed-related switch from DHS
-  to Mie]].
 
 + =-mmf [A0 [DFRAC-OR-FILL [KF]]]= ::
 
@@ -241,6 +237,10 @@ DHS with f_max=0.8.
   $N=a^3/a_0^3$ monomers. =DFRAC-OR-FILL= specifies either the fractal
   dimension (if >1) or the /volume filling factor/ (if <1). The
   default is 0.2. KF may be used to change the default prefactor.
+
++ =-mie= ::
+  Do a standard Mie calculattion for perfect spheres.  This is short
+  for *-dhs 0*.
 
 + =-cde= :: 
 
@@ -613,8 +613,8 @@ The python module has a few more tricks up its sleeve (for details
 check the documentation inside the Python module file =optool.py=):
 
 - You can cache results for quick reloading in a new python session.
-  When running the following command twice, optool will be called only
-  the first time.
+  When running the following command twice, =optool= will be called
+  only the first time.
   #+begin_src python
   sil = optool.particle('optool -d ol-mg50 -na 100',cache='sil')
   #+end_src
@@ -827,18 +827,16 @@ the code.
   range of volume fractions of this inner region between 0 and $f_{\rm
   max}$. The subroutine used to compute the opacities and scattering
   matrix elements for these structures is =DMiLay= (Toon & Ackerman
-  1981). When the size parameter $x=2 \pi a/\lambda$ exceeds a value
-  of 10^4, =optool= switches from DHS to Mie for speed. Use =-xlim
-  1e8= to trade computing time for more accurate DHS results at large
-  $x$. Even then, DHS runs internally with a fixed $x=10^4$ to ensure
-  stability. In rare cases, =DMiLay= might not converge and return an
-  error. =optool= then falls back to a Mie computation, using the
-  routine =MeerhoffMie= (de Rooij+ 1984), also with a size parameter
-  limit to ensure stability.  In a situation where the imaginary part
-  of the refractive index is extremely small, numerical inaccuracies
-  may lead to an unphysical result with $q_{\rm sca}>q_{\rm ext}$,
-  implying a small negative $q_{\rm abs}$. =optool= therefore enforces
-  $q_{\rm abs}>q_{\rm ext}/10^4$.
+  1981). For speed, you can use =-xlim 1e3= or so to set a limit for
+  the size parameter ($x=2\pi a/\lambda$) where =optool= switches from
+  DHS to Mie[fn:9]. In rare cases, =DMiLay= might not converge and
+  return an error. =optool= then falls back to a Mie computation,
+  using the routine =MeerhoffMie= (de Rooij+ 1984), with a size
+  parameter limit to ensure stability. In a situation where the
+  imaginary part of the refractive index is extremely small, numerical
+  inaccuracies may lead to an unphysical result with $q_{\rm
+  sca}>q_{\rm ext}$, implying a small negative $q_{\rm abs}$. =optool=
+  therefore enforces $q_{\rm abs}>q_{\rm ext}/10^4$.
 
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
   number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
@@ -893,25 +891,39 @@ the code.
   condition. The scattering matrix will be computed from a single
   sphere in the Rayleigh limit.
 
+[fn:9] The default limit is x_lim=10^{8}.  =optool= does the alternative
+Mie computation with a slightly increased grain diameter, representing
+the mean geometric cross section of the DHS spheres, to connect well
+to the DHS opacities. See also point 2 under [[#trouble_shooting][Troubleshooting]].
+
 [fn:10]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
 "porosity" resulting from the aggregate structure
 
 * Troubleshooting
-- If you get oscillations in the opacities, in particular at long
-  wavelengths, the grain size resolution is not sufficient.  Use more
-  grain sizes (*-a*, *-na* and *-d* switches).
-- If you are interested the /short-wavelength/ properties of a /very
-  large grain/, you may want to use *-xlim 1e8* to make sure you get
-  the best results by avoiding the [[#internals][speed-related switch from DHS to
-  Mie]] at $x=10^4$. The opacity differences are typically small, but
-  significant changes may be seen in some scattering matrix elements.
-  A large =xlim= is currently not the default because there is a
-  significant cost in computational time, while the deviations are
-  normally fully masked by dominating small grain opacities.
-- If you do not remember how to reproduce a specific run, just check
-  the output file header. It contains the exact command that was used
-  to produce the file.
+:PROPERTIES:
+:CUSTOM_ID: trouble_shooting
+:END:
+
+1. If you get oscillations in the opacities, in particular at long
+   wavelengths, the grain size resolution is not sufficient.  Use more
+   grain sizes (*-a*, *-na* and *-d* switches).
+2. You may have noticed that =optool= became slower in version 1.9.9
+   when computing the /short-wavelength/ properties of /very large
+   grains/.  You may use *-xlim 1e4* to request a [[#internals][speed-related switch
+   from DHS to Mie]] at $x=10^4$, restoring the old speed.  When doing
+   so, the opacity differences are typically small, but significant
+   changes may be seen in some scattering matrix elements for
+   computations with very large size parameters. In many applications,
+   this is fully masked by the fact that short-wavelength opacities
+   are completely dominated by smaller grains. However, we wanted to
+   make sure the user always gets the best possible results out of the
+   box, which is why we increased the limit.
+3. If you do not remember how to reproduce a specific run, just check
+   the output file header. It contains the exact command that was used
+   to produce the file.
+
+#+LaTeX: \newpage
 * Acknowledgments
 We are indebted to
 - the [[https://www.astro.uni-jena.de/Laboratory/Database/databases.html][Jena Database of Optical Constants]] and the

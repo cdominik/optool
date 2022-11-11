@@ -67,8 +67,8 @@ module Defs
   ! ----------------------------------------------------------------------
   ! Control tricks at large size parameters
   ! ----------------------------------------------------------------------
-  real (kind=dp) :: xlim     = 1d4 ! size parameter to switch to Mie
-  real (kind=dp) :: xlim_dhs = 1d4 ! size parameter limit in DHS
+  real (kind=dp) :: xlim     = 1d8 ! size parameter to switch to Mie for speed
+  real (kind=dp) :: xlim_dhs = 1d4 ! size parameter limit in DHS for stability
   ! ----------------------------------------------------------------------
   ! Material properties
   ! ----------------------------------------------------------------------
