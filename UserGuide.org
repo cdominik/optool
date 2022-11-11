@@ -971,7 +971,7 @@ We are indebted to
 - Steyer, T. 1974, PhD Thesis, The University of Arizona
 - Tazaki, R. et al. 2016, ApJ 823, 70
 - Tazaki, R. & Tanaka, H. 2018, ApJ 860,79
-- Tazaki, R. 2021, MNRAS, in press
+- Tazaki, R. 2021, MNRAS 504, 2811
 - Toon, O. & Ackerman,T. 1981, Applied Optics 20, 3657
 - Warren, S. and Brandt, R. 2008, JGRD,113, D14220
 - Warren, S. 1986, Applied Optics 25, 2650
