@@ -5,13 +5,15 @@ How too make a release
 
 2. Change version number and ChangeLog in README.org
 
-3. If necessary:
+3. Change the version numbers in the code (help screen and -version)
+
+4. If necessary:
    - run maint/selftest -s
    - run ./optool2tex --set
    and clean out the duplicate databases.
    Also, make sure that optool-complete gets to know about any new options.
 
-4. Run
+5. Run
 
       make release version=1.2.3
 

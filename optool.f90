@@ -5,7 +5,7 @@ subroutine usage()
   write(*,'("")')
   write(*,'("===============================================================================")')
   write(*,'("optool - dust opacities from the command line")')
-  write(*,'("         Dominik, Min, Tazaki 2021, https://ascl.net/2104.010")')
+  write(*,'("         Dominik, Min, Tazaki 2021, https://ascl.net/2104.010, version 1.9.9")')
   write(*,'("")')
   write(*,'("-c                         List available materials")')
   write(*,'("-c KEY-or-FILE [Mfrac]     Add material with mass fraction. -c may be omitted")')
@@ -242,7 +242,7 @@ program optool
         call manual('all'); stop
 
      case('-version')
-        print *,"OpTool version 1.9.8, October 2022, (c) C. Dominik, M. Min & R. Tazaki"
+        print *,"OpTool version 1.9.9, November 2022, (c) C. Dominik, M. Min & R. Tazaki"
         stop
 
         ! ----------------------------------------------------------------------
