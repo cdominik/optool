@@ -303,7 +303,7 @@ extend the [[#output-files][output]].
 + =-s [NANG]= ::
 
   Include the scattering matrix in the output. NANG may optionally
-  change the the number of equally-spaced [[#angular-grid][angular grid points]] to cover
+  change the number of equally-spaced [[#angular-grid][angular grid points]] to cover
   the range of angles between 0 and 180 degrees.  The default for
   =NANG= is 180 and should normally be just fine.
 
@@ -617,7 +617,7 @@ check the documentation inside the Python module file =optool.py=):
   only the first time. The cache will reside in the specified
   directory.
   #+begin_src python
-  sil = optool.particle('optool -d ol-mg50 -na 100',cache='silcache'
+  sil = optool.particle('optool -d ol-mg50 -na 100',cache='silcache')
   #+end_src
 - A =lnktable= class to read, plot, modify and write =lnk= files.
   #+begin_src python

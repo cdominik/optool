@@ -477,6 +477,7 @@ program optool
      case('-mmf','-mmfss')
         method = 'MMF'
         if (tmp.eq.'-mmfss') then
+           ! FIXME: Should this be wrapped into a test for -q ?
            print *,"WARNING: We will use the assumption of single scattering to compute the"
            print *,"         MMF matrix elements when the phase shift is too large. See UserGuide."
            mmfss = .true.

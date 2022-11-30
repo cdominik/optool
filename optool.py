@@ -844,7 +844,7 @@ Conversion
     new.lam = 10000./new.lam   # convert cm^-1 -> micrometer
     new.sort()                 # sort arrays according to lambda
     new.rho = 3.2              # set density in g/cm^3
-    new.header = "# This is a silicate from Dorschner+1995)"
+    new.header = "# This is a silicate from Dorschner+1995"
     new.write('sil-Dorschner1995.lnk')
 
     """
@@ -1034,7 +1034,7 @@ def logscale_with_sign(array,bottom):
     # sign back onto the result.  Compress the region between
     # -BOTTOM and +BOTTOM into zero, smoothly.
     # This is a clever way to make a logarithmic plot of a variable
-    # that has positive and negative values covering more then
+    # that has positive and negative values covering more than
     # one order of magnitude.
     lb = np.log10(bottom)
     a  =  np.where(array>0)

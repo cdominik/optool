@@ -41,7 +41,7 @@
 #------------------------------------------------------------
 # Arrays with possible completions
 #------------------------------------------------------------
-@options = qw(-h -help  -c -m -p          -dhs -mmf -mie -cde 
+@options = qw(-h -help  -c -m -p          -dhs -mmf -mmfss -mie -cde 
               -a -amin -amax -apow -na    -l -lmin -lmax -nl -nlam
               -o -s -d -chop -fits -radmc -print);
 
