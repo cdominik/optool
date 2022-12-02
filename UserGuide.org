@@ -169,8 +169,8 @@ system.
 :CUSTOM_ID: command-line-arguments
 :END:
 
-+ =-h [OPT]= :: Show command line options or specific information
-  about option *=-OPT=*.
++ =-h [OPT]= :: Show command line option summary, or specific
+  information about option *=-OPT=*.
 + =-q= :: Reduce output to STDOUT to essential warnings and errors.
 + =-v= :: More verbose output to STDOUT.
 
@@ -239,7 +239,7 @@ DHS with f_max=0.8.
   default is 0.2. KF may be used to change the default prefactor.
 
 + =-mie= ::
-  Do a standard Mie calculattion for perfect spheres.  This is short
+  Do a standard Mie calculation for perfect spheres.  This is short
   for *-dhs 0*.
 
 + =-cde= :: 
