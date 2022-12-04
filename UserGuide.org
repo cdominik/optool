@@ -145,19 +145,18 @@ steps, using the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wik
 : git clone https://github.com/cdominik/optool.git        # clone repository
 : cd optool                      # enter code directory
 : make multi=true                # compile with multicore support
-: 
+:
 : make install bindir=~/bin/     # optional: copy binaries to binary path
 : pip install -e .               # optional: install the python module
 
 In the compilation step, use =multi=true= to add multicore support
-(recommended!), =ifort=true= to use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]] instead
-of =gfortran=, and =fits=true= to add support for writing FITS
-files[fn:1]. The executable is called =optool=. The =make
-install= step copies it and also =optool2tex= and =optool-complete=
-into =bindir=.
+(recommended!), =ifort=true= to use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]],
+=fits=true= to support FITS files[fn:1], and =oldio=true= if your
+compiler does not have the =ISO_FORTRAN_ENV= module.
 
-# If compiling the code is a problem, use the [[https://staff.fnwi.uva.nl/c.dominik/optool][binaries for Mac and Linux]]
-# we provide.
+The executable is called =optool=. The =make install= step copies it
+and also =optool2tex= and =optool-complete= into =bindir=.
+
 For shell command line completion support, check the file
 =optool-complete=.
 
@@ -209,8 +208,8 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
   mantle, but a second value will be specific for the mantle (and may
   be 0).
 
-+ =-diana, -dsharp=, =-dsharp-no-ice= :: Use literature standard
-  compositions DIANA (Woitke+2016) or DSHARP (Birnstiel+2018).
++ =-diana, -dsharp=, =-dsharp-no-ice= :: Use DIANA (Woitke+2016) or
+  DSHARP (Birnstiel+2018) compositions.
 
 
 ** Grain geometry and computational method
@@ -895,7 +894,7 @@ the code.
 [fn:9] The default limit is x_lim=10^{8}.  =optool= does the alternative
 Mie computation with a slightly increased grain diameter, representing
 the mean geometric cross section of the DHS spheres, to connect well
-to the DHS opacities. See also point 2 under [[#trouble_shooting][Troubleshooting]].
+to the DHS opacities. See also point 3 under [[#trouble_shooting][Troubleshooting]].
 
 [fn:10]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
@@ -906,10 +905,12 @@ to the DHS opacities. See also point 2 under [[#trouble_shooting][Troubleshootin
 :CUSTOM_ID: trouble_shooting
 :END:
 
-1. If you get oscillations in the opacities, in particular at long
+1. If you get a compilation error about the intrinsic module
+   =ISO_FORTRAN_ENV=, compile with =make oldio=true=.
+2. If you get oscillations in the opacities, in particular at long
    wavelengths, the grain size resolution is not sufficient.  Use more
    grain sizes (*-a*, *-na* and *-d* switches).
-2. You may have noticed that =optool= became slower in version 1.9.9
+3. You may have noticed that =optool= became slower in version 1.9.9
    when computing the /short-wavelength/ properties of /very large
    grains/.  You may use *-xlim 1e4* to request a [[#internals][speed-related switch
    from DHS to Mie]] at $x=10^4$, restoring the old speed.  When doing
@@ -920,7 +921,7 @@ to the DHS opacities. See also point 2 under [[#trouble_shooting][Troubleshootin
    are completely dominated by smaller grains. However, we wanted to
    make sure the user always gets the best possible results out of the
    box, which is why we increased the limit.
-3. If you do not remember how to reproduce a specific run, just check
+4. If you do not remember how to reproduce a specific run, just check
    the output file header. It contains the exact command that was used
    to produce the file.
 

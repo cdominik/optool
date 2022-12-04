@@ -71,6 +71,7 @@
 !end module const
 
 subroutine geofrac(iqapp,iqcon,iqcor,PN,k0,df,G)
+use IOunits
 use types
 implicit none
 integer                 :: iqapp,iqcon,iqcor
@@ -82,35 +83,35 @@ logical,parameter::debug=.false.
 ! some checks
 !--------------------------------------------------------------------------------
 if(PN .le. 0.9999_dp) then
-        print *, 'number of monomers =',PN
-        print *, 'error: The number of monomers should be larger than 1.'
-        print *, 'stop'
+        write(stde,*) 'number of monomers =',PN
+        write(stde,*) 'error: The number of monomers should be larger than 1.'
+        write(stde,*) 'stop'
         stop
 endif
 if(df .lt. 0.9999_dp .or. df .gt. 3.00001) then
-        print *, 'fractal dimension df =',df
-        print *, 'error: Fractal dimension df should be 1<=df<=3.'
-        print *, 'stop'
+        write(stde,*) 'fractal dimension df =',df
+        write(stde,*) 'error: Fractal dimension df should be 1<=df<=3.'
+        write(stde,*) 'stop'
         stop
 endif
 if(iqcon .ne. 1 .and. iqcon .ne. 2) then
-        print *, 'error: iqcon should be either 1 or 2.'
-        print *, 'stop'
+        write(stde,*) 'error: iqcon should be either 1 or 2.'
+        write(stde,*) 'stop'
         stop
 endif
 if(iqcor .ne. 1 .and. iqcor .ne. 2 .and. iqcor .ne. 3) then
-        print *, 'error: iqcor should be either 1, 2, or 3.'
-        print *, 'stop'
+        write(stde,*) 'error: iqcor should be either 1, 2, or 3.'
+        write(stde,*) 'stop'
         stop
 endif
 if(iqapp .ne. 1 .and. iqapp .ne. 2 .and. iqapp .ne. 3) then
-        print *, 'error: iqapp should be either 1 or 3.'
-        print *, 'stop'
+        write(stde,*) 'error: iqapp should be either 1 or 3.'
+        write(stde,*) 'stop'
         stop
 endif
 if(iqapp .eq. 2 .and. (debug .eqv. .false.)) then
-        print *, 'error: iqapp = 2 is only allowed for a debug mode.'
-        print *, 'stop'
+        write(stde,*) 'error: iqapp = 2 is only allowed for a debug mode.'
+        write(stde,*) 'stop'
         stop
 endif
 
@@ -352,7 +353,7 @@ return
 end function gammq
 
 subroutine gser(gamser,a,x,gln)
-use types
+use types; use IOunits
 integer itmax
 real(kind=dp) a,gamser,gln,x,eps
 parameter (itmax=100,eps=3.e-14)
@@ -376,7 +377,7 @@ do n=1,itmax
         sum=sum+del
         if(abs(del).lt.abs(sum)*eps) exit
         if(n .eq. itmax) then
-                print *, 'a too large, itmax too small in gser'
+                write(stde,*) 'a too large, itmax too small in gser'
                 stop
         endif
 enddo
@@ -384,7 +385,7 @@ gamser=sum*exp(-x+a*log(x)-gln)
 return
 end subroutine gser
 subroutine gcf(gammcf,a,x,gln)
-use types
+use types; use IOunits
 integer itmax
 real(kind=dp) a,gammcf,gln,x,eps,fpmin
 parameter (itmax=100,eps=3.e-14,fpmin=1.e-30)
@@ -407,7 +408,7 @@ do i=1,itmax
         h=h*del
         if(abs(del-1.).lt.eps) exit
         if(n .eq. itmax) then
-                print *, 'a too large, itmax too small in gcf'
+                write(stde,*) 'a too large, itmax too small in gcf'
                 stop
         endif
 enddo
