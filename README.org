@@ -20,7 +20,8 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
   for /irregular grains/ and /low-porosity/ aggregates.  Standard *Mie
   theory* for /perfect spheres/ is available as a limiting case. (ii)
   *MMF (Modified Mean Field)* theory for /high-porosity/fractal
-  aggregates/.  (iii) *CDE* approximation in the Rayleigh limit.
+  aggregates/.  (iii) *CDE (Continuous Distribution of Ellipsoids)*
+  approximation in the Rayleigh limit.
 - =Python= interface module for plotting and post-processing
 
 * Terms of use
@@ -139,11 +140,11 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     by smaller grains with size parameters x<1e4.
 
 - Release 1.9.8 ::
-  - Sparse scattering matrix files can safe space if the target program
+  - Sparse scattering matrix files can save space if the target program
     can read them.
   - Literature standard compositions DIANA and DSHARP have been built
-    in. They are accessible with the options -diana, -dsharp, and
-    -dsharp-no-ice.
+    in. They are accessible with the options =-diana=, =-dsharp=, and
+    =-dsharp-no-ice=.
 
 - Release 1.9.7 ::
   - Do not allow qabs to drop below 1e-4*qext, to avoid numerical
@@ -151,12 +152,12 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 
 - Release 1.9.6 ::
   - Log-normal size distribution is now a standard option, using
-    =AMEAN:ASIG= insteat of the powerlaw in the *-a* switch.  A
+    =AMEAN:ASIG= instead of the powerlaw in the *-a* switch.  A
     negative value for =ASIG= triggers a normal (not log-normal)
     distribution around =AMEAN=, with =ASIG= interpreted as the width
     in micrometers.
   - The size distribution can also be read from a file.
-  - The new option *-wgrid* makes =optool= write the size distribution
+  - The new option =-wgrid= makes =optool= write the size distribution
     and the wavelength grid into files =optool_sd.dat= and
     =optool_lam.dat=, respectively. These also serve as examples of
     what kind of file can be read in by =-l FILE= and =-a FILE=.
@@ -174,7 +175,7 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     into your shell setup using the instructions in =optool-complete=.
 
 - Release 1.9.3 ::
-  - New option -print, to direct output to STDOUT instead of files.
+  - New option =-print=, to direct output to STDOUT instead of files.
   - Grain sizes and wavelengths can be specified on the command lines
     in units other than microns, for example mm or GHz (frequency) or
     cm^-1 (wavenumbers).
@@ -184,7 +185,7 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     implemented.  It is only valid in the Rayleigh limit and includes
     quite extreme particle shapes, but it is good as a comparison and
     frequently used in the literature.
-  - "optool -a 15 -2" will compute a size range from 13-17um with a
+  - =optool -a 15 -2= will compute a size range from 13-17um with a
     flat size distribution.
   
 - Release 1.9 ::
