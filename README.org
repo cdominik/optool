@@ -127,7 +127,7 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
-- Release 2.0 ::
+- Release 1.9.10 ::
   - STDOUT and STDERR are now properly separated and portable, using
     the ISO_FORTRAN_ENV module.
 

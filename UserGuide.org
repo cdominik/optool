@@ -1,7 +1,7 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   November 2022, version 1.9.9
+#+DATE:   January 2022, version 1.9.10
 #+LaTeX: \textheight=650pt
 * Introduction
 
