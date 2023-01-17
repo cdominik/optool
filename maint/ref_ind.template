@@ -1,11 +1,13 @@
 ! -*- mode:f90 -*-
 
 subroutine ListBuiltinMaterials()
+  use IOunits
 HELPBLOCK
 end subroutine ListBuiltinMaterials
 
 subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   use Defs
+  use IOunits
   implicit none
   integer, parameter :: nmax = 100000 ! for allocation of lnk arrays
   real (kind=dp) :: grid(n)
@@ -52,20 +54,20 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
            n0  = nd-1
         else
            ! No way to recover, error out.
-           write(*,'("ERROR: no line with NLAM and RHO values in lnk file: ",A)') trim(input)
-           write(*,'("Or maybe this is not even an lnk file?")')
-           write(*,'("This is the relevant line: ",A)') trim(line)
-           write(*,'("The line seems to contain ",I3," numbers to read, but should have 2.")') nn
-           write(*,'("If you do not want to edit the file, specify rho on the")')
-           write(*,'("command line like this:  -c path/to/file.lnk MFRAC RHO")')
+           write(stde,'("ERROR: no line with NLAM and RHO values in lnk file: ",A)') trim(input)
+           write(stde,'("Or maybe this is not even an lnk file?")')
+           write(stde,'("This is the relevant line: ",A)') trim(line)
+           write(stde,'("The line seems to contain ",I3," numbers to read, but should have 2.")') nn
+           write(stde,'("If you do not want to edit the file, specify rho on the")')
+           write(stde,'("command line like this:  -c path/to/file.lnk MFRAC RHO")')
            stop
         endif
      else
         read(line,*) n0, rho
      endif
      if (n0 .ne. nd-1) then
-        write(*,'("ERROR: NLAM in file does not match the number of data lines")')
-        print *,"file: ", trim(input),";    NLAM=",n0,";    Ndata=",nd-1
+        write(stde,*) "ERROR: NLAM in file does not match the number of data lines"
+        write(stde,*) "file: ", trim(input),";    NLAM=",n0,";    Ndata=",nd-1
         stop
      endif
      do i=1, n0
@@ -75,7 +77,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
 
      ! Check if we need to reverse the arrays
      if (x(n0) .lt. x(1)) then
-        if (.not. quiet) print *,"WARNING: reversing input from file ",input
+        if (.not. quiet) write(stde,*) "WARNING: reversing input from file ",input
         iup = 1; idown = n0
         do
            if (iup >= idown) exit

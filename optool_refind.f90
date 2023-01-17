@@ -1,32 +1,34 @@
 ! -*- mode:f90 -*-
 
 subroutine ListBuiltinMaterials()
-  write(*,'(":===================== *** LIST OF BUILT-IN MATERIALS *** =====================:")')
-  write(*,'(": amorph.pyroxenes  pyr-mg100/95/80/70/60/50/40                                :")')
-  write(*,'(": amorph.olivines   ol-mg100/40                        (Dorschner95,Henning96) :")')
-  write(*,'(": cryst. pyr/ol     pyr-c-mg96 ol-c-mg100/95/00      (Jäger96,Suto06,Fabian01) :")')
-  write(*,'(": other silicates   astrosil                                        (Draine03) :")')
-  write(*,'(": amorphous carbon  c-z    c-p                           (Zubko96,Preibisch93) :")')
-  write(*,'(": graphite,special  c-gra  c-nano  c-org                (Dra.03,Mut.04,Hen.96) :")')
-  write(*,'(": quartz,corundum   sio2   cor-c                          (Kitamura07,Koike95) :")')
-  write(*,'(": iron/sulfide      fe-c   fes                                     (Henning96) :")')
-  write(*,'(": carbides          sic                                             (Draine93) :")')
-  write(*,'(": water ice         h2o-w  h2o-a                          (Warren08,Hudgins93) :")')
-  write(*,'(": other ices        co2-w  nh3-m                       (Warren86,Martonchik83) :")')
-  write(*,'(":                   co-a   co2-a/c ch4-a/c ch3oh-a/c   (Palumbo06,Gerakines20) :")')
-  write(*,'(":                                                                              :")')
-  write(*,'(": *** ABBREVIATIONS AND GENERIC KEYS FOR QUICK ACCESS ***                      :")')
-  write(*,'(": pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      h2o  -> h2o-w     :")')
-  write(*,'(": ol   -> ol-mg50      gra  -> c-gra       qua  -> sio2      co   -> co-a      :")')
-  write(*,'(": ens  -> pyr-c-mg96   org  -> c-org       cor  -> cor-c     co2  -> co2-w     :")')
-  write(*,'(": for  -> ol-c-mg100                       tro  -> fes       nh3  -> nh3-m     :")')
-  write(*,'(": fay  -> ol-c-mg00                                                            :")')
-  write(*,'("================================================================================")')
+  use IOunits
+  write(stdo,'(":===================== *** LIST OF BUILT-IN MATERIALS *** =====================:")')
+  write(stdo,'(": amorph.pyroxenes  pyr-mg100/95/80/70/60/50/40                                :")')
+  write(stdo,'(": amorph.olivines   ol-mg100/40                        (Dorschner95,Henning96) :")')
+  write(stdo,'(": cryst. pyr/ol     pyr-c-mg96 ol-c-mg100/95/00      (Jäger96,Suto06,Fabian01) :")')
+  write(stdo,'(": other silicates   astrosil                                        (Draine03) :")')
+  write(stdo,'(": amorphous carbon  c-z    c-p                           (Zubko96,Preibisch93) :")')
+  write(stdo,'(": graphite,special  c-gra  c-nano  c-org                (Dra.03,Mut.04,Hen.96) :")')
+  write(stdo,'(": quartz,corundum   sio2   cor-c                          (Kitamura07,Koike95) :")')
+  write(stdo,'(": iron/sulfide      fe-c   fes                                     (Henning96) :")')
+  write(stdo,'(": carbides          sic                                             (Draine93) :")')
+  write(stdo,'(": water ice         h2o-w  h2o-a                          (Warren08,Hudgins93) :")')
+  write(stdo,'(": other ices        co2-w  nh3-m                       (Warren86,Martonchik83) :")')
+  write(stdo,'(":                   co-a   co2-a/c ch4-a/c ch3oh-a/c   (Palumbo06,Gerakines20) :")')
+  write(stdo,'(":                                                                              :")')
+  write(stdo,'(": *** ABBREVIATIONS AND GENERIC KEYS FOR QUICK ACCESS ***                      :")')
+  write(stdo,'(": pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      h2o  -> h2o-w     :")')
+  write(stdo,'(": ol   -> ol-mg50      gra  -> c-gra       qua  -> sio2      co   -> co-a      :")')
+  write(stdo,'(": ens  -> pyr-c-mg96   org  -> c-org       cor  -> cor-c     co2  -> co2-w     :")')
+  write(stdo,'(": for  -> ol-c-mg100                       tro  -> fes       nh3  -> nh3-m     :")')
+  write(stdo,'(": fay  -> ol-c-mg00                                                            :")')
+  write(stdo,'("================================================================================")')
 
 end subroutine ListBuiltinMaterials
 
 subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
   use Defs
+  use IOunits
   implicit none
   integer, parameter :: nmax = 100000 ! for allocation of lnk arrays
   real (kind=dp) :: grid(n)
@@ -178,20 +180,20 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
            n0  = nd-1
         else
            ! No way to recover, error out.
-           write(*,'("ERROR: no line with NLAM and RHO values in lnk file: ",A)') trim(input)
-           write(*,'("Or maybe this is not even an lnk file?")')
-           write(*,'("This is the relevant line: ",A)') trim(line)
-           write(*,'("The line seems to contain ",I3," numbers to read, but should have 2.")') nn
-           write(*,'("If you do not want to edit the file, specify rho on the")')
-           write(*,'("command line like this:  -c path/to/file.lnk MFRAC RHO")')
+           write(stde,'("ERROR: no line with NLAM and RHO values in lnk file: ",A)') trim(input)
+           write(stde,'("Or maybe this is not even an lnk file?")')
+           write(stde,'("This is the relevant line: ",A)') trim(line)
+           write(stde,'("The line seems to contain ",I3," numbers to read, but should have 2.")') nn
+           write(stde,'("If you do not want to edit the file, specify rho on the")')
+           write(stde,'("command line like this:  -c path/to/file.lnk MFRAC RHO")')
            stop
         endif
      else
         read(line,*) n0, rho
      endif
      if (n0 .ne. nd-1) then
-        write(*,'("ERROR: NLAM in file does not match the number of data lines")')
-        print *,"file: ", trim(input),";    NLAM=",n0,";    Ndata=",nd-1
+        write(stde,*) "ERROR: NLAM in file does not match the number of data lines"
+        write(stde,*) "file: ", trim(input),";    NLAM=",n0,";    Ndata=",nd-1
         stop
      endif
      do i=1, n0
@@ -201,7 +203,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
 
      ! Check if we need to reverse the arrays
      if (x(n0) .lt. x(1)) then
-        if (.not. quiet) print *,"WARNING: reversing input from file ",input
+        if (.not. quiet) write(stde,*) "WARNING: reversing input from file ",input
         iup = 1; idown = n0
         do
            if (iup >= idown) exit

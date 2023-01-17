@@ -39,6 +39,10 @@ ifeq ($(fitsio),true)
   LIBS_FITS		= -lcfitsio -L/usr/local/lib/ -L.
 endif
 
+ifeq ($(oldio),true)
+  FLAG_IO = -DNO_F2003
+endif
+
 # Platform specific compilation options
 ifeq ($(ifort),true)
   FLAG_ALL      = -O3 -g -extend-source -zero -prec-div $(DEBUGGING) $(MULTICORE)
@@ -55,18 +59,18 @@ endif
 # Combine the flags
 # First some defaults for operating systems I know little about
 # including WINDOWS.
-FFLAGS  = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS)
-LDFLAGS = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS)
+FFLAGS  = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS) $(FLAG_IO)
+LDFLAGS = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS) $(FLAG_IO)
 LIBS    = $(LIBS_FITS)
 # Now the well-tested settings for Linux and Mac
 ifeq ($(shell uname),Linux)
-  FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
-  LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS)
+  FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS) $(FLAG_IO)
+  LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS) $(FLAG_IO)
   LIBS    = $(LIBS_FITS)
 endif
 ifeq ($(shell uname),Darwin)
-  FFLAGS  = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS)
-  LDFLAGS = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS)
+  FFLAGS  = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS) $(FLAG_IO)
+  LDFLAGS = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS) $(FLAG_IO)
   LIBS    = $(LIBS_FITS)
 endif
 
@@ -90,7 +94,7 @@ it:;		make clean
 it2:;		make clean
 		make full
 		make clean1
-cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp blended.lnk optool_sd.dat optool_lam.dat optool_tmp_output_dir_*
+cleanoutput:;   rm -rf dustkap*.dat dustkap*.fits dustkap*.inp blended.lnk optool_sd.dat optool_lam.dat optool_tmp_output_dir_*
 cleanbin:;	rm -f bin/optool* bin.zip
 cleanlatex:;	rm -rf *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.pdf
 cleanpython:;	rm -rf optool.dSYM tmp.py __pycache__

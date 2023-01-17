@@ -194,7 +194,7 @@ sub makehelpblock {
   while (<$fh>) {
     chomp $_;
     next if /^#/;
-    $helpblock .= "  write(*,'(\"$_\")')\n" unless /^\s*$/;
+    $helpblock .= "  write(stdo,'(\"$_\")')\n" unless /^\s*$/;
   }
   close $fh;
   return $helpblock;

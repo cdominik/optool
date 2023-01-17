@@ -9,10 +9,12 @@ steps, using the freely available GNU FORTRAN compiler gfortran.
   pip install -e .               # optional: install the python module
 
 In the compilation step, use `multi=true' to add multicore support
-(recommended!), `ifort=true' to use the [Intel fortran compiler]
-instead of `gfortran', and `fits=true' to add support for writing FITS
-files[1]. The executable is called `optool'. The `make install' step
-copies it and also `optool2tex' and `optool-complete' into `bindir'.
+(recommended!), `ifort=true' to use the Intel fortran compiler,
+`fits=true' to support FITS files, and `oldio=true' if your
+compiler does not have the ISO_FORTRAN_ENV module.
+
+The executable is called `optool'. The `make install' step copies it
+and also `optool2tex' and `optool-complete' into `bindir'.
 
 For shell command line completion support, check the file
 `optool-complete'.

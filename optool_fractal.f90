@@ -216,7 +216,7 @@ end module const
 
 subroutine meanscatt(lmd,R0,PN,Df,k0,refrel,iqsca,iqcor,iqgeo,iquiet,nang,&
                 Cext,Csca,Cabsp,g_asym,Smat,dphi)
-use types; use const
+use types; use const; use IOunits
 implicit none
 
 !--------------------------------------------------------------------------------
@@ -316,53 +316,53 @@ write(*,fmt='(I15,A)'    ) nstop, " =  expansion order of scat. field."
 endif
 
 if (iqsca .ne. 1 .and. iqsca .ne. 2 .and. iqsca .ne. 3) then
-        print *, 'ERROR: Inappropriate iqsca value.'
-        print *, '       STOP.'
+        write(stde,*) 'ERROR: Inappropriate iqsca value.'
+        write(stde,*) '       STOP.'
         stop
 endif
 
 if (iqcor .ne. 1 .and. iqcor .ne. 2 .and. iqcor .ne. 3) then
-        print *, 'ERROR: Inappropriate iqcor value.'
-        print *, '       STOP.'
+        write(stde,*) 'ERROR: Inappropriate iqcor value.'
+        write(stde,*) '       STOP.'
         stop
 endif
 
 if (iqgeo .ne. 1 .and. iqgeo .ne. 2 .and. iqgeo .ne. 3) then
-        print *, 'ERROR: Inappropriate iqgeo value.'
-        print *, '       STOP.'
+        write(stde,*) 'ERROR: Inappropriate iqgeo value.'
+        write(stde,*) '       STOP.'
         stop
 endif
 
 if (nang .le. 1) then
-        print *, 'ERROR: Inappropriate nang value.    '
-        print *, '       nang should be larger than 1.'
-        print *, '       STOP.'
+        write(stde,*) 'ERROR: Inappropriate nang value.    '
+        write(stde,*) '       nang should be larger than 1.'
+        write(stde,*) '       STOP.'
         stop
 endif
 
 if (iquiet .ne. 0 .and. iquiet .ne. 1) then
-        print *, 'ERROR: Inappropriate iquiet value.'
-        print *, '       STOP.'
+        write(stde,*) 'ERROR: Inappropriate iquiet value.'
+        write(stde,*) '       STOP.'
         stop
 endif
 
 if (PN .lt. 1.0) then
-        print *, 'ERROR: Number of monomer is less than unity'
-        print *, '       STOP.'
+        write(stde,*) 'ERROR: Number of monomer is less than unity'
+        write(stde,*) '       STOP.'
         stop
 endif
 
 if (df .gt. 3.0) then
-        print *, 'ERROR: Fractal dimension should be less than 3.0.'
-        print *, '       STOP.'
+        write(stde,*) 'ERROR: Fractal dimension should be less than 3.0.'
+        write(stde,*) '       STOP.'
         stop
 endif
 
 if(numax + nmax .ge. 500 .and. iquiet .eq. 0) then
-        print *, "WARNING: the truncation order of monomer's scattered light"
-        print *, "         field exceeds the maximum value (=500).          "
-        print *, "         This may cause a code crush at computations of   "
-        print *, "         the spherical Bessel function of the 1st kind.   "
+        write(stde,*) "WARNING: the truncation order of monomer's scattered light"
+        write(stde,*) "         field exceeds the maximum value (=500).          "
+        write(stde,*) "         This may cause a code crush at computations of   "
+        write(stde,*) "         the spherical Bessel function of the 1st kind.   "
 endif
 
 !
@@ -375,13 +375,13 @@ dphi0 = 2.0_dp*x0*abs(refrel-1.0_dp)
 dphi  = max(dphic,dphi0)
 
 if (dphi .ge. 1.0_dp .and. iquiet .eq. 0) then
-        print *, 'WARNING: The phase shift by an aggregate exceeds unity.'
-        print *, '         Output of scattering matrix elements are not  ' 
-        print *, '         physically guaranteed.'
+        write(stde,*) 'WARNING: The phase shift by an aggregate exceeds unity.'
+        write(stde,*) '         Output of scattering matrix elements are not  ' 
+        write(stde,*) '         physically guaranteed.'
 endif
 
 !
-if(debug) print *, 'DEBUG MODE ON'
+if(debug) write(stde,*) 'DEBUG MODE ON'
 
 !--------------------------------------------------------------------------------
 !
@@ -591,7 +591,7 @@ elseif(iqsca .ge. 2) then
 endif 
 
 if(iquiet .eq. 0) then
-print *, '----- Lorenz-Mie coefficients -----'
+write(*,*) '----- Lorenz-Mie coefficients -----'
 write(*,fmt='(A3,4A15)') "n","Re(an)","Im(an)","Re(bn)","Im(bn)"
 wa1=0.0
 wa2=0.0
@@ -604,7 +604,7 @@ if(debug) then
 write(*,fmt='(1P2E15.5)') real(wa1)/real(nstop,kind=dp),aimag(wa1)/real(nstop,kind=dp),&
            &        real(wa2)/real(nstop,kind=dp),aimag(wa2)/real(nstop,kind=dp)
 endif
-print *, '----- Mean field coefficients -----'
+write(*,*) '----- Mean field coefficients -----'
 write(*,fmt='(A3,4A15)') "n","Re(d1n(1))","Im(d1n(1))","Re(d1n(2))","Im(d1n(2))"
 wa1=0.0
 wa2=0.0
@@ -693,8 +693,8 @@ do j=1,2*nang-1
 
           ! safety check.
           if(Smat(1,j) .lt. 0.d0) then
-                  print *, 'ERROR: S11 for aggregte becomes negative. Strange!'
-                  print *, '       STOP.'
+                  write(stde,*) 'ERROR: S11 for aggregte becomes negative. Strange!'
+                  write(stde,*) '       STOP.'
                   stop
           endif
 enddo
@@ -736,8 +736,8 @@ g_asym  = twopi * g_asym
 ! Check normalization of phase function
 !
 if (abs(nrm-1.0_dp) .gt. 1.0e-3_dp) then
-        write(*,*) ABS(nrm-1.0_dp)*1.0e2_dp
-        print *, 'ERROR: Phase function is not normalized to unity. Strange!'
+        write(stde,*) ABS(nrm-1.0_dp)*1.0e2_dp
+        write(stde,*) 'ERROR: Phase function is not normalized to unity. Strange!'
         stop
 end if
 
@@ -965,7 +965,7 @@ end function func
 !
 !--------------------------------------------------------------------------------
 subroutine lorenz_mie(x,refrel,nstop,a,b)
-use types
+use types; use IOunits
 implicit none
 integer,parameter                 :: nmxx=150000
 integer                           :: nstop
@@ -984,7 +984,7 @@ ymod  = abs(y)
 xstop = x + 4.0_dp * x ** (1.0_dp/3.0_dp) + 2.0_dp
 nmx   = nint(max(xstop,ymod)) + 15
 if(nmx .gt. nmxx) then
-        write(*,*) "Error: nmx > nmxx=",nmxx,"for |m|x=",ymod
+        write(stde,*) "Error: nmx > nmxx=",nmxx,"for |m|x=",ymod
         stop
 endif
 
@@ -1460,7 +1460,7 @@ end subroutine complex_leqs_solver
 !
 !--------------------------------------------------------------------------------
 subroutine integration_of_Sp(iqcor,iqgeo,D,p,xg,Sp)
-use types; use const
+use types; use const; use IOunits
 !--------------------------------------------------------------------------------
 ! Old boundary given by Jablonski et al. 1994 : !!! NOT FAVORED !!!
 !--------------------------------------------------------------------------------
@@ -1536,30 +1536,30 @@ do n=1,nn
         deallocate(SJ,SY)
 
         if(jp*0.0_dp /= 0.0_dp .or. isnan(jp) .eqv. .true.) then
-               write(*,*) "--------------------------------------------------------"
-               write(*,*) "Error: NaN is found at the spherical Bessel function of the first kind"
-               write(*,*) "argument u : ",u(n)
-               write(*,*) "order    p : ",p
-               write(*,*) "j_p(x)     : ",jp
+               write(stde,*) "--------------------------------------------------------"
+               write(stde,*) "Error: NaN is found at the spherical Bessel function of the first kind"
+               write(stde,*) "argument u : ",u(n)
+               write(stde,*) "order    p : ",p
+               write(stde,*) "j_p(x)     : ",jp
                if(isol .eq. 1) then
-                       write(*,*) "scheme     : the series expansion"
+                       write(stde,*) "scheme     : the series expansion"
                elseif(isol .eq. 2) then
-                       write(*,*) "scheme     : downward recurrence"
+                       write(stde,*) "scheme     : downward recurrence"
                elseif(isol .eq. 3) then
-                       write(*,*) "scheme     : upward recurrence"
+                       write(stde,*) "scheme     : upward recurrence"
                endif
 
-               write(*,*) "Simulation is aborted !"
-               write(*,*) "--------------------------------------------------------"
+               write(stde,*) "Simulation is aborted !"
+               write(stde,*) "--------------------------------------------------------"
                stop
         elseif(yp*0.0_dp /= 0.0_dp .or. isnan(yp) .eqv. .true.) then
-               write(*,*) "--------------------------------------------------------"
-               write(*,*) "Error: NaN is found at the spherical Bessel function of the second kind"
-               write(*,*) "argument u : ",u(n)
-               write(*,*) "order    p : ",p
-               write(*,*) "y_p(x)     : ",yp 
-               write(*,*) "Simulation is aborted !"
-               write(*,*) "--------------------------------------------------------"
+               write(stde,*) "--------------------------------------------------------"
+               write(stde,*) "Error: NaN is found at the spherical Bessel function of the second kind"
+               write(stde,*) "argument u : ",u(n)
+               write(stde,*) "order    p : ",p
+               write(stde,*) "y_p(x)     : ",yp 
+               write(stde,*) "Simulation is aborted !"
+               write(stde,*) "--------------------------------------------------------"
                stop
         endif
         intg(n)      = u(n) ** (D-1.0_dp) * jp * hp * fc(iqcor,u(n),xg,D)
@@ -1593,13 +1593,13 @@ endif
 ! does not necessary to have a value of 1.0.
 ! Thus, this convergence check is performed when iqgeo=1 or 2.
 if(iqgeo .ne. 3 .and. error .ge. 1.0e-3_dp) then
-        write(*,*) "--------------------------------------------------------"
-        write(*,*) "Check unitary condition : the two-points correlation function"
-        write(*,*) "Numerical integration of g(u) with error of ",error*1.d2," (%)"
-        write(*,*) "which exceed 0.1%. This means sp(kRg) integration"
-        write(*,*) "may not converge."
-        write(*,*) "Simulation is aborted !"
-        write(*,*) "--------------------------------------------------------"
+        write(stde,*) "--------------------------------------------------------"
+        write(stde,*) "Check unitary condition : the two-points correlation function"
+        write(stde,*) "Numerical integration of g(u) with error of ",error*1.d2," (%)"
+        write(stde,*) "which exceed 0.1%. This means sp(kRg) integration"
+        write(stde,*) "may not converge."
+        write(stde,*) "Simulation is aborted !"
+        write(stde,*) "--------------------------------------------------------"
         stop
 endif
 
@@ -1830,7 +1830,7 @@ end subroutine sphbessel
 !
 !--------------------------------------------------------------------------------
 subroutine spout(iqcor,df)
-use types; use const
+use types; use const; use IOunits
 implicit none
 integer          :: iqcor,iqgeo,p,imax,i
 real(kind=dp)    :: df,k,xg,xmin,xmax,dx
@@ -1842,11 +1842,11 @@ xmin = 1.0e-8_dp
 xmax = 1.0e8_dp
 imax = 250
 dx=(xmax/xmin)**(1.0_dp/real(imax-1,kind=dp))
-write(*,*) "Writing Sp ..."
+write(stde,*) "Writing Sp ..."
 open(21,file="sp.out",status="unknown")
 write(21,6600) "order p","k*R_g","Re(Sp)","Im(Sp)"
 do p=0,20
-        write(*,*) "p = ",p
+        write(stde,*) "p = ",p
         do i=1,imax
         xg = xmin * dx ** real(i-1,kind=dp)
         call integration_of_Sp(iqcor,iqgeo,df,p,xg,Sp)
@@ -1876,7 +1876,7 @@ close(21)
 !endif
 !ImS0 = -(sqrt(2.0d0*pi)/(4.0d0*xx(ix)))*hg
 
-write(*,*) "sp.out is produced"
+write(stde,*) "sp.out is produced"
 6000 format(' ',I15,1P8E15.5)
 6600 format(' ',8A15)
 return
@@ -2253,7 +2253,7 @@ end subroutine geocross
 
 
 subroutine opticslimit(iqcor,lmd,refrel,df,k0,PN,R0,Cext)
-use types; use const
+use types; use const; use IOunits
 implicit none
 integer::iqcor,i,nstop,n
 real(kind=dp)::lmd,R0,Rg,x0,sp,xstop,df,k0,PN,k,xg,Cext,sumA,sumB
@@ -2262,7 +2262,7 @@ complex(kind=dp),allocatable,dimension(:,:)::dd
 complex(kind=dp)::refrel
 
 if(iqcor .ne. 1) then
-        print *, 'ERROR'
+        write(stde,*) 'ERROR'
         stop
 endif
 k       =  twopi/lmd                    ! wavenumber
@@ -2293,7 +2293,7 @@ end subroutine opticslimit
 !              - D+00 --> _dp
 !--------------------------------------------------------------------------------
 SUBROUTINE ludcmp(a,n,np,indx,d)
-use types
+use types; use IOunits
 implicit none
 INTEGER n,np,indx(n),NMAX
 real(kind=dp)::d,a(np,np),TINY
@@ -2310,7 +2310,7 @@ enddo
 !if (aamax.eq.0.) pause 'singular matrix in ludcmp' ! pause is now deleted feature.
 !if (aamax.eq.0.) 'singular matrix' stop
 if (aamax.eq.0.) then
-        write(*,*) 'singular matrix in ludcmp. STOP'
+        write(stde,*) 'singular matrix in ludcmp. STOP'
         stop
 endif
 vv(i)=1./aamax

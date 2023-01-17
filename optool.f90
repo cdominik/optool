@@ -1,31 +1,55 @@
 
+!! **** IO units handling
+
+module IOunits
+#ifdef NO_F2003
+  ! ----------------------------------------------------------------------
+  ! IO unit numbers. 5,6,0 should work, but not defined in standard
+  ! ----------------------------------------------------------------------
+  integer :: stdi = 5
+  integer :: stdo = 6
+  integer :: stde = 0
+#else
+  ! ----------------------------------------------------------------------
+  ! Use the 2003 standard intrinsic module, modern compilers have it
+  ! ----------------------------------------------------------------------
+  use, intrinsic :: iso_fortran_env, only : input_unit, output_unit, error_unit
+  integer :: stdi = input_unit
+  integer :: stdo = output_unit
+  integer :: stde = error_unit
+#endif
+end module IOunits
+
 !!! **** The Usage routine and the module for shared variables
 
 subroutine usage()
-  write(*,'("")')
-  write(*,'("===============================================================================")')
-  write(*,'("optool - dust opacities from the command line")')
-  write(*,'("         Dominik, Min, Tazaki 2021, https://ascl.net/2104.010, version 1.9.9")')
-  write(*,'("")')
-  write(*,'("-c                        List available materials")')
-  write(*,'("-c KEY-or-FILE [Mfrac]    Add material with mass fraction. -c may be omitted")')
-  write(*,'("-m KEY-or-FILE [Mfrac]    Add material with mass fraction in mantle")')
-  write(*,'("-p POROSITY [PMANTLE]     Set porosity, possibly different for core and mantle")')
-  write(*,'("-dhs [FMAX]               Maximum volume fraction of vacuum in DHS computation")')
-  write(*,'("-mmf [A0 [DF-or-FILL]]    Use MMF with monomer size A0 and fractl dim or fill")')
-  write(*,'("-a AMIN [AMAX [SD [NA]]]  Grain size [micron] dist. SD=P (>PL) or M:S (>log-n)")')
-  write(*,'("-l LMIN [LMAX [NLAM]]     Set up wavelength grid  (units for a and l: microns)")')
-  write(*,'("-a FILE; -l FILE          Read size distribution or lambda grid from a file")')
-  write(*,'("-d [NSUB]                 Write NA files for specific grain sizes")')
-  write(*,'("-s [NANG]                 Add scattering matrix for NANG angles to output")')
-  write(*,'("-chop [NDEG]              Remove NDEG degrees from the forward-scattering peak")')
-  write(*,'("-o [DIRECTORY]            Output to DIRECTORY instead of current working dir")')
-  write(*,'("-radmc [LABEL]            Output as RADMC-3D input file")')
-  write(*,'("-fits; -print [Var]       Output to FITS file, or to STDOUT")')
-  write(*,'("-h [OPT]; -man            Show this msg or help on -OPT; Show the full manual")')
-  write(*,'("-q; -v                    Quiet or more verbose on STDOUT")')
-  write(*,'("-xlim XLIM                Switch to Mie for speed at x=XLIM")')
-  write(*,'("===============================================================================")')
+  use IOunits
+  print *,'io',stdi,stdo,stde
+  stop
+  write(stdo,'("")')
+  write(stdo,'("===============================================================================")')
+  write(stdo,'("optool - dust opacities from the command line")')
+  write(stdo,'("         Dominik, Min, Tazaki 2021, https://ascl.net/2104.010, version 1.9.10")')
+  write(stdo,'("")')
+  write(stdo,'("-c                        List available materials")')
+  write(stdo,'("-c KEY-or-FILE [Mfrac]    Add material with mass fraction. -c may be omitted")')
+  write(stdo,'("-m KEY-or-FILE [Mfrac]    Add material with mass fraction in mantle")')
+  write(stdo,'("-p POROSITY [PMANTLE]     Set porosity, possibly different for core and mantle")')
+  write(stdo,'("-dhs [FMAX]               Maximum volume fraction of vacuum in DHS computation")')
+  write(stdo,'("-mmf [A0 [DF-or-FILL]]    Use MMF with monomer size A0 and fractl dim or fill")')
+  write(stdo,'("-a AMIN [AMAX [SD [NA]]]  Grain size [micron] dist. SD=P (>PL) or M:S (>log-n)")')
+  write(stdo,'("-l LMIN [LMAX [NLAM]]     Set up wavelength grid  (units for a and l: microns)")')
+  write(stdo,'("-a FILE; -l FILE          Read size distribution or lambda grid from a file")')
+  write(stdo,'("-d [NSUB]                 Write NA files for specific grain sizes")')
+  write(stdo,'("-s [NANG]                 Add scattering matrix for NANG angles to output")')
+  write(stdo,'("-chop [NDEG]              Remove NDEG degrees from the forward-scattering peak")')
+  write(stdo,'("-o [DIRECTORY]            Output to DIRECTORY instead of current working dir")')
+  write(stdo,'("-radmc [LABEL]            Output as RADMC-3D input file")')
+  write(stdo,'("-fits; -print [Var]       Output to FITS file, or to STDOUT")')
+  write(stdo,'("-h [OPT]; -man            Show this msg or help on -OPT; Show the full manual")')
+  write(stdo,'("-q; -v                    Quiet or more verbose on STDOUT")')
+  write(stdo,'("-xlim XLIM                Switch to Mie for speed at x=XLIM")')
+  write(stdo,'("===============================================================================")')
 end subroutine usage
 
 module Defs
@@ -110,12 +134,12 @@ module Defs
   character*3                    :: method         ! DHS or MMF
   character*4                    :: sdkind         ! apow, lgnm, norm, or file
   character*1                    :: justnum = ' '  ! What to print to STDOUT
-
 end module Defs
 
 !!! **** Main program and ComputePart
 program optool
   use Defs
+  use IOunits
   use omp_lib
   implicit none
   integer         :: na              ! nr of sizes for size distribution
@@ -242,7 +266,7 @@ program optool
         call manual('all'); stop
 
      case('-version')
-        print *,"OpTool version 1.9.9, November 2022, (c) C. Dominik, M. Min & R. Tazaki"
+        write(stdo,*) "OpTool version 1.9.10, January 2023, (c) C. Dominik, M. Min & R. Tazaki"
         stop
 
         ! ----------------------------------------------------------------------
@@ -252,7 +276,7 @@ program optool
         i  = i+1
         nm = nm+1;
         if (nm .gt. 20) then
-           print *,'ERROR: too many materials'; stop
+           write(stde,*) 'ERROR: too many materials'; stop
         endif
 
         ! First value is the material key or refindex file path
@@ -264,19 +288,20 @@ program optool
 
         ! Check if this is a valid material key or a file
         if (.not. is_key_or_file(trim(value),.true.)) then
-           print *,"ERROR: not a material key or lnk file: ",trim(value)
+           write(stde,*) "ERROR: not a material key or lnk file: ",trim(value)
            stop
         endif
                 
         ! Second value is the mass fraction
         if (.not. arg_is_number(i+1)) then
-           if (.not. quiet) print *, "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
+           print *,stde
+           if (.not. quiet) write(stde,*) "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
            mat_mfr(nm) = 1.0d0
         else
            i = i+1; call getarg(i,value); read(value,*) mat_mfr(nm)
         endif
         if (mat_mfr(nm).eq.0d0) then
-           if (.not. quiet) print *, "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
+           if (.not. quiet) write(stde,*) "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
            nm = nm-1
         else
            ! Set the type, and make sure we have at most one mantle material
@@ -299,7 +324,7 @@ program optool
         ! ----------------------------------------------------------------------
      case('-diana','-dsharp','-dsharp-no-ice')
         if (nm.gt.0) then
-           print *,"ERROR: Standard mixtures must be specified before any additional materials"
+           write(stde,*) "ERROR: Standard mixtures must be specified before any additional materials"
            stop
         endif
         if (tmp.eq.'-diana') then
@@ -333,7 +358,7 @@ program optool
         if (.not. arg_is_number(i+1)) then
            if (arg_is_present(i+1)) then
               if (arg_is_switch(i+1)) then
-                 print *,"ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
+                 write(stde,*) "ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
               endif
               i=i+1
               call getarg(i,sdfile)
@@ -342,11 +367,11 @@ program optool
                  call checkout_sdfile(sdfile,amin,amax,na)
                  sdkind = 'file'
               else
-                 print *,"Size distribution file does not exist: ",trim(sdfile)
+                 write(stde,*) "Size distribution file does not exist: ",trim(sdfile)
                  stop
               endif
            else
-              print *,"ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
+              write(stde,*) "ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
            endif
         endif
         if (trim(sdfile).eq.'') then
@@ -358,7 +383,7 @@ program optool
               if (amax .lt. 0d0) then
                  ! FIXME: Take this out?
                  if (amin+amax .le. 0d0) then
-                    write(*,'(" ERROR: delta a cannot be larger than a: ",F10.2,F10.2)') amin,amax
+                    write(stde,'(" ERROR: delta a cannot be larger than a: ",F10.2,F10.2)') amin,amax
                     stop
                  endif
                  amin = amin+amax; amax = amin-2d0*amax
@@ -413,7 +438,7 @@ program optool
         ! -l expects a file name, or 1-3 numbers: lmin [lmax [nlam]]
         ! ----------------------------------------------------------------------
         if (.not. arg_is_value(i+1)) then
-           print *,"ERROR: -l needs a file or numbers as values"; stop
+           write(stde,*) "ERROR: -l needs a file or numbers as values"; stop
         else if (.not. arg_is_number(i+1)) then
            ! Could be a file name.  If yes, read the lambda grid from it
            call getarg(i+1,value)
@@ -466,20 +491,20 @@ program optool
         if (arg_is_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) xlim
         else
-           print *,"ERROR: -xlim needs a numeric value"; stop
+           write(stde,*) "ERROR: -xlim needs a numeric value"; stop
         endif
      case('-xlim_dhs')
         if (arg_is_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) xlim_dhs
         else
-           print *,"ERROR: -xlim_dhs needs a numeric value"; stop
+           write(stde,*) "ERROR: -xlim_dhs needs a numeric value"; stop
         endif
      case('-mmf','-mmfss')
         method = 'MMF'
         if (tmp.eq.'-mmfss') then
            ! FIXME: Should this be wrapped into a test for -q ?
-           print *,"WARNING: We will use the assumption of single scattering to compute the"
-           print *,"         MMF matrix elements when the phase shift is too large. See UserGuide."
+           write(stde,*) "WARNING: We will use the assumption of single scattering to compute the"
+           write(stde,*) "         MMF matrix elements when the phase shift is too large. See UserGuide."
            mmfss = .true.
         endif
         if (arg_is_number(i+1)) then
@@ -521,7 +546,7 @@ program optool
            ! Two numbers. This is a wavelength range for a sparse file
            nsparse = nsparse+1
            if (nsparse.gt.10) then
-              print *,"ERROR: To many sparse file ranges (10 is max)"; stop
+              write(stde,*) "ERROR: To many sparse file ranges (10 is max)"; stop
            endif
            i=i+1; call getarg(i,value); call uread(value,l1)
            i=i+1; call getarg(i,value); call uread(value,l2)
@@ -536,7 +561,7 @@ program optool
            nsparse = nsparse+1
            scatlammin(nsparse) = l1; scatlammax(nsparse) = l1
         else
-           print *,"ERROR: -sparse needs one or two wavelengths"
+           write(stde,*) "ERROR: -sparse needs one or two wavelengths"
            stop
         endif
      case('-chop')
@@ -551,9 +576,9 @@ program optool
            call getarg(i+1,value)
            if ((.not. quiet) .and. is_key_or_file(trim(value),.false.)) then
               ! The optional -radmc label is also a material key, this is ambiguous
-              print *,"WARNING: Ambiguous argument could be meant as (another) material key"
-              print *,"         ... but is read as optional RADMC-3D label: ",trim(tmp)," ",trim(value)
-              print *,"         ... Use -c or reorder args to disambiguate"
+              write(stde,*) "WARNING: Ambiguous argument could be meant as (another) material key"
+              write(stde,*) "         ... but is read as optional RADMC-3D label: ",trim(tmp)," ",trim(value)
+              write(stde,*) "         ... Use -c or reorder args to disambiguate"
            endif
            if (is_file(trim(value)) .or. (scan(value,"/").gt.0)) then
               ! It is a file, treat as core material
@@ -581,7 +606,7 @@ program optool
         ! Be more noisy
         verbose = .true.
      case('-print')
-        quiet = .true.
+        ! FIXME: quiet = .true.
         justnum = 'X'
         if (arg_is_value(i+1)) then
            i=i+1; call getarg(i,value)
@@ -593,7 +618,7 @@ program optool
            case('g','gsca','gscat') ; justnum = 'g'
            case default
               i=i-1
-              print *,'WARNING: "',trim(value),'" is not a -print variable. Trying core material...';
+              write(stde,*) 'WARNING: "',trim(value),'" is not a -print variable. Trying core material...';
            endselect
         endif
      case ('-tex')
@@ -607,11 +632,11 @@ program optool
         write_grd = .true.
      case default
         if (arg_is_switch(i)) then
-           write(*,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
-           write(*,*) "For help, try: optool -h     ... or find the user guide OpTool.pdf"
+           write(stde,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'
+           write(stde,*) "For help, try: optool -h     ... or find the user guide OpTool.pdf"
            stop
         else
-           if (debug) print *,trim(tmp),' will be interpreted as a material'
+           if (debug) write(stde,*) trim(tmp),' will be interpreted as a material'
            tmp = 'FoRcE_-c_FoRcE'
         endif
      end select
@@ -630,20 +655,20 @@ program optool
 
   ! *** Materials ***
   if (nm .ge. 20) then
-     print *,'ERROR: Too many materials'; stop
+     write(stde,*) 'ERROR: Too many materials'; stop
   endif
   if ( (nm.eq.nmant) .and. (nm.gt.0) ) then
-     print *,"ERROR: at least one core material must be specified"; stop
+     write(stde,*) "ERROR: at least one core material must be specified"; stop
   endif
 
   ! *** Porosity ***
   if ( (pcore.lt.0d0).or.(pcore.ge.1d0).or.(pmantle.lt.0d0).or.(pmantle.ge.1d0) ) then
-     print *,"ERROR: prosities must be 0 <= p < 1"; stop
+     write(stde,*) "ERROR: prosities must be 0 <= p < 1"; stop
   endif
 
   ! *** Grain size distribution ***
   if ( (amin.le.0d0) .or. (amax.le.0d0) ) then
-     print *,'ERROR: Both amin and amax need to be positive numbers',amin,amax; stop
+     write(stde,*) 'ERROR: Both amin and amax need to be positive numbers',amin,amax; stop
   endif
   if (amin .gt. amax) then
      ! Swap min and max values
@@ -655,7 +680,7 @@ program optool
   endif
   if (sdkind .eq. 'apow') then
      if (apow .lt. 0d0) then
-        print *,'WARNING: Unusual negative value for apow. apow=-3 means f(a)~a^(+3)'
+        write(stde,*) 'WARNING: Unusual negative value for apow. apow=-3 means f(a)~a^(+3)'
      endif
      amean = 0.d0; asig=0.d0
   else if (sdkind .eq. 'file') then
@@ -663,11 +688,11 @@ program optool
   else if (sdkind .eq. 'norm') then
      !apow = 0.d0
      if (amean .le. 0.d0) then
-        print *,"ERROR: amean must be positive for (log-)normal distribution"
+        write(stde,*) "ERROR: amean must be positive for (log-)normal distribution"
         stop
      endif
      if (asig .eq. 0.d0) then
-        print *,"ERROR: asig cannot be zero for (log-)normal distribution"
+        write(stde,*) "ERROR: asig cannot be zero for (log-)normal distribution"
         stop
      else if (asig .gt. 0.d0) then
         sdkind = 'lgnm'
@@ -678,72 +703,72 @@ program optool
   
   ! *** Wavelength grid ***
   if ( (lmin.le.0d0) .or. (lmax.le.0d0) ) then
-     print *,'ERROR: Both lmin and lmax need to be positive numbers',lmin,lmax; stop
+     write(stde,*) 'ERROR: Both lmin and lmax need to be positive numbers',lmin,lmax; stop
   endif
   if (lmin .gt. lmax) then
      ! Swap min and max values
      dum = lmin; lmin = lmax; lmax = dum
   endif
   if ( (nlam.le.1) .and. (lmin.ne.lmax)) then
-     print *,'ERROR: More than one wavelength point needed to sample a range',lmin,lmax,nlam; stop
+     write(stde,*) 'ERROR: More than one wavelength point needed to sample a range',lmin,lmax,nlam; stop
   endif
   if ( (lmin.eq.lmax) .and. (nlam.ne.1) ) then
-     print *,'WARNING: Setting nlam=1 because lmin=lmax'
+     write(stde,*) 'WARNING: Setting nlam=1 because lmin=lmax'
      nlam = 1
   endif
   if ((nsparse.gt.0) .and. (.not. quiet)) then
-     print *,'WARNING: Creating a sparse scattering matrix file'
+     write(stde,*) 'WARNING: Creating a sparse scattering matrix file'
   endif
   
   ! *** DHS
   if (method .eq. 'DHS') then
      if ((fmax.lt.0.d0) .or. (fmax.ge.1.d0)) then
-        print *,'ERROR: fmax for DHS must be >0 and <1'
+        write(stde,*) 'ERROR: fmax for DHS must be >0 and <1'
      endif
   endif
 
   ! *** MMF
   if (method .eq. 'MMF') then
      if (mmf_struct .gt. 3.0d0) then
-        print *,'ERROR: Fractal dimension needs to be between 1 and 3'; stop
+        write(stde,*) 'ERROR: Fractal dimension needs to be between 1 and 3'; stop
      endif
      if (mmf_struct .le. 0d0) then
-        print *,'ERROR: MMF structure parameter needs to be positive'; stop
+        write(stde,*) 'ERROR: MMF structure parameter needs to be positive'; stop
      endif
      if (mmf_a0 .ge. amin) then
-        print *,'ERROR: Minimum grain size cannot be smaller than monomer size'; stop
+        write(stde,*) 'ERROR: Minimum grain size cannot be smaller than monomer size'; stop
      endif
   endif
 
   ! *** CDE
   if (method .eq. 'CDE') then
      if (lmin .le. 2.d0*pi*amax) then
-        write(*,'("WARNING: CDE requires Rayleigh limit, but 2 pi a_max/lambda_min =",1p,e8.1)') 2.d0*pi*amax/lmin
+        write(stde,'("WARNING: CDE requires Rayleigh limit, but 2 pi a_max/lambda_min =",1p,e8.1)') 2.d0*pi*amax/lmin
      endif
   endif
 
   ! *** Angular grid ***
   if (mod(nang,2) .eq. 1) then
-     write(*,*) 'ERROR: The number of angles in -s NANG must be even'
+     write(stde,*) 'ERROR: The number of angles in -s NANG must be even'
      stop
   endif
 
   ! *** Other checks
   if (split .and. blendonly) then
-     if (.not. quiet) write(*,*) 'WARNING: Turning off -s for -blendonly'
+     if (.not. quiet) write(stde,*) 'WARNING: Turning off -s for -blendonly'
      split = .false.
   endif
   if (split .and. (sdkind .ne. 'apow')) then
-     write(*,*) "ERROR: Please only use -d with a powerlaw size distribution"
+     write(stde,*) "ERROR: Please only use -d with a powerlaw size distribution"
      stop
   endif
 
   ! *** Output files ***
 #ifndef USE_FITSIO
   if (write_fits) then
-     write(*,*) 'ERROR: Support for writing FITS files needs to be compiled in.'
-     write(*,*) '       If you want FITS output, make sure cfitsio library is installed."'
-     write(*,*) '       Then recompile with: "make clean", and then "make fitsio=true"'
+     write(stde,*) 'ERROR: Support for writing FITS files needs to be compiled in.'
+     write(stde,*) '       If you want FITS output, make sure cfitsio library is installed."'
+     write(stde,*) '       Then recompile with: "make clean", and then "make fitsio=true"'
      stop
   endif
 #endif
@@ -761,7 +786,7 @@ program optool
   if (nm.eq.0) then
      ! Set default composition will set a default composition here, the DIANA opacities
      if (.not. quiet) then
-        write(*,'("No materials specified, using DIANA standard")')
+        write(stde,'("No materials specified, using DIANA standard")')
      endif
      nm = 2
      mat_lnk(1) = 'pyr-mg70' ; mat_loc(1)  = 'core' ; mat_mfr(1)     = 0.87d0
@@ -811,7 +836,7 @@ program optool
   endif  
 
   if (write_grd) then
-     if (.not. quiet) write(*,'("Writing wavelength grid to file optool_lam.dat")')
+     if (.not. quiet) write(stde,'("Writing wavelength grid to file optool_lam.dat")')
      open(unit=20,file=lamoutfile)
      write(20,'("# Wavelength grid written by optool, can be read back in with -l optool_lam.dat")')
      write(20,'("# First line: number of wavelengths")')
@@ -834,7 +859,7 @@ program optool
      call GetAndRegridLNK(mat_lnk(im),lam(1:nlam),e1d(1:nlam),e2d(1:nlam), &
           nlam,.true.,mat_rho(im))
      if (mat_rho(im) .le. 0.d0) then
-        write(*,'("ERROR: Density of material must be >0, but rho=",f6.2," in ",A)') &
+        write(stde,'("ERROR: Density of material must be >0, but rho=",f6.2," in ",A)') &
              mat_rho(im),trim(mat_lnk(im))
         stop
      endif
@@ -855,7 +880,7 @@ program optool
   ! Loop for splitting the output into files by grain size
   ! ----------------------------------------------------------------------
   if (split) then
-     if (.not. quiet) write(*,'("Computing opacities for ",I3," different grain size bins")') na
+     if (.not. quiet) write(stde,'("Computing opacities for ",I3," different grain size bins")') na
      nsub = nsubgrains
      if (mod(nsub,2).eq.0) nsub = nsub+1
      afact = (amax/amin)**(1.d0/real(na))   ! factor to next grain size
@@ -869,6 +894,7 @@ program optool
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
      !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
      !$OMP shared(quiet,mmf_a0,mmf_struct,mmf_kf,mmfss)                &
+     !$OMP shared(stdi,stdo,stde)                                      &
      !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
      do ia=1,na
 
@@ -899,12 +925,12 @@ program optool
         write(label,'(I3.3)') ia
         if ((.not. p%scat_ok) .and. (.not. quiet)) then
            if (mmfss) then
-              write(*,'("WARNING: opacities OK, but some F_nn,g_asym may not be accurate")')
-              write(*,'("         particle ",I3,", a=",F10.3," lam<=",F10.3)') &
+              write(stde,'("WARNING: opacities OK, but some F_nn,g_asym may not be accurate")')
+              write(stde,'("         particle ",I3,", a=",F10.3," lam<=",F10.3)') &
                    ia,asplit,p%scat_ok_lmin
            else
-              write(*,'("WARNING: opacities OK, but some F_nn,g_asym set to zero")')
-              write(*,'("         particle ",I3,", a=",F10.3," lam<=",F10.3)') &
+              write(stde,'("WARNING: opacities OK, but some F_nn,g_asym set to zero")')
+              write(stde,'("         particle ",I3,", a=",F10.3," lam<=",F10.3)') &
                    ia,asplit,p%scat_ok_lmin
            endif
         endif
@@ -950,9 +976,9 @@ program optool
      ! ----------------------------------------------------------------------
      if ((.not. p%scat_ok).and.(.not. quiet)) then
         if (mmfss) then
-           write(*,'("WARNING: opacities OK, but some F_nn,g_asym may not be accurate. lam<=",F10.3)') p%scat_ok_lmin
+           write(stde,'("WARNING: opacities OK, but some F_nn,g_asym may not be accurate. lam<=",F10.3)') p%scat_ok_lmin
         else
-           write(*,'("WARNING: opacities OK, but some F_nn,g_asym are set to zero. lam<=",F10.3)') p%scat_ok_lmin
+           write(stde,'("WARNING: opacities OK, but some F_nn,g_asym are set to zero. lam<=",F10.3)') p%scat_ok_lmin
         endif
      endif
      if (write_fits) then
@@ -1008,6 +1034,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !              See the module Defs for the definition.
   ! ----------------------------------------------------------------------
   use Defs
+  use IOunits
   use omp_lib
   implicit none
 
@@ -1173,7 +1200,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
      enddo
   endif
   if (write_grd .and. (isplit.le.1)) then
-     if (.not. quiet) write(*,'("Writing size distribution to file optool_sd.dat")')
+     if (.not. quiet) write(stde,'("Writing size distribution to file optool_sd.dat")')
      open(unit=20,file=sdoutfile)
      write(20,'("# Size distribution written by optool, can be read in with -a optool_sd.dat")')
      if (isplit.eq.1) then
@@ -1318,7 +1345,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   ! Write the derived n and k to a file
   ! ----------------------------------------------------------------------
   if (blendonly) then
-     write(*,'("Writing the blended n and k to blended.lnk, and exiting")')
+     write(stde,'("Writing the blended n and k to blended.lnk, and exiting")')
      call remove_file_if_exists('blended.lnk')
      open(unit=20,file='blended.lnk')
      write(20,'(i5,f5.2)') nlam,rho_av
@@ -1366,6 +1393,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !$OMP shared(quiet,debug,verbose)                                       &
   !$OMP shared(qabsdqext_min)                                             &
   !$OMP shared(xlim,xlim_dhs)                                             &
+  !$OMP shared(stde,stdo,stdi)                                            &
   !$OMP private(r1,is,if,rcore,rad,ichop)                                 &
   !$OMP private(csca,cabs,cext,mass,vol)                                  &
   !$OMP private(cemie,csmie,camie,e1mie,e2mie,rmie,lmie)                  &
@@ -1528,7 +1556,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                  ! Catches the case when there is no absorption
                  ! Also catches the numerical problem with DMiLay,
                  ! where csabs can become negative
-                 if (debug) print *,"WARNING: Fixing too small qabs at lam=",lam(ilam),"a=",r1
+                 if (debug) write(stde,*) "WARNING: Fixing too small qabs at lam=",lam(ilam),"a=",r1
                  camie = cemie*1d-4
                  cemie = camie+csmie
               endif
@@ -1560,7 +1588,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
               kfrac = (5.d0/3.d0)**(Dfrac/2.)
            endif
            if ((ilam.eq.1).and.(verbose)) then
-              write(*,'("a,struct =",1p,2e10.2, "  ==>  N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
+              write(stde,'("a,struct =",1p,2e10.2, "  ==>  N,Df,k=",3e10.3)') r1,mmf_struct,nmono,Dfrac,kfrac
            endif
            iqsca  = 3            ! Selects MMF instead of MF or RGD
            iqcor  = 1            ! Gaussian cutoff of aggregate
@@ -1585,7 +1613,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
            !   tot  = tot  +  Mief11(j) * sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
            !   tot2 = tot2 +              sin(pi*(real(j)-0.5d0)/real(nang))  * (pi/dble(nang)) * (2.d0*pi)
            !enddo
-           ! write(*,'(1p,"lam,r,err ",3e10.2)') lam(ilam),r(is),(tot-tot2)/tot2
+           ! write(stde,'(1p,"lam,r,err ",3e10.2)') lam(ilam),r(is),(tot-tot2)/tot2
            
            ! Relation between F_ij and S_ij: F = 4 * pi * S / (k^2*Csca)
            ! csca is still needed as weight, will be devided out later
@@ -1641,7 +1669,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
 
         else
 
-           print *,"ERROR: invalid method ", method
+           write(stde,*) "ERROR: invalid method ", method
 
         endif   ! end of "method" cases
           
@@ -1768,6 +1796,7 @@ subroutine blender(abun,nm,e_in,e_out)
   ! ----------------------------------------------------------------------
   ! This is the original blender routine used in OpacityTool
   ! ----------------------------------------------------------------------
+  use IOunits
   implicit none
   integer, parameter :: dp = selected_real_kind(P=15)
   integer            :: nm,j,iter
@@ -1787,7 +1816,7 @@ subroutine blender(abun,nm,e_in,e_out)
      mm = me       
   enddo
   if ( abs(sum)/abs(mm).gt.1d-6 ) then
-     print *,'WARNING: Blender might not be converged (mm,sum)',mm,sum
+     write(stde,*) 'WARNING: Blender might not be converged (mm,sum)',mm,sum
   endif
   e_out = me
 end subroutine blender
@@ -1797,6 +1826,7 @@ subroutine Blender_vac(abun,nm,e_in,e_out)
   ! Blend the materials using the Bruggeman rule.
   ! If the abundances do not add up to 1.0, fill the rest with vacuum.
   ! ----------------------------------------------------------------------
+  use IOunits
   implicit none
   integer, parameter :: dp = selected_real_kind(P=15)
   integer            :: nm,j,iter
@@ -1813,9 +1843,9 @@ subroutine Blender_vac(abun,nm,e_in,e_out)
         abunvac = 0.d0
      else
         ! Abundances have not been normalized properly, this is bad
-        print *,"ERROR: Abundances not normalized in routine blender_vac"
-        print *,abun
-        print *,abunvac
+        write(stde,*) "ERROR: Abundances not normalized in routine blender_vac"
+        write(stde,*) abun
+        write(stde,*) abunvac
         stop
      endif
   endif
@@ -1833,7 +1863,7 @@ subroutine Blender_vac(abun,nm,e_in,e_out)
      mm = me       
   enddo
   if ( abs(tot)/abs(mm).gt.1d-6 ) then
-     print *,'WARNING: Blender might not be converged (mm,tot)',mm,tot
+     write(stde,*) 'WARNING: Blender might not be converged (mm,tot)',mm,tot
   endif
   e_out = me
 end subroutine Blender_vac
@@ -1905,6 +1935,7 @@ subroutine tellertje(i,n,quiet)
   ! ----------------------------------------------------------------------
   ! Show a progress bar on STDOUT
   ! ----------------------------------------------------------------------
+  use IOunits
   implicit none
   integer :: i,n,f,l,ndots,maxdots=20,mindots=5
   logical :: quiet
@@ -1913,17 +1944,17 @@ subroutine tellertje(i,n,quiet)
      ! do nothong
   else if(i.eq.0) then
      do l=1,ndots
-        write(*,'(".",$)')
+        write(stde,'(".",$)')
      enddo
-     write(*,*)
+     write(stde,*)
   else
      f = int(dble(ndots)*dble(i)/dble(n))
      if(dble(ndots)*real(i-1)/real(n) .lt. real(f) &
           & .and. dble(ndots)*real(i+1)/real(n).GT.real(f)) then
-        write(*,'(".",$)')
+        write(stde,'(".",$)')
         call flush(6)
      endif
-     if(i.eq.n) write(*,*)
+     if(i.eq.n) write(stde,*)
   endif
   return
 end subroutine tellertje
@@ -1937,11 +1968,12 @@ end function is_file
 
 subroutine require_file (file)
   ! Throw an error if FILE does not exist
+  use IOunits
   character*(*) file
   logical file_exists
   inquire (file=trim(file),exist=file_exists)
   if (.not. file_exists) then
-     write(*,'("ERROR: File ",A, " does not exist")') trim(file)
+     write(stde,'("ERROR: File ",A, " does not exist")') trim(file)
      stop
   endif
 end subroutine require_file
@@ -1984,11 +2016,12 @@ subroutine make_directory(dir)
   !
   ! Check if directory exists.  If not, create it.
   !
+  use IOunits
   character*(*) dir
   logical dir_e
   inquire(file=dir, exist=dir_e)
   if (.not. dir_e) then
-     print *,'Creating directory: ',trim(dir)
+     write(stde,*) 'Creating directory: ',trim(dir)
      call system('mkdir -p '//trim(dir))
   endif
 end subroutine make_directory
@@ -2069,6 +2102,7 @@ subroutine uread(string,var)
   ! is actually very helpful for (radio) astronomers and
   ! molecular specroscopists.
   use defs
+  use IOunits
   implicit none
   integer iu
   real (kind=dp) :: var
@@ -2095,7 +2129,7 @@ subroutine uread(string,var)
      case('*um','*micron'); var = var/1d4           * 1d4
      case('*nm');           var = var/1d7           * 1d4
      case default
-        print *,"ERROR: invalid unit: ",trim(unit)
+        write(stde,*) "ERROR: invalid unit: ",trim(unit)
         stop
      endselect
   endif
@@ -2260,6 +2294,7 @@ subroutine read_size_distribution(file,na,r,nr,sdmns)
   ! Return the size grid R and the number NR of particles in each bin.
   ! Also, compute the moments <a>, sqrt(<a**2>), and (<a**3>)**(1/3)
   ! and return them in SDMNS
+  use IOunits
   implicit none
   integer, parameter     :: dp = selected_real_kind(P=15)
   character*(*)   :: file
@@ -2276,7 +2311,7 @@ subroutine read_size_distribution(file,na,r,nr,sdmns)
   read(line,*) idum
   if (idum.ne.na) then
      close(99)
-     print *,"Error: inconsistent number of size bins in file ", file
+     write(stde,*) "Error: inconsistent number of size bins in file ", file
      stop
   endif
   tot(1)=0.d0; tot(2)=0.d0; tot(3)=0.d0; totn=0.d0
@@ -2464,6 +2499,7 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
   ! to RADMC-3D's convention.
   ! ----------------------------------------------------------------------
   use Defs
+  use IOunits
   implicit none
   real (kind=dp) :: amin,amax,apow,amean,asig,fmax,a0,struct,pcore,pmantle,mfrac(nm)
   real (kind=dp) :: lmin,lmax,f
@@ -2501,7 +2537,7 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
 
   if (.not. scatter) then
 
-     if (progress .and. .not. quiet) write(*,'("Writing dust opacity output to file:  ",A)') trim(file1)
+     if (progress .and. .not. quiet) write(stde,'("Writing dust opacity output to file:  ",A)') trim(file1)
      open(20,file=file1,RECL=100000)
      call write_header(20,'#',amin,amax,apow,amean,asig,na,lmin,lmax, &
           pcore,pmantle,p%rho,fmax,a0,struct,mfrac,nm)
@@ -2523,7 +2559,7 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
 
   else
 
-     if (progress) write(*,'("Writing full scattering data to file: ",A)') trim(file2)
+     if (progress) write(stde,'("Writing full scattering data to file: ",A)') trim(file2)
      open(20,file=file2,RECL=100000)
      call write_header(20,'#',amin,amax,apow,amean,asig,na,lmin,lmax, &
           pcore,pmantle,p%rho,fmax,a0,struct,mfrac,nm)
@@ -2662,6 +2698,7 @@ subroutine write_fits_file(p,amin,amax,apow,amean,asig,na, &
   ! FIXME: Something goes wrong with the keywords
   ! ----------------------------------------------------------------------
   use Defs
+  use IOunits
   implicit none
   real (kind=dp) :: amin,amax,apow,amean,asig,fmax,pcore,pmantle
   real (kind=dp) :: mfrac(nm),rho(nm)
@@ -2679,7 +2716,7 @@ subroutine write_fits_file(p,amin,amax,apow,amean,asig,na, &
   real a0,a1,a2,a3
 
   call remove_file_if_exists(fitsfile)
-  write(*,'("Writing full scattering data to file: ",A)') trim(fitsfile)
+  write(stde,'("Writing full scattering data to file: ",A)') trim(fitsfile)
 
   status = 0
   ! Get an unused Logical Unit Number to use to create the FITS file
