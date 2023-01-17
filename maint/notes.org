@@ -47,6 +47,16 @@ in microns
 Python cannot read the headers.  I should check if Fortran actually can!?
 *** TODO propagate rho to fits and write it there?
 ** DONE Add an amorphous water ice
+* Gaussian particles
+** Questions
+- how many realizations are necessary
+- how many angles for averaging are required
+  - Do we need all the axes to do this properly
+- How do I get the refraactive index into the file?
+- How do I make sure that size/mass are correct?
+- How do I have to call ADDA
+- Do I need to pull in data from several files and average?  Or can I
+  ask ADDA to do this internally.<2023-01-17 Tue>
 * Undocumented features
 ** Tools
 + =-b= :: Just interpolate and extrapolate the refractive index data
