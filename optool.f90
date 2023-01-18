@@ -24,8 +24,6 @@ end module IOunits
 
 subroutine usage()
   use IOunits
-  print *,'io',stdi,stdo,stde
-  stop
   write(stdo,'("")')
   write(stdo,'("===============================================================================")')
   write(stdo,'("optool - dust opacities from the command line")')
@@ -294,7 +292,6 @@ program optool
                 
         ! Second value is the mass fraction
         if (.not. arg_is_number(i+1)) then
-           print *,stde
            if (.not. quiet) write(stde,*) "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
            mat_mfr(nm) = 1.0d0
         else
@@ -2513,7 +2510,7 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
   logical        :: scatter,for_radmc,progress
   character*500  :: file1,file2
   character*500  :: make_file_path ! Function
-  
+
   if (for_radmc) then
      ext = 'inp'
      ml = 'Z11 Z12 Z22 Z33 Z34 Z44'
