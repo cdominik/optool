@@ -38,7 +38,6 @@ corresponding BibTeX entries are available in the file
 - *DHS model for irregular grains:*  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min, M. et al. 2005, A&A, 432, 909]]
 - *MMF model for aggregates:* [[https://ui.adsabs.harvard.edu/abs/2018ApJ...860...79T][Tazaki, R. & Tanaka,H. 2018, ApJ 860, 79]]
 - *DIANA standard Opacities:* [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, P. et al. 2016, A&A 586, 103]]
-- *Third party software:* [[https://ui.adsabs.harvard.edu/abs/1981ApOpt..20.3657T][Toon, O. et al. 1981, Applied Optics 20, 3657]]
 - References to refractive index data used in your particular
   application.
 
