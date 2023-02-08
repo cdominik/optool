@@ -15,7 +15,8 @@ also implements Ryo Tazaki's MMF theory for highly porous aggregates.
   porosity
 - /built-in/: a curated collection of materials for applications in
   astronomy
-- external refractive index data can be used just as easily
+- external refractive index data can be used just as easily. A
+  selection of readily prepared files can be found [[https://github.com/cdominik/optool-additional-refind-data][here]].
 - computational methods: (i) *DHS (Distribution of Hollow Spheres)*
   for /irregular grains/ and /low-porosity/ aggregates.  Standard *Mie
   theory* for /perfect spheres/ is available as a limiting case. (ii)
