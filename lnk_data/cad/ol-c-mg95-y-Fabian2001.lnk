@@ -12,7 +12,7 @@
 # To compute opacities for rantomly oriented monocrystals, compute
 # opacities for each orientation and average the opacities.
 # The alternative possibility is that the mixing is on very small scales.
-# Then, you can use the Bruggemann rule to mix the refractive index data.
+# Then, you can use the Bruggeman rule to mix the refractive index data.
 # (C. Dominik, 2023-03-27)
 #
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
