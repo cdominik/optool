@@ -127,6 +127,12 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.9.11 ::
+  - New subdirectory lnk_data/cad contains the Crystalline Axis
+    Dependant data for some of the crystalline materials in the
+    distribution. This allows to create opacity mix computation rather
+    than the default refractive index mixing.
+
 - Release 1.9.10 ::
   - STDOUT and STDERR are now properly separated and portable, using
     the ISO_FORTRAN_ENV module.

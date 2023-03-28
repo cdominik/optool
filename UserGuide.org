@@ -1,14 +1,13 @@
 
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   January 2023, version 1.9.10
+#+DATE:   April 2023, version 1.9.11
 #+LaTeX: \textheight=650pt
 * Introduction
 
 This tool produces complex dust particle opacities right from the
 command line. It is derived from Michiel Min's DHS [[https://dianaproject.wp.st-andrews.ac.uk/data-results-downloads/fortran-package/][OpacityTool]] and
 also implements Ryo Tazaki's MMF theory for highly porous aggregates.
-
 
 ** Capabilities
 
