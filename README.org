@@ -128,8 +128,8 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
 - Release 1.9.11 ::
-  - New subdirectory lnk_data/cad contains the Crystalline Axis
-    Dependant data for some of the crystalline materials in the
+  - New subdirectory lnk_data/ad contains the crystalline Axis
+    dependant Data for some of the crystalline materials in the
     distribution. This allows to create opacity mix computations
     rather than the refractive index mixing that has been used to
     produce the crystalline datasets in optool. See appendix D.2 in

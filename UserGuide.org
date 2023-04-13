@@ -799,16 +799,16 @@ results in a single refractive index data set that is easy to
 use. However, we can also think of a situation where each dust grain
 is a single crystal in a cloud of randomly oriented grains. In that
 case, we need to compute opacities for individual orientations, and
-then average the opacities. Where available, the axis-specific data is
-also included in the optool distribution, in the =lnk_data/cad=
+then average the opacities. Where available, the Axis-specific Data is
+also included in the optool distribution, in the =lnk_data/ad=
 directory. You could use the python interface to do this kind of
 mixing in the following way:
 #+latex: \begin{small}
 #+begin_src python
 import optool
-px = optool.particle('optool -a 1.5 lnk_data/cad/c-gra-x-Draine2003.lnk')
-py = optool.particle('optool -a 1.5 lnk_data/cad/c-gra-y-Draine2003.lnk')
-pz = optool.particle('optool -a 1.5 lnk_data/cad/c-gra-z-Draine2003.lnk')
+px = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-x-Draine2003.lnk')
+py = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-y-Draine2003.lnk')
+pz = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-z-Draine2003.lnk')
 pmix = (px+py+pz)/3.
 #+end_src
 #+latex: \end{small}
