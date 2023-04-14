@@ -8,7 +8,10 @@
 # ADS-link:   https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D
 # BibTeX-key: 2003ApJ...598.1026D
 #
-# This file contains the y axis-specific data for the material.
+# This file contains the y axis-specific data for the material. This
+# is the data with E perpendicular to the normal vector of the graphite
+# sheet planes (Eperp in Bruce Draine's notation). Please note that the
+# y and z data are identical.
 # To compute opacities for rantomly oriented monocrystals, compute
 # opacities for each orientation and average the opacities.
 # The alternative possibility is that the mixing is on very small scales.

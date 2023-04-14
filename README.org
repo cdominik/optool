@@ -131,9 +131,9 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
   - New subdirectory lnk_data/ad contains the crystalline Axis
     dependant Data for some of the crystalline materials in the
     distribution. This allows to create opacity mix computations
-    rather than the refractive index mixing that has been used to
-    produce the crystalline datasets in optool. See appendix D.2 in
-    the UserGuide.
+    rather as opposed to the refractive index mixing that has been
+    used to produce the crystalline datasets in optool. See appendix
+    D.1 in the UserGuide.
 
 - Release 1.9.10 ::
   - STDOUT and STDERR are now properly separated and portable, using
