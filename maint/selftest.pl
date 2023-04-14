@@ -354,6 +354,9 @@ foreach $test (@$tests) {
     if ($sha eq $test->{sha}) {
       $result = "Test $test->{name} passed.\n";
       $r = sprintf "Test %-30s passed",$test->{name};
+    } elsif (($name eq 'fits-output') and (`./optool -feature fits` =~/False/)) {
+      $result = "Test $test->{name} skipped (fits support not implemented).\n";
+      $r = sprintf "Test %-30s skipped",$test->{name};
     } else {
       $result = "Test $test->{name} failed: resulting SHA1 $sha does not match\n";
       $r = sprintf "Test %-30s FAILED %s",$test->{name},$sha;
