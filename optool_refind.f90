@@ -1036,15 +1036,15 @@ subroutine c_gra(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! ADS-link:   https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D
   ! BibTeX-key: 2003ApJ...598.1026D
   !
-  ! The data here is a 1/3-2/3 mix of the properties with E parallel to
-  ! the vector defining the graphite plane, and perpendicular to it,
-  ! respectively.  The data are given separately by Bruce Draine, but
-  ! for simplicity we provide here only one file with refractive index
-  ! data mixed using the Bruggememan rule. This is not exactly the same
-  ! as doing computations for perfect single-structure grains with one
-  ! or the other orientation, and then average the resulting
-  ! opacities using a 1/3-2/3 rule.  You can look at this like this:
-  ! The asumption is that in each grain, the orientations of the
+  ! The data here is a 1/3-2/3 Bruggemann mix of the properties with E
+  ! parallel to the vector defining the graphite plane, and
+  ! perpendicular to it, respectively.  The data are given separately by
+  ! Bruce Draine, but for simplicity we provide here only one file with
+  ! refractive index data mixed using the Bruggememan rule. This is not
+  ! exactly the same as doing computations for perfect single-structure
+  ! grains with one or the other orientation, and then average the
+  ! resulting opacities using a 1/3-2/3 rule.  You can look at this like
+  ! this: The asumption is that in each grain, the orientations of the
   ! graphite planes are randomized in many small regions.
   !
 
@@ -17492,7 +17492,7 @@ end subroutine ol_c_mg100
 
 subroutine ol_c_mg95(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Created by ingesting lnk_data/ol-c-mg95-Fabian2001.lnk
-  ! Material:  Mg_1.9e_0.1 SiO4, crystalline
+  ! Material:  Mg_1.9 Fe_0.1 SiO4, crystalline
   ! Reference: Fabian 2001, A&A, 378, 228
   !
   ! Name:       Olivine
