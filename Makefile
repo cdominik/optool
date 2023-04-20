@@ -4,10 +4,12 @@
 # The compiler and linker
 FC	  = gfortran
 LINKER	  = gfortran
+FLAG_COMP = -DUSE_GFORTRAN
 
 ifeq ($(ifort),true)
   FC	  = ifort
   LINKER  = ifort
+  FLAG_COMP = -DUSE_IFORT
 endif
 
 # Multicore support
@@ -17,6 +19,7 @@ ifeq ($(multi),true)
     else
 	MULTICORE = -fopenmp
     endif
+    FLAG_MULTI = -DUSE_MULTI
 endif
 
 # Debugging flags, including array checks
@@ -59,18 +62,18 @@ endif
 # Combine the flags
 # First some defaults for operating systems I know little about
 # including WINDOWS.
-FFLAGS  = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS) $(FLAG_IO)
-LDFLAGS = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS) $(FLAG_IO)
+FFLAGS  = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
+LDFLAGS = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
 LIBS    = $(LIBS_FITS)
 # Now the well-tested settings for Linux and Mac
 ifeq ($(shell uname),Linux)
-  FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS) $(FLAG_IO)
-  LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS) $(FLAG_IO)
+  FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
+  LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
   LIBS    = $(LIBS_FITS)
 endif
 ifeq ($(shell uname),Darwin)
-  FFLAGS  = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS) $(FLAG_IO)
-  LDFLAGS = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS) $(FLAG_IO)
+  FFLAGS  = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
+  LDFLAGS = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
   LIBS    = $(LIBS_FITS)
 endif
 

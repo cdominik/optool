@@ -9,6 +9,18 @@
 # ADS-link:    https://ui.adsabs.harvard.edu/abs/2006MNRAS.370.1599S
 # BibTeX-key:  2006MNRAS.370.1599S
 #
+# This file contains a 1:1:1 Bruggemann mix of the three axis-specifix
+# datasets published by Fabian et all. This is not exactly the same as
+# doing computations for perfect single-structure grains with one or
+# the other orientation, and then average the resulting opacities
+# using a 1:1:1 rule.  You can look at this like this: The assumption
+# is that in each grain, the orientations of the fayalite crystals
+# are randomized in many small regions.
+# The axis-specific data are also included in optool, and you can use
+# the python interface to mix opacities instead of refractive indices.
+# See the UserGuide for instructions.
+# (C. Dominik, 2023-04-13)
+#
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
  9750 3.27
      5.0000E+00     1.5603E+00     3.0331E-04

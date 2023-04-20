@@ -18,6 +18,10 @@
 # resulting opacities using a 1/3-2/3 rule.  You can look at this like
 # this: The asumption is that in each grain, the orientations of the
 # graphite planes are randomized in many small regions.
+# The axis-specific data are also included in optool, and you can use
+# the python interface to mix opacities instead of refractive indices.
+# See the UserGuide for instructions.
+# (C. Dominik, 2023-04-13)
 #
 # First line is N_lam and rho [g/cm^3], other lines are: lambda[um] n k
  1201 2.16

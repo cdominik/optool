@@ -634,13 +634,13 @@ check the documentation inside the Python module file =optool.py=):
 - /Particle arithmetic/: multiplying =optool.particle= objects with
   factors and adding them, or applying size distributions to a
   pre-computed set of opacities. See the documentation of the optool
-  module and [[#crystalline_mixing][appendix D.2]] for examples.
+  module and [[#crystalline_mixing][appendix D.1]] for examples.
 
 [fn:6] The module runs the command as a subprocess, with output to a
 temporary subdirectory.
 
 [fn:7] As a string, or as a list like =['/path/to
-my/command','arg1','arg2',...]=. 
+my/command','arg1','arg2',...]=.
 
 \appendix
 
@@ -762,6 +762,34 @@ the computed values to the cell boundaries.
 
 * More on optical properties
 
+** Crystalline materials
+:PROPERTIES:
+:CUSTOM_ID: crystalline_mixing
+:END:
+Crystalline materials have optical properties that are dependent on
+the relative orientation of the electric field of the incoming
+radiation and the crystallographic axes of the material. For the
+materials built into =optool= we have assumed that the material
+consists of /many small crystalline areas that are randomly oriented
+within each grain/. For this, the refractive index data for different
+orientations have been combined using the Bruggeman effective medium
+rule. It results in a single refractive index data. However, we can
+also think of a situation where /each dust grain is a single crystal
+in a cloud of randomly oriented grains/. In that case, we need to
+compute opacities for individual orientations, and then average the
+opacities. Axis-specific data is (when available) also included in the
+optool distribution, in the =lnk_data/ad= directory. You could use the
+[[#python][python interface]] to do this kind of mixing in the following way:
+#+latex: \begin{small}
+#+begin_src python
+import optool
+px = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-x-Draine2003.lnk')
+py = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-y-Draine2003.lnk')
+pz = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-z-Draine2003.lnk')
+pmix = (px+py+pz)/3.
+#+end_src
+#+latex: \end{small}
+
 ** How to ingest refractive index data for another material
 :PROPERTIES:
 :CUSTOM_ID: ingest
@@ -783,35 +811,6 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 4. Run =make ingest= to update =optool_refind.f90=, now with your new
    material.
 5. Recompile and install the code.
-
-** Crystalline materials
-:PROPERTIES:
-:CUSTOM_ID: crystalline_mixing
-:END:
-Crystalline materials have optical properties that are dependent on
-the relative orientation of the electric field of the incoming
-radiation and the crystallographic axes of the material. For the
-materials built into optool we assumed that the material consists of
-many small crystalline areas that are randomly oriented within each
-grain. For this, the refractive index data for different orientations
-have been combined using the Bruggeman effective medium rule. It
-results in a single refractive index data set that is easy to
-use. However, we can also think of a situation where each dust grain
-is a single crystal in a cloud of randomly oriented grains. In that
-case, we need to compute opacities for individual orientations, and
-then average the opacities. Where available, the axis-specific data is
-also included in the optool distribution, in the =lnk_data/cad=
-directory. You could use the python interface to do this kind of
-mixing in the following way:
-#+latex: \begin{small}
-#+begin_src python
-import optool
-px = optool.particle('optool -a 1.5 lnk_data/cad/c-gra-x-Draine2003.lnk')
-py = optool.particle('optool -a 1.5 lnk_data/cad/c-gra-y-Draine2003.lnk')
-pz = optool.particle('optool -a 1.5 lnk_data/cad/c-gra-z-Draine2003.lnk')
-pmix = (px+py+pz)/3.
-#+end_src
-#+latex: \end{small}
 
 ** Overview of optical properties
 

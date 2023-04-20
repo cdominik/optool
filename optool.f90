@@ -161,6 +161,7 @@ program optool
   integer         :: i,ndone         ! counter
   integer         :: im,ia           ! for material, radius
   character*1000  :: tmp,value,sub   ! for processing args
+  character*100   :: feature         ! for processing args
 
   logical         :: arg_is_present  ! functions to test arguments
   logical         :: arg_is_switch   ! functions to test arguments
@@ -627,6 +628,45 @@ program optool
      case('-wgrid')
         ! Write the sitze distribution sizedist.dat
         write_grd = .true.
+     case('-feature')
+        if (.not. arg_is_value(i+1)) then
+           write(stde,*) "ERROR: -feature switch needs value"
+           stop
+        endif
+        i=i+1; call getarg(i,value); read(value,*) feature
+        select case(trim(feature))
+        case('multi')
+#ifdef USE_MULTI
+           write(stdo,'(A)') 'True'
+#else
+           write(stdo,'(A)') 'False'
+#endif
+           stop
+        case('fits')
+#ifdef USE_FITSIO
+           write(stdo,'(A)') 'True'
+#else
+           write(stdo,'(A)') 'False'
+#endif
+           stop
+        case('gfortran')
+#ifdef USE_GFORTRAN
+           write(stdo,'(A)') 'True'
+#else
+           write(stdo,'(A)') 'False'
+#endif
+           stop
+        case('ifort')
+#ifdef USE_IFORT
+           write(stdo,'(A)') 'True'
+#else
+           write(stdo,'(A)') 'False'
+#endif
+           stop
+        case default
+           write(stde,*) "ERROR: No information for feature: ",trim(feature)
+           stop
+        end select
      case default
         if (arg_is_switch(i)) then
            write(stde,*) "ERROR: Option or Arg: >",trim(tmp),'> not recognized'

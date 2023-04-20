@@ -15,6 +15,10 @@
 # using a 1:1:1 rule.  You can look at this like this: The asumption
 # is that in each grain, the orientations of the enstatite crystals
 # are randomized in many small regions.
+# The axis-specific data are also included in optool, and you can use
+# the python interface to mix opacities instead of refractive indices.
+# See the UserGuide for instructions.
+#
 # I modified the final two datapoints by hand, to make sure any
 # extrapolation goes reasonably well, keeping n constant and decreasing
 # k with a slope of -1, consistent with the surrounding data.
