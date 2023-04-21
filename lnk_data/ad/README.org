@@ -6,14 +6,11 @@ orientation of the electric field relative to the structure of the
 crystal. In Astronomy we do not have crystals in a specific
 orientation.  Instead we can have two different situations.
 
-1. Crystals that are large compared to the wavelengths of the
-   observations. In this case we consider an ensemble of such crystals
-   that are randomly oriented in space.
+1. Grains that are monocrystals. In this case we consider an ensemble
+   of such crystals that are randomly oriented in space.
 
 2. Grains made of a material in which small crystalline regions are
-   mixed with random orientations in a single grain, with the size of
-   the crystalline regions being much smaller than the observation
-   wavelength.
+   mixed with random orientations in a single grain.
 
 The computation of opacities for these two different situations
 differs.
@@ -27,6 +24,6 @@ differs.
    the mixed refractive index data.
 
 For the materials compiled into optool, situation 2 has been assumed.
-If you want to work with situation one, the axis-dependent data for
-the optool materials is available in the directory
-lnk_data/crystal_axis_data.
+If you want to work with situation 1, the axis-dependent data for some
+crystalline optool materials is available in the directory
+lnk_data/ad.
