@@ -514,7 +514,7 @@ normalization of the scattering matrix. The format number will be 1
 
 [fn:5] The file will always have the matrix for at least two adjacent
 wavelengths around the specified \lambda, so that an interpolation to
-the exact wavelenth will be stable.
+the exact wavelength will be stable.
 
 #+LATEX: \newpage
 * Python interface
