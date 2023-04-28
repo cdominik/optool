@@ -311,6 +311,9 @@ my $tests = [
    sha => 'fb1a85451e94e2d4d8a5d05317ebde9b6fc9e48e'}
   ];
 
+die "./optool file not present" if not -e "./optool";
+die "./optool is not executable" if not -x "./optool";
+
 # Read the hashes
 while (<DATA>) {
   next if /^\s*#/;
