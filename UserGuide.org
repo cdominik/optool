@@ -185,9 +185,9 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 + =[-c] MATERIAL [MFRAC]= ::
 
   Specify a material to include in the grain. =MATERIAL= can be the
-  [[#builtin-materials][key for a builtin material]], the [[#lnk-files][path to an =lnk= file]], or three
+  [[#builtin-materials][key for a builtin material]], the [[#lnk-files][path to an =lnk= file]], or 3
   colon-separated numbers =n:k:rho= specifying the refractive index
-  =n+ik= and the material density =rho= in g/cm^3 directly. =MFRAC= is
+  =n+ik= and the material density =rho= in g/cm^3. =MFRAC= is
   the /mass/ fraction (default 1.0) of the material. You can give up
   to 20 materials to build up the grain.  Mass fractions do not have
   to add up to one, they will be renormalized.  All materials will be

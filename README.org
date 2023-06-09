@@ -127,6 +127,12 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.9.12 ::
+  - A material can now also be described by giving values for n, k,
+    and the density on the command line, like this: -c n:k:rho .
+    For example, -c 2.5:0.3:3.01 describes a material with a complex
+    refractive index of 2.5+0.3i and a mass density of 3.01 g/cm^3.
+
 - Release 1.9.11 ::
   - New subdirectory =lnk_data/ad= contains the crystalline Axis
     dependant Data for some of the crystalline materials in the

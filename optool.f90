@@ -243,7 +243,7 @@ program optool
      if (tmp.eq.'-debug') debug   = .true.
      i = i+1; call getarg(i,tmp)
   enddo
-  
+
   ! Loop over all command line arguments
   i = 1; call getarg(i,tmp)
   
@@ -423,6 +423,11 @@ program optool
                  if (it .gt. 0) then
                     ! (log-)normal size distribution
                     read(value(1:it-1),*) amean
+                    if (index(value(it+1:len(value)),':').gt.0) then
+                       write(stde,'(" ERROR: Ambiguous use of colon number list in this argument: ",A)') trim(value)
+                       write(stde,'("        Do you mean n:k:rho for a material? Disamiguate with -c or -m .")')
+                       stop
+                    end if
                     read(value(it+1:len(value)),*) asig
                     sdkind = 'norm'  ! could still also be lgnm, decide later
                  else if (arg_is_number(i)) then
@@ -2146,8 +2151,16 @@ function arg_is_value(i)
 end function arg_is_value
 
 function arg_is_number(i)
-  ! Check if command line arg i is a number, i.e. it is there and
-  ! starts with [0-9] or .[0-9] or -[0-9] or -.[0-9]
+  ! Check if command line arg i starts like it is a number.
+  ! Check if it is there, and if it starts
+  ! with [0-9] or .[0-9] or -[0-9] or -.[0-9]
+
+  ! Note that this will also return .true. if there is some
+  ! garbage after it. It will also return true for something
+  ! like -0garbage or .9garbage . Importantly, it will return
+  ! .true. for colon-separated lists of numbers which are
+  ! used as argments for special cases in the command line.
+
   implicit none
   integer i,ic
   logical arg_is_number
