@@ -292,8 +292,19 @@ program optool
         if ((arg_is_number(i)) .and. (it .gt. 0)) then
            ! This is a material with specified n and k
            read(value(1:it-1),*) mat_rfn(nm)
-           read(value(it+1:len(value)),*) mat_rfk(nm)
-           mat_rho(nm) = -100.
+           value=value(it+1:)
+           it = index(value,':')
+           if (it.gt.0) then
+              read(value(1:it-1),*) mat_rfk(nm)
+              read(value(it+1:len(value)),*) mat_rho(nm)
+              if (mat_rho(nm) .le. 0.d0) then
+                 write(stde,*) 'ERROR: Density must be larger than zero: ',mat_rho(nm);
+                 stop
+              endif
+           else
+              write(stde,*) 'ERROR: Please specify a density for artificial material: -c n:k mfrac rho';
+              stop
+           endif
            mat_cmd(nm) = .true.
         else
            mat_cmd(nm) = .false.
@@ -329,6 +340,10 @@ program optool
         ! There might be a density, as a third argument
         if (arg_is_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) mat_rho(nm)
+           if (mat_rho(nm) .le. 0.d0) then
+              write(stde,*) 'ERROR: Density must be larger than zero: ',mat_rho(nm);
+              stop
+           endif
         endif
         ! ----------------------------------------------------------------------
         ! Special compositions known in the literature
@@ -911,10 +926,6 @@ program optool
   do im=1,nm
      if (mat_cmd(im)) then
         ! This is a case where n and k were given on the command line
-        if (mat_rho(im) .lt. 0.d0) then
-           write(stde,*) 'ERROR: Please specify a density for artificial material: -c n:k mfrac rho'; stop
-        endif
-
         mat_e1(im,1:nlam)    = mat_rfn(im)
         mat_e2(im,1:nlam)    = mat_rfk(im)
      else

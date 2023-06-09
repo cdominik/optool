@@ -154,7 +154,7 @@ In the compilation step, use =multi=true= to add multicore support
 compiler does not have the =ISO_FORTRAN_ENV= module.
 
 The executable is called =optool=. The =make install= step copies it
-and also =optool2tex= and =optool-complete= into =bindir=.
+into =bindir=.
 
 # For shell command line completion support, check the file
 # =optool-complete=.
@@ -182,28 +182,25 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 + =-c= :: List available built-in materials (the keys for the *-c* and
   *-m* options).
 
-+ =[-c] KEY-or-FILE [MFRAC]= ::
++ =[-c] MATERIAL [MFRAC]= ::
 
-  Specify a material to include in the grain.  =KEYorFILE= can be the
-  [[#builtin-materials][key for a builtin material]], or the [[#lnk-files][path to an =lnk= file]]. =MFRAC= is
+  Specify a material to include in the grain. =MATERIAL= can be the
+  [[#builtin-materials][key for a builtin material]], the [[#lnk-files][path to an =lnk= file]], or three
+  colon-separated numbers =n:k:rho= specifying the refractive index
+  =n+ik= and the material density =rho= in g/cm^3 directly. =MFRAC= is
   the /mass/ fraction (default 1.0) of the material. You can give up
   to 20 materials to build up the grain.  Mass fractions do not have
   to add up to one, they will be renormalized.  All materials will be
   mixed together using the /Bruggeman/ rule, and vacuum can be added
-  through the porosity. A *-c* switch before each =KEY-or-FILE= is
-  optional.
+  through the porosity. *-c* is optional except for =n:k:rho=
+  materials.
 
-+ =-m KEY-or-FILE [MFRAC]= ::
++ =-m MATERIAL [MFRAC]= ::
 
   Like *-c*, but place this material into the grain mantle. Multiple
   mantle materials will be mixed using the Bruggeman rule, and than
   that mix will be added to the core using the /Maxwell-Garnett/ rule.
   The *-m* is /not/ optional, it must be present.
-
-+ =-[c/m] n:k MFRAC RHO= ::
-
-  Specify the refractive index n+ik of a material on the command
-  line.
 
 + =-p POROSITY [P_MANTLE]= ::
 
@@ -212,9 +209,9 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
   mantle, but a second value will be specific for the mantle (and may
   be 0).
 
-# + =-diana, -dsharp=, =-dsharp-no-ice= :: Use DIANA (Woitke+2016) or
-#   DSHARP (Birnstiel+2018) compositions.
-#
++ =-diana, -dsharp=, =-dsharp-no-ice= :: Use DIANA (Woitke+2016) or
+  DSHARP (Birnstiel+2018) compositions.
+
 
 ** Grain geometry and computational method
 
