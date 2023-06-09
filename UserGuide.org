@@ -156,8 +156,8 @@ compiler does not have the =ISO_FORTRAN_ENV= module.
 The executable is called =optool=. The =make install= step copies it
 and also =optool2tex= and =optool-complete= into =bindir=.
 
-For shell command line completion support, check the file
-=optool-complete=.
+# For shell command line completion support, check the file
+# =optool-complete=.
 
 [fn:1] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your
 system.
@@ -200,6 +200,11 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
   that mix will be added to the core using the /Maxwell-Garnett/ rule.
   The *-m* is /not/ optional, it must be present.
 
++ =-[c/m] n:k MFRAC RHO= ::
+
+  Specify the refractive index n+ik of a material on the command
+  line.
+
 + =-p POROSITY [P_MANTLE]= ::
 
   Porosity, the /volume/ fraction of vacuum, a number smaller than 1.
@@ -207,9 +212,9 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
   mantle, but a second value will be specific for the mantle (and may
   be 0).
 
-+ =-diana, -dsharp=, =-dsharp-no-ice= :: Use DIANA (Woitke+2016) or
-  DSHARP (Birnstiel+2018) compositions.
-
+# + =-diana, -dsharp=, =-dsharp-no-ice= :: Use DIANA (Woitke+2016) or
+#   DSHARP (Birnstiel+2018) compositions.
+#
 
 ** Grain geometry and computational method
 

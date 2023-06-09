@@ -98,6 +98,9 @@ module Defs
   integer         :: mat_nmm       ! number of mantle materials specified
   character*500   :: mat_loc(21)   ! either 'core' or 'mantle'
   character*500   :: mat_lnk(21)   ! the lnk key of file path
+  logical         :: mat_cmd(21)   ! are n and k from the command line?
+  real (kind=dp)  :: mat_rfn(21)   ! real refractive index if specified on command line
+  real (kind=dp)  :: mat_rfk(21)   ! imag refractive index if specified on command line
   real (kind=dp)  :: mat_rho(21)   ! specific mass density of material
   real (kind=dp)  :: mat_mfr(21)   ! mass fraction of each component
   real (kind=dp), allocatable  :: mat_e1(:,:)  ! Real      part of refractive index
@@ -178,6 +181,7 @@ program optool
 
   character*500   :: dumc            ! temporary storage
   real (kind=dp)  :: dum             ! temporary storage
+  logical         :: duml            ! temporary storage
 
   
   real (kind=dp)  :: asplit,afact,afsub,amaxsplit,aminsplit
@@ -280,15 +284,24 @@ program optool
 
         ! First value is the material key or refindex file path
         call getarg(i,value); read(value,'(A)') mat_lnk(nm)
-
         if ((value .eq. '?') .or. (value .eq. '')) then
            call ListBuiltinMaterials(); stop
         endif
 
-        ! Check if this is a valid material key or a file
-        if (.not. is_key_or_file(trim(value),.true.)) then
-           write(stde,*) "ERROR: not a material key or lnk file: ",trim(value)
-           stop
+        it = index(value,':')
+        if ((arg_is_number(i)) .and. (it .gt. 0)) then
+           ! This is a material with specified n and k
+           read(value(1:it-1),*) mat_rfn(nm)
+           read(value(it+1:len(value)),*) mat_rfk(nm)
+           mat_rho(nm) = -100.
+           mat_cmd(nm) = .true.
+        else
+           mat_cmd(nm) = .false.
+           ! Check if this is a valid material key or a file
+           if (.not. is_key_or_file(trim(value),.true.)) then
+              write(stde,*) "ERROR: not a material key or lnk file: ",trim(value)
+              stop
+           endif
         endif
                 
         ! Second value is the mass fraction
@@ -302,7 +315,7 @@ program optool
            if (.not. quiet) write(stde,*) "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
            nm = nm-1
         else
-           ! Set the type, and make sure we have at most one mantle material
+           ! Set the type
            if (tmp.eq.'-m') then
               ! This is the mantle material
               mat_loc(nm) = 'mantle'
@@ -846,6 +859,9 @@ program optool
            dumc = mat_loc(il); mat_loc(il)=mat_loc(it); mat_loc(it)=dumc;
            dum  = mat_mfr(il); mat_mfr(il)=mat_mfr(it); mat_mfr(it)=dum;
            dum  = mat_rho(il); mat_rho(il)=mat_rho(it); mat_rho(it)=dum;
+           duml = mat_cmd(il); mat_cmd(il)=mat_cmd(it); mat_cmd(it)=duml;
+           dum  = mat_rfn(il); mat_rfn(il)=mat_rfn(it); mat_rfn(it)=dum;
+           dum  = mat_rfk(il); mat_rfk(il)=mat_rfk(it); mat_rfk(it)=dum;
            it = it-1
         endif
      endif
@@ -893,15 +909,25 @@ program optool
   ! ----------------------------------------------------------------------
   allocate(e1d(nlam),e2d(nlam))
   do im=1,nm
-     call GetAndRegridLNK(mat_lnk(im),lam(1:nlam),e1d(1:nlam),e2d(1:nlam), &
-          nlam,.true.,mat_rho(im))
-     if (mat_rho(im) .le. 0.d0) then
-        write(stde,'("ERROR: Density of material must be >0, but rho=",f6.2," in ",A)') &
-             mat_rho(im),trim(mat_lnk(im))
-        stop
+     if (mat_cmd(im)) then
+        ! This is a case where n and k were given on the command line
+        if (mat_rho(im) .lt. 0.d0) then
+           write(stde,*) 'ERROR: Please specify a density for artificial material: -c n:k mfrac rho'; stop
+        endif
+
+        mat_e1(im,1:nlam)    = mat_rfn(im)
+        mat_e2(im,1:nlam)    = mat_rfk(im)
+     else
+        call GetAndRegridLNK(mat_lnk(im),lam(1:nlam),e1d(1:nlam),e2d(1:nlam), &
+             nlam,.true.,mat_rho(im))
+        if (mat_rho(im) .le. 0.d0) then
+           write(stde,'("ERROR: Density of material must be >0, but rho=",f6.2," in ",A)') &
+                mat_rho(im),trim(mat_lnk(im))
+           stop
+        endif
+        mat_e1(im,1:nlam)    = e1d(1:nlam)
+        mat_e2(im,1:nlam)    = e2d(1:nlam)
      endif
-     mat_e1(im,1:nlam)    = e1d(1:nlam)
-     mat_e2(im,1:nlam)    = e2d(1:nlam)
   enddo
   deallocate(e1d,e2d)
 
