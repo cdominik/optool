@@ -166,10 +166,13 @@ program optool
   character*1000  :: tmp,value,sub   ! for processing args
   character*100   :: feature         ! for processing args
 
+  ! Functions to test arguments
   logical         :: arg_is_present  ! functions to test arguments
   logical         :: arg_is_switch   ! functions to test arguments
   logical         :: arg_is_value    ! functions to test arguments
   logical         :: arg_is_number   ! functions to test arguments
+  logical         :: arg_is_1_number ! functions to test arguments
+  logical         :: arg_is_n_numbers! functions to test arguments
   logical         :: is_key_or_file  ! functions to test arguments
   logical         :: is_file         ! functions to test arguments
   logical         :: file_exists     ! return value
@@ -184,6 +187,10 @@ program optool
   logical         :: duml            ! temporary storage
 
   
+  ! String scanning functions, mostly used in argument checking
+  integer         :: count_colons
+  logical         :: string_starts_like_number,string_is_number,string_is_n_numbers
+
   real (kind=dp)  :: asplit,afact,afsub,amaxsplit,aminsplit
   integer         :: nsubgrains = 5,nsub
 
@@ -246,6 +253,17 @@ program optool
 
   ! Loop over all command line arguments
   i = 1; call getarg(i,tmp)
+
+  ! ???????? FIXME: test the argument-checking functions
+  ! print *,'count colons ',count_colons(tmp)
+  ! print *,'starts like  ',string_starts_like_number(tmp)
+  ! print *,'is number    ', string_is_number(tmp)
+  ! print *,'is 1 number  ', arg_is_1_number(1)
+  ! print *,'is 1 number  ', arg_is_n_numbers(1,1)
+  ! print *,'is 2 numbers ', arg_is_n_numbers(1,2)
+  ! print *,'is 3 numbers ', arg_is_n_numbers(1,3)
+  ! print *,'is 4 numbers ', arg_is_n_numbers(1,4)
+  ! stop
   
   do while(tmp.ne.' ')
 
@@ -288,9 +306,20 @@ program optool
            call ListBuiltinMaterials(); stop
         endif
 
-        it = index(value,':')
-        if ((arg_is_number(i)) .and. (it .gt. 0)) then
-           ! This is a material with specified n and k
+        ! Set the type
+        if (tmp.eq.'-m') then
+           ! This is the mantle material
+           mat_loc(nm) = 'mantle'; nmant = nmant+1
+        else
+           ! This is a core material.
+           mat_loc(nm) = 'core'
+        endif
+
+        if (arg_is_n_numbers(i,3)) then
+           ! This is a material with specified n and k and rho
+           it = index(value,':')
+           if (.not. quiet) write(stde,*) &
+                "WARNING: 3-value list read as material with n:k:rho: ",trim(value)
            read(value(1:it-1),*) mat_rfn(nm)
            value=value(it+1:)
            it = index(value,':')
@@ -302,7 +331,7 @@ program optool
                  stop
               endif
            else
-              write(stde,*) 'ERROR: Please specify a density for artificial material: -c n:k mfrac rho';
+              write(stde,*) 'ERROR: Please specify a density for artificial material: -c n:k:rho';
               stop
            endif
            mat_cmd(nm) = .true.
@@ -316,35 +345,33 @@ program optool
         endif
                 
         ! Second value is the mass fraction
-        if (.not. arg_is_number(i+1)) then
+        if (.not. arg_is_1_number(i+1)) then
            if (.not. quiet) write(stde,*) "WARNING: 1.0 used for missing mass fraction of material: ",trim(mat_lnk(nm))
            mat_mfr(nm) = 1.0d0
+           goto 997
         else
            i = i+1; call getarg(i,value); read(value,*) mat_mfr(nm)
         endif
         if (mat_mfr(nm).eq.0d0) then
-           if (.not. quiet) write(stde,*) "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
+           if (.not. quiet) write(stde,*) &
+                "WARNING: Ignoring material with zero mass fraction: ",trim(mat_lnk(nm))
            nm = nm-1
-        else
-           ! Set the type
-           if (tmp.eq.'-m') then
-              ! This is the mantle material
-              mat_loc(nm) = 'mantle'
-              nmant = nmant+1
-           else
-              ! This is a core material.
-              mat_loc(nm) = 'core'
-           endif
         endif
 
         ! There might be a density, as a third argument
-        if (arg_is_number(i+1)) then
+        if (arg_is_1_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) mat_rho(nm)
+           if (mat_cmd(nm)) then
+              write(stde,*) "ERROR: rho specified twice (in name and after MFRAC) for material: ", &
+                   trim(mat_lnk(nm))
+              stop
+           endif
            if (mat_rho(nm) .le. 0.d0) then
               write(stde,*) 'ERROR: Density must be larger than zero: ',mat_rho(nm);
               stop
            endif
         endif
+997     continue
         ! ----------------------------------------------------------------------
         ! Special compositions known in the literature
         ! ----------------------------------------------------------------------
@@ -381,7 +408,7 @@ program optool
         !                                   amin amax amean:asig [na]
         !                                   sizedist_file
         ! ----------------------------------------------------------------------
-        if (.not. arg_is_number(i+1)) then
+        if (.not. arg_is_1_number(i+1)) then
            if (arg_is_present(i+1)) then
               if (arg_is_switch(i+1)) then
                  write(stde,*) "ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
@@ -404,7 +431,7 @@ program optool
            ! There are numbers present, get the values
            i=i+1; call getarg(i,value); call uread(value,amin)
            ! Let's see if there is more, we expect amax
-           if (arg_is_number(i+1)) then
+           if (arg_is_1_number(i+1)) then
               i=i+1; call getarg(i,value); call uread(value,amax)
               if (amax .lt. 0d0) then
                  ! FIXME: Take this out?
@@ -418,6 +445,7 @@ program optool
               ! Let's see if there is more, we expect apow, or other sizedistribution parameters
               if (arg_is_present(i+1) .and. (.not. arg_is_switch(i+1))) then
                  ! OK, we have something
+                 ! FIXME: Maybe this could be improved with a direct check for 2 numbers
                  i=i+1; call getarg(i,value);
                  it=index(value,':')
                  if (it .gt. 0) then
@@ -430,12 +458,12 @@ program optool
                     end if
                     read(value(it+1:len(value)),*) asig
                     sdkind = 'norm'  ! could still also be lgnm, decide later
-                 else if (arg_is_number(i)) then
+                 else if (arg_is_1_number(i)) then
                     read(value,*) apow
                     sdkind = 'apow'
                  endif
                  ! Let's see if there is more, we expect na
-                 if (arg_is_number(i+1)) then
+                 if (arg_is_1_number(i+1)) then
                     i=i+1; call getarg(i,value); read(value,*) na
                  endif
               endif
@@ -481,10 +509,10 @@ program optool
            ! We have a number, should be lmin
            i = i+1; call getarg(i,value); call uread(value,lmin)
            ! Let's see if there is more, we expect lmax
-           if (arg_is_number(i+1)) then
+           if (arg_is_1_number(i+1)) then
               i = i+1; call getarg(i,value); call uread(value,lmax)
               ! Let's see if there is more, we expect nlam
-              if (arg_is_number(i+1)) then
+              if (arg_is_1_number(i+1)) then
                  i=i+1; call getarg(i,value); if (value.ne.'') read(value,*) nlam
               endif
            else
@@ -504,7 +532,7 @@ program optool
         ! ----------------------------------------------------------------------
      case('-p','-porosity')
         i = i+1;  call getarg(i,value); read(value,*) pcore
-        if (arg_is_number(i+1)) then
+        if (arg_is_1_number(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) pmantle
         else
            pmantle = pcore
@@ -513,19 +541,19 @@ program optool
         method = 'DHS'
         if (tmp.eq.'-mie') then
            fmax = 0.
-        else if (arg_is_number(i+1)) then
+        else if (arg_is_1_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) fmax
         else
            fmax = 0.8
         endif
      case('-xlim')
-        if (arg_is_number(i+1)) then
+        if (arg_is_1_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) xlim
         else
            write(stde,*) "ERROR: -xlim needs a numeric value"; stop
         endif
      case('-xlim_dhs')
-        if (arg_is_number(i+1)) then
+        if (arg_is_1_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) xlim_dhs
         else
            write(stde,*) "ERROR: -xlim_dhs needs a numeric value"; stop
@@ -538,11 +566,11 @@ program optool
            write(stde,*) "         MMF matrix elements when the phase shift is too large. See UserGuide."
            mmfss = .true.
         endif
-        if (arg_is_number(i+1)) then
+        if (arg_is_1_number(i+1)) then
            i=i+1; call getarg(i,value); call uread(value,mmf_a0)
-           if (arg_is_number(i+1)) then
+           if (arg_is_1_number(i+1)) then
               i=i+1; call getarg(i,value); read(value,*) mmf_struct
-              if (arg_is_number(i+1)) then
+              if (arg_is_1_number(i+1)) then
                  i=i+1; call getarg(i,value); read(value,*) mmf_kf
               else
                  mmf_kf = 0
@@ -567,13 +595,13 @@ program optool
         endif
      case('-s','-scatter','-scat')
         write_scatter=.true.
-        if (arg_is_number(i+1)) then
+        if (arg_is_1_number(i+1)) then
            ! Change size of the angle grid
            i=i+1; call getarg(i,value); read(value,*) nang
         endif
      case('-sp','-sparse')
         write_scatter=.true.
-        if (arg_is_number(i+1) .and. (arg_is_number(i+2))) then
+        if (arg_is_1_number(i+1) .and. (arg_is_1_number(i+2))) then
            ! Two numbers. This is a wavelength range for a sparse file
            nsparse = nsparse+1
            if (nsparse.gt.10) then
@@ -586,8 +614,8 @@ program optool
            else
               scatlammin(nsparse) = l2; scatlammax(nsparse) = l1
            endif
-        else if (arg_is_number(i+1)) then
-           ! One numbers. One specific wavelength
+        else if (arg_is_1_number(i+1)) then
+           ! One number. One specific wavelength
            i=i+1; call getarg(i,value); call uread(value,l1)
            nsparse = nsparse+1
            scatlammin(nsparse) = l1; scatlammax(nsparse) = l1
@@ -2151,9 +2179,80 @@ function arg_is_value(i)
 end function arg_is_value
 
 function arg_is_number(i)
-  ! Check if command line arg i starts like it is a number.
-  ! Check if it is there, and if it starts
-  ! with [0-9] or .[0-9] or -[0-9] or -.[0-9]
+  ! Check if command line arg i seems to be a single number or
+  ! a colon-separaged list of several numbers.  This is not
+  ! a perfect check, but good enough for this application.
+  implicit none
+  integer i,ic
+  logical arg_is_number,string_starts_like_number
+  character*100 :: value
+  call getarg(i,value)
+  arg_is_number = (string_starts_like_number(value).and. (verify(trim(value),'-+.1234567890eE:').eq.0))
+end function arg_is_number
+
+function arg_is_1_number(i)
+  ! Check if command line arg i is a single number
+  implicit none
+  integer i
+  logical arg_is_1_number,string_is_number
+  character*100 :: value
+  call getarg(i,value)
+  arg_is_1_number = (string_is_number(trim(value)))
+end function arg_is_1_number
+
+function arg_is_n_numbers(i,n)
+  ! Check if command line arg i is a colon separaged
+  ! list of N numbers.  N may be 1, then there should be
+  ! no colons.
+  implicit none
+  integer i,ic,n
+  logical arg_is_n_numbers,string_is_n_numbers
+  character*100 :: value
+  call getarg(i,value)
+  arg_is_n_numbers = (string_is_n_numbers(trim(value),n))
+end function arg_is_n_numbers
+
+function count_colons(s)
+  ! Count the number of colons in string
+  implicit none
+  integer in
+  integer count_colons
+  character*(*) :: s
+  character*100 :: s1
+  s1 = trim(s)
+  count_colons = 0
+1 in = index(s1,':')
+  if (in.gt.0) then
+     count_colons = count_colons+1
+     s1 = s1(in+1:)
+     goto 1
+  endif
+end function count_colons
+
+function string_is_number(s)
+  ! Check if string S is a number
+  implicit none
+  integer i,ic
+  logical string_is_number,string_starts_like_number
+  character*(*) :: s
+  string_is_number = (string_starts_like_number(s) .and. (verify(trim(s),'-+1234567890eE.').eq.0))
+end function string_is_number
+
+function string_is_n_numbers(s,n)
+  ! Check if string S is a colon separated list of N numbers.
+  ! N may be 1.
+  implicit none
+  integer i,ic,n,count_colons
+  logical string_is_n_numbers,string_starts_like_number
+  character*(*) :: s
+  string_is_n_numbers = (string_starts_like_number(s) &
+       .and. (verify(trim(s),'-+.1234567890eE:').eq.0) &
+       .and. (count_colons(s).eq.n-1))
+end function string_is_n_numbers
+
+function string_starts_like_number(s)
+  ! Check if string S starts like a number, so if it starts
+  ! with [0-9] or .[0-9] or -[0-9] or -.[0-9] or +[0-9] or +.[0-9]
 
   ! Note that this will also return .true. if there is some
   ! garbage after it. It will also return true for something
@@ -2163,21 +2262,23 @@ function arg_is_number(i)
 
   implicit none
   integer i,ic
-  logical arg_is_number
-  character*3 :: value
-  call getarg(i,value)
-  arg_is_number = .false.
+  logical string_starts_like_number
+  character*3 :: s3
+  character*100 :: s
+  s3 = s
+  string_starts_like_number = .false.
   ic = 1
-  if (len_trim(value).gt.0) then
-     if (len_trim(value).eq.2) then
-        if ((value(ic:ic).eq.'-') .or. (value(ic:ic).eq.'.')) ic = 2
+  if (len_trim(s3).gt.0) then
+     if (len_trim(s3).eq.2) then
+        if ((s3(ic:ic).eq.'-') .or. (s3(ic:ic).eq.'+') .or. (s3(ic:ic).eq.'.')) ic = 2
      else ! 3 chars at least
-        if (value(ic:ic).eq.'-') ic = ic+1
-        if (value(ic:ic).eq.'.') ic = ic+1
+        if (s3(ic:ic).eq.'-') ic = ic+1
+        if (s3(ic:ic).eq.'+') ic = ic+1
+        if (s3(ic:ic).eq.'.') ic = ic+1
      endif
-     arg_is_number = ((value(ic:ic).ge.'0') .and. (value(ic:ic).le.'9'))
+     string_starts_like_number = ((s3(ic:ic).ge.'0') .and. (s3(ic:ic).le.'9'))
   endif
-end function arg_is_number
+end function string_starts_like_number
 
 subroutine uread(string,var)
   ! Extract a number from STRING.  Split off a unit specified
