@@ -185,20 +185,20 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 + =[-c] MATERIAL [MFRAC]= ::
 
   Specify a material to include in the grain. =MATERIAL= can be the
-  [[#builtin-materials][key for a builtin material]], the [[#lnk-files][path to an =lnk= file]], or 3
+  [[#builtin-materials][key for a builtin material]], the [[#lnk-files][path to an =lnk= file]], or
   colon-separated numbers =n:k:rho= specifying the refractive index
   =n+ik= and the material density =rho= in g/cm^3. =MFRAC= is
   the /mass/ fraction (default 1.0) of the material. You can give up
   to 20 materials to build up the grain.  Mass fractions do not have
   to add up to one, they will be renormalized.  All materials will be
   mixed together using the /Bruggeman/ rule, and vacuum can be added
-  through the porosity. *-c* is optional except for =n:k:rho=
-  materials.
+  through the porosity. A *-c* switch in front of each material is
+  optional.
 
 + =-m MATERIAL [MFRAC]= ::
 
   Like *-c*, but place this material into the grain mantle. Multiple
-  mantle materials will be mixed using the Bruggeman rule, and than
+  mantle materials will be mixed using the Bruggeman rule, and then
   that mix will be added to the core using the /Maxwell-Garnett/ rule.
   The *-m* is /not/ optional, it must be present.
 
