@@ -94,7 +94,7 @@ my $tests = [
    getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
-    {name => 'material-astrosil',
+  {name => 'material-astrosil',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool astrosil 1 -a 1 -dhs -o $dir",
    getsha => "accuracy",
@@ -303,7 +303,7 @@ my $tests = [
    cmd => "./optool sio2 1 -a 1 -dhs -o $dir",
    getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
-  
+
   {name => 'fits-output',
    prepare => "rm -f $dir/dustkappa.fits",
    cmd => "./optool -q -na 10 -nl 30 -s -fits -o $dir",
@@ -322,6 +322,7 @@ while (<DATA>) {
   $hashes{$name} = $hashes;
 }
 
+$npassed=0;$nfailed=0;$nskipped=0;
 foreach $test (@$tests) {
   $name = $test->{name};
   #next unless $test->{name} eq "noscat";
@@ -342,13 +343,16 @@ foreach $test (@$tests) {
       if ($acc == 1000) {
         $result = "Test $test->{name} perfect pass\n";
         $r = sprintf "Test %-30s passed",$test->{name};
+        $npassed++;
       } elsif ($acc == 0) {
         $result = "Test $test->{name} failed: resulting SHA1 $sha does not match\n";
         $r = sprintf "Test %-30s FAILED %s",$test->{name},$sha;
+        $nfailed++;
       } else {
         $acc = $1+1 if $acc =~ /([0-9]+):/;
         $result = "Test $test->{name} passed with $acc significant digits\n";
-        $r = sprintf("Test %-30s OK to $acc significant digits",$test->{name})
+        $r = sprintf("Test %-30s OK to $acc significant digits",$test->{name});
+        $npassed++;          
       }
     }
   } else {
@@ -357,12 +361,15 @@ foreach $test (@$tests) {
     if ($sha eq $test->{sha}) {
       $result = "Test $test->{name} passed.\n";
       $r = sprintf "Test %-30s passed",$test->{name};
+      $npassed++;
     } elsif (($name eq 'fits-output') and (`./optool -feature fits` =~/False/)) {
       $result = "Test $test->{name} skipped (fits support not implemented).\n";
       $r = sprintf "Test %-30s skipped",$test->{name};
+      $nskipped++;
     } else {
       $result = "Test $test->{name} failed: resulting SHA1 $sha does not match\n";
       $r = sprintf "Test %-30s FAILED %s",$test->{name},$sha;
+      $nfailed++;
     }
   }
   print "$result";
@@ -374,10 +381,12 @@ if ($opt_s) {
   print SELF "\n\n# HASHES set on $date\n",$allhashes,"\n";
 } else {
   print "\n";
-  print "==========================================\n";
+  print "===========================================\n";
   print "     Summary of optool test results\n";
-  print "==========================================\n";
+  print "===========================================\n";
   for (@results) {print "$_\n"}
+  print "-------------------------------------------\n";
+  print "$npassed passed; $nfailed failed; $nskipped skipped\n";
 }
 
 sub accuracy_hashes {
@@ -498,4 +507,3 @@ material-pyr-mg80:::1000:f437114526::10:f437114526::9:f437114526::8:f437114526::
 material-pyr-mg95:::1000:2bd718c8c9::10:2bd718c8c9::9:2bd718c8c9::8:2bd718c8c9::7:2bd718c8c9::6:2bd718c8c9::5:4023b1a32c::4:2f579f72c9::3:09052695d2::2:d17cf5066b::1:02f9219d27
 material-sic:::1000:e439e7183c::10:e439e7183c::9:e439e7183c::8:e439e7183c::7:e439e7183c::6:e439e7183c::5:664cf5a36b::4:4dba745736::3:8cfe457909::2:fcc28b58a1::1:f9380c7083
 material-sio2:::1000:0ae08d69d6::10:0ae08d69d6::9:0ae08d69d6::8:0ae08d69d6::7:0ae08d69d6::6:0ae08d69d6::5:e16a20184d::4:150c554188::3:8b3ce1b132::2:fd4f6e986e::1:3d3b4152e2
-
