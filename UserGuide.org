@@ -211,9 +211,10 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 + =-diana, -dsharp=, =-dsharp-no-ice= :: Use DIANA (Woitke+2016) or
   DSHARP (Birnstiel+2018) compositions.
 
-[fn:2] This can be used to easily specify a refractive index =m=n+ik=
+[fn:2] =n:k:rho= can be used to specify a refractive index =m=n+ik=
 and a material density =rho= in g/cm^3 for a calculation at a single
-wavelengths, for example when trying to fit refractive indices.
+wavelength, for example when doing statistical inference on a
+refractive index.
 
 ** Grain geometry and computational method
 
