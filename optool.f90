@@ -633,7 +633,9 @@ program optool
         for_radmc = .true.
         if (arg_is_value(i+1)) then
            call getarg(i+1,value)
-           if ((.not. quiet) .and. is_key_or_file(trim(value),.false.)) then
+           if ((.not. quiet) .and. &
+                (is_key_or_file(trim(value),.false.) .or. &
+                string_is_n_numbers(trim(value),3))) then
               ! The optional -radmc label is also a material key, this is ambiguous
               write(stde,*) "WARNING: Ambiguous argument could be meant as (another) material key"
               write(stde,*) "         ... but is read as optional RADMC-3D label: ",trim(tmp)," ",trim(value)
