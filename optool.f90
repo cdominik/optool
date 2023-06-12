@@ -2389,8 +2389,8 @@ function count_words (string)
         else
            if (in_space) then
               in_space = .false.
-           end if
-        end if
+           endif
+        endif
      enddo
   endif
 end function count_words
@@ -2422,7 +2422,7 @@ function count_numbers (string)
               if (verify(s(i:i),'0123456789-+.').gt.0) goto 1
            endif
            if (verify(s(i:i),'0123456789-+eE.').gt.0) goto 1
-        end if
+        endif
      enddo
   endif
 1 continue
@@ -2542,7 +2542,7 @@ subroutine read_lambda_grid(file)
   allocate(lam(nlam))
   do i=1, nlam
      read (99, fmt=* ) lam(i)
-  end do
+  enddo
   close(99)
 end subroutine read_lambda_grid
 
@@ -3021,7 +3021,7 @@ subroutine write_fits_file(p,amin,amax,apow,amean,asig,na, &
   !  Check for any error, and if so print out error messages
   if (status.gt.0) then
      print*,'error in export to fits file',status
-  end if
+  endif
   return
 end subroutine write_fits_file
 #endif
