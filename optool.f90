@@ -98,7 +98,7 @@ module Defs
   integer         :: mat_nmm       ! number of mantle materials specified
   character*500   :: mat_loc(21)   ! either 'core' or 'mantle'
   character*500   :: mat_lnk(21)   ! the lnk key of file path
-  logical         :: mat_cmd(21)   ! are n and k from the command line?
+  logical         :: mat_cmd(21)   ! are n, k, and rho from the command line?
   real (kind=dp)  :: mat_rfn(21)   ! real refractive index if specified on command line
   real (kind=dp)  :: mat_rfk(21)   ! imag refractive index if specified on command line
   real (kind=dp)  :: mat_rho(21)   ! specific mass density of material
@@ -166,7 +166,13 @@ program optool
   character*1000  :: tmp,value,sub   ! for processing args
   character*100   :: feature         ! for processing args
 
-  ! Functions to test arguments
+  ! String scanning functions, mostly used in argument checking
+  logical         :: string_starts_like_number
+  logical         :: string_is_number
+  logical         :: string_is_n_numbers
+  integer         :: count_colons
+
+  ! Functions to test command line arguments
   logical         :: arg_is_present  ! functions to test arguments
   logical         :: arg_is_switch   ! functions to test arguments
   logical         :: arg_is_value    ! functions to test arguments
@@ -176,25 +182,23 @@ program optool
   logical         :: is_key_or_file  ! functions to test arguments
   logical         :: is_file         ! functions to test arguments
   logical         :: file_exists     ! return value
+
+  ! Store and check for file names
   character*500   :: fitsfile        ! file name for FITS output
   character*500   :: meanfile        ! file name for mean opacity output
   character*500   :: make_file_path  ! function
   character*50    :: radmclbl = ""   ! file label for RADMC-3D compatible
   character*50    :: label           ! for use in file names
 
+  ! Temporary storage vaiables
   character*500   :: dumc            ! temporary storage
   real (kind=dp)  :: dum             ! temporary storage
   logical         :: duml            ! temporary storage
+  real (kind=dp), allocatable :: e1d(:),e2d(:)
 
-  
-  ! String scanning functions, mostly used in argument checking
-  integer         :: count_colons
-  logical         :: string_starts_like_number,string_is_number,string_is_n_numbers
-
+  ! Variables for splitting size range
   real (kind=dp)  :: asplit,afact,afsub,amaxsplit,aminsplit
   integer         :: nsubgrains = 5,nsub
-
-  real (kind=dp), allocatable :: e1d(:),e2d(:)
 
   ! MMF implementation
   real(kind=dp)   :: mmf_a0,mmf_struct,mmf_kf
@@ -212,7 +216,7 @@ program optool
 
   lmin           = 0.05_dp    ! micrometer
   lmax           = 10000.0_dp ! micrometer
-  nlam           = 300
+  nlam           = 300        ! size of wavelengths grid
 
   nang           = 180        ! Number of angular point, has to be even
   chopangle      = 0.d0       ! Angle in degree to chop forward peak
@@ -234,9 +238,7 @@ program optool
   ! Initialize rho, because we need the fact that it has not been set
   ! to decide what to do with lnk files where it is missing
   ! ----------------------------------------------------------------------
-  do im=1,12
-     mat_rho(im) = 0.d0
-  enddo
+  mat_rho(:) = 0.d0
 
   ! ----------------------------------------------------------------------
   ! Process the command line arguments
@@ -254,17 +256,6 @@ program optool
   ! Loop over all command line arguments
   i = 1; call getarg(i,tmp)
 
-  ! ???????? FIXME: test the argument-checking functions
-  ! print *,'count colons ',count_colons(tmp)
-  ! print *,'starts like  ',string_starts_like_number(tmp)
-  ! print *,'is number    ', string_is_number(tmp)
-  ! print *,'is 1 number  ', arg_is_1_number(1)
-  ! print *,'is 1 number  ', arg_is_n_numbers(1,1)
-  ! print *,'is 2 numbers ', arg_is_n_numbers(1,2)
-  ! print *,'is 3 numbers ', arg_is_n_numbers(1,3)
-  ! print *,'is 4 numbers ', arg_is_n_numbers(1,4)
-  ! stop
-  
   do while(tmp.ne.' ')
 
      ! If the are two dashes, keep only one.
@@ -471,7 +462,7 @@ program optool
               endif
            else
               ! There was only 1 number after -a.  Set up single grain size computation
-              ! If na has already been set, do not change it.
+              ! If na has already been set, do not change it - we will check this later
               amax = amin;
               if (na.eq.0) na = 1;
            endif
@@ -755,7 +746,7 @@ program optool
   ! Sanity checks and preparations
   ! ----------------------------------------------------------------------
 
-  ! *** Materials ***
+  ! *** Materials
   if (nm .ge. 20) then
      write(stde,*) 'ERROR: Too many materials'; stop
   endif
@@ -763,12 +754,12 @@ program optool
      write(stde,*) "ERROR: at least one core material must be specified"; stop
   endif
 
-  ! *** Porosity ***
+  ! *** Porosity
   if ( (pcore.lt.0d0).or.(pcore.ge.1d0).or.(pmantle.lt.0d0).or.(pmantle.ge.1d0) ) then
      write(stde,*) "ERROR: prosities must be 0 <= p < 1"; stop
   endif
 
-  ! *** Grain size distribution ***
+  ! *** Grain size distribution
   if ( (amin.le.0d0) .or. (amax.le.0d0) ) then
      write(stde,*) 'ERROR: Both amin and amax need to be positive numbers',amin,amax; stop
   endif
@@ -779,6 +770,10 @@ program optool
   if (na .eq. 0) then
      ! set sampling of the grain radius: 15 per decade, min 5
      na = max(5,int((log10(amax)-log10(amin))*15d0+1d0))
+  endif
+  if ( (amin.eq.amax) .and. (na.ne.1) ) then
+     write(stde,*) 'WARNING: Setting na=1 because amin=amax'
+     na = 1
   endif
   if (sdkind .eq. 'apow') then
      if (apow .lt. 0d0) then
@@ -803,7 +798,7 @@ program optool
      endif
   endif
   
-  ! *** Wavelength grid ***
+  ! *** Wavelength grid
   if ( (lmin.le.0d0) .or. (lmax.le.0d0) ) then
      write(stde,*) 'ERROR: Both lmin and lmax need to be positive numbers',lmin,lmax; stop
   endif
@@ -825,7 +820,7 @@ program optool
   ! *** DHS
   if (method .eq. 'DHS') then
      if ((fmax.lt.0.d0) .or. (fmax.ge.1.d0)) then
-        write(stde,*) 'ERROR: fmax for DHS must be >0 and <1'
+        write(stde,*) 'ERROR: fmax for DHS must be >0 and <1'; stop
      endif
   endif
 
@@ -845,11 +840,12 @@ program optool
   ! *** CDE
   if (method .eq. 'CDE') then
      if (lmin .le. 2.d0*pi*amax) then
-        write(stde,'("WARNING: CDE requires Rayleigh limit, but 2 pi a_max/lambda_min =",1p,e8.1)') 2.d0*pi*amax/lmin
+        write(stde,'("WARNING: CDE requires Rayleigh limit, but 2 pi a_max/lambda_min =",1p,e8.1)') &
+             2.d0*pi*amax/lmin
      endif
   endif
 
-  ! *** Angular grid ***
+  ! *** Angular grid
   if (mod(nang,2) .eq. 1) then
      write(stde,*) 'ERROR: The number of angles in -s NANG must be even'
      stop
@@ -865,7 +861,7 @@ program optool
      stop
   endif
 
-  ! *** Output files ***
+  ! *** Output files
 #ifndef USE_FITSIO
   if (write_fits) then
      write(stde,*) 'ERROR: Support for writing FITS files needs to be compiled in.'
@@ -1780,7 +1776,9 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
 
         else
 
+           ! This should never happen
            write(stde,*) "ERROR: invalid method ", method
+           stop
 
         endif   ! end of "method" cases
           
@@ -1902,35 +1900,6 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
 end subroutine ComputePart
 
 !!! **** Effective medium routines
-
-subroutine blender(abun,nm,e_in,e_out)
-  ! ----------------------------------------------------------------------
-  ! This is the original blender routine used in OpacityTool
-  ! ----------------------------------------------------------------------
-  use IOunits
-  implicit none
-  integer, parameter :: dp = selected_real_kind(P=15)
-  integer            :: nm,j,iter
-  real (kind=dp)     :: abun(nm)
-  complex (kind=dp)  :: e_in(nm),e_out
-  complex (kind=dp)  :: mm,m(nm),me,sum
-
-  mm = dcmplx(1d0,0d0)
-  m  = e_in
-  do iter=1,100
-     sum = 0d0
-     do j=1,nm
-        sum = sum + ((m(j)**2-mm**2)/(m(j)**2+2d0*mm**2))*abun(j)
-     enddo
-     me = (2d0*sum+1d0)/(1d0-sum)
-     me = mm*cdsqrt(me)
-     mm = me       
-  enddo
-  if ( abs(sum)/abs(mm).gt.1d-6 ) then
-     write(stde,*) 'WARNING: Blender might not be converged (mm,sum)',mm,sum
-  endif
-  e_out = me
-end subroutine blender
 
 subroutine Blender_vac(abun,nm,e_in,e_out)
   ! ----------------------------------------------------------------------
