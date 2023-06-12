@@ -442,23 +442,25 @@ program optool
                  amin = amin+amax; amax = amin-2d0*amax
                  apow = 0.d0
               endif
-              ! Let's see if there is more, we expect apow, or other sizedistribution parameters
-              if (arg_is_present(i+1) .and. (.not. arg_is_switch(i+1))) then
-                 ! OK, we have something
-                 ! FIXME: Maybe this could be improved with a direct check for 2 numbers
+              ! Let's see if there is more, we expect apow, or other sizedistribution parameters.
+              ! First we exclude switches and material specifications
+              if (arg_is_present(i+1) .and. (.not. arg_is_switch(i+1)) &
+                   .and. arg_is_number(i+1) .and. (.not. arg_is_n_numbers(i+1,3))) then
+                 ! OK, we have something describing a size distribution
                  i=i+1; call getarg(i,value);
-                 it=index(value,':')
+                 it = index(value,':')
                  if (it .gt. 0) then
-                    ! (log-)normal size distribution
+                    ! We seem to have 2 numbers; so we have a (log-)normal size distribution
                     read(value(1:it-1),*) amean
+                    ! The following check should no longer be necessary.
                     if (index(value(it+1:len(value)),':').gt.0) then
-                       write(stde,'(" ERROR: Ambiguous use of colon number list in this argument: ",A)') trim(value)
-                       write(stde,'("        Do you mean n:k:rho for a material? Disamiguate with -c or -m .")')
+                       write(stde,'(" ERROR: Problems to interpret argument: ",A)') trim(value)
                        stop
-                    end if
+                    endif
                     read(value(it+1:len(value)),*) asig
                     sdkind = 'norm'  ! could still also be lgnm, decide later
                  else if (arg_is_1_number(i)) then
+                    ! Just one number - we have a powerlaw
                     read(value,*) apow
                     sdkind = 'apow'
                  endif
@@ -468,7 +470,7 @@ program optool
                  endif
               endif
            else
-              ! there was only 1 number.  Set up single grain size computation
+              ! There was only 1 number after -a.  Set up single grain size computation
               ! If na has already been set, do not change it.
               amax = amin;
               if (na.eq.0) na = 1;
