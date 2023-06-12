@@ -454,7 +454,7 @@ program optool
                     read(value(1:it-1),*) amean
                     ! The following check should no longer be necessary.
                     if (index(value(it+1:len(value)),':').gt.0) then
-                       write(stde,'(" ERROR: Problems to interpret argument: ",A)') trim(value)
+                       write(stde,'(" ERROR: Problems interpreting argument: ",A)') trim(value)
                        stop
                     endif
                     read(value(it+1:len(value)),*) asig
