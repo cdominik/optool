@@ -1046,6 +1046,10 @@ subroutine c_gra(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! resulting opacities using a 1/3-2/3 rule.  You can look at this like
   ! this: The asumption is that in each grain, the orientations of the
   ! graphite planes are randomized in many small regions.
+  ! The axis-specific data are also included in optool, and you can use
+  ! the python interface to mix opacities instead of refractive indices.
+  ! See the UserGuide for instructions.
+  ! (C. Dominik, 2023-04-13)
   !
 
   IMPLICIT NONE
@@ -9564,7 +9568,10 @@ subroutine ol_c_mg00(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! using a 1:1:1 rule.  You can look at this like this: The assumption
   ! is that in each grain, the orientations of the fayalite crystals
   ! are randomized in many small regions.
-  ! (C. Dominik, 2021-05-09)
+  ! The axis-specific data are also included in optool, and you can use
+  ! the python interface to mix opacities instead of refractive indices.
+  ! See the UserGuide for instructions.
+  ! (C. Dominik, 2023-04-13)
   !
 
   IMPLICIT NONE
@@ -12596,6 +12603,18 @@ subroutine ol_c_mg100(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! Axis:        1:1:1 mix of B1u, B2u, and B3u
   ! ADS-link:    https://ui.adsabs.harvard.edu/abs/2006MNRAS.370.1599S
   ! BibTeX-key:  2006MNRAS.370.1599S
+  !
+  ! This file contains a 1:1:1 Bruggemann mix of the three axis-specifix
+  ! datasets published by Fabian et all. This is not exactly the same as
+  ! doing computations for perfect single-structure grains with one or
+  ! the other orientation, and then average the resulting opacities
+  ! using a 1:1:1 rule.  You can look at this like this: The assumption
+  ! is that in each grain, the orientations of the fayalite crystals
+  ! are randomized in many small regions.
+  ! The axis-specific data are also included in optool, and you can use
+  ! the python interface to mix opacities instead of refractive indices.
+  ! See the UserGuide for instructions.
+  ! (C. Dominik, 2023-04-13)
   !
 
   IMPLICIT NONE
@@ -17509,7 +17528,10 @@ subroutine ol_c_mg95(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! using a 1:1:1 rule.  You can look at this like this: The assumption
   ! is that in each grain, the orientations of the olivine crystals
   ! are randomized in many small regions.
-  ! (C. Dominik, 2021-05-09)
+  ! The axis-specific data are also included in optool, and you can use
+  ! the python interface to mix opacities instead of refractive indices.
+  ! See the UserGuide for instructions.
+  ! (C. Dominik, 2023-04-13)
   !
 
   IMPLICIT NONE
@@ -20162,6 +20184,10 @@ subroutine pyr_c_mg96(l_lnk,n_lnk,k_lnk,nlam,rho)
   ! using a 1:1:1 rule.  You can look at this like this: The asumption
   ! is that in each grain, the orientations of the enstatite crystals
   ! are randomized in many small regions.
+  ! The axis-specific data are also included in optool, and you can use
+  ! the python interface to mix opacities instead of refractive indices.
+  ! See the UserGuide for instructions.
+  !
   ! I modified the final two datapoints by hand, to make sure any
   ! extrapolation goes reasonably well, keeping n constant and decreasing
   ! k with a slope of -1, consistent with the surrounding data.

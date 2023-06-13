@@ -42,11 +42,15 @@ while ($file = shift) {
   if ($file =~ /(.*\/)?(.+)-(\w+[0-9]+).lnk$/) {
     $key = $2;
     $ref = $3;
+    die "Material key $key must start with a letter" unless $key=~/^[a-zA-Z]/;
+    die "Duplicate material key: $key" if $seen_raw_key{$key}++;
     # Set the name of the subroutine
     $sbrname = $key;
     push @allkeys,$sbrname;
-    $sbrname =~ s/-/_/g;
+    $sbrname =~ s/[^a-zA-Z0-9]/_/g;
     push @allkeys,$sbrname;
+    die "Duplicate FORTRAN name $sbrname results from key $key\n   This means that there are two material keys in your file list\n   that result into the same FORTRAN name after turning all forbidden\n   characters into an underscore.\n"
+      if $seen_processed_key{$sbrname}++;
   } else {
     die "File $file does not have a name like key-reference2017.lnk\n";
   }
