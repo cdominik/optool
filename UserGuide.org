@@ -144,7 +144,6 @@ steps, using the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wik
 : git clone https://github.com/cdominik/optool.git        # clone repository
 : cd optool                      # enter code directory
 : make multi=true                # compile with multicore support
-:
 : make install bindir=~/bin/     # optional: copy binaries to binary path
 : pip install -e .               # optional: install the python module
 
@@ -154,7 +153,8 @@ In the compilation step, use =multi=true= to add multicore support
 compiler does not have the =ISO_FORTRAN_ENV= module.
 
 The executable is called =optool=. The =make install= step copies it
-into =bindir=.
+into =bindir=. Or run run optool by specifying the full path, e.g.
+=./optool= or =/path/to/optool=.
 
 # For shell command line completion support, check the file
 # =optool-complete=.
@@ -211,9 +211,9 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 + =-diana, -dsharp=, =-dsharp-no-ice= :: Use DIANA (Woitke+2016) or
   DSHARP (Birnstiel+2018) compositions.
 
-[fn:2] =n:k:rho= can be used to specify a refractive index =m=n+ik=
-and a material density =rho= in g/cm^3 for a calculation at a single
-wavelength, for example when doing statistical inference on a
+[fn:2] =n:k:rho= specifies a refractive index =m=n+ik= and a material
+density =rho= (in g/cm^3) for a quick calculation at a single
+wavelength, for example for use in statistical inference on a
 refractive index.
 
 ** Grain geometry and computational method
