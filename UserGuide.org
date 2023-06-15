@@ -144,6 +144,7 @@ steps, using the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wik
 : git clone https://github.com/cdominik/optool.git        # clone repository
 : cd optool                      # enter code directory
 : make multi=true                # compile with multicore support
+
 : make install bindir=~/bin/     # optional: copy binaries to binary path
 : pip install -e .               # optional: install the python module
 
@@ -153,8 +154,7 @@ In the compilation step, use =multi=true= to add multicore support
 compiler does not have the =ISO_FORTRAN_ENV= module.
 
 The executable is called =optool=. The =make install= step copies it
-into =bindir=. Or run run optool by specifying the full path, e.g.
-=./optool= or =/path/to/optool=.
+into =bindir=.
 
 # For shell command line completion support, check the file
 # =optool-complete=.
@@ -959,7 +959,7 @@ the code.
 [fn:11] The default limit is x_lim=10^{8}.  =optool= does the alternative
 Mie computation with a slightly increased grain diameter, representing
 the mean geometric cross section of the DHS spheres, to connect well
-to the DHS opacities. See also point 3 under [[#trouble_shooting][Troubleshooting]].
+to the DHS opacities. See also point 5 under [[#trouble_shooting][Troubleshooting]].
 
 [fn:12]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
@@ -975,7 +975,14 @@ to the DHS opacities. See also point 3 under [[#trouble_shooting][Troubleshootin
 2. If you get oscillations in the opacities, in particular at long
    wavelengths, the grain size resolution is not sufficient.  Use more
    grain sizes (*-a*, *-na* and *-d* switches).
-3. You may have noticed that =optool= became slower in version 1.9.9
+3. If you do not remember how to reproduce a specific run, just check
+   the output file header. It contains the exact command that was used
+   to produce the file.
+4. If after successful compilation the command =optool= does not work
+   in your environment, make sure =optool= is on the binary search
+   path of your shell, or run it by giving the full path to the
+   executable, like =./optool=.
+5. You may have noticed that =optool= became slower in version 1.9.9
    when computing the /short-wavelength/ properties of /very large
    grains/.  You may use *-xlim 1e4* to request a [[#internals][speed-related switch
    from DHS to Mie]] at $x=10^4$, restoring the old speed.  When doing
@@ -985,13 +992,6 @@ to the DHS opacities. See also point 3 under [[#trouble_shooting][Troubleshootin
    this is fully masked by the fact that short-wavelength opacities
    are completely dominated by smaller grains. We did increase the
    limit to make you get the best possible results out of the box.
-4. If you do not remember how to reproduce a specific run, just check
-   the output file header. It contains the exact command that was used
-   to produce the file.
-5. If after successful compilation the command =optool= does not work
-   in your environment, make sure optool is on the binary search path
-   of your shell, or run it by giving the full path to the executable,
-   like =./optool=.
 
 
 #+LaTeX: \newpage
