@@ -533,7 +533,7 @@ scattering matrix will be done at a wavelength of 0.74\mu{}m.
   the =-b= or =-w= switch is present, =optool= will write the result
   of the mixing process into the file =blended.lnk=.
 
-- =optool_sd.dat= & =optool_lam.dat= ::
+- optool\underline{ }sd.dat & optool\underline{ }lam.dat ::
 
   When running =optool= with the =-w= switch, it will write the grain
   size grid and the wavelength grid to two files.  You can use this to

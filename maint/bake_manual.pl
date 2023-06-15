@@ -72,6 +72,7 @@ foreach (@lines) {
     s/\\fbox/     /g;
   }
   s/\\hfill\{\}/     /g;
+  s/\\underline\{ \}/_/g;
   chomp;
   s/'/ /g;
   s/`/ /g;
