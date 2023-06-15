@@ -650,9 +650,6 @@ program optool
         if (arg_is_value(i+1)) then
            i=i+1; call getarg(i,value); read(value,*) nsubgrains
         endif
-     case('-b','-blendonly')
-        ! Write blended refractive index to file and exit
-        blendonly = .true.
      case('-q')
         ! Be less noisy
         quiet = .true.
@@ -670,6 +667,7 @@ program optool
            case('ksca','kscat')     ; justnum = 's'
            case('kext')             ; justnum = 'e'
            case('g','gsca','gscat') ; justnum = 'g'
+           case('lnk')              ; justnum = 'l'
            case default
               i=i-1
               write(stde,*) 'WARNING: "',trim(value),'" is not a -print variable. Trying core material...';
@@ -681,9 +679,16 @@ program optool
      case('-debug')
         ! More info to STDOUT
         debug = .true.
+     case('-w')
+        ! Write some files and exit without doing a computation
+        write_grd = .true.
+        blendonly = .true.
      case('-wgrid')
         ! Write the sitze distribution sizedist.dat
         write_grd = .true.
+     case('-b','-blendonly')
+        ! Write blended refractive index to file and exit
+        blendonly = .true.
      case('-feature')
         if (.not. arg_is_value(i+1)) then
            write(stde,*) "ERROR: -feature switch needs value"
@@ -1449,10 +1454,10 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   enddo ! end of wavelength loop over il
 
   ! ----------------------------------------------------------------------
-  ! Write the derived n and k to a file
+  ! Write the derived n and k to a file, or to STDOUT
   ! ----------------------------------------------------------------------
   if (blendonly) then
-     write(stde,'("Writing the blended n and k to blended.lnk, and exiting")')
+     if (.not. quiet) write(stde,'("Writing the blended n and k to blended.lnk")')
      call remove_file_if_exists('blended.lnk')
      open(unit=20,file='blended.lnk')
      write(20,'(i5,f5.2)') nlam,rho_av
@@ -1460,9 +1465,23 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
         write(20,'(1p,e15.5,1p,e15.5,1p,e15.5)') lam(ilam),e1blend(ilam),e2blend(ilam)
      enddo
      close(unit=20)
+  endif
+  if (justnum .eq. 'l') then
+     write(stdo,'(i5,f5.2)') nlam,rho_av
+     do ilam=1,nlam
+        write(stdo,'(1p,e15.5,1p,e15.5,1p,e15.5)') lam(ilam),e1blend(ilam),e2blend(ilam)
+     enddo
      stop
   endif
 
+  ! ----------------------------------------------------------------------
+  ! Exit if we only had to provide information known during setup
+  ! ----------------------------------------------------------------------
+    if (write_grd .or. blendonly) then
+     write(stde,'("Exiting after writing requested files")')
+     stop
+  endif
+  
   ! ----------------------------------------------------------------------
   ! Check how we are going to average over hollow sphere components
   ! ----------------------------------------------------------------------

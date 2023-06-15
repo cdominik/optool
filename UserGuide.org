@@ -271,7 +271,7 @@ DHS with f_max=0.8.
 + =-a FILE= ::
   Read the size distribution from a file. The file format is described
   in [[#sizedist][appendix B]].  To get an example file =optool_sd.dat=, run =optool=
-  with the option *-wgrid*.
+  with the option *-w*.
   
 ** Wavelength grid
 
@@ -288,7 +288,7 @@ DHS with f_max=0.8.
 + =-l FILE= ::
 
   Read the wavelength grid from =FILE=. To get an example file
-  =optool_lam.dat=, run =optool= with the option *-wgrid*. An [[#lnk-files][=lnk=]]
+  =optool_lam.dat=, run =optool= with the option *-w*. An [[#lnk-files][=lnk=]]
   file could be used here as well!
 
 ** Controlling the output
@@ -338,11 +338,13 @@ extend the [[#output-files][output]].
   =kabs=, =ksca=, =kext=, or =g=, write only that, without header. You can
   use this to extract a single value, for example the 850\mu{}m
   extinction opacity of grains between 1 and 3mm: =optool -a 1000 3000
-  -l 850 -print kext=
+  -l 850 -print kext=.
 
-+ =-wgrid= ::
++ =-w= ::
   Write the files =optool_sd.dat= and =optool_lam.dat= with the grain
-  size distribution and the wavelengths grid, respectively.
+  size distribution and the wavelengths grid, respectively. Also,
+  write =blended.lnk= with the result of mixing refractive index
+  data. Exit without doing a computation.
 
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
@@ -414,11 +416,6 @@ troilite \fbox{tro} (Birnstiel+ 2016).
 |            | ch4-a / c   | CH_4 ice                | am / cr     |      0.47 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch4-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch4-c-Gerakines2020.lnk][cryst]]                |
 |            | ch3oh-a / c | CH_{3}OH ice            | am / cr     | 0.78/1.02 |       *2.0* |        *24* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch3oh-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch3oh-c-Gerakines2020.lnk][cryst]]                |
 
-
-# | for      | ol-c-mg100  | Mg_{2}SiO_4            | cryst   |   3.33 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/1974PhDT.......274S][Steyer+74]]    | switch out?  | [[file:lnk_data/ol-c-mg100-Steyer1974.lnk][ol-c-mg100-Steyer1974.lnk]]   |
-# |          | icemix-c2d | H_{2}O/CO_{2}/CO mix    | ?       |    1.0 |        0.04 |         8e6 | [[https://ui.adsabs.harvard.edu/abs/2009ApJ...690..496C][Pontoppidan]]  | \rho?        | [[file:lnk_data/icemix-c2d-Pontoppidan2009.lnk][icemix-c2d-Pontoppidan2009.lnk]] |
-
-
 [fn:3] See [[#crystalline_mixing][appendix D.2]] about the treatment of crystalline materials.
 
 ** External refractory index files (=lnk= files)
@@ -457,6 +454,14 @@ needed to set the wavelength grid with *-l FILE*.
 # material density of a material can be specified on the command line.
 
 #+LATEX: \newpage
+
+** One-off materials
+For a calculation at a single wavelength you can give the refractive
+index on the command line, like this: =optool 1.57:0.56:2.08 -l 0.74
+-s=. This specifies the refractive index of $m=1.57+0.56i$ for a
+material with a density of 2.08g/cm^3, and the computation of the
+scattering matrix will be done at a wavelength of 0.74\mu{}m.
+
 * Output files
 :PROPERTIES:
 :CUSTOM_ID: output-files
@@ -519,6 +524,23 @@ needed to set the wavelength grid with *-l FILE*.
   required for the file to be processed properly. You can rework this
   text to include it into your paper. For more details, read the
   comment section in =optool2tex=.
+
+- blended.lnk ::
+
+  =optool= mixes the optical properties of the various materials
+  specified to be part of the grains into a single set of optical
+  properties that are then used in the scattering computations. When
+  the =-b= or =-w= switch is present, =optool= will write the result
+  of the mixing process into the file =blended.lnk=.
+
+- =optool_sd.dat= & =optool_lam.dat= ::
+
+  When running =optool= with the =-w= switch, it will write the grain
+  size grid and the wavelength grid to two files.  You can use this to
+  verify that the grids set up are what you expected.  The files are
+  also example files for what the structure of files need to be to be
+  read in with =-a file.dat= and =-l file.dat= for user-provided size
+  and wavelength grids.
 
 [fn:5] This includes a change of the angular grid and a change in the
 normalization of the scattering matrix. The format number will be 1
@@ -598,11 +620,6 @@ $n_p=1$. The resulting object will have the following attributes:
 |--------------------+-----------------------+-------------------------------------------------|
 | =sizedist()=       | =method=              | Sum opacities over a size distribution          |
 
-#+CAPTION: Screenshot of plots created by running =p.plot()= on an optool particle.
-#+ATTR_LATEX: :width 14.8cm :options angle=0
-[[./maint/inspect.png]]
-
-#+LaTeX: \newpage
 Applying the =plot()= method to a =particle= object like =p.plot()=
 will produce:
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
@@ -620,6 +637,10 @@ will produce:
   plot.  The mean opacities are per unit of grain mass, so please
   apply a dust-to-gas mass ratio to obtain opacities for a gas-dust
   mixture.
+
+#+CAPTION: Screenshot of plots created by running =p.plot()= on an optool particle.
+#+ATTR_LATEX: :width 14.8cm :options angle=0
+[[./maint/inspect.png]]
 
 The python module has a few more tricks up its sleeve (for details
 check the documentation inside the Python module file =optool.py=):
@@ -691,7 +712,7 @@ file, and this is also the way to provide an arbitrary size grid. The
 first data line in the file gives the number of grain size bins,
 followed by lines with two numbers each: grain size in micron and
 number of grains in the corresponding bin. To get an example file, run
-=optool= with the option *-wgrid*):
+=optool= with the option *-w*):
 
 [fn:10]   A normal distribution is not sampled symmetrically on a
 logarithmic size grid - please make sure your sampling is fine enough
@@ -824,6 +845,7 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
    material.
 5. Recompile and install the code.
 
+#+LaTeX: \newpage
 ** Overview of optical properties
 
 This grid plot shows the imaginary parts of all built-in materials, in
@@ -961,12 +983,16 @@ to the DHS opacities. See also point 3 under [[#trouble_shooting][Troubleshootin
    changes may be seen in some scattering matrix elements for
    computations with very large size parameters. In many applications,
    this is fully masked by the fact that short-wavelength opacities
-   are completely dominated by smaller grains. However, we wanted to
-   make sure the user always gets the best possible results out of the
-   box, which is why we increased the limit.
+   are completely dominated by smaller grains. We did increase the
+   limit to make you get the best possible results out of the box.
 4. If you do not remember how to reproduce a specific run, just check
    the output file header. It contains the exact command that was used
    to produce the file.
+5. If after successful compilation the command =optool= does not work
+   in your environment, make sure optool is on the binary search path
+   of your shell, or run it by giving the full path to the executable,
+   like =./optool=.
+
 
 #+LaTeX: \newpage
 * Acknowledgments
