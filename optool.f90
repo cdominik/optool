@@ -1458,8 +1458,8 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   ! ----------------------------------------------------------------------
   if (blendonly) then
      if (.not. quiet) write(stde,'("Writing the blended n and k to blended.lnk")')
-     call remove_file_if_exists('blended.lnk')
-     open(unit=20,file='blended.lnk')
+     call remove_file_if_exists('optool_mix.lnk')
+     open(unit=20,file='optool_mix.lnk')
      write(20,'(i5,f5.2)') nlam,rho_av
      do ilam=1,nlam
         write(20,'(1p,e15.5,1p,e15.5,1p,e15.5)') lam(ilam),e1blend(ilam),e2blend(ilam)

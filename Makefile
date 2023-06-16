@@ -97,7 +97,7 @@ it:;		make clean
 it2:;		make clean
 		make full
 		make clean1
-cleanoutput:;   rm -rf dustkap*.dat dustkap*.fits dustkap*.inp blended.lnk optool_sd.dat optool_lam.dat optool_tmp_output_dir_*
+cleanoutput:;   rm -rf dustkap*.dat dustkap*.fits dustkap*.inp optool_mix.lnk optool_sd.dat optool_lam.dat optool_tmp_output_dir_*
 cleanlatex:;	rm -rf *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.pdf
 cleanpython:;	rm -rf optool.dSYM tmp.py __pycache__
 cclean:;	rm -f $(OBJS) $(PROGRAM)

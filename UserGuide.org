@@ -3,6 +3,7 @@
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
 #+DATE:   June 2023, version 1.9.12
 #+LaTeX: \textheight=650pt
+
 * Introduction
 
 This tool produces complex dust particle opacities right from the
@@ -270,7 +271,7 @@ DHS with f_max=0.8.
 
 + =-a FILE= ::
   Read the size distribution from a file. The file format is described
-  in [[#sizedist][appendix B]].  To get an example file =optool_sd.dat=, run =optool=
+  in [[#sizedist][appendix A]].  To get an example file =optool_sd.dat=, run =optool=
   with the option *-w*.
   
 ** Wavelength grid
@@ -334,18 +335,35 @@ extend the [[#output-files][output]].
 
 + =-print [VAR]= ::
   Write to =STDOUT= instead of files. The default is to write \lambda,
-  \kappa_abs, \kappa_sca, \kappa_ext, and g. When =VAR= is any of
-  =kabs=, =ksca=, =kext=, or =g=, write only that, without header. You can
-  use this to extract a single value, for example the 850\mu{}m
-  extinction opacity of grains between 1 and 3mm: =optool -a 1000 3000
-  -l 850 -print kext=.
+  \kappa_abs, \kappa_sca, \kappa_ext, and g, with a header. When =VAR=
+  is any of =kabs=, =ksca=, =kext=, or =g=, write only that
+  variable. You can use this to extract a single value, for example
+  the 850\mu{}m extinction opacity of grains between 1 and 3mm:
+  =optool -a 1000 3000 -l 850 -print kext=.
 
 + =-w= ::
   Write the files =optool_sd.dat= and =optool_lam.dat= with the grain
-  size distribution and the wavelengths grid, respectively. Also,
-  write =blended.lnk= with the result of mixing refractive index
+  size distribution and the wavelength grid, respectively. Also,
+  write =optool_mix.lnk= with the result of mixing refractive index
   data. Exit without doing a computation.
 
+* Units
+Due to conventions in our field, the input and output of =optool= uses
+the following units:
+
+- *microns* for grain sizes and wavelengths.[fn:9]
+- *g/cm^3* for mass densities of materials
+- *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
+- *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
+  see Appendix [[#normalization][B.1]].
+
+[fn:9]When giving a grain size or a wavelength on the command line,
+you can write =1.3*mm=, =340*GHz=, or =4000/cm= and =optool= will do
+the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
+respectively.
+
+
+#+LaTeX: \newpage
 * Material properties
 =optool= needs refractive index data to work.  For your convenience, a
 useful list of materials is compiled into =optool=. You can also find
@@ -372,7 +390,7 @@ opacity, we recommend to work with pyroxene \fbox{pyr}, carbon
 2016). If you need to account for sulfur, you may want to include
 troilite \fbox{tro} (Birnstiel+ 2016).
 
-#+LaTeX: \newpage\centerline{\textit{Table 1: Built-in materials}}
+# #+LaTeX: \centerline{\textit{Table 1: Built-in materials}}
 #+ATTR_LATEX: :font \footnotesize\sf :align llllrrrlHH
 | *-c Key*   | *-c Key*    | *Material*              | *State*     |      \rho | \lambda_min | \lambda_max | *Reference*   | *Comment*    | *File*                      |
 | generic    | full key    |                         |             |    g/cm^3 |      \mu{}m |      \mu{}m |               |              |                             |
@@ -416,7 +434,7 @@ troilite \fbox{tro} (Birnstiel+ 2016).
 |            | ch4-a / c   | CH_4 ice                | am / cr     |      0.47 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch4-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch4-c-Gerakines2020.lnk][cryst]]                |
 |            | ch3oh-a / c | CH_{3}OH ice            | am / cr     | 0.78/1.02 |       *2.0* |        *24* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch3oh-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch3oh-c-Gerakines2020.lnk][cryst]]                |
 
-[fn:3] See [[#crystalline_mixing][appendix D.2]] about the treatment of crystalline materials.
+[fn:3] See [[#crystalline_mixing][appendix C.2]] about the treatment of crystalline materials.
 
 ** External refractory index files (=lnk= files)
 :PROPERTIES:
@@ -516,6 +534,7 @@ scattering matrix will be done at a wavelength of 0.74\mu{}m.
   each \lambda.
 
 - optool.tex ::
+
   As a little gimmick, you can run =optool2tex= with the exact same
   command line arguments as used in an =optool= run. =optool.tex= then
   contains text and a table, describing the methods used for the
@@ -525,22 +544,18 @@ scattering matrix will be done at a wavelength of 0.74\mu{}m.
   text to include it into your paper. For more details, read the
   comment section in =optool2tex=.
 
-- blended.lnk ::
+- optool\underscore{ }mix.lnk ::
 
-  =optool= mixes the optical properties of the various materials
-  specified to be part of the grains into a single set of optical
-  properties that are then used in the scattering computations. When
-  the =-b= or =-w= switch is present, =optool= will write the result
-  of the mixing process into the file =blended.lnk=.
+  When using the =-w= switch, =optool= will write the result of mixing
+  to this file.
 
 - optool\underline{ }sd.dat & optool\underline{ }lam.dat ::
 
-  When running =optool= with the =-w= switch, it will write the grain
-  size grid and the wavelength grid to two files.  You can use this to
-  verify that the grids set up are what you expected.  The files are
-  also example files for what the structure of files need to be to be
-  read in with =-a file.dat= and =-l file.dat= for user-provided size
-  and wavelength grids.
+  When using the =-w= switch, it will write the grain size grid and
+  the wavelength grid to two files. The files serve as example files
+  for what the structure of files need to be to be read in with =-a
+  file.dat= and =-l file.dat= for user-provided size and wavelength
+  grids.
 
 [fn:5] This includes a change of the angular grid and a change in the
 normalization of the scattering matrix. The format number will be 1
@@ -550,7 +565,6 @@ normalization of the scattering matrix. The format number will be 1
 wavelengths around the specified \lambda, so that an interpolation to
 the exact wavelength will be stable.
 
-#+LATEX: \newpage
 * Python interface
 :PROPERTIES:
 :CUSTOM_ID: python
@@ -620,8 +634,9 @@ $n_p=1$. The resulting object will have the following attributes:
 |--------------------+-----------------------+-------------------------------------------------|
 | =sizedist()=       | =method=              | Sum opacities over a size distribution          |
 
+
 Applying the =plot()= method to a =particle= object like =p.plot()=
-will produce:
+will show (see Fig 1):
 - a plot showing the opacities \kappa_abs, \kappa_sca, and \kappa_ext
   as a function of wavelength, along with the asymmetry parameter /g/
   (on a linear y-scale).  Note that the blue /g/ curve does not have
@@ -667,7 +682,7 @@ check the documentation inside the Python module file =optool.py=):
 - /Particle arithmetic/: multiplying =optool.particle= objects with
   factors and adding them, or applying size distributions to a
   pre-computed set of opacities. See the documentation of the optool
-  module and [[#crystalline_mixing][appendix D.1]] for examples.
+  module and [[#crystalline_mixing][appendix C.1]] for examples.
 
 [fn:7] The module runs the command as a subprocess, with output to a
 temporary subdirectory.
@@ -675,23 +690,13 @@ temporary subdirectory.
 [fn:8] As a string, or as a list like =['/path/to
 my/command','arg1','arg2',...]=.
 
+
+
+#+LaTeX: \newpage
+#+LaTeX: \centerline{\textbf{{\Huge Appendix}}}
+
 \appendix
 
-#+LATEX: \newpage
-
-* Units
-Due to conventions in our field, the input and output of =optool= uses
-the following units
-- *microns* for grain sizes and wavelengths.[fn:9]
-- *g/cm^3* for mass densities of materials
-- *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
-- *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
-  see below.
-
-[fn:9]When giving a grain size or a wavelength on the command line,
-you can write =1.3*mm=, =340*GHz=, or =4000/cm= and =optool= will do
-the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
-respectively.
 
 * Size distribution
 :PROPERTIES:
@@ -845,7 +850,7 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
    material.
 5. Recompile and install the code.
 
-#+LaTeX: \newpage
+
 ** Overview of optical properties
 
 This grid plot shows the imaginary parts of all built-in materials, in
@@ -855,9 +860,8 @@ However, these materials can be used over a much broader wavelength
 range, because the extrapolation becomes problematic only in the UV
 where electronic transitions kick in.
 
-#+ATTR_LATEX: :width 14.cm :options angle=0
+#+ATTR_LATEX: :width 15.cm :options angle=0
 [[./maint/all_k.pdf]]
-
 
 #+LaTeX: \newpage
 * Internals
@@ -884,7 +888,9 @@ the code.
   uses an iterative procedure that is very stable, also for a large
   number of components.\\
   If there is a mantle, the Maxwell Garnett rule is applied with the
-  core being treated as an inclusion inside a mantle matrix.
+  core being treated as an inclusion inside a mantle matrix.\\
+  With a =-w= switch, =optool= will write result of mixing
+  into the file =optool_mix.lnk=.
 
 - DHS :: In order to simulate irregularities in grains (irregular
   shapes, or the properties of low-porosity aggregates), =optool=
@@ -978,10 +984,8 @@ to the DHS opacities. See also point 5 under [[#trouble_shooting][Troubleshootin
 3. If you do not remember how to reproduce a specific run, just check
    the output file header. It contains the exact command that was used
    to produce the file.
-4. If after successful compilation the command =optool= does not work
-   in your environment, make sure =optool= is on the binary search
-   path of your shell, or run it by giving the full path to the
-   executable, like =./optool=.
+4. Make sure the =optool= executable is on your binary search path.
+   Or run it by giving the full path, like =./optool=.
 5. You may have noticed that =optool= became slower in version 1.9.9
    when computing the /short-wavelength/ properties of /very large
    grains/.  You may use *-xlim 1e4* to request a [[#internals][speed-related switch
