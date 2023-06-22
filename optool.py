@@ -1798,3 +1798,5 @@ def bplanckdt(temp,nu):
     bplanckdt[mask] = 7.07661334104e-58 * nu[mask]**4 /  \
             ( np.exp(exponent[mask]) * temp**2 ) + 1.e-290
     return bplanckdt
+
+p = particle  # Make p() an alias for the particle() method
