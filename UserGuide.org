@@ -1,8 +1,12 @@
-
+#+OPTIONS: title:nil author:nil date:nil
 #+TITLE:  OpTool User Guide
 #+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
 #+DATE:   June 2023, version 1.9.12
 #+LaTeX: \textheight=650pt
+#+LaTeX_HEADER: \textheight=650pt
+
+#+LaTeX: \centerline{\textbf{\Huge OpTool User Guide}}\vspace*{2mm}
+#+LaTeX: \centerline{by Carsten Dominik, Michiel Min, and Ryo Tazaki; June 2023, version 1.9.12}
 
 * Introduction
 
@@ -40,9 +44,26 @@ corresponding BibTeX entries are available in the file
   Astrophysics Source Code Library, ascl:2104.010]]
 - *DHS model for irregular grains:*  [[https://ui.adsabs.harvard.edu/abs/2005A%26A...432..909M][Min, M. et al. 2005, A&A, 432, 909]]
 - *MMF model for aggregates:* [[https://ui.adsabs.harvard.edu/abs/2018ApJ...860...79T][Tazaki, R. & Tanaka, H. 2018, ApJ 860, 79]]
-- *DIANA standard Opacities:* [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, P. et al. 2016, A&A 586, 103]]
+- *DIANA standard opacities:* [[https://ui.adsabs.harvard.edu/abs/2016A%26A...586A.103W][Woitke, P. et al. 2016, A&A 586, 103]]
 - References to [[#builtin-materials][refractive index data]] used in your particular
   application.
+
+** Physical units used by optool
+Due to conventions in our field, the input and output of =optool= uses
+the following units:
+| grain sizes and wavelengths.[fn:1]               | \mu{}m                     |
+| mass densities of materials                      | g cm^-3                    |
+| opacities \kappa_abs, \kappa_sca, \kappa_ext     | cm^2 g^-1                  |
+| scattering matrix, see [[#normalization][App. B.1]]                  | sr^-1 /or/ cm^2 g^-1 sr^-1 |
+
+
+[fn:1]When giving a grain size or a wavelength on the command line,
+you can write =1.3*mm=, =340*GHz=, or =4000/cm= and =optool= will do
+the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
+respectively.
+
+
+#+LaTeX: \newpage
 
 * Examples
 A simple grain made only of the default pyroxene, for the default
@@ -151,16 +172,16 @@ steps, using the freely available GNU FORTRAN compiler [[https://gcc.gnu.org/wik
 
 In the compilation step, use =multi=true= to add multicore support
 (recommended!), =ifort=true= to use the [[https://software.intel.com/content/www/us/en/develop/tools/compilers/fortran-compilers.html][Intel fortran compiler]],
-=fits=true= to support FITS files[fn:1], and =oldio=true= if your
+=fits=true= to support FITS files[fn:2], and =oldio=true= if your
 compiler does not have the =ISO_FORTRAN_ENV= module.
 
-The executable is called =optool=. The =make install= step copies it
-into =bindir=.
+The executable is called =optool=, run it with =./optool= or move it
+onto your binary path.
 
 # For shell command line completion support, check the file
 # =optool-complete=.
 
-[fn:1] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your
+[fn:2] This requires the [[https://heasarc.gsfc.nasa.gov/fitsio/][=cfitsio=]] library to be installed on your
 system.
 
 * Command line arguments
@@ -187,7 +208,7 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 
   Specify a material to include in the grain. =MATERIAL= can be the
   [[#builtin-materials][key for a builtin material]], the [[#lnk-files][path to an =lnk= file]], or
-  colon-separated numbers =n:k:rho=[fn:2]. =MFRAC= is
+  colon-separated numbers =n:k:rho=[fn:3]. =MFRAC= is
   the /mass/ fraction (default 1.0) of the material. You can give up
   to 20 materials to build up the grain.  Mass fractions do not have
   to add up to one, they will be renormalized.  All materials will be
@@ -212,7 +233,7 @@ If no composition is specified, the (DIANA) default is *-c pyr 0.87 -c c 0.13
 + =-diana, -dsharp=, =-dsharp-no-ice= :: Use DIANA (Woitke+2016) or
   DSHARP (Birnstiel+2018) compositions.
 
-[fn:2] =n:k:rho= specifies a refractive index =m=n+ik= and a material
+[fn:3] =n:k:rho= specifies a refractive index =m=n+ik= and a material
 density =rho= (in g/cm^3) for a quick calculation at a single
 wavelength, for example for use in statistical inference on a
 refractive index.
@@ -347,20 +368,6 @@ extend the [[#output-files][output]].
   write =optool_mix.lnk= with the result of mixing refractive index
   data. Exit without doing a computation.
 
-* Units
-Due to conventions in our field, the input and output of =optool= uses
-the following units:
-
-- *microns* for grain sizes and wavelengths.[fn:9]
-- *g/cm^3* for mass densities of materials
-- *cm^2 g^-1* for opacities \kappa_abs, \kappa_sca, and \kappa_ext
-- *sr^-1* or *cm^2 g^-1 sr^-1* for the scattering matrix elements,
-  see Appendix [[#normalization][B.1]].
-
-[fn:9]When giving a grain size or a wavelength on the command line,
-you can write =1.3*mm=, =340*GHz=, or =4000/cm= and =optool= will do
-the right thing, converting to 1300\mu{}m, 881.7\mu{}m, and 2.5\mu{}m,
-respectively.
 
 
 #+LaTeX: \newpage
@@ -402,19 +409,19 @@ troilite \fbox{tro} (Birnstiel+ 2016).
 |            | pyr-mg60    | Mg_{0.6}Fe_{0.4}SiO_3   | amorph      |       3.1 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg60-Dorschner1995.lnk][pyr-mg60-Dorschner1995.lnk]]  |
 |            | pyr-mg50    | Mg_{0.5}Fe_{0.5}SiO_3   | amorph      |       3.2 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg50-Dorschner1995.lnk][pyr-mg50-Dorschner1995.lnk]]  |
 |            | pyr-mg40    | Mg_{0.4}Fe_{0.6}SiO_3   | amorph      |       3.3 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg40-Dorschner1995.lnk][pyr-mg40-Dorschner1995.lnk]]  |
-| ens        | pyr-c-mg96  | Mg_{0.96}Fe_{0.04}SiO3  | cryst[fn:3] |       2.8 |       *2.0* |        *99* | [[https://ui.adsabs.harvard.edu/abs/1998A%26A...339..904J][Jäger+98]]      |              | [[file:lnk_data/pyr-c-mg96-Jäger1998.lnk][pyr-c-mg96-Jäger1998.lnk]]    |
+| ens        | pyr-c-mg96  | Mg_{0.96}Fe_{0.04}SiO3  | cryst[fn:4] |       2.8 |       *2.0* |        *99* | [[https://ui.adsabs.harvard.edu/abs/1998A%26A...339..904J][Jäger+98]]      |              | [[file:lnk_data/pyr-c-mg96-Jäger1998.lnk][pyr-c-mg96-Jäger1998.lnk]]    |
 |------------+-------------+-------------------------+-------------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | ol         | ol-mg50     | MgFeSiO_4               | amorph      |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]   |
 |            | ol-mg40     | Mg_{0.8}Fe_{1.2}SiO_4   | amorph      |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]   |
-| for        | ol-c-mg100  | Mg_{2}SiO_4             | cryst[fn:3] |      3.27 |       *5.0* |         200 | [[https://ui.adsabs.harvard.edu/abs/2006MNRAS.370.1599S][Suto+06]]       | switch out?  | [[file:lnk_data/ol-c-mg100-Suto2006.lnk][ol-c-mg100-Suto2006.lnk]]     |
-|            | ol-c-mg95   | Mg_{1.9}Fe_{0.1}SiO_4   | cryst[fn:3] |      3.33 |       *2.0* |        8190 | [[https://ui.adsabs.harvard.edu/abs/2001A%26A...378..228F][Fabian+01]]     | \rho ?       | [[file:lnk_data/ol-c-mg95-Fabian2001.lnk][ol-c-mg95-Fabian2001.lnk]]    |
-| fay        | ol-c-mg00   | Fe_{2}SiO_4             | cryst[fn:3] |      4.39 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/2001A%26A...378..228F][Fabian+01]]     |              | [[file:lnk_data/ol-c-mg00-Fabian2001.lnk][ol-c-mg00-Fabian2001.lnk]]    |
+| for        | ol-c-mg100  | Mg_{2}SiO_4             | cryst[fn:4] |      3.27 |       *5.0* |         200 | [[https://ui.adsabs.harvard.edu/abs/2006MNRAS.370.1599S][Suto+06]]       | switch out?  | [[file:lnk_data/ol-c-mg100-Suto2006.lnk][ol-c-mg100-Suto2006.lnk]]     |
+|            | ol-c-mg95   | Mg_{1.9}Fe_{0.1}SiO_4   | cryst[fn:4] |      3.33 |       *2.0* |        8190 | [[https://ui.adsabs.harvard.edu/abs/2001A%26A...378..228F][Fabian+01]]     | \rho ?       | [[file:lnk_data/ol-c-mg95-Fabian2001.lnk][ol-c-mg95-Fabian2001.lnk]]    |
+| fay        | ol-c-mg00   | Fe_{2}SiO_4             | cryst[fn:4] |      4.39 |       *3.0* |         250 | [[https://ui.adsabs.harvard.edu/abs/2001A%26A...378..228F][Fabian+01]]     |              | [[file:lnk_data/ol-c-mg00-Fabian2001.lnk][ol-c-mg00-Fabian2001.lnk]]    |
 |------------+-------------+-------------------------+-------------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 |            | astrosil    | MgFeSiO_4               | mixed       |       3.3 |        6e-5 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1017D][Draine+03]]     |              | [[file:lnk_data/astrosil-Draine2003.lnk][astrosil-Draine2003.lnk]]     |
 |------------+-------------+-------------------------+-------------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | \fbox{c}   | c-z         | C                       | amorph?     |       1.8 |        0.05 |         1e4 | [[https://ui.adsabs.harvard.edu/abs/1996MNRAS.282.1321Z][Zubko+96]]      |              | [[file:lnk_data/c-z-Zubko1996.lnk][c-z-Zubko1996.lnk]]           |
 |            | c-p         | C                       | amorph      |       1.8 |        0.11 |         800 | [[https://ui.adsabs.harvard.edu/abs/1993A%26A...279..577P][Preibisch+93]]  |              | [[file:lnk_data/c-p-Preibisch1993.lnk][c-p-Preibisch1993.lnk]]       |
-| gra        | c-gra       | C graphite              | cryst[fn:3] |     2.16? |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D][Draine+03]]     |              | [[file:lnk_data/c-gra-Draine2003.lnk][c-gra-Draine2003.lnk]]        |
+| gra        | c-gra       | C graphite              | cryst[fn:4] |     2.16? |       0.001 |        1000 | [[https://ui.adsabs.harvard.edu/abs/2003ApJ...598.1026D][Draine+03]]     |              | [[file:lnk_data/c-gra-Draine2003.lnk][c-gra-Draine2003.lnk]]        |
 | org        | c-org       | CHON organics           | amorph      |       1.4 |         0.1 |         1e5 | [[https://ui.adsabs.harvard.edu/abs/1996A%26A...311..291H][Henning+96]]    |              | [[file:lnk_data/c-org-Henning1996.lnk][c-org-Henning1996.lnk]]       |
 |            | c-nano      | C nano-diamond          | cryst       |       2.3 |        0.02 |       *110* | [[https://ui.adsabs.harvard.edu/abs/2004A%26A...423..983M][Mutschke+04]]   |              | [[file:lnk_data/c-nano-Mutschke2004.lnk][c-nano-Mutschke2004.lnk]]     |
 |------------+-------------+-------------------------+-------------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
@@ -434,7 +441,7 @@ troilite \fbox{tro} (Birnstiel+ 2016).
 |            | ch4-a / c   | CH_4 ice                | am / cr     |      0.47 |       *2.0* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch4-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch4-c-Gerakines2020.lnk][cryst]]                |
 |            | ch3oh-a / c | CH_{3}OH ice            | am / cr     | 0.78/1.02 |       *2.0* |        *24* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/ch3oh-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/ch3oh-c-Gerakines2020.lnk][cryst]]                |
 
-[fn:3] See [[#crystalline_mixing][appendix C.2]] about the treatment of crystalline materials.
+[fn:4] See [[#crystalline_mixing][appendix C.1]] about the treatment of crystalline materials.
 
 ** External refractory index files (=lnk= files)
 :PROPERTIES:
@@ -442,7 +449,7 @@ troilite \fbox{tro} (Birnstiel+ 2016).
 :END:
 
 =optool= can use external refractive index data in files with the
-following format[fn:4]:
+following format[fn:5]:
 - The file may start with several comment lines (lines starting with
   =!=, =#=, or =*=).
 - The next line contains two numbers, the number of wavelengths
@@ -461,7 +468,7 @@ like this: =optool -c path/to/file.lnk 0.7 3.42=.  Please do not
 forget to include references for any optical properties used in your
 study.
 
-[fn:4]This file structure is also compatible with what is
+[fn:5]This file structure is also compatible with what is
 needed to set the wavelength grid with *-l FILE*.
 
 # ** Ad-hoc materials
@@ -476,8 +483,8 @@ needed to set the wavelength grid with *-l FILE*.
 ** One-off materials
 For a calculation at a single wavelength you can give the refractive
 index on the command line, like this: =optool 1.57:0.56:2.08 -l 0.74
--s=. This specifies the refractive index of $m=1.57+0.56i$ for a
-material with a density of 2.08g/cm^3, and the computation of the
+-s=. This example specifies the refractive index of $m=1.57+0.56i$ for
+a material with a density of 2.08g/cm^3, and the computation of the
 scattering matrix will be done at a wavelength of 0.74\mu{}m.
 
 * Output files
@@ -512,13 +519,13 @@ scattering matrix will be done at a wavelength of 0.74\mu{}m.
   the structure in a formal way.  See [[#normalization][the appendix]] for information
   about the normalization of the scattering matrix and about the
   angular grid that is used for it.  Also, see the =-radmc= switch
-  which will modify[fn:5] the output to make sure it can be used as an
+  which will modify[fn:6] the output to make sure it can be used as an
   input file for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]].
 
   To save space, =optool= can write a /sparse file/ (iformat=100) that
   stores the full scattering matrix only for selected wavelengths (for
   example, the ones that will be used for image generation). Use =-sp
-  LAM= or =-sp LAM1 LAM2= to define a wavelength (interval)[fn:6] for
+  LAM= or =-sp LAM1 LAM2= to define a wavelength (interval)[fn:7] for
   the matrix to be stored. Multiple =-sp= switches are allowed.
 
 - dustkappa.fits ::
@@ -544,24 +551,24 @@ scattering matrix will be done at a wavelength of 0.74\mu{}m.
   text to include it into your paper. For more details, read the
   comment section in =optool2tex=.
 
-- optool\underscore{ }mix.lnk ::
+- optool\underline{ }mix.lnk ::
 
   When using the =-w= switch, =optool= will write the result of mixing
   to this file.
 
 - optool\underline{ }sd.dat & optool\underline{ }lam.dat ::
 
-  When using the =-w= switch, it will write the grain size grid and
-  the wavelength grid to two files. The files serve as example files
-  for what the structure of files need to be to be read in with =-a
-  file.dat= and =-l file.dat= for user-provided size and wavelength
-  grids.
+  When using the =-w= switch, =optool= will write the grain size grid
+  and the wavelength grid to two files. The files serve as example
+  files for what the structure of files need to be to be read in with
+  =-a file.dat= and =-l file.dat= for user-provided size and
+  wavelength grids.
 
-[fn:5] This includes a change of the angular grid and a change in the
+[fn:6] This includes a change of the angular grid and a change in the
 normalization of the scattering matrix. The format number will be 1
 (or 101 for a sparse file).
 
-[fn:6] The file will always have the matrix for at least two adjacent
+[fn:7] The file will always have the matrix for at least two adjacent
 wavelengths around the specified \lambda, so that an interpolation to
 the exact wavelength will be stable.
 
@@ -570,8 +577,8 @@ the exact wavelength will be stable.
 :CUSTOM_ID: python
 :END:
 
-=optool= comes with a [[https://www.python.org/][=python=]] module =optool.py= that runs =optool=
-in the background[fn:7] and puts all computed quantities as =numpy=
+=optool= comes with a [[https://www.python.org/][=python=]] module[fn:8] =optool.py= that runs =optool=
+in the background[fn:9] and puts all computed quantities as =numpy=
 arrays into a python object.  This makes it straight forward to
 inspect and further process the output. Here is how to use it:
 
@@ -581,7 +588,7 @@ p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
 #+end_src
 
 The argument to =optool.particle()= must be a valid shell
-command[fn:8] to run =optool=, if necessary with the full path to the
+command[fn:10] to run =optool=, if necessary with the full path to the
 =optool= binary.  Depending on the presence of the =optool='s *-d*
 switch, the command will produce opacities either for $n_p=1$
 particle, or for $n_p=n_a$ particles. Most of the attributes (with the
@@ -646,7 +653,10 @@ will show (see Fig 1):
   wavelengths.  When interpreting the y axis, note that we plot the
   positive/negative $\log_{10}$ of positive/negative matrix elements,
   compressing the range from $10^{-2}$ to $10^2$ into a line (use the
-  grey lines as a guide, ignore the y-axis labels).
+  grey lines as a guide, ignore the y-axis labels). If you cannot see
+  F_11, it is because it is equal to and hidden behind F_22. If you
+  cannot see F_33, it is because it is equal to and hidden behind
+  F_44.
 - If the =computemean= method has been called first, the mean
   opacities \kappa_Planck and \kappa_Ross are shown in a separate
   plot.  The mean opacities are per unit of grain mass, so please
@@ -657,13 +667,15 @@ will show (see Fig 1):
 #+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./maint/inspect.png]]
 
+
+#+LaTeX: \newpage
 The python module has a few more tricks up its sleeve (for details
 check the documentation inside the Python module file =optool.py=):
 
-- You can cache results for quick reloading in a new python session.
-  When running the following command twice, =optool= will be called
-  only the first time. The cache will reside in the specified
-  directory.
+- You can cache results of an expensive computation for quick
+  reloading in a new python session.  When running the following
+  command twice, =optool= will be called only the first time. The
+  cache will reside in the specified directory.
   #+begin_src python
   sil = optool.particle('optool -d ol-mg50 -na 100',cache='silcache')
   #+end_src
@@ -682,12 +694,15 @@ check the documentation inside the Python module file =optool.py=):
 - /Particle arithmetic/: multiplying =optool.particle= objects with
   factors and adding them, or applying size distributions to a
   pre-computed set of opacities. See the documentation of the optool
-  module and [[#crystalline_mixing][appendix C.1]] for examples.
+  module and [[#crystalline_mixing][appendix C.1]] for an example.
 
-[fn:7] The module runs the command as a subprocess, with output to a
+[fn:8] =optool.py= must be installed in the python environment, or be
+present in the current directory.
+
+[fn:9] The module runs the command as a subprocess, with output to a
 temporary subdirectory.
 
-[fn:8] As a string, or as a list like =['/path/to
+[fn:10] As a string, or as a list like =['/path/to
 my/command','arg1','arg2',...]=.
 
 
@@ -709,7 +724,7 @@ maximum grain size. The grain size grid is logarithmic, so $da\propto
 a$. The logarithmic bins are then filled according to:
 | powerlaw                                           | \quad $n(a)\propto a^{-p+1}$                                                                     |
 | log-normal distribution, triggered by $\sigma>0$   | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
-| normal distribution[fn:10], triggered by $\sigma<0$       | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
+| normal distribution[fn:11], triggered by $\sigma<0$       | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
 
 Other size distributions can be constructed using the [[#python][python
 interface]].  Finally, =optool= can also read a size distribution from a
@@ -719,7 +734,7 @@ followed by lines with two numbers each: grain size in micron and
 number of grains in the corresponding bin. To get an example file, run
 =optool= with the option *-w*):
 
-[fn:10]   A normal distribution is not sampled symmetrically on a
+[fn:11]   A normal distribution is not sampled symmetrically on a
 logarithmic size grid - please make sure your sampling is fine enough
 around the mean size.
 * Scattering Matrix: The fine print
@@ -853,13 +868,14 @@ simple as using the [[#builtin-materials][built-in materials]].  Here is how to 
 
 ** Overview of optical properties
 
-This grid plot shows the imaginary parts of all built-in materials, in
-the wavelength range from 0.05 to 300 \mu{}m.  Some if the ices have
-only data in a small range, where the vibrational transitions lie.
-However, these materials can be used over a much broader wavelength
-range, because the extrapolation becomes problematic only in the UV
-where electronic transitions kick in.
+The grid plot in Fig. 2 shows the imaginary parts of all built-in
+materials, in the wavelength range from 0.05 to 300 \mu{}m.  Some if
+the ices have only data in a small range, where the vibrational
+transitions lie.  However, these materials can be used over a much
+broader wavelength range, because the extrapolation becomes
+problematic only in the UV where electronic transitions kick in.
 
+#+CAPTION: Imaginary part of refractive index of all builtin materials.
 #+ATTR_LATEX: :width 15.cm :options angle=0
 [[./maint/all_k.pdf]]
 
@@ -900,7 +916,7 @@ the code.
   matrix elements for these structures is =DMiLay= (Toon & Ackerman
   1981). For speed, you can use =-xlim 1e3= or so to set a limit for
   the size parameter ($x=2\pi a/\lambda$) where =optool= switches from
-  DHS to Mie[fn:11]. In rare cases, =DMiLay= might not converge and
+  DHS to Mie[fn:12]. In rare cases, =DMiLay= might not converge and
   return an error. =optool= then falls back to a Mie computation,
   using the routine =MeerhoffMie= (de Rooij+ 1984), with a size
   parameter limit to ensure stability. In a situation where the
@@ -914,7 +930,7 @@ the code.
   scaling factor $k_{\rm f}$ which are related to the radius of
   gyration $R_{\rm g}$ of the aggregate by $N=k_{\rm f}(R_{\rm
   g}/a_0)^{D_{\rm f}}$.  The size $a$ of the particles as specified by
-  the *-a* switch is interpreted as the /compact/[fn:12] size of all
+  the *-a* switch is interpreted as the /compact/[fn:13] size of all
   material in the aggregate, so that $N=a^3/a_0^3$, where $a_0$ is the
   monomer radius.  The average volume filling factor $f$ can be
   expressed by $f=N\cdot(\sqrt{3/5}\,a_0/R_{\rm g})^3$.  To determine
@@ -962,12 +978,12 @@ the code.
   condition. The scattering matrix will be computed from a single
   sphere in the Rayleigh limit.
 
-[fn:11] The default limit is x_lim=10^{8}.  =optool= does the alternative
+[fn:12] The default limit is x_lim=10^{8}.  =optool= does the alternative
 Mie computation with a slightly increased grain diameter, representing
 the mean geometric cross section of the DHS spheres, to connect well
 to the DHS opacities. See also point 5 under [[#trouble_shooting][Troubleshooting]].
 
-[fn:12]still including the porosity specified with the *-p* switch
+[fn:13]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
 "porosity" resulting from the aggregate structure
 
@@ -984,18 +1000,16 @@ to the DHS opacities. See also point 5 under [[#trouble_shooting][Troubleshootin
 3. If you do not remember how to reproduce a specific run, just check
    the output file header. It contains the exact command that was used
    to produce the file.
-4. Make sure the =optool= executable is on your binary search path.
-   Or run it by giving the full path, like =./optool=.
-5. You may have noticed that =optool= became slower in version 1.9.9
-   when computing the /short-wavelength/ properties of /very large
-   grains/.  You may use *-xlim 1e4* to request a [[#internals][speed-related switch
-   from DHS to Mie]] at $x=10^4$, restoring the old speed.  When doing
-   so, the opacity differences are typically small, but significant
-   changes may be seen in some scattering matrix elements for
-   computations with very large size parameters. In many applications,
-   this is fully masked by the fact that short-wavelength opacities
-   are completely dominated by smaller grains. We did increase the
-   limit to make you get the best possible results out of the box.
+4. If the =optool= command is not found by your shell, make sure the
+   =optool= executable is on your binary search path.  Or run it by
+   giving the full path, like =./optool=.
+5. =optool= became slower in version 1.9.9 when computing the
+   /short-wavelength/ properties of /very large grains/ because we
+   changed the size parameter limit for falling back to a Mie
+   calculation from $10^4$ to $10^8$, to make sure users get optimal
+   results out of the box. You may use *-xlim 1e4* to get the old
+   speed back, for applications where the short wavelengths opacity is
+   dominated by small grains instead of large ones.
 
 
 #+LaTeX: \newpage
