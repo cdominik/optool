@@ -371,6 +371,41 @@ class particle:
                 idxnames=['grain index','log lambda [um]'],
                 idxvals=[np.array(range(self.np))+1,llamfmt])
 
+
+    def plotpi(self,ymin=None,ymax=None):
+        """Create interactive plots of I,P,p.
+        I is the intensity, f11
+        P it the polarization, abs(f12)
+        p is the degree of polarization, P/I
+
+        The y-axis scaling is based on the values of P and p, but ignores I since
+        it can become so large. ymax and ymin are keyword parameters to change
+        the y-axis scaling.    
+        """
+
+        # Extract and plot the scattering matrix elements
+        if self.scat:
+            bottom = 1e-2
+            int_I = self.f11
+            int_P = np.sqrt(self.f12**2)  # abs would be good enough, but to remind of general case
+            deg_P = abs(int_P/int_I)
+            if (not ymin):
+                ymin = min(np.min(np.matrix.flatten(int_P)),np.min(np.matrix.flatten(deg_P)))
+            if (not ymax):
+                ymax = max(np.max(np.matrix.flatten(int_P)),np.max(np.matrix.flatten(deg_P)))
+    
+            # Make version of grid variables with fewer digits
+            lamfmt  = np.round(self.lam,decimals=3)
+            angfmt  = np.round(self.scatang,decimals=3)
+
+            # interactive plot of the scattering matric elements
+            viewarr([int_I,int_P,deg_P],
+                    index=2,ylabel=['f11','-f12',
+                                    'f12/f11'],
+                    idxnames=['grain index','lambda [um]','angle'],
+                    idxvals=[np.array(range(self.np))+1,lamfmt,angfmt],
+                    ymin=ymin,ymax=ymax)
+
     def select(self,i):
         """Select just one bin from a multi-particle object.
         A multi-particle opject is produced when running optool with
