@@ -1,10 +1,4 @@
-#+OPTIONS: title:nil author:nil date:nil
-#+TITLE:  OpTool User Guide
-#+AUTHOR: Carsten Dominik, Michiel Min, and Ryo Tazaki
-#+DATE:   June 2023, version 1.9.12
 #+LaTeX: \textheight=650pt
-#+LaTeX_HEADER: \textheight=650pt
-
 #+LaTeX: \centerline{\textbf{\Huge OpTool User Guide}}\vspace*{2mm}
 #+LaTeX: \centerline{by Carsten Dominik, Michiel Min, and Ryo Tazaki; June 2023, version 1.9.12}
 
@@ -464,19 +458,11 @@ repository]]. Other resources are the [[https://www.astro.uni-jena.de/Laboratory
 papers in the literature. Don't forget to add the line with
 $n_\lambda$ and \rho!  If that is not possible, =optool= will count
 the lines and you can specify the density after the mass fraction,
-like this: =optool -c path/to/file.lnk 0.7 3.42=.  Please do not
-forget to include references for any optical properties used in your
-study.
+like this: =optool -c path/to/file.lnk 0.7 3.42=.  Please include
+references for any optical properties used in your study.
 
 [fn:5]This file structure is also compatible with what is
 needed to set the wavelength grid with *-l FILE*.
-
-# ** Ad-hoc materials
-# :PROPERTIES:
-# :CUSTOM_ID: ad-hoc-material
-# :END:
-# For a omputation at the single wavelength, the refractive index and
-# material density of a material can be specified on the command line.
 
 #+LATEX: \newpage
 
@@ -516,7 +502,7 @@ scattering matrix will be done at a wavelength of 0.74\mu{}m.
   line is followed by a list of the grid angles, another empty
   line, and then the scattering matrix elements for all wavelengths
   and all angles. The comment section at the start of the file shows
-  the structure in a formal way.  See [[#normalization][the appendix]] for information
+  the structure in a formal way.  See [[#normalization][appendix B.1]] for information
   about the normalization of the scattering matrix and about the
   angular grid that is used for it.  Also, see the =-radmc= switch
   which will modify[fn:6] the output to make sure it can be used as an
@@ -663,7 +649,7 @@ will show (see Fig 1):
   apply a dust-to-gas mass ratio to obtain opacities for a gas-dust
   mixture.
 
-#+CAPTION: Screenshot of plots created by running =p.plot()= on an optool particle.
+#+CAPTION: Plots created by running =p.plot()= on an optool particle.
 #+ATTR_LATEX: :width 14.8cm :options angle=0
 [[./maint/inspect.png]]
 
@@ -903,7 +889,7 @@ the code.
   vacuum as an additional material.  The subroutine doing the mixing
   uses an iterative procedure that is very stable, also for a large
   number of components.\\
-  If there is a mantle, the Maxwell Garnett rule is applied with the
+  If there is a mantle, the Maxwell-Garnett rule is applied with the
   core being treated as an inclusion inside a mantle matrix.\\
   With a =-w= switch, =optool= will write result of mixing
   into the file =optool_mix.lnk=.
@@ -978,10 +964,12 @@ the code.
   condition. The scattering matrix will be computed from a single
   sphere in the Rayleigh limit.
 
-[fn:12] The default limit is x_lim=10^{8}.  =optool= does the alternative
+[fn:12] The default limit is x_lim=10^{8}. A smaller value is OK in
+applications where the short wavelength opacity is dominated by
+smaller particles. =optool= does the alternative
 Mie computation with a slightly increased grain diameter, representing
 the mean geometric cross section of the DHS spheres, to connect well
-to the DHS opacities. See also point 5 under [[#trouble_shooting][Troubleshooting]].
+to the DHS opacities.
 
 [fn:13]still including the porosity specified with the *-p* switch
 (which is porosity residing in the monomers themselves), but not any
@@ -997,20 +985,12 @@ to the DHS opacities. See also point 5 under [[#trouble_shooting][Troubleshootin
 2. If you get oscillations in the opacities, in particular at long
    wavelengths, the grain size resolution is not sufficient.  Use more
    grain sizes (*-a*, *-na* and *-d* switches).
-3. If you do not remember how to reproduce a specific run, just check
-   the output file header. It contains the exact command that was used
-   to produce the file.
+3. If you do not remember how to reproduce a specific run, check the
+   output file header. It contains the exact command that was used to
+   produce the file.
 4. If the =optool= command is not found by your shell, make sure the
    =optool= executable is on your binary search path.  Or run it by
    giving the full path, like =./optool=.
-5. =optool= became slower in version 1.9.9 when computing the
-   /short-wavelength/ properties of /very large grains/ because we
-   changed the size parameter limit for falling back to a Mie
-   calculation from $10^4$ to $10^8$, to make sure users get optimal
-   results out of the box. You may use *-xlim 1e4* to get the old
-   speed back, for applications where the short wavelengths opacity is
-   dominated by small grains instead of large ones.
-
 
 #+LaTeX: \newpage
 * Acknowledgments
@@ -1076,8 +1056,9 @@ We are indebted to
 #+latex_header: \setlength\parindent{0pt}
 #+latex_header: \usepackage{array}
 #+latex_header: \newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}
+#+latex_header: \textheight=650pt
 
-#+OPTIONS: toc:nil num:2 ^:t
+#+OPTIONS: toc:nil num:2 ^:t title:nil author:nil date:nil
 #+LATEX_CLASS: koma-article
 #+LATEX_CLASS_OPTIONS: [11pt,a4paper]
 
