@@ -348,13 +348,15 @@ extend the [[#output-files][output]].
   normalization. File names will contain =LABEL= if specified and have
   the extension =.inp=.
 
-+ =-print [VAR]= ::
++ =-print [KEY]= ::
   Write to =STDOUT= instead of files. The default is to write \lambda,
-  \kappa_abs, \kappa_sca, \kappa_ext, and g, with a header. When =VAR=
-  is any of =kabs=, =ksca=, =kext=, or =g=, write only that
-  variable. You can use this to extract a single value, for example
-  the 850\mu{}m extinction opacity of grains between 1 and 3mm:
-  =optool -a 1000 3000 -l 850 -print kext=.
+  \kappa_abs, \kappa_sca, \kappa_ext, and g. Many other outputs are
+  possible, run =optool -print ?= for a full list. For readability, a
+  header line may be printed to =STDERR=, but =STDOUT= gets only numbers
+  which can be used in pipes and for redirection. You can use this to
+  extract a single value, for example the 850\mu{}m extinction opacity
+  of grains between 1 and 3mm: =optool -a 1000 3000 -l 850 -print
+  kext=.
 
 + =-w= ::
   Write the files =optool_sd.dat= and =optool_lam.dat= with the grain

@@ -59,7 +59,7 @@
 
 @units = qw(MHz mhz GHz ghz THz thz cm-1 /cm m dm cm mm um micron nm);
 
-@printvars = qw(all kabs ksca kext g gsca);
+@printvars = qw(kabs a ksca s kext e gsca g lnk m fmat f pol p ?);
 
 #-------------------------------------------------------------
 # Check what we have on the command line, shell dependent

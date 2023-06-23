@@ -203,6 +203,10 @@ program optool
   ! MMF implementation
   real(kind=dp)   :: mmf_a0,mmf_struct,mmf_kf
 
+  ! Variables for fine-tuning the -pring mechaanism
+  integer iop,icp
+  real (kind=dp) justnum_angle
+
   ! ----------------------------------------------------------------------
   ! Defaults values for parameters and switches
   ! ----------------------------------------------------------------------
@@ -658,19 +662,45 @@ program optool
         verbose = .true.
      case('-print')
         ! FIXME: quiet = .true.
-        justnum = 'X'
+        justnum = 'x'
+        justnum_angle = -1.
         if (arg_is_value(i+1)) then
            i=i+1; call getarg(i,value)
+           iop = index(value,'[')
+           icp = index(value,']')
+           if ((iop.gt.0).and.(icp.gt.0).and.(iop.lt.icp-1)) then
+              read(value(iop+1:icp-1),*) justnum_angle
+              value = trim(value(1:iop-1))
+           endif
            select case(trim(value))
+           case('?')
+              ! Show what option are available for -print
+              write(stdo,*) 'Keywords for -print KEYWORD. Output to STDOUT, for each lambda.'
+              write(stdo,*) 'Headers will be printed to STDERR for viewing convenience - '
+              write(stdo,*) '        they will not show up in a pipe or redirect.'
+              write(stdo,*) ' KEYS    |  ACTION'
+              write(stdo,*) '-----------------------------------------------------------------------------'
+              write(stdo,*) '         :  print LAM KABS KSCA KEXT G'
+              write(stdo,*) 'a | kabs :  print the absorption opacity'
+              write(stdo,*) 's | ksca :  print the scattering opacity'
+              write(stdo,*) 'e | kext :  print the extinction opacity'
+              write(stdo,*) 'g | gsca :  print the asymmetry factor G'
+              write(stdo,*) 'm | lnk  :  print mixed refractive index LAM N K'
+              write(stdo,*) 'f | fmat :  print ANG F11 F12 F22 F33 F34 F44.   f[67] selects just ~67 deg.'
+              write(stdo,*) 'p | pol  :  print ANG F11 F12 |F12/F11|      .   p[21] selects just ~21 deg.'
+              stop
+              ! Select the right single-character key
            case('all')              ; justnum = 'x'
-           case('kabs')             ; justnum = 'a'
-           case('ksca','kscat')     ; justnum = 's'
-           case('kext')             ; justnum = 'e'
+           case('kabs','a')         ; justnum = 'a'
+           case('ksca','kscat','s') ; justnum = 's'
+           case('kext','e')         ; justnum = 'e'
            case('g','gsca','gscat') ; justnum = 'g'
-           case('lnk')              ; justnum = 'l'
+           case('lnk','m')          ; justnum = 'l'
+           case('f','F')            ; justnum = 'f'
+           case('ip','p')           ; justnum = 'p'
            case default
               i=i-1
-              write(stde,*) 'WARNING: "',trim(value),'" is not a -print variable. Trying core material...';
+              write(stde,*) 'WARNING: "',trim(value),'" is not a -print key. Trying core material...';
            endselect
         endif
      case ('-tex')
@@ -764,6 +794,10 @@ program optool
      write(stde,*) "ERROR: prosities must be 0 <= p < 1"; stop
   endif
 
+  if ((justnum .ne. ' ') .and. split) then
+     write(stde,*) "ERROR: -print does not work in connection with -d splitting"; stop
+  endif
+  
   ! *** Grain size distribution
   if ( (amin.le.0d0) .or. (amax.le.0d0) ) then
      write(stde,*) 'ERROR: Both amin and amax need to be positive numbers',amin,amax; stop
@@ -1101,7 +1135,7 @@ program optool
         continue
      else
         if (justnum .ne. ' ') then
-           call write_to_stdout(p,justnum)
+           call write_to_stdout(p,justnum,justnum_angle)
         else
            call write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax, &
                 fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
@@ -1467,7 +1501,11 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
      close(unit=20)
   endif
   if (justnum .eq. 'l') then
-     write(stdo,'(i5,f5.2)') nlam,rho_av
+     write(stde,'(" nlam     rho")')
+     write(stde,'("-------------")')
+     write(stdo,'(i5,"   ",f5.2)') nlam,rho_av
+     write(stde,'("      lam            n              k")')
+     write(stde,'("---------------------------------------------")')
      do ilam=1,nlam
         write(stdo,'(1p,e15.5,1p,e15.5,1p,e15.5)') lam(ilam),e1blend(ilam),e2blend(ilam)
      enddo
@@ -2566,28 +2604,69 @@ end subroutine prepare_sparse
 
 !!! **** Routines to write output files
 
-subroutine write_to_stdout(p,what)
+subroutine write_to_stdout(p,what,angle)
   ! ----------------------------------------------------------------------
   ! Just write the most important numbers to STDOUT
-  ! Each line has lambda kabs ksca kext g
+  ! The -print command line option takes a key that is interpreted here
+  ! in order to select what information should be printed
   ! ----------------------------------------------------------------------
+  use IOunits
   use Defs
   implicit none
   type(particle) :: p
-  integer        :: i
+  integer        :: i,iang
   character*(*)  :: what
   character*20   :: o
-  if (what .eq. 'X') then
-     write(6,'("     lam [um]      kabs          ksca          kext          gsca")')
-     write(6,'("----------------------------------------------------------------------")')
-  endif
+  real (kind=dp) :: angle,ang1,ang2
   do i=1,nlam
      select case(what)
-     case('x','X') ; write(6,'(1p,5e14.5)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
-     case('a') ; write(o,'(1p,e15.5)') p%kabs(i); write(6,'(A)') trim(adjustl(o))
-     case('s') ; write(o,'(1p,e15.5)') p%ksca(i); write(6,'(A)') trim(adjustl(o))
-     case('e') ; write(o,'(1p,e15.5)') p%kext(i); write(6,'(A)') trim(adjustl(o))
-     case('g') ; write(o,'(1p,e15.5)') p%g(i)   ; write(6,'(A)') trim(adjustl(o))
+     case('x') ! lam kabs ksca kext
+        if ((i.eq.1).and.(.not.quiet)) then
+           ! For human reading convenience, a header to STDOUT
+           write(stde,'("     lam [um]      kabs          ksca          kext          gsca")')
+           write(stde,'("----------------------------------------------------------------------")')
+        endif
+        write(stdo,'(1p,5e14.5)') lam(i),p%kabs(i),p%ksca(i),p%kext(i),p%g(i)
+     case('a') ! kabs
+        write(o,'(1p,e15.5)') p%kabs(i); write(stdo,'(A)') trim(adjustl(o))
+     case('s') ! ksca
+        write(o,'(1p,e15.5)') p%ksca(i); write(stdo,'(A)') trim(adjustl(o))
+     case('e') ! kext
+        write(o,'(1p,e15.5)') p%kext(i); write(stdo,'(A)') trim(adjustl(o))
+     case('g') ! gsca
+        write(o,'(1p,e15.5)') p%g(i)   ; write(stdo,'(A)') trim(adjustl(o))
+     case('f','p') ! Scattering matrix elements
+        if ((i.eq.1).and.(.not.quiet)) then
+           if (what.eq.'f') then ! Full matrix
+              write(stde,'("  ang[deg]    F11            F12            F22            F33            F34            F44 ")')
+              write(stde,'("--------------------------------------------------------------------------------------------------")')
+           else ! Just what is needed for linear polarization
+              write(stde,'("  ang[deg]    F11            F12            |F12/F11|")')
+              write(stde,'("-----------------------------------------------------")')
+           endif
+        endif
+        ! For human reading convenience, a header to STDOUT?
+        if ((nlam.gt.1).and.(.not.quiet)) write(stdo,'("lambda=",1p,4e15.5)') lam(i)
+        ang1 = 0.d0
+        do iang=1,nang
+           ! In this loop, we select for which angles information should be printed.
+           ! THis will normally be all angles.  If an angle has specified, we show the
+           ! values for an angle at most 1 degree away from the requested angle.
+           ! We could do a full interpolation, but for now we did not.
+           ang2 = dble(iang-0.5)/dble(nang)*180.d0
+           if ((angle.lt.0) .or. ((iang.eq.nang).or.((ang1.le.angle).and.(ang2.gt.angle)))) then
+              if (what.eq.'f') then
+                 write(stdo,'(f8.2,1p,6e15.5)') ang2,p%F(i)%F11(iang),p%F(i)%F12(iang), &
+                      p%F(i)%F22(iang),p%F(i)%F33(iang),p%F(i)%F34(iang),p%F(i)%F44(iang)
+              else if (what.eq.'p') then
+                 write(stdo,'(f8.2,1p,3e15.5)') ang2,p%F(i)%F11(iang),p%F(i)%F12(iang), &
+                      abs(p%F(i)%F12(iang)/p%F(i)%F11(iang))
+              endif
+              if (angle.ge.0) goto 1
+           endif
+           ang1 = ang2
+        enddo
+1       continue
      endselect
   enddo
 end subroutine write_to_stdout
