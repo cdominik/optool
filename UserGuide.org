@@ -700,7 +700,6 @@ my/command','arg1','arg2',...]=.
 
 \appendix
 
-
 * Size distribution
 :PROPERTIES:
 :CUSTOM_ID: sizedist
@@ -809,15 +808,18 @@ the computed values to the cell boundaries.
 :END:
 Crystalline materials have optical properties that are dependent on
 the relative orientation of the electric field of the incoming
-radiation and the crystallographic axes of the material. For the
+radiation and the crystallographic axes of the material. A fully
+correct treatment would require the use of the refractive index
+/tensor/ which is not implemented in optool (DDA can in principle do
+that). There are two approximations that can be used. For the
 materials built into =optool= we have assumed that the material
 consists of /many small crystalline areas that are randomly oriented
 within each grain/. For this, the refractive index data for different
 orientations have been combined using the Bruggeman effective medium
-rule. It results in a single refractive index data. However, we can
-also think of a situation where /each dust grain is a single crystal
-in a cloud of randomly oriented grains/. In that case, we need to
-compute opacities for individual orientations, and then average the
+rule. It results in a single refractive index data set. However, we
+can also think of a situation where /each dust grain is a single
+crystal in a cloud of randomly oriented grains/. In that case, we need
+to compute opacities for individual orientations, and then average the
 opacities. Axis-specific data is (when available) also included in the
 optool distribution, in the =lnk_data/ad= directory. You could use the
 [[#python][python interface]] to do this kind of mixing in the following way:
