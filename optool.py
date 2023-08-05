@@ -177,7 +177,7 @@ class particle:
         sizedist(N_of_a)
              Compute opacity of a size distribution of elements of SELF
         """
-    def __init__(self,cmd,cache=''):
+    def __init__(self,cmd,cache='',silent=False):
         """Create a new optool.particle opject.
 
         Parameters
@@ -193,6 +193,8 @@ class particle:
                they can be read instead of recomputed the next time
                the same command is used.  The cache is automatically
                cleared when CMD changes between runs.
+        silent : boolean, optional
+               If True no messages or warnings will be printed on screen.
         """
         if (type(cmd)==list):
             self.cmd = " ".join(cmd)
@@ -204,7 +206,8 @@ class particle:
         if (cache and checkcmd(cache,self.cmd)):
             # We can read the output directly from a directory that was
             # created by the exact same command.
-            print("Using result cache in directory:",cache,"...")
+            if not silent:
+                print("Using result cache in directory:",cache,"...")
             cmd=''
         else:
             # Convert command string into list if necessary
@@ -234,7 +237,9 @@ class particle:
                 cmd.append('-o'); cmd.append(dir)
     
                 # Run optool to produce the opacities
-                cmd[0] = bin; subprocess.Popen(cmd).wait()
+                stdout = subprocess.DEVNULL if silent else None
+                stderr = subprocess.DEVNULL if silent else None
+                cmd[0] = bin; subprocess.Popen(cmd, stdout=stdout, stderr=stderr).wait()
             
             # Check if there is output we can use
             scat,ext = check_for_output(dir)
@@ -254,7 +259,7 @@ class particle:
                     file = ("%s/dustkappa_%03d.%s") % (dir,(i+1),ext)
                 if (not os.path.exists(file)): break
                 nfiles = nfiles+1
-                x = readoutputfile(file,scat)
+                x = readoutputfile(file,scat,silent=silent)
                 header.append(x[0])
                 lam = x[1]
                 kabs.append(x[2])
@@ -291,9 +296,11 @@ class particle:
             self.np = nfiles
         finally:
             if cache:
-                print("Files remain available in directory: "+dir)
+                if not silent:
+                    print("Files remain available in directory: "+dir)
             else:
-                print("Cleaning up temporary directory "+dir)
+                if not silent:
+                    print("Cleaning up temporary directory "+dir)
                 os.system('rm -rf '+dir)
 
     def plot(self,minkap=1e0):
@@ -1149,7 +1156,7 @@ def parse_headers(headers,b):
 
     return b
 
-def readoutputfile(file,scat):
+def readoutputfile(file,scat,silent=False):
     """Read OpTool output file FILE.
 
     Parameters
@@ -1159,6 +1166,8 @@ def readoutputfile(file,scat):
          The file name to read
     scat : bool
          When True, the file contains a scattering matrix
+    silent : boolean
+         If True, no message or warning will be printed on screen
 
     Returns
     -------
@@ -1172,7 +1181,8 @@ def readoutputfile(file,scat):
         rfile = open(file, 'r')
     except:
         raise RuntimeError('File not found: '+file)
-    print('Reading',file,'...')
+    if not silent:
+        print('Reading',file,'...')
 
     # Read the header/comment field
     header = ''
