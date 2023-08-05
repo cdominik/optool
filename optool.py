@@ -81,7 +81,7 @@ import re
 import os
 import subprocess
 from distutils.spawn import find_executable
-import random
+import tempfile
 
 class particle:
     """Run optool and turn output into a python object.
@@ -224,13 +224,9 @@ class particle:
             if (cache):
                 dir = cache
             else:
-                # create a directory for the output and make sure it is empty
-                random.seed(a=None)
-                dir = 'optool_tmp_output_dir_'+str(int(random.random()*1e6))
+                # create temporary directory in /tmp/
+                dir = tempfile.mkdtemp(prefix="optool_")
             if cmd:
-                # make sure directory is new and empty
-                os.system('rm -rf '+dir)
-                os.system('mkdir '+dir)
                 # Store the command line we are using.  We store the
                 # string version of the command, not the list version.
                 writecmd(dir,self.cmd)
