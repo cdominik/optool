@@ -79,6 +79,7 @@ import matplotlib.pyplot as plt
 import math as m
 import re
 import os
+import shutil
 import subprocess
 from distutils.spawn import find_executable
 import tempfile
@@ -208,6 +209,7 @@ class particle:
             # created by the exact same command.
             if not silent:
                 print("Using result cache in directory:",cache,"...")
+            # Set cmd to the emty string, to signal not to run a command
             cmd=''
         else:
             # Convert command string into list if necessary
@@ -230,6 +232,12 @@ class particle:
                 # create temporary directory in /tmp/
                 dir = tempfile.mkdtemp(prefix="optool_")
             if cmd:
+                if cache:
+                    # make sure directory is new and empty
+                    shutil.rmtree(dir,ignore_errors=True)
+                    os.mkdir(dir)
+                # FIXME: remove os.system('rm -rf '+dir)
+                # FIXME: remove os.system('mkdir '+dir)
                 # Store the command line we are using.  We store the
                 # string version of the command, not the list version.
                 writecmd(dir,self.cmd)
@@ -301,7 +309,8 @@ class particle:
             else:
                 if not silent:
                     print("Cleaning up temporary directory "+dir)
-                os.system('rm -rf '+dir)
+                shutil.rmtree(dir)
+                # FIXME: os.system('rm -rf '+dir)
 
     def plot(self,minkap=1e0):
         """Create interactive plots of the opacities in SELF.
@@ -1089,10 +1098,12 @@ def check_for_output(dir):
         elif (os.path.exists(dir+'/dustkappa_001.'+ext)):
             return False, ext
         elif (os.path.exists(dir+'/dustkapscatmat.'+ext)):
-            os.system('mv '+dir+'/dustkapscatmat.'+ext+' '+dir+'/dustkapscatmat_001.'+ext)
+            os.rename(dir+'/dustkapscatmat.'+ext, dir+'/dustkapscatmat_001.'+ext)
+            # FIXME: remove os.system('mv '+dir+'/dustkapscatmat.'+ext+' '+dir+'/dustkapscatmat_001.'+ext)
             return True, ext
         elif (os.path.exists(dir+'/dustkappa.'+ext)):
-            os.system('mv '+dir+'/dustkappa.'+ext+' '+dir+'/dustkappa_001.'+ext)
+            os.rename(+dir+'/dustkappa.'+ext, dir+'/dustkappa_001.'+ext)
+            # FIXME: remove os.system('mv '+dir+'/dustkappa.'+ext+' '+dir+'/dustkappa_001.'+ext)
             return False, ext
     raise RuntimeError('No valid OpTool output files found')
 
