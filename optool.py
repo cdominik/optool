@@ -1,5 +1,4 @@
-"""
-NAME
+"""NAME
     optool
 
 DESCRIPTION
@@ -18,6 +17,13 @@ and plot the results
   import optool
   p = optool.particle(’~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d’)
   p.plot()
+
+Read opacity files produced earlier by a run of optool. This is
+triggered by giving an empty command string, and the directory as
+second argument.
+
+  import optool
+  part = optool.particle('','path/to/directory')
 
 Compute the opacities of 100 olivine silicate grain sizes and of 50
 carbon grain sizes, and store the opacities in cache directories. This
@@ -197,13 +203,16 @@ class particle:
                they can be read instead of recomputed the next time
                the same command is used. The cache is automatically
                cleared when CMD changes between runs.
-               If CMD was False or empty we do not check what command
+               If CMD was False or empty, we do not check what command
                made the directory. Instead we simply read what is there.
         
         silent : boolean, optional
                If True no messages or warnings will be printed on screen.
         """
-        if (not cmd):
+        if ((not cmd) and (not cache)):
+            # well, you need to give me SOMETHING to work with
+            raise RuntimeError("Specify CMD or CACHE or both")
+        elif (not cmd):
             # no command, only read the cache directory
             cmd = ''
         elif (type(cmd)==list):
@@ -1113,7 +1122,7 @@ def check_for_output(dir):
             return True, ext, { dir+'/dustkapscatmat_001.'+ext : dir+'/dustkapscatmat.'+ext }
         elif (os.path.exists(dir+'/dustkappa.'+ext)):
             return False, ext, { dir+'/dustkappa_001.'+ext : dir+'/dustkappa.'+ext }
-    raise RuntimeError('No valid OpTool output files found')
+    raise RuntimeError(f"No valid OpTool output files found in directory {dir}")
 
 def parse_headers(headers,b):
     # Extract information on run parameters from headers

@@ -129,7 +129,7 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 
 - Release 1.9.14 ::
   - The python interface can now read the results from an earlier run
-    by leaving the COM argument empty.
+    by leaving the CMD argument empty.
     :   part = optool.particle("","path/to/directory")
     This is useful, for example, if you precompute many opacities that
     you then want to read with a python program. Thanks to Julien
