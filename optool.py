@@ -1149,19 +1149,20 @@ def parse_headers(headers,b):
     m = re.search(r" apow\s*=\s*(-?[0-9.]+)",headers[0])
     # apow may or may not be present, so we need to test
     if m:
-        b.apow[i]=float(m.group(1))
+        b.apow = np.full(n,float(m.group(1)))
     # lgnm may or may not be present, so we need to test
     m = re.search(r" (lgnm|norm)\s*=\s*(-?[-0-9.eE]+):(-?[-0-9.eE]+)",headers[0])
     if m:
-        b.amean[i]=float(m.group(2)); b.asig[i]=float(m.group(3))
+        b.amean = np.full(n,float(m.group(2)))
+        b.asig  = np.full(n,float(m.group(3)))
     m = re.search(r" porosity\s*=\s*([0-9.]+)",headers[0])
-    b.pcore[i]=float(m.group(1))
+    b.pcore = np.full(n,float(m.group(1)))
     m = re.search(r" p_mantle\s*=\s*(-?[0-9.]+)",headers[0])
-    b.pmantle[i]=float(m.group(1))
+    b.pmantle = np.full(n,float(m.group(1)))
     m = re.search(r" fmax\s*=\s*([0-9.]+)",headers[0])
-    b.fmax[i]=float(m.group(1))
+    b.fmax = np.full(n,float(m.group(1)))
     m = re.search(r" chop\s*=\s*([0-9.]+)",headers[0])
-    b.chop[i]=float(m.group(1))
+    b.chop = np.full(n,float(m.group(1)))
 
     m = re.search(r" RADMC-3D",headers[0])
     if m:
