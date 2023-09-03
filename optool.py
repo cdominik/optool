@@ -262,7 +262,7 @@ class particle:
                 cmd[0] = bin; subprocess.Popen(cmd, stdout=stdout, stderr=stderr).wait()
             
             # Check if there is output we can use
-            scat,ext = check_for_output(dir)
+            scat,ext,translate = check_for_output(dir)
             self.scat = scat
             self.massscale = 1.
 
@@ -277,6 +277,7 @@ class particle:
                     file = ("%s/dustkapscatmat_%03d.%s") % (dir,(i+1),ext)
                 else:
                     file = ("%s/dustkappa_%03d.%s") % (dir,(i+1),ext)
+                file = translate.get(file,file)
                 if (not os.path.exists(file)): break
                 nfiles = nfiles+1
                 x = readoutputfile(file,scat,silent=silent)
@@ -1105,15 +1106,13 @@ def check_for_output(dir):
     # Check for and if necessary rename input files
     for ext in['dat','inp']:
         if (os.path.exists(dir+'/dustkapscatmat_001.'+ext)):
-            return True, ext
+            return True, ext, dict()
         elif (os.path.exists(dir+'/dustkappa_001.'+ext)):
-            return False, ext
+            return False, ext, dict()
         elif (os.path.exists(dir+'/dustkapscatmat.'+ext)):
-            os.rename(dir+'/dustkapscatmat.'+ext,dir+'/dustkapscatmat_001.'+ext)
-            return True, ext
+            return True, ext, { dir+'/dustkapscatmat_001.'+ext : dir+'/dustkapscatmat.'+ext }
         elif (os.path.exists(dir+'/dustkappa.'+ext)):
-            os.rename(dir+'/dustkappa.'+ext,dir+'/dustkappa_001.'+ext)
-            return False, ext
+            return False, ext, { dir+'/dustkappa_001.'+ext : dir+'/dustkappa.'+ext }
     raise RuntimeError('No valid OpTool output files found')
 
 def parse_headers(headers,b):
