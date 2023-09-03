@@ -2722,10 +2722,10 @@ subroutine write_header (unit,cc,amin,amax,apow,amean,asig,na,lmin,lmax, &
           cc,amin, amax, na, amean, asig
   else
      ! power-law size distribution
-     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"    apow=",g10.2)') cc,amin, amax, na, apow
+     write(unit,'(A,"   amin [um]=",f11.3," amax [um]=",f11.3,"  na  =",I5,"     apow=",g10.2)') cc,amin, amax, na, apow
   endif
-  write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f11.3,"  nlam=",I5,"    nang=",I6)') cc,lmin, lmax, nlam, nang
-  write(unit,'(A,"   porosity =",f11.3," p_mantle =",f11.3,"  fmax=",g9.2,"chop=  ",f4.1)') cc,pcore,pmantle,fmax,chopangle
+  write(unit,'(A,"   lmin [um]=",f11.3," lmax [um]=",f11.3,"  nlam=",I5,"     nang=",I6)') cc,lmin, lmax, nlam, nang
+  write(unit,'(A,"   porosity =",f11.3," p_mantle =",f11.3,"  fmax=",g9.2," chop=  ",f4.1)') cc,pcore,pmantle,fmax,chopangle
   write(unit,'(A," Composition:")') cc
   write(unit,'(A,"  Where   mfrac  rho   Material")') cc
   write(unit,'(A,"  -----   -----  ----  -----------------------------------------------------")') cc
