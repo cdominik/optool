@@ -572,7 +572,7 @@ inspect and further process the output. Here is how to use it:
 
 #+begin_src python
 import optool
-p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
+p = optool.particle("~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d")
 #+end_src
 
 The argument to =optool.particle()= must be a valid shell
@@ -665,17 +665,23 @@ check the documentation inside the Python module file =optool.py=):
   command twice, =optool= will be called only the first time. The
   cache will reside in the specified directory.
   #+begin_src python
-  sil = optool.particle('optool -d ol-mg50 -na 100',cache='silcache')
+  sil = optool.particle("optool -d ol-mg50 -na 100",cache="silcache")
+  #+end_src
+- You can read the results directory created by another run of optool
+  by leaving the command parameter empty and specifying the directory
+  as the second parameter.
+  #+begin_src python
+  part = optool.particle("","path/to/directory")
   #+end_src
 - A =lnktable= class to read, plot, modify and write =lnk= files.
   #+begin_src python
-  x = optool.lnktable('lnk_data/sio2-Kitamura2007.lnk')
+  x = optool.lnktable("lnk_data/sio2-Kitamura2007.lnk")
   x.plot()
   #+end_src
 
 - Compute Planck and Rosseland mean opacities
   #+begin_src 
-  p = optool.particle('optool  pyr 0.87  c 0.13 -p 0.25')
+  p = optool.particle("optool  pyr 0.87  c 0.13 -p 0.25")
   p.computemean(tmin=10.,tmax=1500.,ntemp=300)
   #+end_src
 
@@ -690,8 +696,8 @@ present in the current directory.
 [fn:9] The module runs the command as a subprocess, with output to a
 temporary subdirectory.
 
-[fn:10] As a string, or as a list like =['/path/to
-my/command','arg1','arg2',...]=.
+[fn:10] As a string, or as a list like =["/path/to
+my/command","arg1","arg2",...]=.
 
 
 
@@ -826,9 +832,9 @@ optool distribution, in the =lnk_data/ad= directory. You could use the
 #+latex: \begin{small}
 #+begin_src python
 import optool
-px = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-x-Draine2003.lnk')
-py = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-y-Draine2003.lnk')
-pz = optool.particle('optool -a 1.5 lnk_data/ad/c-gra-z-Draine2003.lnk')
+px = optool.particle("optool -a 1.5 lnk_data/ad/c-gra-x-Draine2003.lnk")
+py = optool.particle("optool -a 1.5 lnk_data/ad/c-gra-y-Draine2003.lnk")
+pz = optool.particle("optool -a 1.5 lnk_data/ad/c-gra-z-Draine2003.lnk")
 pmix = (px+py+pz)/3.
 #+end_src
 #+latex: \end{small}

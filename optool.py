@@ -184,33 +184,47 @@ class particle:
         Parameters
         ---------=
 
-        cmd  : str
+        cmd  : str or False
                A shell command to run optool. The output produced by this
                command will be read in and stored in an instance of the
                optool.particle class.
+               If this is False or the empty string, just read what an
+               earlier run of optool has put into the directory given by
+               the second parameter CACHE.
 
         cache  : str, optional
                The diretory to cache the optool output files in, so that
                they can be read instead of recomputed the next time
-               the same command is used.  The cache is automatically
+               the same command is used. The cache is automatically
                cleared when CMD changes between runs.
+               If CMD was False or empty we do not check what command
+               made the directory. Instead we simply read what is there.
+        
         silent : boolean, optional
                If True no messages or warnings will be printed on screen.
         """
-        if (type(cmd)==list):
+        if (not cmd):
+            # no command, only read the cache directory
+            cmd = ''
+        elif (type(cmd)==list):
             self.cmd = " ".join(cmd)
         elif (type(cmd)==str):
             self.cmd = cmd
         else:
             raise RuntimeError("First argument CMD needs to be string or list")
-        
-        if (cache and checkcmd(cache,self.cmd)):
-            # We can read the output directly from a directory that was
-            # created by the exact same command.
+
+        if (cache and not cmd):
+            # No command, just read directory
+            if not silent:
+                print("Reading files in directory:",cache,"...")
+            # Set cmd to the emty string, to signal not to run a command
+            cmd = ''
+        elif (cache and checkcmd(cache,self.cmd)):
+            # Directory was created by the exact same command - just read
             if not silent:
                 print("Using result cache in directory:",cache,"...")
             # Set cmd to the emty string, to signal not to run a command
-            cmd=''
+            cmd = ''
         else:
             # Convert command string into list if necessary
             if (isinstance(cmd, str)):
@@ -236,12 +250,10 @@ class particle:
                     # make sure directory is new and empty
                     shutil.rmtree(dir,ignore_errors=True)
                     os.mkdir(dir)
-                # FIXME: remove os.system('rm -rf '+dir)
-                # FIXME: remove os.system('mkdir '+dir)
                 # Store the command line we are using.  We store the
                 # string version of the command, not the list version.
                 writecmd(dir,self.cmd)
-                # tell the command to use the directory as writing desination
+                # tell optool to use the directory as writing desination
                 cmd.append('-o'); cmd.append(dir)
     
                 # Run optool to produce the opacities
@@ -253,7 +265,7 @@ class particle:
             scat,ext = check_for_output(dir)
             self.scat = scat
             self.massscale = 1.
-    
+
             kabs=[]; ksca=[]; kext=[]; gg=[]
             f11=[]; f12=[]; f22=[]; f33=[]; f34=[]; f44=[]
             nfiles=0; header=[];
@@ -310,7 +322,6 @@ class particle:
                 if not silent:
                     print("Cleaning up temporary directory "+dir)
                 shutil.rmtree(dir)
-                # FIXME: os.system('rm -rf '+dir)
 
     def plot(self,minkap=1e0):
         """Create interactive plots of the opacities in SELF.
@@ -1098,12 +1109,10 @@ def check_for_output(dir):
         elif (os.path.exists(dir+'/dustkappa_001.'+ext)):
             return False, ext
         elif (os.path.exists(dir+'/dustkapscatmat.'+ext)):
-            os.rename(dir+'/dustkapscatmat.'+ext, dir+'/dustkapscatmat_001.'+ext)
-            # FIXME: remove os.system('mv '+dir+'/dustkapscatmat.'+ext+' '+dir+'/dustkapscatmat_001.'+ext)
+            os.rename(dir+'/dustkapscatmat.'+ext,dir+'/dustkapscatmat_001.'+ext)
             return True, ext
         elif (os.path.exists(dir+'/dustkappa.'+ext)):
-            os.rename(+dir+'/dustkappa.'+ext, dir+'/dustkappa_001.'+ext)
-            # FIXME: remove os.system('mv '+dir+'/dustkappa.'+ext+' '+dir+'/dustkappa_001.'+ext)
+            os.rename(dir+'/dustkappa.'+ext,dir+'/dustkappa_001.'+ext)
             return False, ext
     raise RuntimeError('No valid OpTool output files found')
 
