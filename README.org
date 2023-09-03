@@ -127,6 +127,14 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.9.14 ::
+  - The python interface can now read the results from an earlier run
+    by leaving the COM argument empty.
+    :   part = optool.particle("","path/to/directory")
+    This is useful, for example, if you precompute many opacities that
+    you then want to read with a python program. Thanks to Julien
+    Milli for the request.
+
 - Release 1.9.13 ::
   - The -print command line option allows a richer variety of outputs
     to STDOUT, for human reading as well as for use in a pipe or
