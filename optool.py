@@ -1484,7 +1484,7 @@ class ParticleExtended(particle):
         lam = None
         scatang = []
         for file in files:
-            header, *rest = op.readoutputfile(file, self.scat)
+            header, *rest = readoutputfile(file, self.scat)
             self.header.append(header)
             if self.scat:
                 lam, kabs, ksca,\
@@ -1509,7 +1509,7 @@ class ParticleExtended(particle):
         self.scatang = scatang
         self.nlam = len(self.lam)
         self.nang = len(self.scatang) if self.scatang else 0
-        self = op.parse_headers(self.header, self)
+        self = parse_headers(self.header, self)
 
 class lnktable:
     """Class to work with lnk files.
@@ -1733,6 +1733,7 @@ def logscale_with_sign(array,bottom):
     array[b] = -np.log10(-array[b]+bottom) + lb
     return array
 
+
 def check_for_output(dir):
     # Check for and if necessary rename input files
     for ext in['dat','inp']:
@@ -1745,6 +1746,7 @@ def check_for_output(dir):
         elif (os.path.exists(dir+'/dustkappa.'+ext)):
             return False, ext, { dir+'/dustkappa_001.'+ext : dir+'/dustkappa.'+ext }
     raise RuntimeError(f"No valid OpTool output files found in directory {dir}")
+
 
 def parse_headers(headers,b):
     # Extract information on run parameters from headers
@@ -1806,6 +1808,7 @@ def parse_headers(headers,b):
         b.norm = "hovenier"
 
     return b
+
 
 def readoutputfile(file,scat,silent=False):
     """Read OpTool output file FILE.
@@ -1890,6 +1893,7 @@ def readoutputfile(file,scat,silent=False):
     else:
         return [header,lam,kabs,ksca,phase_g]
 
+
 def writecmd(dir,cmd):
     """Store the CMD string in file DIR/cmd.
     """
@@ -1909,6 +1913,7 @@ def writecmd(dir,cmd):
     else:
         return False
     
+
 def checkcmd(dir,cmd):
     """Check if new command line is the same as the old one.
 
@@ -1939,6 +1944,7 @@ def checkcmd(dir,cmd):
     new_cmd    = cmd.strip()
     return (cached_cmd == new_cmd)
     
+
 def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,idxvals=None,idxformat=''):
     """
     For details about this function see https://github.com/dullemond/interactive_plot
@@ -2057,6 +2063,7 @@ def viewarr(data,index=0,x=None,ymin=None,ymax=None,ylabel=None,idxnames=None,id
     else:
         axmodel = None
     interactive_plot(x, func, params, ymin=ymin, ymax=ymax, parnames=parnames, parunits=None, fig=fig, ax=ax, axmodel=axmodel, parstart=None, iparstart=None, plotbutton=False, fixedpar=None, returnipar=False, block=False, paramsalt=paramsalt, altformat=idxformat)
+
 
 def interactive_plot(x, func, params, ymin=None, ymax=None, parnames=None, parunits=None, fig=None, ax=None, axmodel=None, parstart=None, iparstart=None, plotbutton=False, fixedpar=None, returnipar=False, block=False, paramsalt=None, altformat='', **kwargs):
     """
@@ -2409,6 +2416,7 @@ def interactive_curve(t, func, params, xmin=None, xmax=None, ymin=None, ymax=Non
     if returnipar:
         return mcb.ipar
 
+
 def bplanck(temp,nu):
     """
 ----------------------------------------------------------------------------
@@ -2428,6 +2436,7 @@ def bplanck(temp,nu):
     if (temp == 0.e0): return nu*0.e0
     bplanck = 1.47455e-47 * nu**3 /  (np.exp(4.7989e-11 * nu / temp)-1.e0) + 1.e-290
     return bplanck
+
 
 def bplanckdt(temp,nu):
     """
