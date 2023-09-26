@@ -90,100 +90,146 @@ import subprocess
 from distutils.spawn import find_executable
 import tempfile
 
+
+def create_wavelength_file(wavelength_file: Path | str,
+                           wavelength_solution: np.ndarray) -> None:
+    """Makes a (.dat)-file from a wavelength solution to be passed to optool."""
+    if wavelength_file is not None and wavelength_solution is not None:
+        wl_solution = np.array(wavelength_solution)
+        np.savetxt(wavelength_file, wl_solution,
+                   header=str(wl_solution.shape[0]), comments="")
+
+
+def generate_switch_string(value: Any, switch: str,
+                           bounds: Optional[List[int]] = None) -> str:
+    """Generates part of the command string corresponding to the provided
+    switch to be passed to optool.
+
+    Parameters
+    ----------
+    value: any
+        The input value.
+    switch: str
+        The switch to be used in the command string.
+    bounds: list of int, optional
+        The bounds of the switch to be used in the command string. If value is
+        out of bounds an error will be raised.
+
+    Returns
+    -------
+    str
+        Part of the command line argument passed to optool.
+    """
+    if value is None:
+        return ""
+    elif bounds is not None:
+        if value < bounds[0] or value > bounds[1]:
+            raise ValueError(f"Value {value} out of bounds for {bounds}")
+    elif isinstance(value, (Path, str, float, int)):
+        return f"-{switch} {str(value)}"
+    elif isinstance(value, List):
+        return f"-{switch} {' '.join([str(i) for i in value])}"
+    elif isinstance(value, Dict):
+        return f"-{switch} {' '.join([f'{k} {v}' for k, v in value.items()])}"
+    else:
+        raise IOError(
+            f"Input type '{type(value)}' for '{switch}' is not supported!")
+
+
 class particle:
     """Run optool and turn output into a python object.
 
-        Provides an interface to the optool program for computing dust
-        opacities. The optool program can be found on GitHub, at this address:
-        https://github.com/cdominik/optool .
+    Provides an interface to the optool program for computing dust
+    opacities. The optool program can be found on GitHub, at this address:
+    https://github.com/cdominik/optool .
 
-        Attributes
-        ----------
+    Attributes
+    ----------
 
-        cmd : str
-             The full command given in the particle() call
-        radmc : boolean
-             Output follows RADMC conventions
-        scat : boolean
-             Scattering matrix is available
-        nlam : int
-             Number of wavelength points
-        lam : float[nlam]
-             The wavelength grid
-        nang : int
-             Number of scattering angles
-        scatang : float[nang]
-             The angular grid
-        materials : [[[...]...]... ]
-             Lists with [location,m_{frac},\rho,material
-        np : int
-             Number of particles, either 1 or (with -d) n_a
-        fmax : float[np]
-             Maximum volume fraction of vacuum for DHS
-        pcore, pmantle : float[np]
-             Porosity of the core/mantle material
-        amin : float[np]
-             min grain size used for each particle
-        amax : float[np]
-             max grain size used for each particle
-        nsub : int[np]
-             Number of sizes averaged for each particle
-        apow : float[np]
-             Negative size distribution power law (e.g. 3.5)
-        amean : float[np]
-             Mean size for (log-)nornal size distributions
-        asig : float[np]
-             Standard deviation for (log-)normal distribution
-        a1 : float[np]
-            Mean grain radius
-        a2 : float[np]
-            Radius of the grain with mean surface area
-        a3 : float[np]
-            Radius of the grain with mean volume
-        rho : float[np]
-             Specific density of grains
-        kabs : float[np,nlam]
-             Absorption cross section
-        ksca : float[np,nlam]
-             Scattering cross section
-        kext : float[np,nlam]
-             Extinction cross section
-        gsca : float[np,nlam]
-             Asymmetry parameter
-        f11, ..., f44 : float[np,nlam,nang]
-             Scattering matrix element F_11, ... ,F_44
-        chop : float[np]
-             Degrees chopped off forward scattering
-        tmin : float
-             Minimum temperature for mean opacities
-        tmax : float
-             Maximum temperature for mean opacities
-        ntemp : int
-             Number of temperatures for mean opacities
-        temp : float[ntemp]
-             Temperatures used for mean opacities
-        kplanck : float[np,ntemp]
-             Planck mean opacities, after calling computemean()
-        kross : float[np,ntemp]
-             Rosseland mean opacities, after calling computemean()
-        norm : string
-             Current scattering matrix normalization
+    cmd : str
+         The full command given in the particle() call
+    radmc : boolean
+         Output follows RADMC conventions
+    scat : boolean
+         Scattering matrix is available
+    nlam : int
+         Number of wavelength points
+    lam : float[nlam]
+         The wavelength grid
+    nang : int
+         Number of scattering angles
+    scatang : float[nang]
+         The angular grid
+    materials : [[[...]...]... ]
+         Lists with [location,m_{frac},\rho,material
+    np : int
+         Number of particles, either 1 or (with -d) n_a
+    fmax : float[np]
+         Maximum volume fraction of vacuum for DHS
+    pcore, pmantle : float[np]
+         Porosity of the core/mantle material
+    amin : float[np]
+         min grain size used for each particle
+    amax : float[np]
+         max grain size used for each particle
+    nsub : int[np]
+         Number of sizes averaged for each particle
+    apow : float[np]
+         Negative size distribution power law (e.g. 3.5)
+    amean : float[np]
+         Mean size for (log-)nornal size distributions
+    asig : float[np]
+         Standard deviation for (log-)normal distribution
+    a1 : float[np]
+        Mean grain radius
+    a2 : float[np]
+        Radius of the grain with mean surface area
+    a3 : float[np]
+        Radius of the grain with mean volume
+    rho : float[np]
+         Specific density of grains
+    kabs : float[np,nlam]
+         Absorption cross section
+    ksca : float[np,nlam]
+         Scattering cross section
+    kext : float[np,nlam]
+         Extinction cross section
+    gsca : float[np,nlam]
+         Asymmetry parameter
+    f11, ..., f44 : float[np,nlam,nang]
+         Scattering matrix element F_11, ... ,F_44
+    chop : float[np]
+         Degrees chopped off forward scattering
+    tmin : float
+         Minimum temperature for mean opacities
+    tmax : float
+         Maximum temperature for mean opacities
+    ntemp : int
+         Number of temperatures for mean opacities
+    temp : float[ntemp]
+         Temperatures used for mean opacities
+    kplanck : float[np,ntemp]
+         Planck mean opacities, after calling computemean()
+    kross : float[np,ntemp]
+         Rosseland mean opacities, after calling computemean()
+    norm : string
+         Current scattering matrix normalization
 
-        Methods
-        -------
+    Methods
+    -------
+    plot()
+         Plot the opacities and the scattering matrix
 
-        plot()
-             Plot the opacities and the scattering matrix
+    computemean(tmin=10,tmax=1500,ntemp=100)
+         Compute Planck and Rosseland mean opacities
 
-        computemean(tmin=10,tmax=1500,ntemp=100)
-             Compute Planck and Rosseland mean opacities
+    scatnorm(norm='')
+         Check or change the normalization of the scattering matrix
 
-        scatnorm(norm='')
-             Check or change the normalization of the scattering matrix
+    sizedist(N_of_a)
+         Compute opacity of a size distribution of elements of SELF
+    """
 
-        sizedist(N_of_a)
-             Compute opacity of a size distribution of elements of SELF
-        """
     def __init__(self,cmd,cache='',silent=False):
         """Create a new optool.particle opject.
 
@@ -888,6 +934,575 @@ class particle:
                                 (s.f11[0,il,ia],s.f12[0,il,ia],s.f22[0,il,ia],
                                  s.f33[0,il,ia],s.f34[0,il,ia],s.f44[0,il,ia]))
         wfile.close()
+
+
+class ParticleExtended(particle):
+    """A wrapper class for optool that can either load a file (from cache) or calculate
+    the dust distribution directly in python with or without a commandline input.
+
+    Inherits much of the optool.particle's class functionality.
+
+    Once calculated the (.dat)-files (if no other output path provided) will be
+    stored in the current directory (if no other path is provided) to increase
+    the speed of future calculations.
+
+    Parameters
+    ----------
+    grains: pathlib.Path or str or dict of int
+        Path to a (.lnk)-file or string (name) of a material or dictionary
+        containing materials to include in the grain. If a dictionary is
+        passed then it needs to contain the name of the material as key and
+        its mass fraction as value (e.g., {"pyr-mg70": 0.87, "c": 0.13}).
+        Mass fractions do not have to add up to 1, they will be
+        renormalized.
+        Up to 20 materials can be specified to build up a grain
+    grain_mantels: pathlib.Path or str or dict of int, optional
+        The same as the grains parameter, but the material will be placed
+        into the grain mantle. Multiple mantle materials will be mixed
+        using the Bruggeman rule, and than that mix will be added to the
+        core using the Maxwell-Garnett rule.
+    porosity: int or list of int, optional
+        The volume fraction of vacuum, a number smaller than 1. The default
+        is 0. A single value will apply to both core and mantle, but if a
+        list with two values is provided the second value will be specific
+        for the mantle (and may be 0).
+    dust_distribution: str, optional
+        Some preset dust distributions. DISCLAIMER: If toggled all other
+        inputs will be ignored. Use DIANA (Woitke+2016) "diana" or DSHARP
+        (Birnstiel+2018) "dsharp" compositions (or DSHARP without ice
+        "dsharp-no-ice").
+    computational_method: str, optional
+        Various computational methods for the dust distribution. Possible
+        choices are "dhs", "mff", "mie" and "cde". The default is "dhs"
+        with f_max of 0.8.
+    f_max: float, optional
+        The default is 0.8. A value of 0 means to use solid spheres
+        (Mie theory), i.e. perfectly regular grains.
+    monomer_radius: float, optional
+        The monomer radius for the Modified Mean Field theory.
+        The default is 0.1 microns.
+    dfrac_or_fill: float, optional
+        Either the fractal dimension (if > 1) or the volume filling factor
+        (if < 1) for the Modified Mean Field theory. The default is 0.2.
+    prefactor: float, optional
+        The prefactor for the Modified Mean Field theory.
+    scat: bool, optional
+        Include the scattering matrix in the output.
+    gs_min: float, optional
+        The minimum grain radius. Can be specified without a maximum grain
+        radius nor a number of size bins. The default value is 0.05 microns.
+    gs_max: float, optional
+        The maximum grain radius. The default value is 3000 microns.
+    gs_pow: float, optional
+        The size distribution powerlaw. The default is 3.5.
+    gs_mean: float, optional
+        The centroid size for a log-normal size distribution.
+    gs_sigma: float, optional
+        The logarithmic width for a log-normal size distribution. If it is
+        negative then a normal distribution with that width [microns] around.
+        gs_mean is created.
+    gs_num: int, optional
+        The number of size bins. The default is 15 per size decade with a.
+        fixed minimum of 5.
+    gs_sizes: int or float or numpy.ndarray, optional
+        One or a number of grain sizes to be used [microns].
+        Will be added to the command.
+    gs_file: pathlib.Path, optional
+        The path to a (.dat)-file containing the grain size distribution.
+        Will take precedent over the grain size parameter.
+    wl_min: float, optional
+        The minimum wavelength [microns]. Can be specified without a maximum.
+        wavelength nor a the number of wavelength points.
+        The default value is 0.05 microns.
+    wl_max: float, optional
+        The maximum wavelength [microns]. The default value is 10000 microns.
+    wl_num: int, optional
+        The number of wavelength points for the construction of the
+        wavelength grid. The default is 300.
+    wavelengths: int or float or numpy.ndarray, optional
+        One or a number of wavelengths to be used [microns].
+        Will be added to the command
+    wavelength_file: pathlib.Path or str, optional
+        Read the wavelength grid from a (.dat)-file. To get an example file
+        'optool_lam.dat', execute this script with the option 'wgrid=True'.
+        Otherwise, an (.lnk)-file could be used here as well. Will take
+        precedent over the wavelengths parameter.
+    wavelength_solution: numpy.ndarray, optional
+        A wavelength solution that will be written to a (.dat)-file and
+        used for the wavelength file parameter/switch in the optool
+        executable. Keeps the command of optool readable.
+        DISCLAIMER: The wavelength solution will take precendent over a
+        provided wavelength file (if both is given).
+    nang: int, optional
+        The number of evenly spaced angular grid points that cover a range
+        between 0 and 180 degrees. The default for nang is 180.
+    nsub: int, optional
+        Divide the computation up into parts to produce a file for each
+        grain size. Each size will be an average over a range of nsub
+        grains around the real size. The default is 5.
+    ndeg: int, optional
+        Cap the first degrees of the forward scattering peak.
+        The default is 2.
+    fits: bool, optional
+        Write into a (.fits)-file instead to ASCII (.dat). With nsub, write
+        files that amount to the grain size bins 'ngs'.
+    radmc_label: str, optional
+        If a label is provided then the file names will contain the label
+        and have the extension (.inp). This makes it so the files can be
+        used as input for RADMC-3D, which uses a different angular grid and
+        scattering matrix normalization.
+    wgrid: bool, optional
+        Create the additional files optool_sd.dat and optool_lam.dat with
+        the grain size distribution and the wavelengths grid, respectively.
+    cmd: str, optional
+        An optool compliant command line argument that is called from within
+        python. If this is provided, all other optool related arguments will
+        be ignored.
+    opacity_file: pathlib.Path or str, optional
+        A (.dat)-file already containing an dust distribution in the optool
+        format. If the scattering matrix is included, set the scat paramter
+        to True as well.
+    cache_dir: pathlib.Path, optional
+        The directory to create a folder in to store the (.dat)-files so they
+        can be read instead of recomputed the next time the same command
+        is used.
+        The default directory is the current directory.
+    storage_dir: pathlib.Path, optional
+        If this is specified then the sub-directory of the cache directory
+        will have the specified name.
+
+    Attributes
+    ----------
+    cmd: str
+        The full command given in the particle call.
+    radmc: bool
+        Indicates if the output is to RADMC conventions.
+    scat: bool
+        Indicates if the scattering matrix is available.
+    nlam: int
+        The Number of wavelength points.
+    lam: np.ndarray
+        The wavelength grid [microns].
+    nang: int
+        The number of scattering angles.
+    scatang: numpy.ndarray
+        The angular grid.
+    materials: numpy.ndarray
+        Lists containing [location, m_{frac}, rho, material].
+    np: int
+        The number of particles, either 1 or (with -d) corresponds to the
+        number of grain size bins 'ngs'.
+    fmax: numpy.ndarray
+        The maximum volume fraction of vacuum for DHS.
+    pcore, pmantle: numpy.ndarray
+        The Porosity of the core/mantle material.
+    amin: numpy.ndarray
+        The minimum grain size used for each particle.
+    amax: numpy.ndarray
+        The maximum grain size used for each particle.
+    nsub: numpy.ndarray
+        The number of sizes averaged for each particle.
+    apow: numpy.ndarray
+        The negative size distribution power law (e.g., 3.5).
+    amean: numpy.ndarray
+        The mean size for (log-) normal size distributions.
+    asig: numpy.ndarray
+        The standard deviation for (log-) normal distribution.
+    a1: numpy.ndarray
+        The mean grain radius [microns].
+    a2: numpy.ndarray
+        The radius of the grain with mean surface area [microns].
+    a3: numpy.ndarray
+        The radius of the grain with mean volume [microns].
+    rho: numpy.ndarray
+        The specific density of grains.
+    kabs: numpy.ndarray
+        The absorption cross section [cm^2 g^-1].
+    ksca: numpy.ndarray
+        The scattering cross section [cm^2 g^-1].
+    kext: numpy.ndarray
+        The extinction cross section [cm^2 g^-1].
+    gsca: numpy.ndarray
+        The asymmetry parameter.
+    f11, ..., f44: float[np, nlam, nang]
+        The scattering matrix elements F_11, ... ,F_44.
+    chop: numpy.ndarray
+        The degrees chopped off forward scattering.
+    tmin: float
+        The minimum temperature for mean opacities.
+    tmax: float
+        The maximum temperature for mean opacities.
+    ntemp: int
+        The mumber of temperatures for mean opacities.
+    temp: np.ndarray
+        The Temperatures used to calculate the mean opacities.
+    kplanck: numpy.ndarray
+        The Planck mean opacities (are only accessible after calling the
+        computemean method).
+    kross: numpy.ndarray
+         Rosseland mean opacities (are only accessible after calling the
+         computemean method).
+    norm: str
+        The current scattering matrix normalization.
+    cache_dir: pathlib.Path
+        The directory to create a folder in to store the (.dat)-files so they
+        can be read instead of recomputed the next time the same command
+        is used.
+    storage_dir: pathlib.Path
+        The specific directory to store the (.dat)-files for this calculation.
+
+    Methods
+    --------
+    plot(minkap=1e0)
+        Create interactive plots of the opacities.
+    select(i)
+        Select just one bin from a multi-particle object.
+        A multi-particle object is produced when running optool with
+        a -d switch.
+    sizedist(N_of_a)
+        Compute opacity of a size distribution of the elements.
+    scatnorm(norm='')
+        Check or change the normalization of the scattering matrix.
+    computemean(tmin=10, tmax=1500, ntemp=100)
+        Compute mean opacities from the opacities.
+
+
+    See also
+    --------
+    optool.particle(cmd, cache="")
+        Class that runs optool and turns output into a python object as well as
+        providing additional functionality.
+    optool.lnktable(file, i_lnk=[1, 2, 3], nskip=0, nlam_rho=True)
+        Class to work with lnk files.
+
+    Notes
+    ------
+    * Computational Methods
+
+    - The Distribution of Hollow Spheres (DHS, Min+ 2005) approach to model
+      deviations from perfect spherical symmetry and low-porosity
+      aggregates.
+      Spheres with inner holes with volume fractions between 0 and f_max
+      are averaged to mimic irregularities.
+    - The Modified Mean Field theory (MMF, Tazaki & Tanaka 2018)
+      to compute opacities of highly porous or fractal aggregates.
+      The grain material, grain mantel material and the porosity determine
+      the composition of monomers.
+    - A standard Mie calculation for perfect spheres. This is short for DHS
+      with an f_max of 0.
+    - Compute CDE (continuous distribution of ellipsoids) Rayleigh limit
+      opacities.
+
+    * Available Materials
+
+    amorph.pyroxenes  pyr-mg100/95/80/70/60/50/40
+    amorph.olivines   ol-mg100/40                       (Dorschner95,Henning96)
+    cryst. pyr/ol     pyr-c-mg96 ol-c-mg100/95/00     (Jäger96,Suto06,Fabian01)
+    other silicates   astrosil                                       (Draine03)
+    amorphous carbon  c-z    c-p                          (Zubko96,Preibisch93)
+    graphite,special  c-gra  c-nano  c-org               (Dra.03,Mut.04,Hen.96)
+    quartz,corundum   sio2   cor-c                         (Kitamura07,Koike95)
+    iron/sulfide      fe-c   fes                                    (Henning96)
+    carbides          sic                                            (Draine93)
+    water ice         h2o-w  h2o-a                         (Warren08,Hudgins93)
+    other ices        co2-w  nh3-m                      (Warren86,Martonchik83)
+                      co-a   co2-a/c ch4-a/c ch3oh-a/c  (Palumbo06,Gerakines20)
+
+    - The abbreviations for the optool CLI (and/or for the grains/grain_mantels
+    parameters) are:
+
+    pyr  -> pyr-mg70     c    -> c-z         iron -> fe-c      h2o  -> h2o-w
+    ol   -> ol-mg50      gra  -> c-gra       qua  -> sio2      co   -> co-a
+    ens  -> pyr-c-mg96   org  -> c-org       cor  -> cor-c     co2  -> co2-w
+    for  -> ol-c-mg100                       tro  -> fes       nh3  -> nh3-m
+    fay  -> ol-c-mg00
+
+    The executable is called optool. The make install step copies it and also
+    optool2tex and optool-complete into bin-dir.
+    For shell command line completion support, check the file optool-complete.
+
+    Warnings
+    --------
+    For this backend to work the optool-bin must be installed on your computer.
+    """
+
+    def __init__(self, grains: Path | str | Dict[str, int] = None,
+                 grain_mantels: Optional[Path | str | Dict[str, int]] = None,
+                 porosity: Optional[int | List[int]] = None,
+                 dust_distribution: Optional[str] = None,
+                 computational_method: Optional[str] = None,
+                 f_max: Optional[float] = 0.8,
+                 monomer_radius: Optional[float] = 0.1,
+                 dfrac_or_fill: Optional[float] = 0.2,
+                 prefactor: Optional[float] = None,
+                 scat: Optional[bool] = False,
+                 gs_min: Optional[float] = None,
+                 gs_max: Optional[float] = None,
+                 gs_pow: Optional[float] = None,
+                 gs_mean: Optional[float] = None,
+                 gs_sigma: Optional[float] = None,
+                 gs_num: Optional[int] = None,
+                 gs_sizes: Optional[int | float | np.ndarray] = None,
+                 gs_file: Optional[Path | str] = None,
+                 wl_min: Optional[float] = None,
+                 wl_max: Optional[float] = None,
+                 wl_num: Optional[int] = None,
+                 wavelengths: Optional[int | float | np.ndarray] = None,
+                 wavelength_file: Optional[Path | str] = None,
+                 wavelength_solution: Optional[np.ndarray | List] = None,
+                 nang: Optional[int] = 180,
+                 nsub: Optional[int] = None,
+                 ndeg: Optional[int] = None,
+                 fits: Optional[bool] = False,
+                 radmc_label: Optional[str] = None,
+                 wgrid: Optional[bool] = False,
+                 cmd: Optional[str] = None,
+                 opacity_file: Optional[Path] = None,
+                 cache_dir: Optional[Path] = None,
+                 storage_dir: Optional[Path] = None) -> None:
+        """The class's constructor."""
+        if cache_dir is None:
+            self.cache_dir = Path().cwd()
+        else:
+            self.cache_dir = Path(cache_dir)
+
+        self.scat = scat
+        self.storage_dir = self.make_storage_dir_name(storage_dir)
+
+        self.np, self.masscale = [1]*2
+        self.materials, self.rho = [], []
+
+        if wavelength_solution is not None:
+            wavelength_file = self.storage_dir / "wavelength_solution.dat"
+
+        cmd_output = self.make_cmd(grains, grain_mantels, porosity,
+                                   dust_distribution, computational_method,
+                                   f_max, monomer_radius, dfrac_or_fill,
+                                   prefactor, gs_min, gs_max,
+                                   gs_pow, gs_mean, gs_sigma, gs_num,
+                                   gs_sizes, gs_file, wl_min, wl_max,
+                                   wl_num, wavelengths, wavelength_file,
+                                   wavelength_solution, nang, nsub,
+                                   ndeg, fits, radmc_label, wgrid, cmd)
+
+        self.cmd = cmd_output.split("-o")[0].strip()
+
+        if opacity_file is not None:
+            self.read_files(opacity_file)
+        elif (storage_dir := self.cmd_in_cache()) is not None:
+            self.storage_dir = storage_dir
+            self.read_cache()
+        else:
+            self.run_optool(cmd_output, wavelength_file, wavelength_solution)
+
+    def run_optool(self, cmd_output: str,
+                   wavelength_file: Path,
+                   wavelength_solution: bool = None) -> None:
+        """Runs optool to calculate the opacities for the input parameters
+
+        Parameters
+        ----------
+        cmd_output: str
+            The full command containing the output path for the files.
+        wavelength_file: Path
+            Read the wavelength grid from a (.dat)-file.
+        wavelength_solution: numpy.ndarray
+            Wavelength solution used for wavelength file parameter/switch in the
+            optool executable.
+        """
+        if not find_executable("optool"):
+            raise RuntimeError("The 'optool' executable has not been found!")
+
+        if not self.storage_dir.exists():
+            self.storage_dir.mkdir(parents=True)
+
+        create_wavelength_file(wavelength_file, wavelength_solution)
+
+        with open(self.storage_dir / "calculation_info.toml", "w+") as toml_file:
+            toml.dump({"cmd": self.cmd, "scat": self.scat}, toml_file)
+
+        print(f"[Calling] {cmd_output}")
+        subprocess.run(cmd_output, shell=True, check=True)
+        self.read_cache()
+
+    def make_cmd(self, grains: Path | str | Dict[str, int] = None,
+                 grain_mantels: Optional[Path | str | Dict[str, int]] = None,
+                 porosity: Optional[int | List[int]] = None,
+                 dust_distribution: Optional[str] = None,
+                 computational_method: Optional[str] = None,
+                 f_max: Optional[float] = 0.8,
+                 monomer_radius: Optional[float] = 0.1,
+                 dfrac_or_fill: Optional[float] = 0.2,
+                 prefactor: Optional[float] = None,
+                 gs_min: Optional[float] = None,
+                 gs_max: Optional[float] = None,
+                 gs_pow: Optional[float] = None,
+                 gs_mean: Optional[float] = None,
+                 gs_sigma: Optional[float] = None,
+                 gs_num: Optional[int] = None,
+                 gs_sizes: Optional[int | float | np.ndarray] = None,
+                 gs_file: Optional[Path | str] = None,
+                 wl_min: Optional[float] = None,
+                 wl_max: Optional[float] = None,
+                 wl_num: Optional[int] = None,
+                 wavelengths: Optional[int | float | np.ndarray] = None,
+                 wavelength_file: Optional[Path | str] = None,
+                 wavelength_solution: Optional[np.ndarray] = None,
+                 nang: Optional[int] = 180,
+                 nsub: Optional[int] = None,
+                 ndeg: Optional[int] = None,
+                 fits: Optional[bool] = False,
+                 radmc_label: Optional[str] = None,
+                 wgrid: Optional[bool] = False,
+                 cmd: Optional[str] = None) -> str:
+        """Generates the optool's command line arguments from the values passed
+        to the class
+
+        Refer to the class's documentation
+        """
+        cmd_arguments = ["optool"]
+        if dust_distribution is None:
+            # NOTE: Grain composition
+            cmd_arguments.append(generate_switch_string(grains, "c"))
+            cmd_arguments.append(generate_switch_string(grain_mantels, "m"))
+            cmd_arguments.append(generate_switch_string(porosity, "p"))
+
+            # NOTE: Grain geometry and computational method
+            if computational_method is None or computational_method == "dhs":
+                cmd_arguments.append(generate_switch_string(f_max, "dhs"))
+            elif computational_method == "mmf":
+                mmf_switch = generate_switch_string(monomer_radius, "mmf")
+                mmf_switch += f" {dfrac_or_fill}"
+                mmf_switch += f" {prefactor}" if prefactor is not None else ""
+                cmd_arguments.append(mmf_switch)
+            elif computational_method in ["mie", "cde"]:
+                cmd_arguments.append(generate_switch_string("", computational_method))
+            else:
+                raise IOError("No such computational_method:"
+                              f" {computational_method} is supported!")
+
+            # NOTE: Grain size distribution and wavelength grid
+            # TODO: Make all the files not important for command saving
+            if gs_file is not None:
+                cmd_arguments.append(generate_switch_string(gs_file, "a"))
+            elif gs_sizes is not None:
+                cmd_arguments.append(generate_switch_string(gs_sizes, "a"))
+            else:
+                cmd_arguments.append(generate_switch_string(gs_min, "amin"))
+                cmd_arguments.append(generate_switch_string(gs_max, "amax"))
+                cmd_arguments.append(generate_switch_string(gs_pow, "apow"))
+                cmd_arguments.append(generate_switch_string(gs_mean, "amean"))
+                cmd_arguments.append(generate_switch_string(gs_sigma, "asig"))
+                cmd_arguments.append(generate_switch_string(gs_num, "na"))
+
+            # TODO: Make all the files not important for command saving
+            if wavelength_file is not None:
+                cmd_arguments.append(generate_switch_string(wavelength_file, "l"))
+            elif wavelengths is not None:
+                cmd_arguments.append(generate_switch_string(wavelengths, "l"))
+            else:
+                cmd_arguments.append(generate_switch_string(wl_min, "lmin"))
+                cmd_arguments.append(generate_switch_string(wl_max, "lmax"))
+                cmd_arguments.append(generate_switch_string(wl_num, "nlam"))
+
+            # NOTE: Output control
+            if self.scat:
+                cmd_arguments.append(generate_switch_string(nang, "s", [0, 180]))
+            cmd_arguments.append(generate_switch_string(nsub, "d"))
+            cmd_arguments.append(generate_switch_string(ndeg, "chop"))
+            cmd_arguments.append(generate_switch_string("", "fits") if fits else "")
+            cmd_arguments.append(generate_switch_string(radmc_label, "radmc"))
+            cmd_arguments.append(generate_switch_string("", "wgrid") if wgrid else "")
+        else:
+            # NOTE: Uses specific, predetermined dust distribution
+            cmd_arguments.append(generate_switch_string("", dust_distribution))
+        cmd_arguments.append(generate_switch_string(self.storage_dir, "o"))
+
+        return " ".join([switch for switch in cmd_arguments if switch])\
+            if cmd is None else cmd
+
+    def make_storage_dir_name(self, storage_dir: Path) -> Path:
+        """Makes a timestamp of the calculation for the cache directory name.
+
+        Returns
+        -------
+        storage_dir: pathlib.Path
+            The directory in which the cached files are to be stored.
+        """
+        if storage_dir is not None:
+            return self.cache_dir / storage_dir
+        dir_name = str(datetime.now()).replace(" ", "_").replace(":", "-")
+        return self.cache_dir / dir_name
+
+    def cmd_in_cache(self) -> Optional[Path]:
+        """Checks if the command is in the cache directory and returns its
+        path if found otherwise None."""
+        for toml_path in self.cache_dir.rglob("*.toml"):
+            with open(toml_path, "r") as toml_file:
+                calculation_info = toml.load(toml_file)
+                cmd = calculation_info["cmd"] if "cmd" in calculation_info else ""
+                if cmd == self.cmd:
+                    print("Cached files detected!")
+                    return toml_path.parent
+        return None
+
+    def read_cache(self) -> None:
+        """Reads in all files contained in a cache directory and stores
+        their values in the cache."""
+        for toml_path in self.cache_dir.rglob("*.toml"):
+            with open(toml_path, "r") as toml_file:
+                calculation_info = toml.load(toml_file)
+                self.cmd = calculation_info["cmd"]
+                self.scat = calculation_info["scat"]
+        if self.scat:
+            filename = "*dustkapscatmat*"
+        else:
+            filename = "*dustkappa*"
+
+        dust_files = list(self.storage_dir.rglob(filename))
+        self.np = len(dust_files)
+        self.read_files(dust_files)
+
+    def read_files(self, files: Path | list[Path]) -> None:
+        """Reads one or more opacity files in and stores the values in the class."""
+        self.header = []
+        self.lam, self.kabs, self.ksca,\
+            self.kext, self.gsca, self.scatang = [], [], [], [], [], []
+        self.f11, self.f12, self.f22,\
+            self.f33, self.f34, self.f44 = [], [], [], [], [], []
+
+        if isinstance(files, Path):
+            files = [files]
+
+        lam = None
+        scatang = []
+        for file in files:
+            header, *rest = op.readoutputfile(file, self.scat)
+            self.header.append(header)
+            if self.scat:
+                lam, kabs, ksca,\
+                    phase_g, scatang,\
+                    f11, f12, f22, f33,\
+                    f34, f44 = map(np.squeeze, rest)
+                self.f11.append(f11)
+                self.f12.append(f12)
+                self.f22.append(f22)
+                self.f33.append(f33)
+                self.f34.append(f34)
+                self.f44.append(f44)
+            else:
+                lam, kabs,\
+                    ksca, phase_g = map(np.squeeze, rest)
+            self.kabs.append(kabs)
+            self.ksca.append(ksca)
+            self.kext.append(kabs + ksca)
+            self.gsca.append(phase_g)
+
+        self.lam = lam
+        self.scatang = scatang
+        self.nlam = len(self.lam)
+        self.nang = len(self.scatang) if self.scatang else 0
+        self = op.parse_headers(self.header, self)
 
 class lnktable:
     """Class to work with lnk files.
