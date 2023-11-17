@@ -572,7 +572,7 @@ inspect and further process the output. Here is how to use it:
 
 #+begin_src python
 import optool
-p = optool.particle("~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d")
+p = optool.particle("~/bin/optool pyr 0.8 -m h2o 0.2 -na 24 -d")
 #+end_src
 
 The argument to =optool.particle()= must be a valid shell
