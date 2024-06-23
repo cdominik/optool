@@ -149,6 +149,7 @@ program optool
   real (kind=dp)  :: amean,asig      ! mean and standard deviation for lognormal f(a)
   real (kind=dp)  :: fmax            ! maximum fraction of vaccum for DHS
   real (kind=dp)  :: pcore, pmantle  ! porosity for core and mantle
+  logical         :: p_is_set        ! Porotity has been set
 
   real (kind=dp)  :: lmin,lmax,l1,l2 ! min and max wavelength
 
@@ -227,6 +228,7 @@ program optool
   
   pcore          = 0.0_dp     ! porosity core
   pmantle        = 0.0_dp     ! porosity mantle
+  p_is_set       = .false.    ! flag if porosity has been set
 
   nm             = 0          ! number of materials - zero to start with
   nmant          = 0          ! number of mantle materials - zero to start with
@@ -379,7 +381,8 @@ program optool
            nm = 2
            mat_lnk(1) = 'pyr-mg70'; mat_loc(1) = 'core'; mat_mfr(1) = 0.87d0
            mat_lnk(2) = 'c-z'     ; mat_loc(2) = 'core'; mat_mfr(2) = 0.1301d0
-           pcore     =0.25d0
+           pcore      = 0.25d0
+           p_is_set   = .true.
         elseif (tmp.eq.'-dsharp') then
            nm = 4
            mat_lnk(1) = 'astrosil'; mat_loc(1) = 'core'; mat_mfr(1) = 0.3291d0
@@ -387,12 +390,14 @@ program optool
            mat_lnk(3) = 'fes'     ; mat_loc(3) = 'core'; mat_mfr(3) = 0.0743d0
            mat_lnk(4) = 'h2o-w'   ; mat_loc(4) = 'core'; mat_mfr(4) = 0.2000d0
            pcore      = 0.d0
+           p_is_set   = .true.
         elseif (tmp.eq.'-dsharp-no-ice') then
            nm = 3
            mat_lnk(1) = 'astrosil'; mat_loc(1) = 'core'; mat_mfr(1) = 0.3291d0
            mat_lnk(2) = 'c-org'   ; mat_loc(2) = 'core'; mat_mfr(2) = 0.3966d0
            mat_lnk(3) = 'fes'     ; mat_loc(3) = 'core'; mat_mfr(3) = 0.0743d0
            pcore      = 0.d0
+           p_is_set   = .true.
         endif
         ! ----------------------------------------------------------------------
         ! Grain size setup
@@ -534,6 +539,7 @@ program optool
         else
            pmantle = pcore
         endif
+        p_is_set = .true.
      case('-dhs','-fmax','-mie')
         method = 'DHS'
         if (tmp.eq.'-mie') then
@@ -928,7 +934,9 @@ program optool
      nm = 2
      mat_lnk(1) = 'pyr-mg70' ; mat_loc(1)  = 'core' ; mat_mfr(1)     = 0.87d0
      mat_lnk(2) = 'c-z'      ; mat_loc(2)  = 'core' ; mat_mfr(2)     = 0.1301d0
-     pcore      = 0.25d0
+     if (.not. p_is_set) then ! we do respect a different porosity when set
+        pcore      = 0.25d0
+     end if
   endif
   mat_nm   = nm
 
