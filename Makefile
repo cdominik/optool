@@ -34,12 +34,12 @@ endif
 # CFITSIO support
 ifeq ($(fits),true)
   FLAG_FITS		= -DUSE_FITSIO
-  LIBS_FITS		= -lcfitsio -L/usr/local/lib/ -L.
+  LIBS_FITS		= -lcfitsio -L/opt/homebrew/lib/ -L.
 endif
 # backward compatibility, some people might use fitsio instead of fits
 ifeq ($(fitsio),true)
   FLAG_FITS		= -DUSE_FITSIO
-  LIBS_FITS		= -lcfitsio -L/usr/local/lib/ -L.
+  LIBS_FITS		= -lcfitsio -L/opt/homebrew/lib/ -L.
 endif
 
 ifeq ($(oldio),true)
