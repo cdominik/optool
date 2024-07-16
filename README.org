@@ -226,6 +226,6 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     Here is a [[https://ui.adsabs.harvard.edu/abs/2021ascl.soft04010D][pointer to the ADS entry]], from where you can also
     download the corresponding BibTeX entry.  That BibTeX entry is
     also in =optool.bib=, with the citation key =2021ascl.soft04010D=.
-  - Add an amophous water ice, from Hudgins 1993.
+  - Add an amorphous water ice, from Hudgins 1993.
     This dataset is amended at short and long wavelengths with the
     Warren data of crystalline ice, to get a wide dataset.
