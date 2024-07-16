@@ -149,7 +149,7 @@ program optool
   real (kind=dp)  :: amean,asig      ! mean and standard deviation for lognormal f(a)
   real (kind=dp)  :: fmax            ! maximum fraction of vaccum for DHS
   real (kind=dp)  :: pcore, pmantle  ! porosity for core and mantle
-  logical         :: p_is_set        ! Porotity has been set
+  logical         :: p_is_set        ! Porosity has been set
 
   real (kind=dp)  :: lmin,lmax,l1,l2 ! min and max wavelength
 
