@@ -15,7 +15,7 @@ Compute pyroxene with an ice mantle in 24 different grain sizes
 and plot the results
 
   import optool
-  p = optool.particle(’~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d’)
+  p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
   p.plot()
 
 Read opacity files produced earlier by a run of optool. This is
