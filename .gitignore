@@ -20,7 +20,6 @@ __pycache__
 auto/
 *.html
 *.tex
-*.tex
 *.aux
 *.log
 *.dvi
