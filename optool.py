@@ -92,7 +92,8 @@ import subprocess
 import tempfile
 
 class particle:
-    """Run optool and turn output into a python object.
+    """
+    Run optool and turn output into a python object.
 
         Provides an interface to the optool program for computing dust
         opacities. The optool program can be found on GitHub, at this address:
@@ -186,7 +187,8 @@ class particle:
              Compute opacity of a size distribution of elements of SELF
         """
     def __init__(self,cmd,cache='',silent=False):
-        """Create a new optool.particle opject.
+        """
+        Create a new optool.particle object.
 
         Parameters
         ---------=
@@ -200,7 +202,7 @@ class particle:
                the second parameter CACHE.
 
         cache  : str, optional
-               The diretory to cache the optool output files in, so that
+               The directory to cache the optool output files in, so that
                they can be read instead of recomputed the next time
                the same command is used. The cache is automatically
                cleared when CMD changes between runs.
@@ -227,13 +229,13 @@ class particle:
             # No command, just read directory
             if not silent:
                 print("Reading files in directory:",cache,"...")
-            # Set cmd to the emty string, to signal not to run a command
+            # Set cmd to the empty string, to signal not to run a command
             cmd = ''
         elif (cache and checkcmd(cache,self.cmd)):
             # Directory was created by the exact same command - just read
             if not silent:
                 print("Using result cache in directory:",cache,"...")
-            # Set cmd to the emty string, to signal not to run a command
+            # Set cmd to the empty string, to signal not to run a command
             cmd = ''
         else:
             # Convert command string into list if necessary
@@ -442,7 +444,7 @@ class particle:
 
     def select(self,i):
         """Select just one bin from a multi-particle object.
-        A multi-particle opject is produced when running optool with
+        A multi-particle object is produced when running optool with
         a -d switch.
 
         This is useful for doing particle arithmetic, which only works for
