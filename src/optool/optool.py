@@ -90,6 +90,8 @@ import os
 import shutil
 import subprocess
 import tempfile
+import pathlib
+
 
 class particle:
     """
@@ -248,6 +250,10 @@ class particle:
             # Find the optool executable
             executable = shutil.which(cmd[0])
             if (not executable):
+                # Probably the executable is in the same directory as the module
+                module_path = pathlib.Path(__file__).parent.resolve()
+                executable = shutil.which(f"{module_path}/{cmd[0]}")
+            if (not executable): 
                 raise RuntimeError("Executable not found: "+cmd[0])
 
         # Wrap the main part into try - finally to make sure we clean up
