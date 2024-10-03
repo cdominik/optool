@@ -1,4 +1,6 @@
-"""NAME
+#!/bin/sh python3
+r"""
+NAME
     optool
 
 DESCRIPTION
