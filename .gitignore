@@ -33,3 +33,4 @@ optool_lam.dat
 plotsd.py
 *.swp
 dist
+src/astro_optool.egg-info
