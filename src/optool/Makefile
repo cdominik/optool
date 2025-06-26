@@ -81,13 +81,21 @@ endif
 OBJS	= optool.o optool_guts.o optool_manual.o optool_refind.o optool_fractal.o optool_geofractal.o
 
 # Program name and install location
-PROGRAM       = optool
+
+# Operating system judgment
+ifeq ($(OS),Windows_NT)
+  EXE_EXT = .exe
+else
+  EXE_EXT =
+endif
+
+PROGRAM       = optool$(EXE_EXT)
 bindir	      = ${HOME}/bin
 
 # make actions 
 all:		$(PROGRAM)
 install:	$(PROGRAM)
-		cp optool optool2tex optool-complete $(bindir)
+		cp optool$(EXE_EXT) optool2tex optool-complete $(bindir)
 
 full:;		make multi=true fits=true
 multi:;		make multi=true
