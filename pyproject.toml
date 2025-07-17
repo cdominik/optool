@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astro-optool"
+version = "1.9.5"
+# dynamic = ["version"]
+dependencies = [
+  "numpy >= 1.18",
+  "matplotlib >= 2.0",
+]
+requires-python = ">= 3.7"
+authors = [
+  {name = "Carsten Dominik", email = "c.dominik@uva.nl"},
+  {name = "Michiel Min", email = "M.Min@sron.nl"},
+  {name = "Ryo Tazaki", email = "ryo.tazaki1205@gmail.com"},
+]
+description = "Optool"
+readme = {file = "README.org", content-type = "text/plain"}
+license = {file = "LICENSE"}
+keywords = ["astrophysics"]
+
+[project.urls]
+Issues = "https://github.com/cdominik/optool/issues"
+Repository = "https://github.com/cdominik/optool"

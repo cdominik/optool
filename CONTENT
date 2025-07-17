@@ -1,32 +1,33 @@
 List of files in the optool distribution
 ========================================
 
-CONTENT                 This file
-INSTALL                 Brief installation instructions (also in UserGuide)
-LICENSE                 License information
-Makefile                Makefile to aid compilation and installation
-README.org              Short introduction, source for githup site
-UserGuide.org           The User guide, an Emacs Org-mode file
-UserGuide.pdf           PDF version of UserGuide.org
-code4reading            Directory with code snippets to read optool output
-codemeta.jason          Matadata for optool
-lnk_data                Directory with refractive index data
-maint                   Directory with scripts aiding maintenance
-optool.f90              Main code file for optool
-optool_guts.f90         Code that does the grunt work for computing opacities
-optool_fractal.f90      Code implementing modified mean field theory
-optool_geofractal.f90   Code computing geometric aggregate cross sections
-optool_manual.f90       The Manual extracted from UserGuide.org, baked into f90
-optool_refind.f90       Refractive index data as fortran code
-optool                  Binary program, only present after running "make"
-optool.py               Python module for working with optool
-setup.py                Code for python module installation
-optool2tex              Perl program to turn optool command into LaTeX text
-optool-complete         Code for shell-completion of switches and arguments
-optool.bib              BibTeX file with all relevant references
+CONTENT                            This file
+INSTALL                            Brief installation instructions (also in UserGuide)
+LICENSE                            License information
+README.org                         Short introduction, source for github site
+UserGuide.org                      The User guide, an Emacs Org-mode file
+UserGuide.pdf                      PDF version of UserGuide.org
+codemeta.jason                     Metadata for optool
+pyproject.toml                     Code for python module installation
+src/optool/Makefile                Makefile to aid compilation and installation
+src/optool/__init__.py             Python file for initializing the module
+src/optool/code4reading            Directory with code snippets to read optool output
+src/optool/lnk_data                Directory with refractive index data
+src/optool/maint                   Directory with scripts aiding maintenance
+src/optool/optool.f90              Main code file for optool
+src/optool/optool_guts.f90         Code that does the grunt work for computing opacities
+src/optool/optool_fractal.f90      Code implementing modified mean field theory
+src/optool/optool_geofractal.f90   Code computing geometric aggregate cross sections
+src/optool/optool_manual.f90       The Manual extracted from UserGuide.org, baked into f90
+src/optool/optool_refind.f90       Refractive index data as fortran code
+src/optool/optool                  Binary program, only present after running "make"
+src/optool/optool.py               Python module for working with optool
+src/optool/optool2tex              Perl program to turn optool command into LaTeX text
+src/optool/optool-complete         Code for shell-completion of switches and arguments
+src/optool/optool.bib              BibTeX file with all relevant references
 
 
-In directory maint
+In directory src/optool/maint
 ==================
 RELEASE                 Description of how to produce a release
 all_k.pdf               Plot of k values, made with plotall.py, used in manual
@@ -41,7 +42,7 @@ run_examples            Script running all examples from the manual
 selftest.pl             Perl program to run a bunch of tests with optool
 
 
-In directory code4reading
+In directory src/optool/code4reading
 =========================
 Makefile                Makefile to compile the fortran snippets
 README                  Information about how to use the snippets
@@ -51,12 +52,12 @@ readfits.f90            Fortran program to read FITS output
 readfits.py             Python  program to read FITS output
 
 
-In directory lnk_data
+In directory src/optool/lnk_data
 =====================
 lnk-help.txt                   The help screen shown by optool -c
 retired                        Directory with retired datasets
 
-The refractive index datasets in the lnk_data directory
+The refractive index datasets in the src/optool/lnk_data directory
 -------------------------------------------------------
 astrosil-Draine2003.lnk        astronomical silicate
 c-gra-Draine2003.lnk           graphite         (crystalline)

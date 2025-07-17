@@ -1,4 +1,6 @@
-"""NAME
+#!/bin/sh python3
+r"""
+NAME
     optool
 
 DESCRIPTION
@@ -15,7 +17,7 @@ Compute pyroxene with an ice mantle in 24 different grain sizes
 and plot the results
 
   import optool
-  p = optool.particle(’~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d’)
+  p = optool.particle('~/bin/optool pyr 0.8 -m ice 0.2 -na 24 -d')
   p.plot()
 
 Read opacity files produced earlier by a run of optool. This is
@@ -87,11 +89,13 @@ import re
 import os
 import shutil
 import subprocess
-from distutils.spawn import find_executable
 import tempfile
+import pathlib
+
 
 class particle:
-    """Run optool and turn output into a python object.
+    """
+    Run optool and turn output into a python object.
 
         Provides an interface to the optool program for computing dust
         opacities. The optool program can be found on GitHub, at this address:
@@ -185,7 +189,8 @@ class particle:
              Compute opacity of a size distribution of elements of SELF
         """
     def __init__(self,cmd,cache='',silent=False):
-        """Create a new optool.particle opject.
+        """
+        Create a new optool.particle object.
 
         Parameters
         ---------=
@@ -199,7 +204,7 @@ class particle:
                the second parameter CACHE.
 
         cache  : str, optional
-               The diretory to cache the optool output files in, so that
+               The directory to cache the optool output files in, so that
                they can be read instead of recomputed the next time
                the same command is used. The cache is automatically
                cleared when CMD changes between runs.
@@ -226,13 +231,13 @@ class particle:
             # No command, just read directory
             if not silent:
                 print("Reading files in directory:",cache,"...")
-            # Set cmd to the emty string, to signal not to run a command
+            # Set cmd to the empty string, to signal not to run a command
             cmd = ''
         elif (cache and checkcmd(cache,self.cmd)):
             # Directory was created by the exact same command - just read
             if not silent:
                 print("Using result cache in directory:",cache,"...")
-            # Set cmd to the emty string, to signal not to run a command
+            # Set cmd to the empty string, to signal not to run a command
             cmd = ''
         else:
             # Convert command string into list if necessary
@@ -243,35 +248,39 @@ class particle:
                     cmd[0] = os.path.expanduser(cmd[0])
 
             # Find the optool executable
-            bin = find_executable(cmd[0])
-            if (not bin):
+            executable = shutil.which(cmd[0])
+            if (not executable):
+                # Probably the executable is in the same directory as the module
+                module_path = pathlib.Path(__file__).parent.resolve()
+                executable = shutil.which(f"{module_path}/{cmd[0]}")
+            if (not executable): 
                 raise RuntimeError("Executable not found: "+cmd[0])
 
         # Wrap the main part into try - finally to make sure we clean up
         try:
             if (cache):
-                dir = cache
+                directory = cache
             else:
                 # create temporary directory in /tmp/
-                dir = tempfile.mkdtemp(prefix="optool_")
+                directory = tempfile.mkdtemp(prefix="optool_")
             if cmd:
                 if cache:
                     # make sure directory is new and empty
-                    shutil.rmtree(dir,ignore_errors=True)
-                    os.mkdir(dir)
+                    shutil.rmtree(directory,ignore_errors=True)
+                    os.mkdir(directory)
                 # Store the command line we are using.  We store the
                 # string version of the command, not the list version.
-                writecmd(dir,self.cmd)
+                writecmd(directory,self.cmd)
                 # tell optool to use the directory as writing desination
-                cmd.append('-o'); cmd.append(dir)
+                cmd.append('-o'); cmd.append(directory)
     
                 # Run optool to produce the opacities
                 stdout = subprocess.DEVNULL if silent else None
                 stderr = subprocess.DEVNULL if silent else None
-                cmd[0] = bin; subprocess.Popen(cmd, stdout=stdout, stderr=stderr).wait()
+                cmd[0] = executable; subprocess.Popen(cmd, stdout=stdout, stderr=stderr).wait()
             
             # Check if there is output we can use
-            scat,ext,translate = check_for_output(dir)
+            scat,ext,translate = check_for_output(directory)
             self.scat = scat
             self.massscale = 1.
 
@@ -283,9 +292,9 @@ class particle:
             
             for i in range(5000):
                 if scat:
-                    file = ("%s/dustkapscatmat_%03d.%s") % (dir,(i+1),ext)
+                    file = ("%s/dustkapscatmat_%03d.%s") % (directory,(i+1),ext)
                 else:
-                    file = ("%s/dustkappa_%03d.%s") % (dir,(i+1),ext)
+                    file = ("%s/dustkappa_%03d.%s") % (directory,(i+1),ext)
                 file = translate.get(file,file)
                 if (not os.path.exists(file)): break
                 nfiles = nfiles+1
@@ -327,11 +336,11 @@ class particle:
         finally:
             if cache:
                 if not silent:
-                    print("Files remain available in directory: "+dir)
+                    print("Files remain available in directory: "+directory)
             else:
                 if not silent:
-                    print("Cleaning up temporary directory "+dir)
-                shutil.rmtree(dir)
+                    print("Cleaning up temporary directory "+directory)
+                shutil.rmtree(directory)
 
     def plot(self,minkap=1e0):
         """Create interactive plots of the opacities in SELF.
@@ -441,7 +450,7 @@ class particle:
 
     def select(self,i):
         """Select just one bin from a multi-particle object.
-        A multi-particle opject is produced when running optool with
+        A multi-particle object is produced when running optool with
         a -d switch.
 
         This is useful for doing particle arithmetic, which only works for
@@ -1111,18 +1120,18 @@ def logscale_with_sign(array,bottom):
     array[b] = -np.log10(-array[b]+bottom) + lb
     return array
 
-def check_for_output(dir):
+def check_for_output(directory):
     # Check for and if necessary rename input files
     for ext in['dat','inp']:
-        if (os.path.exists(dir+'/dustkapscatmat_001.'+ext)):
+        if (os.path.exists(directory+'/dustkapscatmat_001.'+ext)):
             return True, ext, dict()
-        elif (os.path.exists(dir+'/dustkappa_001.'+ext)):
+        elif (os.path.exists(directory+'/dustkappa_001.'+ext)):
             return False, ext, dict()
-        elif (os.path.exists(dir+'/dustkapscatmat.'+ext)):
-            return True, ext, { dir+'/dustkapscatmat_001.'+ext : dir+'/dustkapscatmat.'+ext }
-        elif (os.path.exists(dir+'/dustkappa.'+ext)):
-            return False, ext, { dir+'/dustkappa_001.'+ext : dir+'/dustkappa.'+ext }
-    raise RuntimeError(f"No valid OpTool output files found in directory {dir}")
+        elif (os.path.exists(directory+'/dustkapscatmat.'+ext)):
+            return True, ext, { directory+'/dustkapscatmat_001.'+ext : directory+'/dustkapscatmat.'+ext }
+        elif (os.path.exists(directory+'/dustkappa.'+ext)):
+            return False, ext, { directory+'/dustkappa_001.'+ext : directory+'/dustkappa.'+ext }
+    raise RuntimeError(f"No valid OpTool output files found in directory {directory}")
 
 def parse_headers(headers,b):
     # Extract information on run parameters from headers
@@ -1268,13 +1277,13 @@ def readoutputfile(file,scat,silent=False):
     else:
         return [header,lam,kabs,ksca,phase_g]
 
-def writecmd(dir,cmd):
+def writecmd(directory,cmd):
     """Store the CMD string in file DIR/cmd.
     """
-    if (os.path.isdir(dir)):
+    if (os.path.isdir(directory)):
         # Directory does not exist
-        dir = dir.rstrip('/')
-        filename = dir+"/cmd"
+        directory = directory.rstrip('/')
+        filename = directory+"/cmd"
         try:
             wfile = open(filename, 'w')
         except:
@@ -1287,23 +1296,23 @@ def writecmd(dir,cmd):
     else:
         return False
     
-def checkcmd(dir,cmd):
+def checkcmd(directory,cmd):
     """Check if new command line is the same as the old one.
 
     This functions checks if the directory DIR contains a file
-    called CMD, and if the first line in thie directory is the
+    called CMD, and if the first line in this directory is the
     same as the string passed with the DIR parameter.
     """
-    if (not os.path.isdir(dir)):
+    if (not os.path.isdir(directory)):
         # Directory does not exist
         return False
-    if (len(os.listdir(dir))<=1):
+    if (len(os.listdir(directory))<=1):
         # There are less than one file in the directory. So either the cmd
         # file does not exist, or no output files are present.
         return False
-    dir = dir.rstrip('/')
-    filename = dir+"/cmd"
-    if (not os.path.exists(dir+"/cmd")):
+    directory = directory.rstrip('/')
+    filename = directory+"/cmd"
+    if (not os.path.exists(directory+"/cmd")):
         # The command file does not exist
         return False
     try:

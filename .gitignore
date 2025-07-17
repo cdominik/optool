@@ -1,4 +1,4 @@
-optool
+env/
 optool.dSYM
 optool.egg-info
 penmp
@@ -20,7 +20,6 @@ __pycache__
 auto/
 *.html
 *.tex
-*.tex
 *.aux
 *.log
 *.dvi
@@ -32,3 +31,6 @@ optool.pdf
 optool_sd.dat
 optool_lam.dat
 plotsd.py
+*.swp
+dist
+src/astro_optool.egg-info
