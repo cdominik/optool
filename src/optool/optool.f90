@@ -1499,7 +1499,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   ! Write the derived n and k to a file, or to STDOUT
   ! ----------------------------------------------------------------------
   if (blendonly) then
-     if (.not. quiet) write(stde,'("Writing the blended n and k to blended.lnk")')
+     if (.not. quiet) write(stde,'("Writing the blended n and k to optool_mix.lnk")')
      call remove_file_if_exists('optool_mix.lnk')
      open(unit=20,file='optool_mix.lnk')
      write(20,'(i5,f5.2)') nlam,rho_av
