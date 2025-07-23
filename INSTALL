@@ -2,7 +2,7 @@ You can download, compile, and install `optool' with these simple
 steps, using the freely available GNU FORTRAN compiler gfortran.
 
   git clone https://github.com/cdominik/optool.git        # clone repository
-  cd optool                      # enter code directory
+  cd optool/src/optool           # enter code directory
   make multi=true                # compile with multicore support
   
   make install bindir=~/bin/     # optional: copy binaries to binary path
