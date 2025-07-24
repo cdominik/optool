@@ -1,3 +1,6 @@
+* Needs fixing
+** TODO PDF generation have been broken by moving the source code.
+** TODO What else has been broken and needs fixing?
 * Actions and Ideas
 
 ** Photometric bands
