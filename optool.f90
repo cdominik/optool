@@ -676,6 +676,8 @@ program optool
      case('-v')
         ! Be more noisy
         verbose = .true.
+     case('-err')
+        stoperr = .true.
      case('-print')
         ! FIXME: quiet = .true.
         justnum = 'x'
