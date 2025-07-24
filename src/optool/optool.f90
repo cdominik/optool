@@ -45,7 +45,7 @@ subroutine usage()
   write(stdo,'("-radmc [LABEL]            Output as RADMC-3D input file")')
   write(stdo,'("-fits; -print [Var]       Output to FITS file, or to STDOUT")')
   write(stdo,'("-h [OPT]; -man            Show this msg or help on -OPT; Show the full manual")')
-  write(stdo,'("-q; -v                    Quiet or more verbose on STDOUT")')
+  write(stdo,'("-q; -v; -err              Quiet or more verbose on STDOUT//exit code 1 on fail")')
   write(stdo,'("-xlim XLIM                Switch to Mie for speed at x=XLIM")')
   write(stdo,'("===============================================================================")')
 end subroutine usage
@@ -67,6 +67,7 @@ module Defs
   logical, public                :: quiet     = .false. ! reduce output to STDOUT
   logical, public                :: verbose   = .false. ! additional output to STDOUT
   logical, public                :: debug     = .false. ! Additional info to STDOUT
+  logical, public                :: stoperr   = .false. ! Stop means exit code 1 (default 0)
   logical, public                :: write_grd = .false. ! Write out the size distribution and wavelength grid
   logical                        :: mmfss     = .false. ! Force single scattering result if phase shift is too large
   ! ----------------------------------------------------------------------
@@ -256,6 +257,7 @@ program optool
      if (tmp.eq.'-q')     quiet   = .true.
      if (tmp.eq.'-v')     verbose = .true.
      if (tmp.eq.'-debug') debug   = .true.
+     if (tmp.eq.'-err')   stoperr = .true.
      i = i+1; call getarg(i,tmp)
   enddo
 
@@ -294,7 +296,8 @@ program optool
         i  = i+1
         nm = nm+1;
         if (nm .gt. 20) then
-           write(stde,*) 'ERROR: too many materials'; stop
+           write(stde,*) 'ERROR: too many materials'
+           call stoperror
         endif
 
         ! First value is the material key or refindex file path
@@ -325,11 +328,11 @@ program optool
               read(value(it+1:len(value)),*) mat_rho(nm)
               if (mat_rho(nm) .le. 0.d0) then
                  write(stde,*) 'ERROR: Density must be larger than zero: ',mat_rho(nm);
-                 stop
+                 call stoperror
               endif
            else
               write(stde,*) 'ERROR: Please specify a density for artificial material: -c n:k:rho';
-              stop
+              call stoperror
            endif
            mat_cmd(nm) = .true.
         else
@@ -337,7 +340,7 @@ program optool
            ! Check if this is a valid material key or a file
            if (.not. is_key_or_file(trim(value),.true.)) then
               write(stde,*) "ERROR: not a material key or lnk file: ",trim(value)
-              stop
+              call stoperror
            endif
         endif
                 
@@ -361,11 +364,11 @@ program optool
            if (mat_cmd(nm)) then
               write(stde,*) "ERROR: rho specified twice (in name and after MFRAC) for material: ", &
                    trim(mat_lnk(nm))
-              stop
+              call stoperror
            endif
            if (mat_rho(nm) .le. 0.d0) then
               write(stde,*) 'ERROR: Density must be larger than zero: ',mat_rho(nm);
-              stop
+              call stoperror
            endif
         endif
 997     continue
@@ -375,7 +378,7 @@ program optool
      case('-diana','-dsharp','-dsharp-no-ice')
         if (nm.gt.0) then
            write(stde,*) "ERROR: Standard mixtures must be specified before any additional materials"
-           stop
+           call stoperror
         endif
         if (tmp.eq.'-diana') then
            nm = 2
@@ -411,7 +414,8 @@ program optool
         if (.not. arg_is_1_number(i+1)) then
            if (arg_is_present(i+1)) then
               if (arg_is_switch(i+1)) then
-                 write(stde,*) "ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
+                 write(stde,*) "ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"
+                 call stoperror
               endif
               i=i+1
               call getarg(i,sdfile)
@@ -421,10 +425,11 @@ program optool
                  sdkind = 'file'
               else
                  write(stde,*) "Size distribution file does not exist: ",trim(sdfile)
-                 stop
+                 call stoperror
               endif
            else
-              write(stde,*) "ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"; stop
+              write(stde,*) "ERROR: -a needs 1-4 values: amin [amax [na [apow]]]"
+              call stoperror
            endif
         endif
         if (trim(sdfile).eq.'') then
@@ -437,7 +442,7 @@ program optool
                  ! FIXME: Take this out?
                  if (amin+amax .le. 0d0) then
                     write(stde,'(" ERROR: delta a cannot be larger than a: ",F10.2,F10.2)') amin,amax
-                    stop
+                    call stoperror
                  endif
                  amin = amin+amax; amax = amin-2d0*amax
                  apow = 0.d0
@@ -455,7 +460,7 @@ program optool
                     ! The following check should no longer be necessary.
                     if (index(value(it+1:len(value)),':').gt.0) then
                        write(stde,'(" ERROR: Problems interpreting argument: ",A)') trim(value)
-                       stop
+                       call stoperror
                     endif
                     read(value(it+1:len(value)),*) asig
                     sdkind = 'norm'  ! could still also be lgnm, decide later
@@ -499,7 +504,8 @@ program optool
         ! -l expects a file name, or 1-3 numbers: lmin [lmax [nlam]]
         ! ----------------------------------------------------------------------
         if (.not. arg_is_value(i+1)) then
-           write(stde,*) "ERROR: -l needs a file or numbers as values"; stop
+           write(stde,*) "ERROR: -l needs a file or numbers as values"
+           call stoperror
         else if (.not. arg_is_number(i+1)) then
            ! Could be a file name.  If yes, read the lambda grid from it
            call getarg(i+1,value)
@@ -553,13 +559,15 @@ program optool
         if (arg_is_1_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) xlim
         else
-           write(stde,*) "ERROR: -xlim needs a numeric value"; stop
+           write(stde,*) "ERROR: -xlim needs a numeric value"
+           call stoperror
         endif
      case('-xlim_dhs')
         if (arg_is_1_number(i+1)) then
            i = i+1; call getarg(i,value); read(value,*) xlim_dhs
         else
-           write(stde,*) "ERROR: -xlim_dhs needs a numeric value"; stop
+           write(stde,*) "ERROR: -xlim_dhs needs a numeric value"
+           call stoperror
         endif
      case('-mmf','-mmfss')
         method = 'MMF'
@@ -608,7 +616,8 @@ program optool
            ! Two numbers. This is a wavelength range for a sparse file
            nsparse = nsparse+1
            if (nsparse.gt.10) then
-              write(stde,*) "ERROR: To many sparse file ranges (10 is max)"; stop
+              write(stde,*) "ERROR: To many sparse file ranges (10 is max)"
+              call stoperror
            endif
            i=i+1; call getarg(i,value); call uread(value,l1)
            i=i+1; call getarg(i,value); call uread(value,l2)
@@ -624,7 +633,7 @@ program optool
            scatlammin(nsparse) = l1; scatlammax(nsparse) = l1
         else
            write(stde,*) "ERROR: -sparse needs one or two wavelengths"
-           stop
+           call stoperror
         endif
      case('-chop')
         if (.not. arg_is_value(i+1)) then
@@ -728,7 +737,7 @@ program optool
      case('-feature')
         if (.not. arg_is_value(i+1)) then
            write(stde,*) "ERROR: -feature switch needs value"
-           stop
+           call stoperror
         endif
         i=i+1; call getarg(i,value); read(value,*) feature
         select case(trim(feature))
@@ -789,24 +798,29 @@ program optool
 
   ! *** Materials
   if (nm .ge. 20) then
-     write(stde,*) 'ERROR: Too many materials'; stop
+     write(stde,*) 'ERROR: Too many materials'
+     call stoperror
   endif
   if ( (nm.eq.nmant) .and. (nm.gt.0) ) then
-     write(stde,*) "ERROR: at least one core material must be specified"; stop
+     write(stde,*) "ERROR: at least one core material must be specified"
+     call stoperror
   endif
 
   ! *** Porosity
   if ( (pcore.lt.0d0).or.(pcore.ge.1d0).or.(pmantle.lt.0d0).or.(pmantle.ge.1d0) ) then
-     write(stde,*) "ERROR: prosities must be 0 <= p < 1"; stop
+     write(stde,*) "ERROR: prosities must be 0 <= p < 1"
+     call stoperror
   endif
 
   if ((justnum .ne. ' ') .and. split) then
-     write(stde,*) "ERROR: -print does not work in connection with -d splitting"; stop
+     write(stde,*) "ERROR: -print does not work in connection with -d splitting"
+     call stoperror
   endif
   
   ! *** Grain size distribution
   if ( (amin.le.0d0) .or. (amax.le.0d0) ) then
-     write(stde,*) 'ERROR: Both amin and amax need to be positive numbers',amin,amax; stop
+     write(stde,*) 'ERROR: Both amin and amax need to be positive numbers',amin,amax
+     call stoperror
   endif
   if (amin .gt. amax) then
      ! Swap min and max values
@@ -831,11 +845,11 @@ program optool
      !apow = 0.d0
      if (amean .le. 0.d0) then
         write(stde,*) "ERROR: amean must be positive for (log-)normal distribution"
-        stop
+        call stoperror
      endif
      if (asig .eq. 0.d0) then
         write(stde,*) "ERROR: asig cannot be zero for (log-)normal distribution"
-        stop
+        call stoperror
      else if (asig .gt. 0.d0) then
         sdkind = 'lgnm'
    else if (asig .lt. 0.d0) then
@@ -845,14 +859,16 @@ program optool
   
   ! *** Wavelength grid
   if ( (lmin.le.0d0) .or. (lmax.le.0d0) ) then
-     write(stde,*) 'ERROR: Both lmin and lmax need to be positive numbers',lmin,lmax; stop
+     write(stde,*) 'ERROR: Both lmin and lmax need to be positive numbers',lmin,lmax
+     call stoperror
   endif
   if (lmin .gt. lmax) then
      ! Swap min and max values
      dum = lmin; lmin = lmax; lmax = dum
   endif
   if ( (nlam.le.1) .and. (lmin.ne.lmax)) then
-     write(stde,*) 'ERROR: More than one wavelength point needed to sample a range',lmin,lmax,nlam; stop
+     write(stde,*) 'ERROR: More than one wavelength point needed to sample a range',lmin,lmax,nlam
+     call stoperror
   endif
   if ( (lmin.eq.lmax) .and. (nlam.ne.1) ) then
      write(stde,*) 'WARNING: Setting nlam=1 because lmin=lmax'
@@ -865,20 +881,24 @@ program optool
   ! *** DHS
   if (method .eq. 'DHS') then
      if ((fmax.lt.0.d0) .or. (fmax.ge.1.d0)) then
-        write(stde,*) 'ERROR: fmax for DHS must be >0 and <1'; stop
+        write(stde,*) 'ERROR: fmax for DHS must be >0 and <1'
+        call stoperror
      endif
   endif
 
   ! *** MMF
   if (method .eq. 'MMF') then
      if (mmf_struct .gt. 3.0d0) then
-        write(stde,*) 'ERROR: Fractal dimension needs to be between 1 and 3'; stop
+        write(stde,*) 'ERROR: Fractal dimension needs to be between 1 and 3'
+        call stoperror
      endif
      if (mmf_struct .le. 0d0) then
-        write(stde,*) 'ERROR: MMF structure parameter needs to be positive'; stop
+        write(stde,*) 'ERROR: MMF structure parameter needs to be positive'
+        call stoperror
      endif
      if (mmf_a0 .ge. amin) then
-        write(stde,*) 'ERROR: Minimum grain size cannot be smaller than monomer size'; stop
+        write(stde,*) 'ERROR: Minimum grain size cannot be smaller than monomer size'
+        call stoperror
      endif
   endif
 
@@ -893,7 +913,7 @@ program optool
   ! *** Angular grid
   if (mod(nang,2) .eq. 1) then
      write(stde,*) 'ERROR: The number of angles in -s NANG must be even'
-     stop
+     call stoperror
   endif
 
   ! *** Other checks
@@ -903,7 +923,7 @@ program optool
   endif
   if (split .and. (sdkind .ne. 'apow')) then
      write(stde,*) "ERROR: Please only use -d with a powerlaw size distribution"
-     stop
+     call stoperror
   endif
 
   ! *** Output files
@@ -912,7 +932,7 @@ program optool
      write(stde,*) 'ERROR: Support for writing FITS files needs to be compiled in.'
      write(stde,*) '       If you want FITS output, make sure cfitsio library is installed."'
      write(stde,*) '       Then recompile with: "make clean", and then "make fitsio=true"'
-     stop
+     call stoperror
   endif
 #endif
   if (trim(outdir) .ne. '') then
@@ -1014,7 +1034,7 @@ program optool
         if (mat_rho(im) .le. 0.d0) then
            write(stde,'("ERROR: Density of material must be >0, but rho=",f6.2," in ",A)') &
                 mat_rho(im),trim(mat_lnk(im))
-           stop
+           call stoperror
         endif
         mat_e1(im,1:nlam)    = e1d(1:nlam)
         mat_e2(im,1:nlam)    = e2d(1:nlam)
@@ -1843,7 +1863,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
 
            ! This should never happen
            write(stde,*) "ERROR: invalid method ", method
-           stop
+           call stoperror
 
         endif   ! end of "method" cases
           
@@ -1991,7 +2011,7 @@ subroutine Blender_vac(abun,nm,e_in,e_out)
         write(stde,*) "ERROR: Abundances not normalized in routine blender_vac"
         write(stde,*) abun
         write(stde,*) abunvac
-        stop
+        call stoperror
      endif
   endif
 
@@ -2119,7 +2139,7 @@ subroutine require_file (file)
   inquire (file=trim(file),exist=file_exists)
   if (.not. file_exists) then
      write(stde,'("ERROR: File ",A, " does not exist")') trim(file)
-     stop
+     call stoperror
   endif
 end subroutine require_file
 
@@ -2356,7 +2376,7 @@ subroutine uread(string,var)
      case('*nm');           var = var/1d7           * 1d4
      case default
         write(stde,*) "ERROR: invalid unit: ",trim(unit)
-        stop
+        call stoperror
      endselect
   endif
 end subroutine uread
@@ -2538,7 +2558,7 @@ subroutine read_size_distribution(file,na,r,nr,sdmns)
   if (idum.ne.na) then
      close(99)
      write(stde,*) "Error: inconsistent number of size bins in file ", file
-     stop
+     call stoperror
   endif
   tot(1)=0.d0; tot(2)=0.d0; tot(3)=0.d0; totn=0.d0
   do i=1,na
@@ -3155,6 +3175,27 @@ subroutine sdmeans(a1,a2,p,mn,sig,ameans)
      ameans(3) = (tot(3)/totn)**(1.d0/3.d0)
   endif
 end subroutine sdmeans
+
+subroutine stoperror
+  ! Stop the program.
+  ! We call this routine if the program was not able to do what it was
+  ! supposed to do.
+  ! Normally this means that the program simply will stop with exit code 0.
+  ! This is the most comfortable for interactive use from the command line,
+  ! because the program will have written to SDTERR what went wrong, and
+  ! the user will be spared looking at a backtrace.
+  ! However, if optool was called with the -err switch, the program will
+  ! exit with error code 1. This is best when optool is called from within
+  ! another program, because this will signal to the caller that the
+  ! expected output will not be present.
+  
+  use Defs
+  if (stoperr) then
+     error stop 1
+  else
+     stop
+  endif
+end subroutine stoperror
 
 !!! **** File Variables
 
