@@ -188,6 +188,7 @@ system.
   information about option *=-OPT=*.
 + =-q= :: Reduce output to STDOUT to essential warnings and errors.
 + =-v= :: More verbose output to STDOUT.
++ =-err= :: Generate exit code 1 on failure.
 
 ** Grain composition
 :PROPERTIES:
