@@ -130,7 +130,8 @@ module Defs
   character*500                  :: outdir = ''    ! Output directory
   character*500                  :: sdfile = ''    ! Size distribution file
   character*500                  :: sdoutfile = '' ! Size distribution file
-  character*500                  :: lamoutfile = ''! Size distribution file
+  character*500                  :: lamoutfile = ''! Wavelengths file
+  character*500                  :: mixoutfile = ''! Mixed lnk file
   real (kind=dp)                 :: ameans_file(3) ! for size means from file
   character*3                    :: method         ! DHS or MMF
   character*4                    :: sdkind         ! apow, lgnm, norm, or file
@@ -922,6 +923,7 @@ program optool
   fitsfile       = make_file_path(outdir,"dustkappa.fits")
   sdoutfile      = make_file_path(outdir,"optool_sd.dat")
   lamoutfile     = make_file_path(outdir,"optool_lam.dat")
+  mixoutfile     = make_file_path(outdir,"optool_mix.lnk")
 
   ! ----------------------------------------------------------------------
   ! Default grain composition if nothing is specified
@@ -1500,8 +1502,8 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   ! ----------------------------------------------------------------------
   if (blendonly) then
      if (.not. quiet) write(stde,'("Writing the blended n and k to optool_mix.lnk")')
-     call remove_file_if_exists('optool_mix.lnk')
-     open(unit=20,file='optool_mix.lnk')
+     call remove_file_if_exists(mixoutfile)
+     open(unit=20,file=mixoutfile)
      write(20,'(i5,f5.2)') nlam,rho_av
      do ilam=1,nlam
         write(20,'(1p,e15.5,1p,e15.5,1p,e15.5)') lam(ilam),e1blend(ilam),e2blend(ilam)
