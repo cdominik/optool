@@ -34,3 +34,4 @@ plotsd.py
 *.swp
 dist
 src/astro_optool.egg-info
+src/optool/optool
