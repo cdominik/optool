@@ -1,3 +1,13 @@
+*******************************************************************************
+WARNING: The installation instructions have slightly changed, because
+this package can now also be installed as a python package though pip
+or similar means.  If you have used optool before and want to keep
+using it in the same way, you now need to go into the directory
+src/optool before you can call "make" to compile the code. That is the
+only difference.
+*******************************************************************************
+
+
 You can download, compile, and install `optool' with these simple
 steps, using the freely available GNU FORTRAN compiler gfortran.
 

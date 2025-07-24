@@ -126,7 +126,16 @@ Compute the CDE approximation of small graphite grains.
 * User Guide
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
-
+- Release 2.0 ::
+  - The structure of the package has changed. You now need to go into
+    the directory =src/optool= before you can type "make" to compile
+    the code.
+  - optool is now also distributed as a python package that you can
+    install via pip.  See the Userguide and the INSTALL files for
+    instructions. 
+  - A new switch, -err, makes sure optool returns an exit code of 1
+    when it fails. This is useful when calling optool from other
+    programs instead of from the command line.
 - Release 1.9.14 ::
   - The python interface can now read the results from an earlier run
     by leaving the CMD argument empty.
