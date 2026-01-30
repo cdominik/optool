@@ -649,10 +649,10 @@ class particle:
                 elif (self.norm == "hovenier"):
                     nn = 4.*np.pi
                 elif (self.norm == "bohrenhuffman"):
-                    mgrain = (4./3.)*np.pi * self.a3[ip]**3 * self.rho[ip]
+                    mgrain = (4./3.)*np.pi * (self.a3[ip]*1e-4)**3 * self.rho[ip] # Need cm here, not um
                     nn = self.ksca[ip,il] * wav[il]**2 * mgrain
                 elif (self.norm == "mishchenko"):
-                    mgrain = (4./3.)*np.pi * self.a3[ip]**3 * self.rho[ip]
+                    mgrain = (4./3.)*np.pi * (self.a3[ip]*1e-4)**3 * self.rho[ip] # Need cm here, not um
                     nn = self.ksca[ip,il] * mgrain
                 if (norm):
                     self.f11[ip,il,:] = self.f11[ip,il,:] * nn/integ
