@@ -1,3 +1,7 @@
+* Nlayer code
+
+gfortran -O2 -Wall -o test_nmie nmie.f90 test_nmie.f90 2>&1
+
 * Actions and Ideas
 
 ** Photometric bands
