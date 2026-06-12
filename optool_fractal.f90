@@ -1632,11 +1632,6 @@ return
 end subroutine integration_of_Sp
 
 
-! -----------------------------------------------------------------------------
-! EDIT 2 of 3 --- NEW SUBROUTINE
-! Paste the following directly after "end subroutine integration_of_Sp"
-! -----------------------------------------------------------------------------
-
 !--------------------------------------------------------------------------------
 !
 !  This subroutine computes the structure integration S_p(kRg) for ALL orders
@@ -1647,38 +1642,46 @@ end subroutine integration_of_Sp
 !  This reduces the cost from O(nn*pmax^2) (plus ~2*nn*pmax allocations) to
 !  O(nn*pmax) with no allocations inside the loop.
 !
-!  Numerical scheme, per grid point u:
+!  Numerical scheme, per grid point u.  The same two Jablonski-type boundary
+!  polynomials are used as in integration_of_Sp:
 !
-!   j_p(u), p <= pswitch(u) : one downward (Miller) recurrence.
-!        pswitch(u) is the largest order for which log(u) >= ln(x_a)(p), with
-!        ln(x_a) the same Jablonski-type boundary polynomial used in
-!        integration_of_Sp.  Downward recurrence is stable everywhere the
-!        original code used either its upward or its downward branch (upward
-!        was only an efficiency choice).  The Miller normalization uses j_0
-!        or j_1, whichever has the larger magnitude, which avoids accuracy
-!        loss near the zeros of sin(u).
+!   j_p(u), p <= pup(u)               [ log(u) > ln(x_b)(p) ]
+!        upward recurrence from the exact values j_0, j_1 (original isol=3).
+!        This regime (u large compared to p) REQUIRES upward recurrence:
+!        a downward Miller recurrence started at an order below the turning
+!        point p ~ u does not converge to j_p.
 !
-!   j_p(u), p >  pswitch(u) : series expansion, exactly as in the original
-!        code (isol=1), with the same early-exit floor.
+!   j_p(u), pup(u) < p <= pswitch(u)  [ ln(x_a)(p) <= log(u) <= ln(x_b)(p) ]
+!        one downward (Miller) recurrence started at pswitch+nwarmup, which
+!        in this regime lies above the turning point (this is what the
+!        ln(x_b) boundary guarantees, and what the original code relied on).
+!        The normalization uses j_0 or j_1, whichever has the larger
+!        magnitude, which avoids accuracy loss near the zeros of sin(u).
+!
+!   j_p(u), p > pswitch(u)            [ log(u) < ln(x_a)(p) ]
+!        series expansion, exactly as in the original code (isol=1), with
+!        the same early-exit floor.
 !
 !   y_p(u) : upward recurrence with the same ceiling guard as the original.
 !
 !  The trapezoidal integration, the unitarity check, and the floor values
-!  applied to Sp are identical to integration_of_Sp.  Results agree with the
-!  original routine to within the stability of the recurrences (typically
-!  ~1e-10 relative or better).
+!  applied to Sp are identical to integration_of_Sp.
 !
 !--------------------------------------------------------------------------------
 subroutine integration_of_Sp_all(iqcor,iqgeo,D,pmax,xg,Sp)
 use types; use const; use IOunits
 implicit none
 !--------------------------------------------------------------------------------
-! Boundary fit used in Tazaki & Tanaka 2018 (same as in integration_of_Sp)
+! Boundary fits used in Tazaki & Tanaka 2018 (same as in integration_of_Sp)
 !--------------------------------------------------------------------------------
 real(kind=dp),parameter:: a1 =  1.69496268177237e-08_dp
 real(kind=dp),parameter:: a2 = -2.43299782942114e-05_dp
 real(kind=dp),parameter:: a3 =  0.0158750501131321_dp
 real(kind=dp),parameter:: a4 =  1.00672154148706_dp
+real(kind=dp),parameter:: b1 =  2.49355951047228e-08_dp
+real(kind=dp),parameter:: b2 = -2.9387731648675e-05_dp
+real(kind=dp),parameter:: b3 =  0.0135005554796179_dp
+real(kind=dp),parameter:: b4 =  3.72312019844119_dp
 !--------------------------------------------------------------------------------
 real(kind=dp),parameter:: floorvalue = 1.0e-30_dp  ! floor for Sp     (as original)
 real(kind=dp),parameter:: bessfloor  = 1.0e-70_dp  ! floor for j_p(x) (as original)
@@ -1688,11 +1691,11 @@ real(kind=dp),parameter:: eta2 = 40.0_dp
 integer,parameter      :: nwarmup = 100            ! Miller warm-up   (as original)
 integer,parameter      :: imax    = 100            ! series truncation(as original)
 integer                :: iqcor,iqgeo,pmax
-integer                :: n,p,i,pswitch,pdown,ptop,L
+integer                :: n,p,i,pswitch,pup,pdown,pupc,ptop,L
 real(kind=dp)          :: D,xg,umin,umax,du,fc
 real(kind=dp)          :: uu,lnu,base,unitary,error
 real(kind=dp)          :: K0,K1,s,j0,j1,FN,xi,wa,Y0,Y1
-real(kind=dp),allocatable,dimension(:) :: u,wt,lnxa,SJ,SY,K
+real(kind=dp),allocatable,dimension(:) :: u,wt,lnxa,lnxb,SJ,SY,K
 complex(kind=dp)       :: Sp(0:pmax)
 
 !
@@ -1725,25 +1728,29 @@ do n=2,nn-1
 enddo
 
 !
-! Boundary ln(x_a)(p): below it, the series expansion must be used for j_p.
+! Scheme boundaries:
+!   log(u) <  lnxa(p)  -->  series expansion required for j_p
+!   log(u) >  lnxb(p)  -->  upward recurrence required for j_p
+!   in between         -->  downward (Miller) recurrence
 !
-allocate(lnxa(0:pmax))
+allocate(lnxa(0:pmax),lnxb(0:pmax))
 do p=0,pmax
         lnxa(p) = a1*dble(p)**3.0_dp+a2*dble(p)**2.0_dp+a3*dble(p)+a4
+        lnxb(p) = b1*dble(p)**3.0_dp+b2*dble(p)**2.0_dp+b3*dble(p)+b4
 enddo
 
 allocate(SJ(0:pmax),SY(0:pmax),K(0:pmax+nwarmup))
 
 Sp      = cmplx(0.0_dp,0.0_dp,kind=dp)
 unitary = 0.0_dp
-pswitch = -1   ! u(n) is increasing, so pswitch is non-decreasing with n
+pswitch = -1   ! largest p with lnu >= lnxa(p); non-decreasing since u increases
+pup     = -1   ! largest p with lnu >  lnxb(p); non-decreasing since u increases
 
 do n=1,nn
 
         uu  = u(n)
         lnu = log(uu)
 
-        ! advance pswitch = largest p (capped at pmax) with lnu >= lnxa(p)
         do while(pswitch .lt. pmax)
                 if(lnu .ge. lnxa(pswitch+1)) then
                         pswitch = pswitch + 1
@@ -1751,19 +1758,49 @@ do n=1,nn
                         exit
                 endif
         enddo
-        pdown = min(pswitch,pmax)
+        do while(pup .lt. pmax)
+                if(lnu .gt. lnxb(pup+1)) then
+                        pup = pup + 1
+                else
+                        exit
+                endif
+        enddo
+        pdown = min(pswitch,pmax)   ! highest order NOT requiring the series
+        if(pdown .lt. 0) pdown = 0  ! u < x_a(0): ALL orders p>=1 need the
+                                    ! series; p=0 is set directly as sin(u)/u
+        pupc  = min(pup,pmax)       ! highest order requiring upward recurrence
+
+        j0 = sin(uu)/uu
+        j1 = sin(uu)/(uu*uu) - cos(uu)/uu
 
         !-----------------------------------------------------------------
-        ! Spherical Bessel function of the first kind, j_p(uu), all orders
+        ! Spherical Bessel function of the first kind, j_p(uu)
         !-----------------------------------------------------------------
         SJ    = 0.0_dp
-        j0    = sin(uu)/uu
         SJ(0) = j0
         ptop  = 0
 
-        if(pdown .ge. 1) then
+        if(pupc .ge. 1) then
                 !
-                ! One downward (Miller) recurrence for orders 1..pdown
+                ! Upward recurrence for orders 1..pupc (original isol=3).
+                ! Required where uu is large compared to the order.
+                !
+                SJ(1) = j1
+                K0 = SJ(0)
+                K1 = SJ(1)
+                do p=1,pupc-1
+                        SJ(p+1) = (real(2*p+1,kind=dp)/uu)*K1 - K0
+                        K0 = K1
+                        K1 = SJ(p+1)
+                enddo
+                ptop = pupc
+        endif
+
+        if(pdown .ge. 1 .and. pdown .gt. pupc) then
+                !
+                ! One downward (Miller) recurrence for orders pupc+1..pdown.
+                ! The start order pdown+nwarmup lies above the turning point
+                ! p ~ uu in this regime (guaranteed by the lnxb boundary).
                 !
                 L  = pdown + nwarmup
                 K1 = 0.0_dp
@@ -1777,13 +1814,12 @@ do n=1,nn
                 ! Normalize with j_0 or j_1, whichever is larger in magnitude
                 ! (robust near the zeros of sin(uu)).
                 !
-                j1 = sin(uu)/(uu*uu) - cos(uu)/uu
                 if(abs(j0) .ge. abs(j1)) then
                         s = j0/K(0)
                 else
                         s = j1/K(1)
                 endif
-                do p=1,pdown
+                do p=max(pupc+1,1),pdown
                         SJ(p) = s*K(p)
                         ptop  = p
                         if(abs(SJ(p)) .le. bessfloor) exit
@@ -1890,11 +1926,10 @@ if(iqgeo .ne. 3 .and. error .ge. 1.0e-3_dp) then
         stop
 endif
 
-deallocate(u,wt,lnxa,SJ,SY,K)
+deallocate(u,wt,lnxa,lnxb,SJ,SY,K)
 
 return
 end subroutine integration_of_Sp_all
-
 
 !--------------------------------------------------------------------------------
 !
