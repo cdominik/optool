@@ -208,6 +208,35 @@ end module const
 
 !--------------------------------------------------------------------------------
 !
+!  Cache for the Gaunt-type coefficients a(nu,n,p) and b(nu,n,p) used in the
+!  translation-matrix computation of meanscatt (Equations 29, 30 in Tazaki &
+!  Tanaka 2018).  The coefficients are independent of wavelength, refractive
+!  index, and aggregate structure; they only depend on the truncation order.
+!
+!  gc_coef(p,nu,n) stores, with the 0.5*(2p+1) normalization folded in:
+!     0.5*(2p+1)*a(nu,n,p)  if p has the same parity as nu+n
+!     0.5*(2p+1)*b(nu,n,p)  otherwise
+!  (a and b are mutually exclusive in the parity of p, so one array holds both.)
+!
+!  gc_nstop is the truncation order for which the cache is valid; -1 means
+!  no cache.  The cache is built once, in serial code, by gaunt_cache_init
+!  and is strictly read-only afterwards, so it is safe to read from inside
+!  OpenMP-parallel regions without synchronization.
+!
+!  Memory use: 8*(2*nstop+1)*nstop^2 bytes, e.g. ~0.15 MB for nstop=21,
+!  ~16 MB for nstop=100.
+!
+!--------------------------------------------------------------------------------
+module GauntCache
+use types
+implicit none
+integer :: gc_nstop = -1                       ! order the cache is valid for
+real(kind=dp), allocatable :: gc_coef(:,:,:)   ! (0:2*gc_nstop,1:gc_nstop,1:gc_nstop)
+end module GauntCache
+
+
+!--------------------------------------------------------------------------------
+!
 !
 !       MAIN ROUTINE
 !
@@ -216,7 +245,7 @@ end module const
 
 subroutine meanscatt(lmd,R0,PN,Df,k0,refrel,iqsca,iqcor,iqgeo,iquiet,nang,&
                 Cext,Csca,Cabsp,g_asym,Smat,dphi)
-use types; use const; use IOunits
+use types; use const; use IOunits; use GauntCache;
 implicit none
 
 !--------------------------------------------------------------------------------
@@ -280,6 +309,7 @@ complex(kind=dp)::cn1,cn2
 complex(kind=dp):: mgmref
 
 logical,parameter::debug=.false.
+logical::use_cache
 complex(kind=dp)::wa1,wa2
 
 !--------------------------------------------------------------------------------
@@ -436,44 +466,54 @@ elseif(iqsca .ge. 2) then
         !
         !--------------------------------------------------------------------------------
         !
-        ! Preparing for gauss-legendre quadrature
         !
-        allocate(x(jm),w(jm))
+        ! Use the precomputed Gaunt coefficients if a sufficiently large
+        ! cache was built by gaunt_cache_init; otherwise compute them on
+        ! the fly (original behavior, used e.g. for standalone calls).
+        !
+        use_cache = (gc_nstop .ge. nstop)
 
-        ! initializing arrays
-        x  =   0.0_dp
-        w  =   0.0_dp
+        if (.not. use_cache) then
+           !
+           ! Preparing for gauss-legendre quadrature
+           !
+           allocate(x(jm),w(jm))
+           
+           ! initializing arrays
+           x  =   0.0_dp
+           w  =   0.0_dp
+           
+           ! range of integration 
+           x1 =  -1.0_dp
+           x2 =   1.0_dp
+           call gauleg(x1,x2,x,w,jm) 
 
-        ! range of integration 
-        x1 =  -1.0_dp
-        x2 =   1.0_dp
-        call gauleg(x1,x2,x,w,jm) 
-
-        !--------------------------------------------------------------------------------
-        !
-        ! Storing values of the associated Legendgre function and 
-        ! the Legendre polynominals and its derivative  at each Gauss-Ledengre point.
-        !
-        ! The values are stored in 
-        !       AL1N(n,j) = P_n^1(x_j) : Associated Legendre function with order 1.
-        !       LN  (n,j) = P_n(x_j)   : Ledengre polynominals
-        !       DLN (n,j) = P_n(x_j)'  : Derivative of Legendre polynominals
-        !
-        !--------------------------------------------------------------------------------
-        order  = 1
-        degmax = nstop
-        pmax   = 2*nstop
-        allocate(PMN(0:degmax),PMND(0:degmax),LP(0:pmax),DLP(0:pmax))
-        allocate(AL1N(0:degmax,1:jm),LN(0:pmax,1:jm),DLN(0:pmax,1:jm))
-        do j=1,jm
-                call lpmns(order,degmax,x(j),PMN,PMND)
-                call lpn(pmax,x(j),LP,DLP)
-                AL1N(:,j) = PMN(:)
-                LN (:,j)  = LP(:)
-                DLN(:,j)  = DLP(:)
-        enddo
-        deallocate(PMN,PMND,LP,DLP)
-        
+           !--------------------------------------------------------------------------------
+           !
+           ! Storing values of the associated Legendgre function and 
+           ! the Legendre polynominals and its derivative  at each Gauss-Ledengre point.
+           !
+           ! The values are stored in 
+           !       AL1N(n,j) = P_n^1(x_j) : Associated Legendre function with order 1.
+           !       LN  (n,j) = P_n(x_j)   : Ledengre polynominals
+           !       DLN (n,j) = P_n(x_j)'  : Derivative of Legendre polynominals
+           !
+           !--------------------------------------------------------------------------------
+           order  = 1
+           degmax = nstop
+           pmax   = 2*nstop
+           allocate(PMN(0:degmax),PMND(0:degmax),LP(0:pmax),DLP(0:pmax))
+           allocate(AL1N(0:degmax,1:jm),LN(0:pmax,1:jm),DLN(0:pmax,1:jm))
+           do j=1,jm
+              call lpmns(order,degmax,x(j),PMN,PMND)
+              call lpn(pmax,x(j),LP,DLP)
+              AL1N(:,j) = PMN(:)
+              LN (:,j)  = LP(:)
+              DLN(:,j)  = DLP(:)
+           enddo
+           deallocate(PMN,PMND,LP,DLP)
+        endif
+     
         !
         ! Preparing arrays for the structure integration Sp(kRg),
         ! and the translation matrix.
@@ -535,28 +575,37 @@ elseif(iqsca .ge. 2) then
                       pmax=nu+n
                       sumA = 0.0_dp
                       sumB = 0.0_dp
-                      do p=pmin,pmax 
-                                anunp=0.0_dp
-                                bnunp=0.0_dp
-                                if(mod(pmax,2) .eq. mod(p,2)) then
-                                        do j=1,jm
-                                            anunp = anunp + w(j) * AL1N(nu,j) * AL1N(n,j) * LN(p,j) 
-                                        enddo
-                                else
-                                        do j=1,jm
-                                            bnunp = bnunp + w(j) * AL1N(nu,j) * AL1N(n,j) * DLN(p,j) 
-                                        enddo
-                                endif
-                                anunp = 0.5_dp * real(2*p+1,kind=dp) * anunp
-                                bnunp = 0.5_dp * real(2*p+1,kind=dp) * bnunp
-                                sumA = sumA + real(n*(n+1)+nu*(nu+1)-p*(p+1),kind=dp) * anunp * Sp(p) 
-                                sumB = sumB + bnunp * Sp(p)
+                      do p=pmin,pmax
+                         if(mod(pmax,2) .eq. mod(p,2)) then
+                            if(use_cache) then
+                               anunp = gc_coef(p,nu,n)
+                            else
+                               anunp = 0.0_dp
+                               do j=1,jm
+                                  anunp = anunp + w(j) * AL1N(nu,j) * AL1N(n,j) * LN(p,j)
+                               enddo
+                               anunp = 0.5_dp * real(2*p+1,kind=dp) * anunp
+                            endif
+                            sumA = sumA + real(n*(n+1)+nu*(nu+1)-p*(p+1),kind=dp) * anunp * Sp(p)
+                         else
+                            if(use_cache) then
+                               bnunp = gc_coef(p,nu,n)
+                            else
+                               bnunp = 0.0_dp
+                               do j=1,jm
+                                  bnunp = bnunp + w(j) * AL1N(nu,j) * AL1N(n,j) * DLN(p,j)
+                               enddo
+                               bnunp = 0.5_dp * real(2*p+1,kind=dp) * bnunp
+                            endif
+                            sumB = sumB + bnunp * Sp(p)
+                         endif
                       enddo
                       T(1,nu,n) = sumA * real(2*nu+1,kind=dp) / real(n*(n+1)*nu*(nu+1),kind=dp)
                       T(2,nu,n) = sumB * 2.0_dp * real(2*nu+1,kind=dp) / real(n*(n+1)*nu*(nu+1),kind=dp)
                 enddo
         enddo
-        deallocate(x,w,Sp,AL1N,LN,DLN)
+        if (.not. use_cache) deallocate(x,w,AL1N,LN,DLN)
+        deallocate(Sp)
         allocate(S(2*numax,2*nmax),y(2*nmax),r(2*nmax))
         
         ! initializing arrays
@@ -841,6 +890,114 @@ deallocate(an,bn,ad,dd)
 
 return
 end subroutine meanscatt
+
+
+!--------------------------------------------------------------------------------
+!
+!  Build the Gaunt coefficient cache (see module GauntCache) for all orders
+!  nu,n = 1..nstop and p = |nu-n|..nu+n.  The quadrature is identical to the
+!  on-the-fly computation in meanscatt: Gauss-Legendre with jm points, using
+!  the associated Legendre functions (lpmns) and Legendre polynomials (lpn).
+!
+!  Call this once, from serial code, before any (possibly parallel) calls to
+!  meanscatt, with nstop equal to the largest truncation order that will
+!  occur.  If it is never called, or nstop exceeds nstop_cache_max, meanscatt
+!  silently falls back to its original on-the-fly computation.
+!
+!--------------------------------------------------------------------------------
+subroutine gaunt_cache_init(nstop)
+use types; use const; use IOunits; use GauntCache
+implicit none
+integer :: nstop
+integer, parameter :: nstop_cache_max = 256    ! cache size cap (~270 MB)
+integer :: j,nu,n,p,pmin,pmax,order,degmax,ptot
+real(kind=dp) :: x1,x2,anunp,bnunp
+real(kind=dp) :: gw(jm)
+real(kind=dp),allocatable,dimension(:)   :: x,w,PMN,PMND,LP,DLP
+real(kind=dp),allocatable,dimension(:,:) :: AL1Nt,LNt,DLNt
+
+if (gc_nstop .ge. nstop) return        ! existing cache is already sufficient
+
+if (nstop .gt. nstop_cache_max) then
+        write(stde,*) 'WARNING: truncation order nstop =',nstop
+        write(stde,*) '         exceeds the Gaunt cache limit (',nstop_cache_max,').'
+        write(stde,*) '         Falling back to on-the-fly computation in meanscatt.'
+        return
+endif
+
+if (allocated(gc_coef)) deallocate(gc_coef)
+
+!
+! Gauss-Legendre points and weights on [-1,1] (as in meanscatt)
+!
+allocate(x(jm),w(jm))
+x  =  0.0_dp
+w  =  0.0_dp
+x1 = -1.0_dp
+x2 =  1.0_dp
+call gauleg(x1,x2,x,w,jm)
+
+!
+! Tabulate the (associated) Legendre functions at the quadrature points.
+! Stored transposed (quadrature index first) so that the inner sums below
+! run over contiguous memory.
+!
+order  = 1
+degmax = nstop
+ptot   = 2*nstop
+allocate(PMN(0:degmax),PMND(0:degmax),LP(0:ptot),DLP(0:ptot))
+allocate(AL1Nt(1:jm,0:degmax),LNt(1:jm,0:ptot),DLNt(1:jm,0:ptot))
+do j=1,jm
+        call lpmns(order,degmax,x(j),PMN,PMND)
+        call lpn(ptot,x(j),LP,DLP)
+        AL1Nt(j,0:degmax) = PMN(0:degmax)
+        LNt  (j,0:ptot)   = LP(0:ptot)
+        DLNt (j,0:ptot)   = DLP(0:ptot)
+enddo
+deallocate(PMN,PMND,LP,DLP)
+
+allocate(gc_coef(0:ptot,1:nstop,1:nstop))
+gc_coef = 0.0_dp
+
+!
+! The quadrature for each (nu,n,p).  The common factor w*P^1_nu*P^1_n is
+! hoisted out of the p loop; the term grouping ((w*A)*A)*L is the same as
+! in the original left-to-right evaluation, so the values are identical.
+!
+!$OMP parallel do default(none) &
+!$OMP shared(nstop,w,AL1Nt,LNt,DLNt,gc_coef) &
+!$OMP private(nu,n,p,pmin,pmax,j,anunp,bnunp,gw)
+do nu=1,nstop
+        do n=1,nstop
+                do j=1,jm
+                        gw(j) = w(j) * AL1Nt(j,nu) * AL1Nt(j,n)
+                enddo
+                pmin = abs(n-nu)
+                pmax = nu+n
+                do p=pmin,pmax
+                        if(mod(pmax,2) .eq. mod(p,2)) then
+                                anunp = 0.0_dp
+                                do j=1,jm
+                                        anunp = anunp + gw(j) * LNt(j,p)
+                                enddo
+                                gc_coef(p,nu,n) = 0.5_dp * real(2*p+1,kind=dp) * anunp
+                        else
+                                bnunp = 0.0_dp
+                                do j=1,jm
+                                        bnunp = bnunp + gw(j) * DLNt(j,p)
+                                enddo
+                                gc_coef(p,nu,n) = 0.5_dp * real(2*p+1,kind=dp) * bnunp
+                        endif
+                enddo
+        enddo
+enddo
+!$OMP end parallel do
+
+deallocate(x,w,AL1Nt,LNt,DLNt)
+gc_nstop = nstop
+
+return
+end subroutine gaunt_cache_init
 
 !--------------------------------------------------------------------------------
 !
