@@ -127,6 +127,16 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
+- Release 1.9.15 ::
+  - Fixed a discrepancy in the matrix elements F33, F34 and
+    F44. Because of a mix in conventions, F34 had the wrong sign, at
+    least for computations with RADMC3D. Also, there was an error of a
+    factor of 2 for the elements F33, F34 and F44 between DHS and Mie
+    computations. If you used those elements from optool opacities
+    (mainly for circular polarization computations), that you need to
+    redo these computations.
+  - Very significant speedup of the MMF computation.                  
+
 - Fixes without version number change since 1.9.14 ::
   - With the -w switch, optool_mix.lnk will now also be written to the
     speficied output directory
