@@ -1701,27 +1701,29 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
                        call MeerhoffMie(rmie,rmie/5000d0,e1mie,e2mie,csmie,cemie, &
                             Mief11,Mief12,Mief33,Mief34,nang)
                     endif
+                    Mief34 = - Mief34 ! Flip sign to make sure we follow BH convention
                  endif
                  Mief22 = Mief11; Mief44 = Mief33
               else
                  cemie = qext * pi * rad**2
                  csmie = qsca * pi * rad**2
-                 factor= 2d0*pi/csmie/wvno**2
+
+                 factor= 4d0*pi/csmie/wvno**2 ! <-- changed from 2d0 to 4d0
                  do j=1,nang/2
-                    Mief11(j)        = (M2(j,1) + M1(j,1)) * factor
-                    Mief12(j)        = (M2(j,1) - M1(j,1)) * factor
-                    Mief22(j)        = (M2(j,1) + M1(j,1)) * factor
-                    Mief33(j)        = (S21(j,1))          * factor
-                    Mief34(j)        = (-D21(j,1))         * factor
-                    Mief44(j)        = (S21(j,1))          * factor
+                    Mief11(j)        = 0.5*(M2(j,1) + M1(j,1)) * factor 
+                    Mief12(j)        = 0.5*(M2(j,1) - M1(j,1)) * factor
+                    Mief22(j)        = 0.5*(M2(j,1) + M1(j,1)) * factor
+                    Mief33(j)        = S21(j,1)                * factor
+                    Mief34(j)        = D21(j,1)                * factor
+                    Mief44(j)        = S21(j,1)                * factor
                     ! Here we use the assumption that the grid is regular.  An adapted
                     ! grid is not possible if it is not symmetric around pi/2.
-                    Mief11(nang-j+1) = (M2(j,2) + M1(j,2)) * factor
-                    Mief12(nang-j+1) = (M2(j,2) - M1(j,2)) * factor
-                    Mief22(nang-j+1) = (M2(j,2) + M1(j,2)) * factor
-                    Mief33(nang-j+1) = (S21(j,2))          * factor
-                    Mief34(nang-j+1) = (-D21(j,2))         * factor
-                    Mief44(nang-j+1) = (S21(j,2))          * factor
+                    Mief11(nang-j+1) = 0.5*(M2(j,2) + M1(j,2)) * factor
+                    Mief12(nang-j+1) = 0.5*(M2(j,2) - M1(j,2)) * factor
+                    Mief22(nang-j+1) = 0.5*(M2(j,2) + M1(j,2)) * factor
+                    Mief33(nang-j+1) = S21(j,2)                * factor
+                    Mief34(nang-j+1) = D21(j,2)                * factor
+                    Mief44(nang-j+1) = S21(j,2)                * factor
                  enddo
               endif    ! (err.eq.1 .or. spheres.eq.1 .or. toolarge.eq.1)
               
