@@ -127,21 +127,37 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
-- Release 1.9.15 ::
-  - Fixed a discrepancy in the matrix elements F33, F34 and
-    F44. Because of a mix in conventions, F34 had the wrong sign, at
-    least for computations with RADMC3D. Also, there was an error of a
-    factor of 2 for the elements F33, F34 and F44 between DHS and Mie
-    computations. If you used those elements from optool opacities
-    (mainly for circular polarization computations), that you need to
-    redo these computations.
-  - Very significant speedup of the MMF computation.                  
+- Release 2.0 ::
+  - Scattering matrix bug fix ::
+       We fixed two bugs with scattering matrix elements. Because of a
+       mix in conventions, F34 had a different sign than the one used
+       by the strandard reference book by Bohren & Huffman. In optool
+       2.0, we are switching the sign to be conformant with the B&H
+       convention. This is the convention also used by RADMC3D, so
+       optool will work right of this, it's most common
+       application. For people working with Michiel Min's MCMAX3D,
+       that code internally uses the flipped sign convention (which is
+       how it sneaked into optool). MCMax3D has it's own internal
+       machinery to compute dust opacities, and that ensures
+       consistency for that code as well, independant of optool.
 
-- Fixes without version number change since 1.9.14 ::
-  - With the -w switch, optool_mix.lnk will now also be written to the
-    speficied output directory
-  - A new switch, -err, will trigger optool to exit with error code 1
-    when it is not successful. 
+       We also noted an unfortunate bug, a factor of 2 on the matrix
+       elements F33, F34 and F44 between DHS and Mie computations done
+       with optool. This is now fixed as well. These matrix elements
+       influene computations of polarization in *multiple* scattering,
+       and with circular polarization. If you have used optool with
+       DHS for this application, you may want to check your results.
+
+  - MMF speedup :: We implemented a very significant speedup of the
+                   Modified Mean Field computation of fractal
+                   aggregate opacities, by optimizing the calculation
+                   of Bessel functions.
+
+  - minor changes :: 
+    - With the -w switch, optool_mix.lnk will now also be written to
+      the speficied output directory
+    - A new switch, -err, will trigger optool to exit with error code
+      1 when it is not successful.
 
 - Release 1.9.14 ::
   - The python interface can now read the results from an earlier run
