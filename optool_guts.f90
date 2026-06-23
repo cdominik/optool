@@ -1614,9 +1614,6 @@ subroutine DMiLay( rcore, rshell, wvno, rindsh, rindco, mu, &
   data pass1 / .true. / , toler / 1.d-6 / , &
        czero / ( 0.d0, 0.d0 ) / , ci / ( 0.d0, 1.d0 ) /
 
-  allocate(w(3,ll))
-  allocate(acap(ll))
-
   if( pass1 ) then
 
      pinum  = two*asin( one )
@@ -1636,6 +1633,9 @@ subroutine DMiLay( rcore, rshell, wvno, rindsh, rindco, mu, &
      nmx2   = 135
 
   endif
+
+  allocate(w(3,nmx1+1))
+  allocate(acap(nmx1+1))
 
   ! ** Check input arguments for gross errors
   inperr = .False.

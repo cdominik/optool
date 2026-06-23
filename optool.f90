@@ -1055,6 +1055,21 @@ program optool
   endif
 
   ! ----------------------------------------------------------------------
+  ! For MMF: precompute the Gaunt-type coefficients a(nu,n,p), b(nu,n,p)
+  ! once, for the largest truncation order that can occur on this
+  ! wavelength grid (set by the monomer size parameter at the shortest
+  ! wavelength; same formula as nstop in meanscatt).  The coefficients
+  ! are pure geometry -- independent of wavelength, material, grain size,
+  ! and aggregate structure.  This must happen here, in serial code: with
+  ! -d, ComputePart itself runs inside an OpenMP loop.  The cache is
+  ! read-only afterwards, so the parallel regions below need no locking.
+  ! ----------------------------------------------------------------------
+  if (method .eq. 'MMF') then
+     dum = 2.0_dp*pi*mmf_a0/minval(lam(1:nlam))
+     call gaunt_cache_init(nint(dum + 4.0_dp*dum**(1.0_dp/3.0_dp) + 2.0_dp))
+  endif
+
+  ! ----------------------------------------------------------------------
   ! Loop for splitting the output into files by grain size
   ! ----------------------------------------------------------------------
   if (split) then

@@ -208,6 +208,35 @@ end module const
 
 !--------------------------------------------------------------------------------
 !
+!  Cache for the Gaunt-type coefficients a(nu,n,p) and b(nu,n,p) used in the
+!  translation-matrix computation of meanscatt (Equations 29, 30 in Tazaki &
+!  Tanaka 2018).  The coefficients are independent of wavelength, refractive
+!  index, and aggregate structure; they only depend on the truncation order.
+!
+!  gc_coef(p,nu,n) stores, with the 0.5*(2p+1) normalization folded in:
+!     0.5*(2p+1)*a(nu,n,p)  if p has the same parity as nu+n
+!     0.5*(2p+1)*b(nu,n,p)  otherwise
+!  (a and b are mutually exclusive in the parity of p, so one array holds both.)
+!
+!  gc_nstop is the truncation order for which the cache is valid; -1 means
+!  no cache.  The cache is built once, in serial code, by gaunt_cache_init
+!  and is strictly read-only afterwards, so it is safe to read from inside
+!  OpenMP-parallel regions without synchronization.
+!
+!  Memory use: 8*(2*nstop+1)*nstop^2 bytes, e.g. ~0.15 MB for nstop=21,
+!  ~16 MB for nstop=100.
+!
+!--------------------------------------------------------------------------------
+module GauntCache
+use types
+implicit none
+integer :: gc_nstop = -1                       ! order the cache is valid for
+real(kind=dp), allocatable :: gc_coef(:,:,:)   ! (0:2*gc_nstop,1:gc_nstop,1:gc_nstop)
+end module GauntCache
+
+
+!--------------------------------------------------------------------------------
+!
 !
 !       MAIN ROUTINE
 !
@@ -216,7 +245,7 @@ end module const
 
 subroutine meanscatt(lmd,R0,PN,Df,k0,refrel,iqsca,iqcor,iqgeo,iquiet,nang,&
                 Cext,Csca,Cabsp,g_asym,Smat,dphi)
-use types; use const; use IOunits
+use types; use const; use IOunits; use GauntCache;
 implicit none
 
 !--------------------------------------------------------------------------------
@@ -280,6 +309,7 @@ complex(kind=dp)::cn1,cn2
 complex(kind=dp):: mgmref
 
 logical,parameter::debug=.false.
+logical::use_cache
 complex(kind=dp)::wa1,wa2
 
 !--------------------------------------------------------------------------------
@@ -436,44 +466,54 @@ elseif(iqsca .ge. 2) then
         !
         !--------------------------------------------------------------------------------
         !
-        ! Preparing for gauss-legendre quadrature
         !
-        allocate(x(jm),w(jm))
+        ! Use the precomputed Gaunt coefficients if a sufficiently large
+        ! cache was built by gaunt_cache_init; otherwise compute them on
+        ! the fly (original behavior, used e.g. for standalone calls).
+        !
+        use_cache = (gc_nstop .ge. nstop)
 
-        ! initializing arrays
-        x  =   0.0_dp
-        w  =   0.0_dp
+        if (.not. use_cache) then
+           !
+           ! Preparing for gauss-legendre quadrature
+           !
+           allocate(x(jm),w(jm))
+           
+           ! initializing arrays
+           x  =   0.0_dp
+           w  =   0.0_dp
+           
+           ! range of integration 
+           x1 =  -1.0_dp
+           x2 =   1.0_dp
+           call gauleg(x1,x2,x,w,jm) 
 
-        ! range of integration 
-        x1 =  -1.0_dp
-        x2 =   1.0_dp
-        call gauleg(x1,x2,x,w,jm) 
-
-        !--------------------------------------------------------------------------------
-        !
-        ! Storing values of the associated Legendgre function and 
-        ! the Legendre polynominals and its derivative  at each Gauss-Ledengre point.
-        !
-        ! The values are stored in 
-        !       AL1N(n,j) = P_n^1(x_j) : Associated Legendre function with order 1.
-        !       LN  (n,j) = P_n(x_j)   : Ledengre polynominals
-        !       DLN (n,j) = P_n(x_j)'  : Derivative of Legendre polynominals
-        !
-        !--------------------------------------------------------------------------------
-        order  = 1
-        degmax = nstop
-        pmax   = 2*nstop
-        allocate(PMN(0:degmax),PMND(0:degmax),LP(0:pmax),DLP(0:pmax))
-        allocate(AL1N(0:degmax,1:jm),LN(0:pmax,1:jm),DLN(0:pmax,1:jm))
-        do j=1,jm
-                call lpmns(order,degmax,x(j),PMN,PMND)
-                call lpn(pmax,x(j),LP,DLP)
-                AL1N(:,j) = PMN(:)
-                LN (:,j)  = LP(:)
-                DLN(:,j)  = DLP(:)
-        enddo
-        deallocate(PMN,PMND,LP,DLP)
-        
+           !--------------------------------------------------------------------------------
+           !
+           ! Storing values of the associated Legendgre function and 
+           ! the Legendre polynominals and its derivative  at each Gauss-Ledengre point.
+           !
+           ! The values are stored in 
+           !       AL1N(n,j) = P_n^1(x_j) : Associated Legendre function with order 1.
+           !       LN  (n,j) = P_n(x_j)   : Ledengre polynominals
+           !       DLN (n,j) = P_n(x_j)'  : Derivative of Legendre polynominals
+           !
+           !--------------------------------------------------------------------------------
+           order  = 1
+           degmax = nstop
+           pmax   = 2*nstop
+           allocate(PMN(0:degmax),PMND(0:degmax),LP(0:pmax),DLP(0:pmax))
+           allocate(AL1N(0:degmax,1:jm),LN(0:pmax,1:jm),DLN(0:pmax,1:jm))
+           do j=1,jm
+              call lpmns(order,degmax,x(j),PMN,PMND)
+              call lpn(pmax,x(j),LP,DLP)
+              AL1N(:,j) = PMN(:)
+              LN (:,j)  = LP(:)
+              DLN(:,j)  = DLP(:)
+           enddo
+           deallocate(PMN,PMND,LP,DLP)
+        endif
+     
         !
         ! Preparing arrays for the structure integration Sp(kRg),
         ! and the translation matrix.
@@ -488,18 +528,23 @@ elseif(iqsca .ge. 2) then
         ! The structure integration Sp 
         !
         !call spout(iqcor,df) !for output 
-
-        do p=0,numax+nmax
-              Sp_tmp = cmplx(0.0_dp,0.0_dp,kind=dp)
-               if(debug) then
-                 Sp(p) = (df/(16.0*xg*xg))&
-                    *Gamma(0.5_dp*(df-2.0_dp))/Gamma(0.5_dp*df)
-               else
-                        call integration_of_Sp(iqcor,iqgeo,df,p,xg,Sp_tmp)
-                        Sp(p) = Sp_tmp
-               endif
-        enddo
         
+        if(debug) then
+                do p=0,numax+nmax
+                        Sp(p) = (df/(16.0*xg*xg))&
+                           *Gamma(0.5_dp*(df-2.0_dp))/Gamma(0.5_dp*df)
+                enddo
+        else
+                !
+                ! Compute S_p(kRg) for ALL orders p=0..numax+nmax in a single
+                ! pass over the integration grid (one Bessel recurrence per
+                ! grid point instead of one per grid point AND per order).
+                !
+                call integration_of_Sp_all(iqcor,iqgeo,df,numax+nmax,xg,Sp)
+        endif
+
+
+
         !--------------------------------------------------------------------------------
         !
         ! Caltulate translation matrix coefficients
@@ -530,28 +575,37 @@ elseif(iqsca .ge. 2) then
                       pmax=nu+n
                       sumA = 0.0_dp
                       sumB = 0.0_dp
-                      do p=pmin,pmax 
-                                anunp=0.0_dp
-                                bnunp=0.0_dp
-                                if(mod(pmax,2) .eq. mod(p,2)) then
-                                        do j=1,jm
-                                            anunp = anunp + w(j) * AL1N(nu,j) * AL1N(n,j) * LN(p,j) 
-                                        enddo
-                                else
-                                        do j=1,jm
-                                            bnunp = bnunp + w(j) * AL1N(nu,j) * AL1N(n,j) * DLN(p,j) 
-                                        enddo
-                                endif
-                                anunp = 0.5_dp * real(2*p+1,kind=dp) * anunp
-                                bnunp = 0.5_dp * real(2*p+1,kind=dp) * bnunp
-                                sumA = sumA + real(n*(n+1)+nu*(nu+1)-p*(p+1),kind=dp) * anunp * Sp(p) 
-                                sumB = sumB + bnunp * Sp(p)
+                      do p=pmin,pmax
+                         if(mod(pmax,2) .eq. mod(p,2)) then
+                            if(use_cache) then
+                               anunp = gc_coef(p,nu,n)
+                            else
+                               anunp = 0.0_dp
+                               do j=1,jm
+                                  anunp = anunp + w(j) * AL1N(nu,j) * AL1N(n,j) * LN(p,j)
+                               enddo
+                               anunp = 0.5_dp * real(2*p+1,kind=dp) * anunp
+                            endif
+                            sumA = sumA + real(n*(n+1)+nu*(nu+1)-p*(p+1),kind=dp) * anunp * Sp(p)
+                         else
+                            if(use_cache) then
+                               bnunp = gc_coef(p,nu,n)
+                            else
+                               bnunp = 0.0_dp
+                               do j=1,jm
+                                  bnunp = bnunp + w(j) * AL1N(nu,j) * AL1N(n,j) * DLN(p,j)
+                               enddo
+                               bnunp = 0.5_dp * real(2*p+1,kind=dp) * bnunp
+                            endif
+                            sumB = sumB + bnunp * Sp(p)
+                         endif
                       enddo
                       T(1,nu,n) = sumA * real(2*nu+1,kind=dp) / real(n*(n+1)*nu*(nu+1),kind=dp)
                       T(2,nu,n) = sumB * 2.0_dp * real(2*nu+1,kind=dp) / real(n*(n+1)*nu*(nu+1),kind=dp)
                 enddo
         enddo
-        deallocate(x,w,Sp,AL1N,LN,DLN)
+        if (.not. use_cache) deallocate(x,w,AL1N,LN,DLN)
+        deallocate(Sp)
         allocate(S(2*numax,2*nmax),y(2*nmax),r(2*nmax))
         
         ! initializing arrays
@@ -837,6 +891,114 @@ deallocate(an,bn,ad,dd)
 return
 end subroutine meanscatt
 
+
+!--------------------------------------------------------------------------------
+!
+!  Build the Gaunt coefficient cache (see module GauntCache) for all orders
+!  nu,n = 1..nstop and p = |nu-n|..nu+n.  The quadrature is identical to the
+!  on-the-fly computation in meanscatt: Gauss-Legendre with jm points, using
+!  the associated Legendre functions (lpmns) and Legendre polynomials (lpn).
+!
+!  Call this once, from serial code, before any (possibly parallel) calls to
+!  meanscatt, with nstop equal to the largest truncation order that will
+!  occur.  If it is never called, or nstop exceeds nstop_cache_max, meanscatt
+!  silently falls back to its original on-the-fly computation.
+!
+!--------------------------------------------------------------------------------
+subroutine gaunt_cache_init(nstop)
+use types; use const; use IOunits; use GauntCache
+implicit none
+integer :: nstop
+integer, parameter :: nstop_cache_max = 256    ! cache size cap (~270 MB)
+integer :: j,nu,n,p,pmin,pmax,order,degmax,ptot
+real(kind=dp) :: x1,x2,anunp,bnunp
+real(kind=dp) :: gw(jm)
+real(kind=dp),allocatable,dimension(:)   :: x,w,PMN,PMND,LP,DLP
+real(kind=dp),allocatable,dimension(:,:) :: AL1Nt,LNt,DLNt
+
+if (gc_nstop .ge. nstop) return        ! existing cache is already sufficient
+
+if (nstop .gt. nstop_cache_max) then
+        write(stde,*) 'WARNING: truncation order nstop =',nstop
+        write(stde,*) '         exceeds the Gaunt cache limit (',nstop_cache_max,').'
+        write(stde,*) '         Falling back to on-the-fly computation in meanscatt.'
+        return
+endif
+
+if (allocated(gc_coef)) deallocate(gc_coef)
+
+!
+! Gauss-Legendre points and weights on [-1,1] (as in meanscatt)
+!
+allocate(x(jm),w(jm))
+x  =  0.0_dp
+w  =  0.0_dp
+x1 = -1.0_dp
+x2 =  1.0_dp
+call gauleg(x1,x2,x,w,jm)
+
+!
+! Tabulate the (associated) Legendre functions at the quadrature points.
+! Stored transposed (quadrature index first) so that the inner sums below
+! run over contiguous memory.
+!
+order  = 1
+degmax = nstop
+ptot   = 2*nstop
+allocate(PMN(0:degmax),PMND(0:degmax),LP(0:ptot),DLP(0:ptot))
+allocate(AL1Nt(1:jm,0:degmax),LNt(1:jm,0:ptot),DLNt(1:jm,0:ptot))
+do j=1,jm
+        call lpmns(order,degmax,x(j),PMN,PMND)
+        call lpn(ptot,x(j),LP,DLP)
+        AL1Nt(j,0:degmax) = PMN(0:degmax)
+        LNt  (j,0:ptot)   = LP(0:ptot)
+        DLNt (j,0:ptot)   = DLP(0:ptot)
+enddo
+deallocate(PMN,PMND,LP,DLP)
+
+allocate(gc_coef(0:ptot,1:nstop,1:nstop))
+gc_coef = 0.0_dp
+
+!
+! The quadrature for each (nu,n,p).  The common factor w*P^1_nu*P^1_n is
+! hoisted out of the p loop; the term grouping ((w*A)*A)*L is the same as
+! in the original left-to-right evaluation, so the values are identical.
+!
+!$OMP parallel do default(none) &
+!$OMP shared(nstop,w,AL1Nt,LNt,DLNt,gc_coef) &
+!$OMP private(nu,n,p,pmin,pmax,j,anunp,bnunp,gw)
+do nu=1,nstop
+        do n=1,nstop
+                do j=1,jm
+                        gw(j) = w(j) * AL1Nt(j,nu) * AL1Nt(j,n)
+                enddo
+                pmin = abs(n-nu)
+                pmax = nu+n
+                do p=pmin,pmax
+                        if(mod(pmax,2) .eq. mod(p,2)) then
+                                anunp = 0.0_dp
+                                do j=1,jm
+                                        anunp = anunp + gw(j) * LNt(j,p)
+                                enddo
+                                gc_coef(p,nu,n) = 0.5_dp * real(2*p+1,kind=dp) * anunp
+                        else
+                                bnunp = 0.0_dp
+                                do j=1,jm
+                                        bnunp = bnunp + gw(j) * DLNt(j,p)
+                                enddo
+                                gc_coef(p,nu,n) = 0.5_dp * real(2*p+1,kind=dp) * bnunp
+                        endif
+                enddo
+        enddo
+enddo
+!$OMP end parallel do
+
+deallocate(x,w,AL1Nt,LNt,DLNt)
+gc_nstop = nstop
+
+return
+end subroutine gaunt_cache_init
+
 !--------------------------------------------------------------------------------
 !
 !  This subroutine finds effective refractive index of an aggregates
@@ -898,22 +1060,39 @@ end subroutine MGmixing
 !       what I did in if-sentence at the end of this subroutine.
 !
 !--------------------------------------------------------------------------------
+
 subroutine structure_factor_integration(D,q,Rg,Sq)
 use types
 implicit none
 integer::i
-integer      , parameter :: m    = 100000    ! # of integration grids 
-real(kind=dp), parameter :: c    = 0.5_dp    ! normalization factor by Botet+97
+integer                  :: m               ! # of integration grids (adaptive)
+integer      , parameter :: mmax = 100000   ! cap = the old fixed value
+integer      , parameter :: mmin = 2000     ! floor, resolves the cut-off fct.
+real(kind=dp), parameter :: c    = 0.5_dp   ! normalization factor by Botet+97
 real(kind=dp)::xmax,D,q,Rg,Sq,h
 real(kind=dp)::func,x0,x1,x2,eta
 
 ! estimate upper limit of integration: xmax
-eta = 25
+eta  = 25
 xmax = (eta/c)**(1.0_dp/D)
 
 if(q .eq. 0.0_dp) then
         Sq = 1.0_dp
 else
+        !------------------------------------------------------------------
+        ! Choose the number of Simpson intervals adaptively.
+        ! The integrand oscillates as sin(q*Rg*x), i.e. it completes
+        ! q*Rg*xmax/(2*pi) periods on [0,xmax].  Using m = 4*q*Rg*xmax + mmin
+        ! resolves every period with >~ 50 points (Simpson error per period
+        ! ~ (2*pi/50)^4/180, i.e. negligible), while mmin guarantees that the
+        ! smooth cut-off function is always well resolved at small q.
+        ! The old code used m = 100000 unconditionally; that value is kept
+        ! as a cap, so the most oscillatory cases are computed exactly as
+        ! accurately as before.
+        !------------------------------------------------------------------
+        m = int(4.0_dp*q*Rg*xmax) + mmin
+        m = min(m,mmax)
+
         Sq = 0.0_dp
         h = xmax/real(2*m,kind=dp)
         do i=0,m-1
@@ -1608,6 +1787,306 @@ deallocate(u,intg,intg_unit)
 
 return
 end subroutine integration_of_Sp
+
+
+!--------------------------------------------------------------------------------
+!
+!  This subroutine computes the structure integration S_p(kRg) for ALL orders
+!  p = 0 ... pmax in a single pass over the integration grid.  It evaluates the
+!  same integral as integration_of_Sp (see the documentation there), but the
+!  spherical Bessel recurrences are run once per grid point for all orders at
+!  the same time, instead of once per grid point for every order separately.
+!  This reduces the cost from O(nn*pmax^2) (plus ~2*nn*pmax allocations) to
+!  O(nn*pmax) with no allocations inside the loop.
+!
+!  Numerical scheme, per grid point u.  The same two Jablonski-type boundary
+!  polynomials are used as in integration_of_Sp:
+!
+!   j_p(u), p <= pup(u)               [ log(u) > ln(x_b)(p) ]
+!        upward recurrence from the exact values j_0, j_1 (original isol=3).
+!        This regime (u large compared to p) REQUIRES upward recurrence:
+!        a downward Miller recurrence started at an order below the turning
+!        point p ~ u does not converge to j_p.
+!
+!   j_p(u), pup(u) < p <= pswitch(u)  [ ln(x_a)(p) <= log(u) <= ln(x_b)(p) ]
+!        one downward (Miller) recurrence started at pswitch+nwarmup, which
+!        in this regime lies above the turning point (this is what the
+!        ln(x_b) boundary guarantees, and what the original code relied on).
+!        The normalization uses j_0 or j_1, whichever has the larger
+!        magnitude, which avoids accuracy loss near the zeros of sin(u).
+!
+!   j_p(u), p > pswitch(u)            [ log(u) < ln(x_a)(p) ]
+!        series expansion, exactly as in the original code (isol=1), with
+!        the same early-exit floor.
+!
+!   y_p(u) : upward recurrence with the same ceiling guard as the original.
+!
+!  The trapezoidal integration, the unitarity check, and the floor values
+!  applied to Sp are identical to integration_of_Sp.
+!
+!--------------------------------------------------------------------------------
+subroutine integration_of_Sp_all(iqcor,iqgeo,D,pmax,xg,Sp)
+use types; use const; use IOunits
+implicit none
+!--------------------------------------------------------------------------------
+! Boundary fits used in Tazaki & Tanaka 2018 (same as in integration_of_Sp)
+!--------------------------------------------------------------------------------
+real(kind=dp),parameter:: a1 =  1.69496268177237e-08_dp
+real(kind=dp),parameter:: a2 = -2.43299782942114e-05_dp
+real(kind=dp),parameter:: a3 =  0.0158750501131321_dp
+real(kind=dp),parameter:: a4 =  1.00672154148706_dp
+real(kind=dp),parameter:: b1 =  2.49355951047228e-08_dp
+real(kind=dp),parameter:: b2 = -2.9387731648675e-05_dp
+real(kind=dp),parameter:: b3 =  0.0135005554796179_dp
+real(kind=dp),parameter:: b4 =  3.72312019844119_dp
+!--------------------------------------------------------------------------------
+real(kind=dp),parameter:: floorvalue = 1.0e-30_dp  ! floor for Sp     (as original)
+real(kind=dp),parameter:: bessfloor  = 1.0e-70_dp  ! floor for j_p(x) (as original)
+real(kind=dp),parameter:: bessceil   = 1.0e70_dp   ! ceiling for y_p  (as original)
+real(kind=dp),parameter:: eta1 = 25.0_dp
+real(kind=dp),parameter:: eta2 = 40.0_dp
+integer,parameter      :: nwarmup = 100            ! Miller warm-up   (as original)
+integer,parameter      :: imax    = 100            ! series truncation(as original)
+integer                :: iqcor,iqgeo,pmax
+integer                :: n,p,i,pswitch,pup,pdown,pupc,ptop,L
+real(kind=dp)          :: D,xg,umin,umax,du,fc
+real(kind=dp)          :: uu,lnu,base,unitary,error
+real(kind=dp)          :: K0,K1,s,j0,j1,FN,xi,wa,Y0,Y1
+real(kind=dp),allocatable,dimension(:) :: u,wt,lnxa,lnxb,SJ,SY,K
+complex(kind=dp)       :: Sp(0:pmax)
+
+!
+! Integration range (identical to integration_of_Sp)
+!
+umax = 0.0_dp
+if(iqcor .eq. 1) then
+        umax = 2.0_dp * xg * sqrt(eta1/D)
+elseif(iqcor .eq. 2) then
+        umax = xg * eta1 * sqrt(2.0_dp/(D*(D+1.0_dp)))
+elseif(iqcor .eq. 3) then
+        umax = xg * (2.0_dp*eta1)**(1.0_dp/D)
+endif
+umin = xg * exp(-eta2/D)
+du   = (umax/umin) ** (1.0_dp/real(nn-1,kind=dp))
+
+allocate(u(1:nn),wt(1:nn))
+do n=1,nn
+        u(n) = umin * du ** real(n-1,kind=dp)
+enddo
+
+!
+! Trapezoid weights; summing intg(n)*wt(n) is algebraically identical to the
+! pairwise trapezoid sum 0.5*(intg(n)+intg(n+1))*(u(n+1)-u(n)) of the original.
+!
+wt(1)  = 0.5_dp*(u(2)-u(1))
+wt(nn) = 0.5_dp*(u(nn)-u(nn-1))
+do n=2,nn-1
+        wt(n) = 0.5_dp*(u(n+1)-u(n-1))
+enddo
+
+!
+! Scheme boundaries:
+!   log(u) <  lnxa(p)  -->  series expansion required for j_p
+!   log(u) >  lnxb(p)  -->  upward recurrence required for j_p
+!   in between         -->  downward (Miller) recurrence
+!
+allocate(lnxa(0:pmax),lnxb(0:pmax))
+do p=0,pmax
+        lnxa(p) = a1*dble(p)**3.0_dp+a2*dble(p)**2.0_dp+a3*dble(p)+a4
+        lnxb(p) = b1*dble(p)**3.0_dp+b2*dble(p)**2.0_dp+b3*dble(p)+b4
+enddo
+
+allocate(SJ(0:pmax),SY(0:pmax),K(0:pmax+nwarmup))
+
+Sp      = cmplx(0.0_dp,0.0_dp,kind=dp)
+unitary = 0.0_dp
+pswitch = -1   ! largest p with lnu >= lnxa(p); non-decreasing since u increases
+pup     = -1   ! largest p with lnu >  lnxb(p); non-decreasing since u increases
+
+do n=1,nn
+
+        uu  = u(n)
+        lnu = log(uu)
+
+        do while(pswitch .lt. pmax)
+                if(lnu .ge. lnxa(pswitch+1)) then
+                        pswitch = pswitch + 1
+                else
+                        exit
+                endif
+        enddo
+        do while(pup .lt. pmax)
+                if(lnu .gt. lnxb(pup+1)) then
+                        pup = pup + 1
+                else
+                        exit
+                endif
+        enddo
+        pdown = min(pswitch,pmax)   ! highest order NOT requiring the series
+        if(pdown .lt. 0) pdown = 0  ! u < x_a(0): ALL orders p>=1 need the
+                                    ! series; p=0 is set directly as sin(u)/u
+        pupc  = min(pup,pmax)       ! highest order requiring upward recurrence
+
+        j0 = sin(uu)/uu
+        j1 = sin(uu)/(uu*uu) - cos(uu)/uu
+
+        !-----------------------------------------------------------------
+        ! Spherical Bessel function of the first kind, j_p(uu)
+        !-----------------------------------------------------------------
+        SJ    = 0.0_dp
+        SJ(0) = j0
+        ptop  = 0
+
+        if(pupc .ge. 1) then
+                !
+                ! Upward recurrence for orders 1..pupc (original isol=3).
+                ! Required where uu is large compared to the order.
+                !
+                SJ(1) = j1
+                K0 = SJ(0)
+                K1 = SJ(1)
+                do p=1,pupc-1
+                        SJ(p+1) = (real(2*p+1,kind=dp)/uu)*K1 - K0
+                        K0 = K1
+                        K1 = SJ(p+1)
+                enddo
+                ptop = pupc
+        endif
+
+        if(pdown .ge. 1 .and. pdown .gt. pupc) then
+                !
+                ! One downward (Miller) recurrence for orders pupc+1..pdown.
+                ! The start order pdown+nwarmup lies above the turning point
+                ! p ~ uu in this regime (guaranteed by the lnxb boundary).
+                !
+                L  = pdown + nwarmup
+                K1 = 0.0_dp
+                K0 = 1.0_dp
+                do p=L,0,-1
+                        K(p) = -K1 + (real(2*p+3,kind=dp)/uu)*K0
+                        K1   = K0
+                        K0   = K(p)
+                enddo
+                !
+                ! Normalize with j_0 or j_1, whichever is larger in magnitude
+                ! (robust near the zeros of sin(uu)).
+                !
+                if(abs(j0) .ge. abs(j1)) then
+                        s = j0/K(0)
+                else
+                        s = j1/K(1)
+                endif
+                do p=max(pupc+1,1),pdown
+                        SJ(p) = s*K(p)
+                        ptop  = p
+                        if(abs(SJ(p)) .le. bessfloor) exit
+                enddo
+        endif
+
+        if(ptop .eq. pdown .and. pdown .lt. pmax .and. &
+           abs(SJ(pdown)) .gt. bessfloor) then
+                !
+                ! Series expansion for the remaining orders (original isol=1).
+                ! FN is the prefactor A_p = prod_{i=1..p} uu/(2i+1).
+                !
+                FN = 1.0_dp
+                do i=1,pdown
+                        FN = uu/real(2*i+1,kind=dp)*FN
+                enddo
+                do p=pdown+1,pmax
+                        FN = uu/real(2*p+1,kind=dp)*FN
+                        xi = 1.0_dp
+                        wa = 0.0_dp
+                        do i=1,imax
+                                xi = -uu*uu*xi/real(2*i*(2*i+2*p+1),kind=dp)
+                                wa = wa + xi
+                                if(abs(xi/wa) .le. bessfloor) exit
+                        enddo
+                        SJ(p) = FN*(1.0_dp+wa)
+                        ptop  = p
+                        if(abs(SJ(p)) .le. bessfloor) exit
+                enddo
+        endif
+
+        !-----------------------------------------------------------------
+        ! Spherical Bessel function of the second kind, y_p(uu)
+        ! (upward recurrence with ceiling guard, as in the original)
+        !-----------------------------------------------------------------
+        SY    = 0.0_dp
+        SY(0) = -cos(uu)/uu
+        if(pmax .ge. 1) then
+                SY(1) = -cos(uu)/(uu*uu) - sin(uu)/uu
+                Y0 = SY(0)
+                Y1 = SY(1)
+                do p=2,pmax
+                        SY(p) = (real(2*p-1,kind=dp)/uu)*Y1 - Y0
+                        Y0 = Y1
+                        Y1 = SY(p)
+                        if(abs(SY(p)) .ge. bessceil) exit
+                enddo
+        endif
+
+        !-----------------------------------------------------------------
+        ! Accumulate all integrals.  Orders p > ptop have underflowed j_p
+        ! (set to zero, exactly as in the original code) and contribute
+        ! nothing; the floor on Sp below takes over for them.
+        !-----------------------------------------------------------------
+        base    = wt(n) * uu**(D-1.0_dp) * fc(iqcor,uu,xg,D)
+        unitary = unitary + base
+        do p=0,ptop
+                Sp(p) = Sp(p) + base * SJ(p) * cmplx(SJ(p),SY(p),kind=dp)
+        enddo
+
+enddo
+
+unitary = unitary / xg ** D
+
+do p=0,pmax
+        Sp(p) = 0.5_dp * Sp(p) / xg ** D
+        !
+        ! Set the floor values (as original)
+        !
+        if(abs(real(Sp(p))) .lt. floorvalue) then
+                Sp(p) = cmplx(floorvalue,aimag(Sp(p)),kind=dp)
+        endif
+        if(abs(aimag(Sp(p))) .lt. floorvalue) then
+                Sp(p) = cmplx(real(Sp(p)),-floorvalue,kind=dp)
+        endif
+        !
+        ! Sanity check (catches NaN and Inf, like the original per-point check)
+        !
+        if(real(Sp(p))*0.0_dp /= 0.0_dp .or. aimag(Sp(p))*0.0_dp /= 0.0_dp) then
+                write(stde,*) "--------------------------------------------------------"
+                write(stde,*) "Error: NaN/Inf found in the structure integration Sp"
+                write(stde,*) "order    p : ",p
+                write(stde,*) "Simulation is aborted !"
+                write(stde,*) "--------------------------------------------------------"
+                stop
+        endif
+enddo
+
+error = abs(1.0_dp-unitary)
+
+!
+! If geofractal formulation is used (iqgeo=3), the variable 'unitary'
+! does not necessary to have a value of 1.0.
+! Thus, this convergence check is performed when iqgeo=1 or 2.
+!
+if(iqgeo .ne. 3 .and. error .ge. 1.0e-3_dp) then
+        write(stde,*) "--------------------------------------------------------"
+        write(stde,*) "Check unitary condition : the two-points correlation function"
+        write(stde,*) "Numerical integration of g(u) with error of ",error*1.d2," (%)"
+        write(stde,*) "which exceed 0.1%. This means sp(kRg) integration"
+        write(stde,*) "may not converge."
+        write(stde,*) "Simulation is aborted !"
+        write(stde,*) "--------------------------------------------------------"
+        stop
+endif
+
+deallocate(u,wt,lnxa,lnxb,SJ,SY,K)
+
+return
+end subroutine integration_of_Sp_all
 
 !--------------------------------------------------------------------------------
 !
