@@ -16,8 +16,13 @@ The computation of opacities for these two different situations
 differs.
 
 1. For situation 1, you need to compute independent opacities for each
-   crystal orientation, and than average the opacities obtained in
-   this way.
+   crystal orientation, and then average the opacities obtained in
+   this way. Even that is not fuly correct, it only works for small
+   spherical or ellipsoidal particles (small means in the Rayleigh
+   limit) in which the crystallographic axes are aligned with axes of
+   the ellipsoid. Only DDA can do a better job outside of the
+   Rayleigh - so mixing opacities is the best we can do with the
+   approximate methods of optool.
 
 2. For situation 2, you would use the Bruggemann rule to mix the
    refractive index data, and then compute opacities just once, with
@@ -26,4 +31,4 @@ differs.
 For the materials compiled into optool, situation 2 has been assumed.
 If you want to work with situation 1, the axis-dependent data for some
 crystalline optool materials is available in the directory
-lnk_data/ad.
+lnk_data/ad/.  See also appendix C.1 in the user guide.
