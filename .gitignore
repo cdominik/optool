@@ -8,6 +8,7 @@ a.out
 *.o
 *.mod
 dustkap*
+!maint/selftest_ref/*/dustkap*
 dustmean*
 output/*
 bin/optool*
