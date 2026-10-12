@@ -407,7 +407,7 @@ do i=1,itmax
         del=d*c
         h=h*del
         if(abs(del-1.).lt.eps) exit
-        if(n .eq. itmax) then
+        if(i .eq. itmax) then
                 write(stde,*) 'a too large, itmax too small in gcf'
                 stop
         endif
