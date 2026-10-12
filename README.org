@@ -128,10 +128,23 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
 - Release 1.10.0 ::
+  - Bug fix that changes results: the smallest and largest grain sizes
+    of the size grid could be left out of the computation.  Due to
+    rounding, they were sometimes found to lie just outside the size
+    range and got weight zero. Whether this happened could depend on
+    the compiler and math library, so this is the reason for some
+    differences observed between systems (Linux versus Mac, for
+    example). Mostly the missing largest grains matter: the dust mass
+    was underestimated, so opacities per gram could be too high, by up
+    to about 7% with the default resolution. If you had higher
+    resolution, the problem was smaller.  With fewer sizes (-na) the
+    error was larger.  Single grain sizes and size distributions read
+    from a file were not affected.
   - With the -w switch, optool_mix.lnk will now also be written to the
-    speficied output directory
+    specified output directory.
   - A new switch, -err, will trigger optool to exit with error code 1
-    when it is not successful. 
+    when it is not successful. This is for setups that rely on the
+    return value.
   - FITS output has been removed from the Fortran code, so optool no
     longer needs the cfitsio library.  The python module can write
     the same FITS files: run optool with -s and use the new method
@@ -145,10 +158,10 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     Huffman or Mishchenko normalization used grain masses computed
     with radii in micron instead of cm.
   - The routines taken from Numerical Recipes (Gauss-Legendre
-    integration, LU decomposition, incomplete gamma function, and
-    some unused size distribution code) have been replaced by new
-    implementations.  Results agree with the old ones to the printed
-    precision.
+    integration, LU decomposition, incomplete gamma function, and some
+    unused size distribution code) have been replaced by new
+    implementations with better licensing.  Results agree with the old
+    ones to the printed precision.
   - The python module no longer uses distutils, which has been
     removed from Python 3.12.
   - maint/selftest.pl now compares the output with stored reference
