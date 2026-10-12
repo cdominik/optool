@@ -1,6 +1,6 @@
 #+LaTeX: \textheight=650pt
 #+LaTeX: \centerline{\textbf{\Huge OpTool User Guide}}\vspace*{2mm}
-#+LaTeX: \centerline{by Carsten Dominik, Michiel Min, and Ryo Tazaki; September 2023, version 1.9.14}
+#+LaTeX: \centerline{by Carsten Dominik, Michiel Min, and Ryo Tazaki; October 2026, version 1.10.0}
 
 * Introduction
 

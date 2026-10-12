@@ -127,7 +127,7 @@ Compute the CDE approximation of small graphite grains.
 See the [[file:UserGuide.pdf][User Guide]] for more information.
 * Important changes
 
-- Fixes without version number change since 1.9.14 ::
+- Release 1.10.0 ::
   - With the -w switch, optool_mix.lnk will now also be written to the
     speficied output directory
   - A new switch, -err, will trigger optool to exit with error code 1
