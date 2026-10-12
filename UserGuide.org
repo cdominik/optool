@@ -386,7 +386,7 @@ opacity, we recommend to work with pyroxene \fbox{pyr}, carbon
 troilite \fbox{tro} (Birnstiel+ 2016).
 
 # #+LaTeX: \centerline{\textit{Table 1: Built-in materials}}
-#+ATTR_LATEX: :font \footnotesize\sf :align llllrrrlHH
+#+ATTR_LATEX: :font \footnotesize\sffamily :align llllrrrlHH
 | *-c Key*   | *-c Key*    | *Material*              | *State*     |      \rho | \lambda_min | \lambda_max | *Reference*   | *Comment*    | *File*                      |
 | generic    | full key    |                         |             |    g/cm^3 |      \mu{}m |      \mu{}m |               |              |                             |
 |------------+-------------+-------------------------+-------------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
@@ -397,7 +397,7 @@ troilite \fbox{tro} (Birnstiel+ 2016).
 |            | pyr-mg60    | Mg_{0.6}Fe_{0.4}SiO_3   | amorph      |       3.1 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg60-Dorschner1995.lnk][pyr-mg60-Dorschner1995.lnk]]  |
 |            | pyr-mg50    | Mg_{0.5}Fe_{0.5}SiO_3   | amorph      |       3.2 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/pyr-mg50-Dorschner1995.lnk][pyr-mg50-Dorschner1995.lnk]]  |
 |            | pyr-mg40    | Mg_{0.4}Fe_{0.6}SiO_3   | amorph      |       3.3 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho interp. | [[file:lnk_data/pyr-mg40-Dorschner1995.lnk][pyr-mg40-Dorschner1995.lnk]]  |
-| ens        | pyr-c-mg96  | Mg_{0.96}Fe_{0.04}SiO3  | cryst[fn:4] |       2.8 |       *2.0* |        *99* | [[https://ui.adsabs.harvard.edu/abs/1998A%26A...339..904J][Jäger+98]]      |              | [[file:lnk_data/pyr-c-mg96-Jäger1998.lnk][pyr-c-mg96-Jäger1998.lnk]]    |
+| ens        | pyr-c-mg96  | Mg_{0.96}Fe_{0.04}SiO3  | cryst[fn:4] |       2.8 |       *2.0* |        *99* | [[https://ui.adsabs.harvard.edu/abs/1998A%26A...339..904J][Jäger+98]]      |              | [[file:lnk_data/pyr-c-mg96-Jaeger1998.lnk][pyr-c-mg96-Jaeger1998.lnk]]   |
 |------------+-------------+-------------------------+-------------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | ol         | ol-mg50     | MgFeSiO_4               | amorph      |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  |              | [[file:lnk_data/ol-mg50-Dorschner1995.lnk][ol-mg50-Dorschner1995.lnk]]   |
 |            | ol-mg40     | Mg_{0.8}Fe_{1.2}SiO_4   | amorph      |      3.71 |         0.2 |         500 | [[https://ui.adsabs.harvard.edu/abs/1995A%26A...300..503D][Dorschner+95]]  | \rho ?       | [[file:lnk_data/ol-mg40-Dorschner1995.lnk][ol-mg40-Dorschner1995.lnk]]   |
@@ -422,7 +422,7 @@ troilite \fbox{tro} (Birnstiel+ 2016).
 |------------+-------------+-------------------------+-------------+-----------+-------------+-------------+---------------+--------------+-----------------------------|
 | \fbox{h2o} | h2o-w       | Water ice               | cryst       |      0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/2008JGRD..11314220W][Warren+08]]     |              | [[file:lnk_data/h2o-w-Warren2008.lnk][h2o-w-Warren2008.lnk]]        |
 |            | h2o-a       | Water ice               | amorph      |      0.92 |        0.04 |         2e6 | [[https://ui.adsabs.harvard.edu/abs/1993ApJS...86..713H][Hudgins+93]]    | +Warren      | [[file:lnk_data/h2o-a-Hudgins1993.lnk][h2o-a-Hudgins1993.lnk]]       |
-| co2        | co2-w       | CO_2 ice                | cryst       |       1.6 |        0.05 |         2e5 | [[https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W][Warren+86]]     | interpolated | [[file:lnk_data/co2-ice-Warren1986.lnk][co2-ice-Warren2008.lnk]]      |
+| co2        | co2-w       | CO_2 ice                | cryst       |       1.6 |        0.05 |         2e5 | [[https://ui.adsabs.harvard.edu/abs/1986ApOpt..25.2650W][Warren+86]]     | interpolated | [[file:lnk_data/co2-w-Warren1986.lnk][co2-w-Warren1986.lnk]]        |
 | nh3        | nh3-m       | NH_3 ice                | cryst       |      0.75 |        0.14 |         200 | [[https://ui.adsabs.harvard.edu/abs/1984ApOpt..23..541M][Martonchik+83]] | \rho?        | [[file:lnk_data/nh3-m-Martonchik1983.lnk][nh3-m-Martonchik1983.lnk]]    |
 | co         | co-a        | CO ice                  | amorph      |      0.81 |       *3.8* |       *5.8* | [[https://ui.adsabs.harvard.edu/abs/2006PCCP....8..279P][Palumbo+06]]    |              | [[file:lnk_data/co-a-Palumbo2006.lnk][co-a-Palumbo2006.lnk]]        |
 |            | co2-a / c   | CO_2 ice                | am / cr     |       1.2 |       *2.5* |        *20* | [[https://ui.adsabs.harvard.edu/abs/2020ApJ...901...52G][Gerakines+20]]  |              | [[file:lnk_data/co2-a-Gerakines2020.lnk][amorph]]/[[file:lnk_data/co2-c-Gerakines2020.lnk][cryst]]                |
@@ -715,8 +715,8 @@ distributions.  Each of these will be subject to a minimum and a
 maximum grain size. The grain size grid is logarithmic, so $da\propto
 a$. The logarithmic bins are then filled according to:
 | powerlaw                                           | \quad $n(a)\propto a^{-p+1}$                                                                     |
-| log-normal distribution, triggered by $\sigma>0$   | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\rm m})}{\sigma}\right)^2\right]$ |
-| normal distribution[fn:11], triggered by $\sigma<0$       | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\rm m}}{\sigma}\right)^2\right]$       |
+| log-normal distribution, triggered by $\sigma>0$   | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{\ln (a/a_{\mathrm{m}})}{\sigma}\right)^2\right]$ |
+| normal distribution[fn:11], triggered by $\sigma<0$       | \quad $n(a)\propto \exp\left[-\frac{1}{2}\left(\frac{a-a_{\mathrm{m}}}{\sigma}\right)^2\right]$       |
 
 Other size distributions can be constructed using the [[#python][python
 interface]].  Finally, =optool= can also read a size distribution from a
@@ -746,7 +746,7 @@ scattering matrix equals unity, i.e. the integral will be 4\pi:
 \begin{equation}
 \label{eq:1}
 \oint_{(4\pi)} F_{11}(\lambda,\Theta) d\Omega = 
-2\pi \int_{-1}^{1} F_{11}(\lambda,\mu) {\rm d}\mu= 4\pi \quad ,
+2\pi \int_{-1}^{1} F_{11}(\lambda,\mu) \mathrm{d}\mu= 4\pi \quad ,
 \end{equation}
 
 with $\mu=\cos\Theta$. =optool= can also produce output for [[http://www.ita.uni-heidelberg.de/~dullemond/software/radmc-3d/][RADMC-3D]]
@@ -755,8 +755,8 @@ which uses instead
 \begin{equation}
 \label{eq:2}
 \oint_{(4\pi)} Z_{11}(\lambda,\Theta) d\Omega =
-2\pi \int_{-1}^{1} Z_{11}(\lambda,\mu) {\rm d}\mu =
- \kappa_{\rm sca}(\lambda) \quad .
+2\pi \int_{-1}^{1} Z_{11}(\lambda,\mu) \mathrm{d}\mu =
+ \kappa_{\mathrm{sca}}(\lambda) \quad .
 \end{equation}
 
 The books by Bohren & Huffman and by Mishchenko use different
@@ -906,8 +906,8 @@ the code.
 - DHS :: In order to simulate irregularities in grains (irregular
   shapes, or the properties of low-porosity aggregates), =optool=
   averages the opacities of grains with an inner empty region, over a
-  range of volume fractions of this inner region between 0 and $f_{\rm
-  max}$. The subroutine used to compute the opacities and scattering
+  range of volume fractions of this inner region between 0 and
+  $f_{\mathrm{max}}$. The subroutine used to compute the opacities and scattering
   matrix elements for these structures is =DMiLay= (Toon & Ackerman
   1981). For speed, you can use =-xlim 1e3= or so to set a limit for
   the size parameter ($x=2\pi a/\lambda$) where =optool= switches from
@@ -916,39 +916,39 @@ the code.
   using the routine =MeerhoffMie= (de Rooij+ 1984), with a size
   parameter limit to ensure stability. In a situation where the
   imaginary part of the refractive index is extremely small, numerical
-  inaccuracies may lead to an unphysical result with $q_{\rm
-  sca}>q_{\rm ext}$, implying a small negative $q_{\rm abs}$. =optool=
-  therefore enforces $q_{\rm abs}>q_{\rm ext}/10^4$.
+  inaccuracies may lead to an unphysical result with
+  $q_{\mathrm{sca}}>q_{\mathrm{ext}}$, implying a small negative $q_{\mathrm{abs}}$. =optool=
+  therefore enforces $q_{\mathrm{abs}}>q_{\mathrm{ext}}/10^4$.
 
 - MMF :: To construct fluffy/fractal aggregates, =optool= needs the
-  number of monomers $N$, the fractal dimension $D_{\rm f}$, and a
-  scaling factor $k_{\rm f}$ which are related to the radius of
-  gyration $R_{\rm g}$ of the aggregate by $N=k_{\rm f}(R_{\rm
-  g}/a_0)^{D_{\rm f}}$.  The size $a$ of the particles as specified by
+  number of monomers $N$, the fractal dimension $D_{\mathrm{f}}$, and a
+  scaling factor $k_{\mathrm{f}}$ which are related to the radius of
+  gyration $R_{\mathrm{g}}$ of the aggregate by
+  $N=k_{\mathrm{f}}(R_{\mathrm{g}}/a_0)^{D_{\mathrm{f}}}$.  The size $a$ of the particles as specified by
   the *-a* switch is interpreted as the /compact/[fn:13] size of all
   material in the aggregate, so that $N=a^3/a_0^3$, where $a_0$ is the
   monomer radius.  The average volume filling factor $f$ can be
-  expressed by $f=N\cdot(\sqrt{3/5}\,a_0/R_{\rm g})^3$.  To determine
+  expressed by $f=N\cdot(\sqrt{3/5}\,a_0/R_{\mathrm{g}})^3$.  To determine
   the structure of the aggregates, the user can specify a structure
   parameter.  If that parameter is >1, it is interpreted as
-  the /fractal dimension/ $D_{\rm f}$.  Using a fixed fractal
+  the /fractal dimension/ $D_{\mathrm{f}}$.  Using a fixed fractal
   dimension means that the volume filling factor will decrease with
   aggregate size.  If the parameter is <1, it is interpreted as a
   fixed /volume filling factor/ $f$ that applies to all aggregate
   sizes - with the implication that then the fractal dimension
-  increases as a function of size. The fractal prefactor $k_{\rm f}$
+  increases as a function of size. The fractal prefactor $k_{\mathrm{f}}$
   is chosen automatically so that the asymptotic density of small
   aggregates is the monomer material density. To force another value
   for the prefactor, it can be given explicitly as the third value of
   the =mmf= option. The following table summarizes the relevant
   equations.
 
-  |             | =-mmf A0 DF=          | =-mmf A0 FILL=        | =-mmf A0 DF KF=                                           |
-  |-------------+-----------------------+-----------------------+-----------------------------------------------------------|
-  | /           | <                     | <                     | <                                                         |
-  | $f$         | $N^{(D_{\rm f}-3)/3}$ | *given by user*       | $\sqrt{27/125}\,k_{\rm f}^{3/D_{\rm f}}N^{3-1/D_{\rm f}}$ |
-  | $D_{\rm f}$ | *given by user*       | $3\ln N\,/\,\ln(N/f)$ | *given by user*                                           |
-  | $k_{\rm f}$ | $(5/3)^{D_{\rm f}/2}$ | $(5/3)^{D_{\rm f}/2}$ | *given by user*                                           |
+  |                  | =-mmf A0 DF=               | =-mmf A0 FILL=             | =-mmf A0 DF KF=                                                          |
+  |------------------+----------------------------+----------------------------+--------------------------------------------------------------------------|
+  | /                | <                          | <                          | <                                                                        |
+  | $f$              | $N^{(D_{\mathrm{f}}-3)/3}$ | *given by user*            | $\sqrt{27/125}\,k_{\mathrm{f}}^{3/D_{\mathrm{f}}}N^{3-1/D_{\mathrm{f}}}$ |
+  | $D_{\mathrm{f}}$ | *given by user*            | $3\ln N\,/\,\ln(N/f)$      | *given by user*                                                          |
+  | $k_{\mathrm{f}}$ | $(5/3)^{D_{\mathrm{f}}/2}$ | $(5/3)^{D_{\mathrm{f}}/2}$ | *given by user*                                                          |
 
   With the structure defined, =optool= then applies the formalism from
   Tazaki & Tanaka (2018) and Tazaki (2021) to compute cross sections

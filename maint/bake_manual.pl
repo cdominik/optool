@@ -48,7 +48,7 @@ foreach (@lines) {
     # This is the size distribution table. Fix it for this purpose.
     $_=~ s/\\left//g;
     $_=~ s/\\right//g;
-    $_=~ s/\{\\rm m\}/m/g;
+    $_=~ s/\{\\mathrm\{m\}\}/m/g;
     $_=~ s/\\sigma\b/sig/g;
     $_=~ s/\\exp/exp\b/g;
     $_=~ s/\\ln\b/ln/g;
@@ -60,7 +60,26 @@ foreach (@lines) {
     $_=~ s/[ \t]+$//;
     $_=~ s/powerlaw     /powerlaw/;
   }
-    elsif (length($_) >= 110) {
+  elsif (length($_) >= 110 and (/mmf A0 DF/ or /^\s+-+\+-/ or /^\s+\$[fDk]/)) {
+    # This is the MMF table.  Turn the LaTeX into plain text and
+    # use fixed column widths.
+    s/\\mathrm\{([^{}]*)\}/$1/g;
+    s/\\sqrt\{([^{}]*)\}/sqrt($1)/g;
+    s/\\(ln)\b/ $1/g;
+    s/\\,/ /g;
+    s/\$//g;
+    s/\*//g;
+    1 while s/_\{([^{}]*)\}/_$1/g;
+    1 while s/\^\{([^{}]*)\}/^($1)/g;
+    @c = map { s/^\s+|\s+$//g; s/\s+/ /g; $_ } split(/\|/);
+    if (/^\s+-+\+-/) {
+      $_ = "        " . ("-" x 6) . "+" . ("-" x 17) . "+" . ("-" x 19) . "+" . ("-" x 38);
+    } else {
+      $_ = sprintf("         %-5s| %-16s| %-18s| %s",@c);
+    }
+    $_ =~ s/[ \t]+$//;
+  }
+  elsif (length($_) >= 110) {
     # This is the material table, do special stuff to make it look ok.
     $a = substr($_,2,58);
     $b = substr($_,98,14);
