@@ -1320,6 +1320,9 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
      ! Size distribution
      do is=1,ns
         r(is)=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
+        ! Avoid rounding errors at the end points
+        if (is.eq.1)  r(is) = amin
+        if (is.eq.ns) r(is) = amax
         if ((sdkind.eq.'norm') .or. (sdkind.eq.'lgnm')) then
            ! log-normal or normal size distribution
            if (asig .lt. 0.d0) then      ! Normal distribution
@@ -1336,8 +1339,6 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
            ! powerlaw size distribution
            nr(is) = r(is)**(pow+1d0)
         endif
-        ! With -d, each computation is only a piece of the size grid
-        if (r(is).lt.amin .or. r(is).gt.amax) nr(is) = 0.0_dp
         tot=tot+nr(is)*r(is)**3 ! for volume normalization
      enddo
      ! normalize the grain numbers so that the total volume is 1 (atually, 4pi/3)
