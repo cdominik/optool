@@ -136,6 +136,25 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     longer needs the cfitsio library.  The python module can write
     the same FITS files: run optool with -s and use the new method
     optool.particle.write_fits.
+  - Bug fix: lnk files with wavelengths in decreasing order were
+    reversed incorrectly.  In the shorter-wavelength half of the data,
+    the real part n of the refractive index was replaced by values of
+    k, so results for such files were wrong.  Files in increasing
+    order and the built-in materials were not affected.
+  - Bug fix: in the python interface, scatnorm() with the Bohren &
+    Huffman or Mishchenko normalization used grain masses computed
+    with radii in micron instead of cm.
+  - The routines taken from Numerical Recipes (Gauss-Legendre
+    integration, LU decomposition, incomplete gamma function, and
+    some unused size distribution code) have been replaced by new
+    implementations.  Results agree with the old ones to the printed
+    precision.
+  - The python module no longer uses distutils, which has been
+    removed from Python 3.12.
+  - maint/selftest.pl now compares the output with stored reference
+    files and reports the number of significant digits to which they
+    agree.  New tests cover lnk files in decreasing order and more
+    MMF cases, and maint/test_write_fits.py tests the FITS writer.
 
 - Release 1.9.14 ::
   - The python interface can now read the results from an earlier run
