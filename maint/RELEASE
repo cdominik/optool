@@ -7,14 +7,18 @@ How too make a release
 
 3. Change the version numbers in the code (help screen and -version)
 
-4. If necessary:
+4. Run the tests, with a fresh build of optool:
+   - perl maint/selftest.pl
+   - python3 maint/test_write_fits.py   (needs astropy)
+
+5. If necessary:
    - run maint/selftest.pl -s
      (this rewrites the reference output in maint/selftest_ref)
    - run ./optool2tex --set
    and clean out the duplicate databases.
    Also, make sure that optool-complete gets to know about any new options.
 
-5. Run
+6. Run
 
       make release version=1.2.3
 

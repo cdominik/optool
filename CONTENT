@@ -39,6 +39,9 @@ notes.org               Notes about stuff I still might want to work on
 plotall.py              Python code to plot all refractive index data
 run_examples            Script running all examples from the manual
 selftest.pl             Perl program to run a bunch of tests with optool
+selftest_ref            Reference output for selftest.pl
+selftest_data           Input files for selftest.pl
+test_write_fits.py      Python test of optool.particle.write_fits
 
 
 In directory code4reading

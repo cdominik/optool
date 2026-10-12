@@ -108,6 +108,24 @@ my $tests = [
    cmd => "./optool pyr 1 -q -a 10 30 3.5 2 -mmf 0.3 2.2 -nlam 3 -o $dir",
    glob => "$dir/dustkappa.dat"},
 
+  # Small aggregates: the geometric cross section needs both branches
+  # (series and continued fraction) of the incomplete gamma function
+  {name => 'mmf-small-aggregates',
+   prepare => "rm -f $dir/dustkapscatmat.dat",
+   cmd => "./optool pyr 1 -q -a 0.35 0.9 3.5 6 -mmf 0.3 2.8 -l 30 3000 10 -s -o $dir",
+   glob => "$dir/dustkapscatmat.dat"},
+
+  {name => 'mmf-filling-factor',
+   prepare => "rm -f $dir/dustkapscatmat.dat",
+   cmd => "./optool pyr 1 -q -a 1 3 3.5 4 -mmf 0.3 0.3 -l 30 3000 10 -s -o $dir",
+   glob => "$dir/dustkapscatmat.dat"},
+
+  # An lnk file with decreasing wavelengths must be reversed correctly
+  {name => 'lnk-reversed',
+   prepare => "rm -f $dir/dustkapscatmat.dat",
+   cmd => "./optool -q maint/selftest_data/pyr-mg70-reversed.lnk -a 0.1 1 -nl 50 -s -o $dir",
+   glob => "$dir/dustkapscatmat.dat"},
+
   {name => 'material-astrosil',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool astrosil 1 -a 1 -dhs -o $dir",
