@@ -87,7 +87,6 @@ import re
 import os
 import shutil
 import subprocess
-from distutils.spawn import find_executable
 import tempfile
 
 class particle:
@@ -243,7 +242,7 @@ class particle:
                     cmd[0] = os.path.expanduser(cmd[0])
 
             # Find the optool executable
-            bin = find_executable(cmd[0])
+            bin = shutil.which(cmd[0])
             if (not bin):
                 raise RuntimeError("Executable not found: "+cmd[0])
 
