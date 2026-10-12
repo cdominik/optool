@@ -529,48 +529,6 @@ subroutine fichid( m, x, nchi, nmax, nD, psi, chi, D )
   return
 end subroutine fichid
 
-subroutine gaulegCP(ndim,ngauss,a,b,x,w)
-  !************************************************************************
-  !*   Given the lower and upper limits of integration a and b, and given *
-  !*   the number of Gauss-Legendre points ngauss, this routine returns   *
-  !*   through array x the abscissas and through array w the weights of   *
-  !*   the Gauss-Legendre quadrature formula. Eps is the desired accuracy *
-  !*   of the abscissas. This routine is documented further in :          *
-  !*   W.H. Press et al. 'Numerical Recipes' Cambridge Univ. Pr. (1987)   *
-  !*   page 125 ISBN 0-521-30811-9                                        *
-  !************************************************************************
-  implicit double precision (a-h,o-z)
-  parameter( eps = 1.d-14 )
-  double precision x(ndim), w(ndim)
-  double precision a,b,xm,xl,z,p1,p2,p3,pp,z1,pi
-  pi = 4.D0*datan(1.D0)
-  m  = (ngauss+1)/2
-  xm = 0.5D0*(a+b)
-  xl = 0.5D0*(b-a)
-  do i=1,m
-     !* THIS IS A REALLY CLEVER ESTIMATE :
-     z = dcos(pi*(dble(i)-0.25D0)/(dble(ngauss)+0.5D0))
-1    continue
-     p1 = 1.D0
-     p2 = 0.D0
-     do j=1,ngauss
-        p3 = p2
-        p2 = p1
-        p1 = ((dble(2*j)-1.d0)*z*p2-(dble(j)-1.d0)*p3)/dble(j)
-     enddo
-     pp = ngauss*(z*p1-p2)/(z*z-1.d0)
-     z1 = z
-     z  = z1-p1/pp
-     if (dabs(z-z1) .gt. eps) goto 1
-     x(i) = xm-xl*z
-     x(ngauss+1-i)= xm+xl*z
-     w(i) = 2.D0*xl/((1.D0-z*z)*pp*pp)
-     !******          write(7,*) ' gaulegCP: ',i,'  x=',x(i),' w=',w(i)
-     w(ngauss+1-i)= w(i)
-  enddo
-  return
-end subroutine gaulegCP
-
 subroutine gausspt(ndim,ngauss,a,b,x,w)
   !
   !     ***********************************************************
@@ -915,7 +873,7 @@ subroutine scatmat( u, wth, m, lambda, idis, &
   else
      dr = (rmax-rmin)/dble(nsub)
      !*        call gausspt( ngauss, ngauss, (rmax-dr) , rmax ,r ,w )
-     call gaulegCP(  ngauss, ngauss, (rmax-dr) , rmax ,r ,w )
+     call gauss_legendre( (rmax-dr), rmax, r, w, ngauss )
      call sizedis( idis, par1, par2, par3, r, ngauss, nwithr, &
           iparts, ndis, rdis, nwrdis )
   endif
@@ -1011,7 +969,7 @@ subroutine scatmat( u, wth, m, lambda, idis, &
                  stop 'too many integration angles'
               endif
               !*             call gausspt(nangle,nangle,-1.d0,1.D0,u,wth)
-              call gaulegCP(nangle,nangle,-1.d0,1.D0,u,wth)
+              call gauss_legendre(-1.d0, 1.D0, u, wth, nangle)
            else
               !************************************************************************
               !*  In case no expansion in GSF is desired : set u= dcos(th) for        *
@@ -1174,305 +1132,18 @@ subroutine sizedis( idis, par1, par2, par3, r, numr, nwithr, &
   !************************************************************************
   !*  Calculate the size distribution n(r) for the numr radius values     *
   !*  contained in array r and return the results through the array nwithr*
-  !*  The size distributions are normalized such that the integral over   *
-  !*  all r is equal to one.                                              *
+  !*  OpTool only uses single particle sizes (idis=0), where nothing      *
+  !*  needs to be done.  The original size distributions were removed.    *
   !************************************************************************
   implicit double precision (a-h,o-z)
   parameter ( NDdis=300, NDpart = 4 )
-  double precision nwithr, logC, logC1, logC2, nwrdis, nwrdisp
-  dimension r(numr),nwithr(numr),nwrdis(NDpart,NDdis), &
-       nwrdisp(NDdis), rdis(NDpart,NDdis), rdisp(NDdis), &
-       y2(NDdis)
+  double precision nwithr, nwrdis
+  dimension r(numr),nwithr(numr),nwrdis(NDpart,NDdis),rdis(NDpart,NDdis)
   
-  pi     = dacos(-1.d0)
-  root2p = dsqrt(pi+pi)
   if (idis .eq. 0) return
   write(*,*) ' sizedis: illegal index : ',idis
   stop 'illegal index in sizedis'
-  select case(idis)
-  case(1)
-     !************************************************************************
-     !*  1 TWO PARAMETER GAMMA with alpha and b given                        *
-     !************************************************************************
-     alpha = par1
-     b     = par2
-     alpha1= alpha+1.D0
-     logC  = alpha1*dlog(b)-gammlnCP(alpha1)
-     do  i=1, numr
-        nwithr(i) = dexp(logC+alpha*dlog(r(i))-b*r(i))
-     enddo
-  case(2)
-     !************************************************************************
-     !*  2 TWO PARAMETER GAMMA with par1= reff and par2= veff given          *
-     !************************************************************************
-     alpha = 1.D0/par2 - 3.D0
-     b     = 1.D0/(par1*par2)
-     alpha1= alpha+1.D0
-     logC  = alpha1*dlog(b)-gammlnCP(alpha1)
-     do i=1, numr
-        nwithr(i) = dexp(logC+alpha*dlog(r(i))-b*r(i))
-     enddo
-  case(3)
-     !************************************************************************
-     !*  3 BIMODAL GAMMA with equal mode weights                             *
-     !************************************************************************
-     alpha = 1.D0/par3 - 3.D0
-     b1    = 1.D0/(par1*par3)
-     b2    = 1.D0/(par2*par3)
-     gamlna= gammlnCP(alpha+1.D0)
-     logC1 = (alpha+1.D0)*dlog(b1)-gamlna
-     logC2 = (alpha+1.D0)*dlog(b2)-gamlna
-     do i=1, numr
-        nwithr(i) = 0.5D0*( dexp(logC1+alpha*dlog(r(i))-b1*r(i)) &
-             + dexp(logC2+alpha*dlog(r(i))-b2*r(i)) )
-     enddo
-  case(4)
-     !************************************************************************
-     !*  4 LOG NORMAL with rg and sigma given                                *
-     !************************************************************************
-     flogrg = dlog(par1)
-     flogsi = dabs(dlog(par2))
-     C      = 1.D0/(root2p*flogsi)
-     fac    = -0.5D0/(flogsi*flogsi)
-     do i=1, numr
-        nwithr(i) = C * dexp( fac*(dlog(r(i))-flogrg)**2 ) / r(i)
-     enddo
-  case(5)
-     !************************************************************************
-     !*  5 LOG NORMAL with reff and veff given                               *
-     !************************************************************************
-     rg     = par1/(1.D0+par2)**2.5D0
-     flogrg = dlog(rg)
-     flogsi = dsqrt(dlog(1.D0+par2))
-     C      = 1.D0/(root2p*flogsi)
-     fac    = -0.5D0/(flogsi*flogsi)
-     do i=1, numr
-        nwithr(i) = C * dexp( fac*(dlog(r(i))-flogrg)**2 ) / r(i)
-     enddo
-  case(6)
-     !************************************************************************
-     !*  6 POWER LAW                                                         *
-     !************************************************************************
-     alpha = par1
-     rmin  = par2
-     rmax  = par3
-     !* DEBUG
-     !*     write(7,*) ' sizedis : power law with alpha = ',alpha
-     !*     write(7,*) '                          rmin  = ',rmin
-     !*     write(7,*) '                          rmax  = ',rmax
-     !* END DEBUG
-     if (dabs(alpha+1.D0) .lt. 1.d-10) then
-        C = 1.D0/dlog(rmax/rmin)
-     else
-        alpha1 = alpha-1.d0
-        C = alpha1 * rmax**alpha1 / ((rmax/rmin)**alpha1-1.d0)
-     endif
-     do i=1, numr
-        if ((r(i) .lt. rmax) .and. (r(i) .gt. rmin)) then
-           nwithr(i) = C*r(i)**(-alpha)
-        else
-           nwithr(i) = 0.D0
-        endif
-     enddo
-  case(7)
-     !************************************************************************
-     !*  7 MODIFIED GAMMA with alpha, rc and gamma given                     *
-     !************************************************************************
-     alpha = par1
-     rc    = par2
-     gamma = par3
-     b     = alpha / (gamma*rc**gamma)
-     aperg = (alpha+1.D0)/gamma
-     logC  = dlog(gamma) + aperg*dlog(b) - gammlnCP(aperg)
-     do i=1, numr
-        nwithr(i) = dexp( logC + alpha*dlog(r(i)) - b*r(i)**gamma )
-     enddo
-  case(8)
-     !************************************************************************
-     !*  8 MODIFIED GAMMA with alpha, b and gamma given                      *
-     !************************************************************************
-     alpha = par1
-     b     = par2
-     gamma = par3
-     aperg = (alpha+1.D0)/gamma
-     logC  = dlog(gamma) + aperg*dlog(b) - gammlnCP(aperg)
-     do i=1, numr
-        nwithr(i) = dexp( logC + alpha*dlog(r(i)) - b*r(i)**gamma )
-     enddo
-  case(9)
-     !************************************************************************
-     !*  9 DISCRETE VALUED DISTRIBUTION                                      *
-     !************************************************************************
-     do k=1, ndis
-        rdisp(k)   = rdis(iparts,k)
-        nwrdisp(k) = nwrdis(iparts,k)
-     enddo
-     call splineCP(rdisp,nwrdisp,ndis,1.d30,1.d30,y2,NDdis,NDdis)
-     do j=1,numr
-        call splintCP(rdisp,nwrdisp,y2,ndis,r(j),nwithr(j),NDdis,NDdis)
-     enddo
-  case default
-  end select
-  !************************************************************************
-  !* DEBUG
-  !*     write(7,*) ' sizedis:'
-  !*     write(7,*) '   i             r(i)               n(r(i))'
-  !*     write(7,*) ' ----------------------------------------------------'
-  !*     do 1000 i=1, numr
-  !*         write(7,1001) i,r(i),nwithr(i)
-  !*1000 continue
-  !*1001 format(i4,1pe24.14,1pe22.14)
-  !* END DEBUG
-  return
 end subroutine sizedis
-
-
-function gammlnCP(xarg)
-  !************************************************************************
-  !*  Return the value of the natural logarithm of the gamma function.    *
-  !*  The argument xarg must be real and positive.                        *
-  !*  This function is documented in :                                    *
-  !*                                                                      *
-  !*  W.H. Press et al. 1986, 'Numerical Recipes' Cambridge Univ. Pr.     *
-  !*  page 157 (ISBN 0-521-30811)                                         *
-  !*                                                                      *
-  !*  When the argument xarg is between zero and one, the relation (6.1.4)*
-  !*  on page 156 of the book by Press is used.                           *
-  !*                                         V.L. Dolman April 18 1989    *
-  !************************************************************************
-  implicit double precision (a-h,o-z)
-  parameter( eps = 1.d-7, one = 1.D0, two = 2.D0, half = 0.5D0, fpf = 5.5D0 )
-  dimension cof(6)
-  data cof,stp/76.18009173D0,-86.50532033D0, 24.01409822D0, &
-       -1.231739516D0, 0.120858003D-2, -0.536382D-5, 2.50662827465D0/
-  pi = 4.D0*datan(1.D0)
-  if (xarg .le. 0.D0) then
-     write(*,*) ' gammlnCP: called with negative argument xarg = ',xarg
-     stop 'function gammlnCP called with negative value'
-  endif
-  if (dabs(xarg-one) .lt. eps) then
-     write(*,*) ' gammlnCP: argument too close to one for algorithm'
-     stop ' in function gammlnCP argument too close to one'
-  endif
-  if (xarg .ge. one) then
-     xx = xarg
-  else
-     xx = xarg+two
-  endif
-  x = xx-one
-  tmp = x+fpf
-  tmp = (x+half)*dlog(tmp)-tmp
-  ser = one
-  do j=1, 6
-     x = x+one
-     ser = ser+cof(j)/x
-  enddo
-  gtmp = tmp+dlog(stp*ser)
-  if  (xarg .gt. one) then
-     gammlnCP = gtmp
-  else
-     pix = pi*(one-xarg)
-     gammlnCP = dlog(pix/dsin(pix))-gtmp
-  endif
-  return
-end function gammlnCP
-
-
-subroutine splineCP(x, y, n, yp1, ypn, y2,NDmui,nn)
-  !***********************************************************************
-  !** Spline interpolation routine from Press et al. (1986, p.88).      **
-  !**                                                                   **
-  !** Given arrays x and y of length n containing a tabulated function, **
-  !** i.e. y(i)=f(x(i)), with x(1)<x(2)<...<x(n), and given values yp1  **
-  !** and ypn for the first derivative of the interpolating function at **
-  !** points 1 and n respectively, this routine returns an array y2 of  **
-  !** length n which contains the second derivatives of the interpola-  **
-  !** ting function at the tabulated points x(i).                       **
-  !** If yp1 and/or yp2 are equal to 1x10^30 or larger, the routine is  **
-  !** signalled to set the corresponding boundary condition for a natu- **
-  !** ral spline, with zero second derivative on that boundary.         **
-  !***********************************************************************
-  implicit double precision (a-h,o-z)
-  parameter (nmax=1500)
-  dimension x(NDmui),y(nn),y2(nn),u(nmax)
-  
-  if (nn .ne. NDmui) then
-     write(*,*) ' splineCP : uncomfortable error occurred, '
-     write(*,*) ' nn .ne. NDmui '
-     stop ' dimension error in splineCP '
-  endif
-  if (nmax .lt. nn) then
-     write(*,*) ' splineCP : nmax may not be smaller than nn '
-     write(*,*) ' nmax = ',nmax,' nn = ',nn
-     stop ' dimension error in splineCP '
-  endif
-  if (yp1.gt..99d30) then
-     y2(1)=0.d0
-     u(1)=0.d0
-  else
-     y2(1)=-0.5d0
-     u(1)=(3.d0/(x(2)-x(1)))*((y(2)-y(1))/(x(2)-x(1))-yp1)
-  endif
-  do i=2,n-1
-     sig=(x(i)-x(i-1))/(x(i+1)-x(i-1))
-     p=sig*y2(i-1)+2.d0
-     y2(i)=(sig-1.d0)/p
-     u(i)=(6.d0*((y(i+1)-y(i))/(x(i+1)-x(i))-(y(i)-y(i-1)) &
-          /(x(i)-x(i-1)))/(x(i+1)-x(i-1))-sig*u(i-1))/p
-  enddo
-  if (ypn.gt..99d30) then
-     qn=0.d0
-     un=0.d0
-  else
-     qn=0.5d0
-     un=(3.d0/(x(n)-x(n-1)))*(ypn-(y(n)-y(n-1))/(x(n)-x(n-1)))
-  endif
-  y2(n)=(un-qn*u(n-1))/(qn*y2(n-1)+1.d0)
-  do k=n-1,1,-1
-     y2(k)=y2(k)*y2(k+1)+u(k)
-  enddo
-  return
-end subroutine splineCP
-
-subroutine splintCP(xa, ya, y2a, n, x, y,NDmui,nn)
-  !***********************************************************************
-  !** Spline interpolation routine from Press et al. (1986, p.88).      **
-  !**                                                                   **
-  !** Given the arrays xa and ya of length n, which tabulate a function **
-  !** (with the xa(i)'s in order), and given the array y2a, which is    **
-  !** the output from splineCP above, and given a value of x, this        **
-  !** routine returns a cubic-spline interpolated value y.              **
-  !***********************************************************************
-  implicit double precision (a-h,o-z)
-  
-  dimension xa(NDmui),ya(nn),y2a(nn)
-  
-  if (nn .ne. NDmui) then
-     write(*,*) ' a very stupid an unnecessary error occurred '
-     write(*,*) ' in splintCP: nn .ne. NDmui '
-     stop ' dimension error in splintCP '
-  endif
-  klo=1
-  khi=n
-  
-1 if (khi-klo.gt.1) then
-     k=(klo+khi)/2.d0
-     if (xa(k).gt.x) then
-        khi=k
-     else
-        klo=k
-     endif
-     goto 1
-  endif
-  h=xa(khi)-xa(klo)
-  if (dabs(h).lt.1.d-10) write (7,10)
-  a=(xa(khi)-x)/h
-  b=(x-xa(klo))/h
-  y=a*ya(klo)+b*ya(khi)+ &
-       ((a**3-a)*y2a(klo)+(b**3-b)*y2a(khi))*(h**2)/6.d0
-  return
-10 format('ERROR in routine splintCP: Bad XA input.')
-end subroutine splintCP
 
 
 subroutine tstsym( develop, thmin, thmax, step, symth )

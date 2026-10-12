@@ -199,7 +199,7 @@ integer,parameter       :: nx = 1000
 real(kind=dp),parameter :: xmax = 25.0_dp
 integer                 :: i,iqapp,iqcor
 real(kind=dp)           :: xmin,dlnx,stmp,k0,df,PN,sigma,frad
-real(kind=dp)           :: factor,aicgm,gammq
+real(kind=dp)           :: factor,aicgm,upper_incomplete_gamma
 real(kind=dp),allocatable::x(:),sang(:)
 
 if(iqcor .eq. 1) then                           ! Gaussian
@@ -217,7 +217,7 @@ elseif(iqcor .eq. 3) then                       ! Fractal dimension
 endif
 
 if(df .gt. 2.0_dp .and. iqapp .eq. 3) then
-        sigma  = factor*gamma(aicgm)*gammq(aicgm,xmin)
+        sigma  = factor*upper_incomplete_gamma(aicgm,xmin)
 else
         dlnx = log(xmax/xmin)/real(nx-1,kind=dp)
         allocate(x(1:nx),sang(1:nx))
@@ -309,130 +309,86 @@ end function fang
 
 !--------------------------------------------------------------------------------
 !
-! Following subroutines (gammq, gser, gcf, gammln) compute 
-! the incomplete Gamma function Q(a,x)
-!     
-!             1     /infinity
-! Q(a,x) = -------- | x^{a-1} exp(-x) dx
-!          Gamma(a) /x
+! Upper incomplete gamma function
 !
-! where a>0. The definition of Q(a,x) obeys the definition in
+!                  /infinity
+!   Gamma(a,x) =   |  t^{a-1} exp(-t) dt,       a > 0, x >= 0
+!                  /x
 !
-! "Numerical Recipes in Fortran 77"
-! Press, W. H., Teukolsky, S. A., Vetterling, W. T., et al.1992, 
-! Cambridge: University Press, |c1992, 2nd ed
+! For x < a+1, use Gamma(a,x) = Gamma(a) - g(a,x) with the power series
+! of the lower incomplete gamma function (Abramowitz & Stegun 6.5.29)
 !
-! Following subroutines are taken from Numerical Recippes in Fortran 77
+!   g(a,x) = x^a exp(-x) sum_{k=0}^{infinity} x^k / (a (a+1) ... (a+k))
 !
-!--------------------------------------------------------------------------------
+! For x >= a+1, use the continued fraction of Legendre (A&S 6.5.31),
+! in its even form
 !
-! History (R.T.)
+!   Gamma(a,x) = x^a exp(-x) / D,
+!   D = b_0 + a_1/(b_1 + a_2/(b_2 + ...)),  b_k = x+2k+1-a,  a_k = -k(k-a)
 !
-! The original subroutine was slightly modified so that the old F77 grammers
-! are rewritten by modern grammers.
-!
-! Convergence accuracy eps is changed from 3e-7 to 3e-14.
+! D is evaluated with the forward recurrence for the convergents
+! A_k/B_k, A_k = b_k A_{k-1} + a_k A_{k-2} (and the same for B_k),
+! rescaled in each step to avoid overflow.
 !
 !--------------------------------------------------------------------------------
-function gammq(a,x)
-use types
-real(kind=dp) a,gammq,x
-real(kind=dp) gammcf,gamser,gln
-if(x.lt.0..or.a.le.0.) then
-      write(*,*) 'error' 
-      stop
-endif
-if(x.lt.a+1.)then
-        call gser(gamser,a,x,gln)
-        gammq=1.-gamser
-else
-        call gcf(gammcf,a,x,gln)
-        gammq=gammcf
-endif
-return
-end function gammq
-
-subroutine gser(gamser,a,x,gln)
+function upper_incomplete_gamma(a,x)
 use types; use IOunits
-integer itmax
-real(kind=dp) a,gamser,gln,x,eps
-parameter (itmax=100,eps=3.e-14)
-integer n
-real(kind=dp) ap,del,sum,gammln
-gln=gammln(a)
-if(x.le.0.)then
-        if(x.lt.0.) then
-                write(*,*) "error"
-                stop 
-        endif
-        gamser=0.
+implicit none
+integer,parameter       :: kmax = 1000
+real(kind=dp)           :: a,x,upper_incomplete_gamma
+real(kind=dp)           :: eps,term,series,ak,bk,A0,A1,B0,B1,A2,B2,D,Dold
+integer                 :: k
+
+eps = 4.0_dp*epsilon(x)
+if(a .le. 0.0_dp .or. x .lt. 0.0_dp) then
+        write(stde,*) 'upper_incomplete_gamma: need a>0 and x>=0. STOP'
+        stop
+endif
+if(x .eq. 0.0_dp) then
+        upper_incomplete_gamma = gamma(a)
         return
 endif
-ap=a
-sum=1./a
-del=sum
-do n=1,itmax
-        ap=ap+1.
-        del=del*x/ap
-        sum=sum+del
-        if(abs(del).lt.abs(sum)*eps) exit
-        if(n .eq. itmax) then
-                write(stde,*) 'a too large, itmax too small in gser'
+
+if(x .lt. a+1.0_dp) then
+        ! Power series for the lower incomplete gamma function
+        term = 1.0_dp/a
+        series = term
+        do k=1,kmax
+                term = term*x/(a+k)
+                series = series+term
+                if(term .lt. eps*series) exit
+        enddo
+        if(k .gt. kmax) then
+                write(stde,*) 'upper_incomplete_gamma: series did not converge. STOP'
                 stop
         endif
-enddo
-gamser=sum*exp(-x+a*log(x)-gln)
-return
-end subroutine gser
-subroutine gcf(gammcf,a,x,gln)
-use types; use IOunits
-integer itmax
-real(kind=dp) a,gammcf,gln,x,eps,fpmin
-parameter (itmax=100,eps=3.e-14,fpmin=1.e-30)
-integer i
-real(kind=dp) an,b,c,d,del,h,gammln
-gln=gammln(a)
-b=x+1.-a
-c=1./fpmin
-d=1./b
-h=d
-do i=1,itmax
-        an=-i*(i-a)
-        b=b+2.
-        d=an*d+b
-        if(abs(d).lt.fpmin)d=fpmin
-        c=b+an/c
-        if(abs(c).lt.fpmin)c=fpmin
-        d=1./d
-        del=d*c
-        h=h*del
-        if(abs(del-1.).lt.eps) exit
-        if(i .eq. itmax) then
-                write(stde,*) 'a too large, itmax too small in gcf'
+        upper_incomplete_gamma = gamma(a) - exp(a*log(x)-x)*series
+else
+        ! Continued fraction
+        A0 = 1.0_dp                  ! A_{-1}
+        B0 = 0.0_dp                  ! B_{-1}
+        A1 = x+1.0_dp-a              ! A_0 = b_0
+        B1 = 1.0_dp                  ! B_0
+        D  = A1
+        do k=1,kmax
+                ak = -k*(k-a)
+                bk = x+2*k+1.0_dp-a
+                A2 = bk*A1 + ak*A0
+                B2 = bk*B1 + ak*B0
+                ! Rescale so that B_k = 1
+                A0 = A1/B2
+                B0 = B1/B2
+                A1 = A2/B2
+                B1 = 1.0_dp
+                Dold = D
+                D    = A1
+                if(abs(D-Dold) .le. eps*abs(D)) exit
+        enddo
+        if(k .gt. kmax) then
+                write(stde,*) 'upper_incomplete_gamma: continued fraction did not converge. STOP'
                 stop
         endif
-enddo
-gammcf=exp(-x+a*log(x)-gln)*h
+        upper_incomplete_gamma = exp(a*log(x)-x)/D
+endif
 return
-end subroutine gcf
-function gammln(xx)
-use types
-real(kind=dp) gammln,xx
-integer j
-real(kind=dp) ser,stp,tmp,x,y,cof(6)
-save cof,stp
-data cof,stp/76.18009172947146d0,-86.50532032941677d0,&
-        24.01409824083091d0,-1.231739572450155d0,.1208650973866179d-2,&
-        -.5395239384953d-5,2.5066282746310005d0/
-x=xx
-y=x
-tmp=x+5.5d0
-tmp=(x+0.5d0)*log(tmp)-tmp
-ser=1.000000000190015d0
-do j=1,6
-        y=y+1.d0
-        ser=ser+cof(j)/y
-enddo
-gammln=tmp+log(stp*ser/x)
-return
-end function gammln
+end function upper_incomplete_gamma

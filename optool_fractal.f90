@@ -85,9 +85,6 @@
 ! chgm        : Zhang, S. and Jin, J. (1996) "Computation of Special Functions." 
 ! lpmns       : Zhang, S. and Jin, J. (1996) "Computation of Special Functions."
 ! lpn         : Zhang, S. and Jin, J. (1996) "Computation of Special Functions."
-! ludcmp      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
-! lubksb      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
-! gauleg      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
 ! geofrac     : Tazaki (submitted to MNRAS)
 !
 !--------------------------------------------------------------------------------
@@ -447,7 +444,7 @@ elseif(iqsca .ge. 2) then
         ! range of integration 
         x1 =  -1.0_dp
         x2 =   1.0_dp
-        call gauleg(x1,x2,x,w,jm) 
+        call gauss_legendre(x1,x2,x,w,jm)
 
         !--------------------------------------------------------------------------------
         !
@@ -577,7 +574,7 @@ elseif(iqsca .ge. 2) then
         ! and find the mean-field vector (r).
         !       S * r = y 
         !       ==> r = S^{-1} * y 
-        call complex_leqs_solver(2*nstop,4*nstop,S,y,r)
+        call complex_leqs_solver(2*nstop,S,y,r)
         ! 
         ! Finally, I obtain mean-field scattering coefficients
         ! dd(1,n) : d^(1)_n
@@ -1323,72 +1320,57 @@ end subroutine lpn
 
 !--------------------------------------------------------------------------------
 !
-!  This subroutine finds the inverse matrix of ( n , n ) complex matrix.
-!  I adopt a straightforward way to do this, although the method is 
-!  inefficient in terms of memory (Press et al. 1992).
+!  Solve the set of n complex linear equations
 !
-!  Consider a set of complex n linear equations:
+!        T * r = p
 !
-!        T * r = p,
-!
-!  where T is (n,n) matrix with complex elements, r and p are the 
-!  complex column vector of size n, and * denotes the inner product.
-!  This complex systems of equations can be rewritten in the form:
-!
-!       ( Re(T) + i Im(T) ) * ( Re(r) + i Im(r) ) = ( Re(p) + i Im(p) ),
-!
-!  where A, C are the (n x n) matrix with real elements, x,y,b,d are
-!  column vectors of size n. This linear equations can be reduced to  
-!
-!        Re(T) * Re(r) - Im(T) * Im(r) = Re(p),
-!        Im(T) * Re(r) + Re(T) * Im(r) = Im(p),
-!
-!  As a result, we obtain (2n,2n) set of linear equations with real elements.
-!
-!        /               \       /       \       /       \
-!       |  Re(T)  -Im(T)  |     |  Re(r)  |     |  Re(p)  |
-!       |                 |  *  |         |  =  |         |
-!       |  Im(T)   Re(T)  |     |  Im(r)  |     |  Im(p)  |
-!        \               /       \       /       \       /
-!   
-!  This (2n,2n) real matrix can be inverted by a common method
-!  with LU decomposition and LU backsubstitution.
+!  by Gaussian elimination with partial pivoting: in each step, the row
+!  with the largest remaining element (in modulus) in the current column
+!  is used as the pivot row.  T and p are not modified.
 !
 !--------------------------------------------------------------------------------
-subroutine complex_leqs_solver(n,np,T,p,r)
-use types
+subroutine complex_leqs_solver(n,T,p,r)
+use types; use IOunits
 implicit none
-integer::i,j,n,np
-integer,dimension(np)::indx
+integer::i,j,k,n,ipiv
 complex(kind=dp),dimension(n,n)::T
 complex(kind=dp),dimension(n)::p,r
-real(kind=dp),dimension(np,np)::a
-real(kind=dp),dimension(np)::b
-real(kind=dp)::d 
+complex(kind=dp),allocatable::a(:,:),b(:),row(:)
+complex(kind=dp)::tmp
 
-!---------------------------------------
-! Create np x np = 2n x 2n set of "real" equations
-! where n = 2 * nstop
-!---------------------------------------
-a = 0.0_dp
-b = 0.0_dp
-r = 0.0_dp
-do i=1,n
-        do j=1,n
-                a(i,j)     =   real(T(i,j))
-                a(i,j+n)   = -aimag(T(i,j))
-                a(i+n,j)   =  aimag(T(i,j))
-                a(i+n,j+n) =   real(T(i,j))
+allocate(a(n,n),b(n),row(n))
+a = T
+b = p
+
+! Elimination: reduce a to upper triangular form
+do k=1,n
+        ipiv = k-1+maxloc(abs(a(k:n,k)),dim=1)
+        if (abs(a(ipiv,k)) .eq. 0.0_dp) then
+                write(stde,*) 'singular matrix in complex_leqs_solver. STOP'
+                stop
+        endif
+        if (ipiv .ne. k) then
+                row       = a(k,:)
+                a(k,:)    = a(ipiv,:)
+                a(ipiv,:) = row
+                tmp       = b(k)
+                b(k)      = b(ipiv)
+                b(ipiv)   = tmp
+        endif
+        ! Multipliers, then update the remaining columns and right hand side
+        a(k+1:n,k) = a(k+1:n,k)/a(k,k)
+        do j=k+1,n
+                a(k+1:n,j) = a(k+1:n,j) - a(k+1:n,k)*a(k,j)
         enddo
-        b(i)   = real(p(i))
-        b(n+i) = aimag(p(i))
-enddo
-call ludcmp(a,np,np,indx,d)
-call lubksb(a,np,np,indx,b)
-do i=1,n
-        r(i) = cmplx(b(i),b(n+i),kind=dp)
+        b(k+1:n) = b(k+1:n) - a(k+1:n,k)*b(k)
 enddo
 
+! Back substitution
+do i=n,1,-1
+        r(i) = (b(i) - sum(a(i,i+1:n)*r(i+1:n)))/a(i,i)
+enddo
+
+deallocate(a,b,row)
 return
 end subroutine complex_leqs_solver
 
@@ -2275,195 +2257,4 @@ Cext = x0*x0/(1.0_dp+(PN-1.0_dp)*sp*x0*x0)
 Cext  = Cext * twopi * PN / k / k
 return
 end subroutine opticslimit
-
-
-!--------------------------------------------------------------------------------
-!
-! ludcmp      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
-!
-!--------------------------------------------------------------------------------
-!
-!   Note by R.T.
-!       Original code is written in F77.
-!
-!   Revision History 
-!       2020. Oct 31:   
-!              - Avoid using old grammers; PAUSE, CONTINUE...
-!              - Minor change so that a real type is specified by "dp".
-!              - D+00 --> _dp
-!--------------------------------------------------------------------------------
-SUBROUTINE ludcmp(a,n,np,indx,d)
-use types; use IOunits
-implicit none
-INTEGER n,np,indx(n),NMAX
-real(kind=dp)::d,a(np,np),TINY
-PARAMETER (NMAX=1000,TINY=1.0e-20)
-INTEGER::i,imax,j,k
-real(kind=dp)::aamax,dum,sum,vv(NMAX)
-d=1.
-imax=1
-do i=1,n
-aamax=0.
-do j=1,n
-  if (abs(a(i,j)).gt.aamax) aamax=abs(a(i,j))
-enddo
-!if (aamax.eq.0.) pause 'singular matrix in ludcmp' ! pause is now deleted feature.
-!if (aamax.eq.0.) 'singular matrix' stop
-if (aamax.eq.0.) then
-        write(stde,*) 'singular matrix in ludcmp. STOP'
-        stop
-endif
-vv(i)=1./aamax
-enddo
-do j=1,n
-do i=1,j-1
-  sum=a(i,j)
-  do k=1,i-1
-    sum=sum-a(i,k)*a(k,j)
-  enddo
-  a(i,j)=sum
-enddo
-aamax=0.
-do i=j,n
-  sum=a(i,j)
-  do k=1,j-1
-    sum=sum-a(i,k)*a(k,j)
-  enddo
-  a(i,j)=sum
-  dum=vv(i)*abs(sum)
-  if (dum.ge.aamax) then
-    imax=i
-    aamax=dum
-  endif
-enddo
-if (j.ne.imax)then
-  do k=1,n
-    dum=a(imax,k)
-    a(imax,k)=a(j,k)
-    a(j,k)=dum
-  enddo
-  d=-d
-  vv(imax)=vv(j)
-endif
-indx(j)=imax
-if(a(j,j).eq.0.)a(j,j)=TINY
-if(j.ne.n)then
-  dum=1./a(j,j)
-  do i=j+1,n
-    a(i,j)=a(i,j)*dum
-  enddo
-endif
-enddo
-return
-END SUBROUTINE ludcmp
-!--------------------------------------------------------------------------------
-!
-! lubksb      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
-!
-!--------------------------------------------------------------------------------
-!
-!   Note by R.T.
-!       Original code is written in F77.
-!
-!   Revision History 
-!       2020. Oct 31:   
-!              - Avoid using old grammers; PAUSE, CONTINUE...
-!              - Minor change so that a real type is specified by "dp".
-!              - D+00 --> _dp
-!--------------------------------------------------------------------------------
-
-SUBROUTINE lubksb(a,n,np,indx,b)
-use types
-implicit none
-INTEGER n,np,indx(n)
-!REAL a(np,np),b(n)
-real(kind=dp)::a(np,np),b(n)
-INTEGER i,ii,j,ll
-!REAL sum
-real(kind=dp)::sum
-ii=0
-do i=1,n
-ll=indx(i)
-sum=b(ll)
-b(ll)=b(i)
-if (ii.ne.0)then
-  do j=ii,i-1
-    sum=sum-a(i,j)*b(j)
-  enddo
-else if (sum.ne.0.) then
-  ii=i
-endif
-b(i)=sum
-enddo
-do i=n,1,-1
-sum=b(i)
-do j=i+1,n
-  sum=sum-a(i,j)*b(j)
-enddo
-b(i)=sum/a(i,i)
-enddo
-return
-END SUBROUTINE lubksb
-!--------------------------------------------------------------------------------
-!
-! gauleg      : Press, W. H. et al. (1997), "Numerical Recipes in Fortran 77"
-!
-!--------------------------------------------------------------------------------
-!
-!   Note by R.T.
-!       Original code is written in F77.
-!
-!   Revision History 
-!       2020. Oct 31:   
-!              - Avoid using old grammers; PAUSE, CONTINUE...
-!              - Minor change so that a real type is specified by "dp".
-!              - D+00 --> _dp
-!              - EPS value is changed from 3.e-14 to 1.e-14 according to 
-!                the precision change (Numerical Recipes, Appendix C1, p.1363).
-!
-!--------------------------------------------------------------------------------
-SUBROUTINE gauleg(x1,x2,x,w,n)
-use types
-implicit none
-INTEGER n
-real(kind=dp)::x1,x2,x(n),w(n)
-real(kind=dp)::EPS
-PARAMETER (EPS=1.0e-14_dp) !as suggested by NumericalRecipeF90
-INTEGER i,j,m
-real(kind=dp)::p1,p2,p3,pp,xl,xm,z,z1
-!S: RT added initialization of pp 
-! to suppress warning from [-Wmaybe-uninitialized]
-pp = 0.0_dp
-!E: RT
-m=(n+1)/2
-xm=0.5d0*(x2+x1)
-xl=0.5d0*(x2-x1)
-do i=1,m
-z=cos(3.141592654d0*(i-.25d0)/(n+.5d0))
-!S: RT 
-! Remove goto sentence, and add do while.
-! To enter the first do-while loop, 
-! I put some value of z1, which differ 
-! by more than EPS.
-Z1=2.0*z 
-!E: RT
-do while(abs(z-z1).gt.EPS)
-  p1=1.d0
-  p2=0.d0
-  do j=1,n
-    p3=p2
-    p2=p1
-    p1=((2.d0*j-1.d0)*z*p2-(j-1.d0)*p3)/j
-  enddo
-  pp=n*(z*p1-p2)/(z*z-1.d0)
-  z1=z
-  z=z1-p1/pp
-enddo
-x(i)=xm-xl*z
-x(n+1-i)=xm+xl*z
-w(i)=2.d0*xl/((1.d0-z*z)*pp*pp)
-w(n+1-i)=w(i)
-enddo
-return
-END SUBROUTINE gauleg
 

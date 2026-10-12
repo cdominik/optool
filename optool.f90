@@ -1557,7 +1557,7 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   ! ----------------------------------------------------------------------
   if (nf.gt.1 .and. fmax.gt.0.01e0) then
      ! Get the weights for Gauss-Legendre integration
-     call gauleg2(0.01d0,fmax,f(1:nf),wf(1:nf),nf)
+     call gauss_legendre(0.01d0,fmax,f(1:nf),wf(1:nf),nf)
   else if (fmax.eq.0e0) then
      ! Just a compact sphere, weight is 1
      f(1:nf)  = 0d0
@@ -2056,39 +2056,51 @@ subroutine Blender_MG(e1in,e2in,e1in_m,e2in_m,vf_m,e1out,e2out)
   e1out = dreal(sqme); e2out = dimag(sqme)
 end subroutine Blender_MG
 
-subroutine gauleg2(x1,x2,x,w,n)
-  ! Gauss Legendre integration.  From Numerical Recipes
+subroutine gauss_legendre(x1,x2,x,w,n)
+  ! Nodes x and weights w for n-point Gauss-Legendre quadrature on the
+  ! interval [x1,x2].  The nodes are the zeros t of the Legendre
+  ! polynomial P_n, found with Newton's method starting from the
+  ! approximation cos(pi*(i-1/4)/(n+1/2)) (Abramowitz & Stegun 22.16.6).
+  ! The weights are 2/((1-t^2) P_n'(t)^2) (Abramowitz & Stegun 25.4.29).
   use Defs
-  integer n
-  real (kind=dp) x1,x2,x(n),w(n)
-  real (kind=dp) EPS
-  parameter (EPS=3.d-14)
-  integer i,j,m
-  real (kind=dp) p1,p2,p3,pp,xl,xm,z,z1
-  m  = (n+1)/2
-  xm = 0.5d0*(x2+x1)
-  xl = 0.5d0*(x2-x1)
-  do i=1,m
-     z = cos(pi*(i-.25d0)/(n+.5d0))
-1    continue
-     p1 = 1.d0
-     p2 = 0.d0
-     do  j=1,n
-        p3 = p2
-        p2 = p1
-        p1 = ((2.d0*j-1.d0)*z*p2-(j-1.d0)*p3)/j
+  implicit none
+  integer            :: n,i,iter
+  integer, parameter :: maxiter = 100
+  real (kind=dp)     :: x1,x2,x(n),w(n)
+  real (kind=dp)     :: t,dt,pn,dpn,mid,half
+  mid  = 0.5d0*(x2+x1)
+  half = 0.5d0*(x2-x1)
+  ! The nodes are symmetric around zero, so compute only half of them
+  do i=1,(n+1)/2
+     t = cos(pi*(i-0.25d0)/(n+0.5d0))
+     do iter=1,maxiter
+        call legendre(t,pn,dpn)
+        dt = pn/dpn
+        t  = t-dt
+        if (abs(dt) .le. 4d0*epsilon(t)) exit
      enddo
-     pp = n*(z*p1-p2)/(z*z-1.d0)
-     z1 = z
-     z = z1-p1/pp
-     if (abs(z-z1).gt.EPS) goto 1
-     x(i)     = xm-xl*z
-     x(n+1-i) = xm+xl*z
-     w(i)     = 2.d0*xl/((1.d0-z*z)*pp*pp)
+     call legendre(t,pn,dpn)
+     x(i)     = mid-half*t
+     x(n+1-i) = mid+half*t
+     w(i)     = 2d0*half/((1d0-t*t)*dpn*dpn)
      w(n+1-i) = w(i)
   enddo
-  return
-end subroutine gauleg2
+contains
+  subroutine legendre(t,pn,dpn)
+    ! P_n(t) from the recurrence k P_k = (2k-1) t P_{k-1} - (k-1) P_{k-2},
+    ! and the derivative P_n'(t) = n (t P_n - P_{n-1}) / (t^2-1)
+    real (kind=dp) :: t,pn,dpn,pk1,pk2
+    integer        :: k
+    pn  = 1d0
+    pk1 = 0d0
+    do k=1,n
+       pk2 = pk1
+       pk1 = pn
+       pn  = ((2*k-1)*t*pk1-(k-1)*pk2)/k
+    enddo
+    dpn = n*(t*pn-pk1)/(t*t-1d0)
+  end subroutine legendre
+end subroutine gauss_legendre
 
 !!! **** Helper functions and subroutines
 
