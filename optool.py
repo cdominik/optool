@@ -889,6 +889,73 @@ class particle:
                                  s.f33[0,il,ia],s.f34[0,il,ia],s.f44[0,il,ia]))
         wfile.close()
 
+    def write_fits(s,filename,overwrite=False):
+        """Write a single particle object to a FITS file.
+
+        The file has the format that the FORTRAN program used to write
+        with its -fits switch.  The first HDU contains a (4,nlam) array
+        with the wavelength in micron, and kext, kabs, ksca in cm^2/g.
+        The second HDU contains a (nang,6,nlam) array with the elements
+        F11, F12, F22, F33, F34, F44 of the scattering matrix, at nang
+        equidistant scattering angles from forward to backward
+        scattering.  The header of the first HDU contains the
+        parameters of the computation, as far as they are known.
+
+        This requires the astropy package, and a particle object that
+        contains the scattering matrix, i.e. optool should be run
+        with the -s switch.
+
+        Arguments
+        =========
+
+        filename:  String, pointing the file name to which output should
+                   be written.
+
+        overwrite: If True, overwrite an existing file.
+        """
+        try:
+            from astropy.io import fits
+        except ImportError:
+            raise RuntimeError('Writing FITS files requires the astropy package')
+        if (s.np>1):
+            raise TypeError('Writing is not supported for multi-particle objects, '
+                            'use select() to pick one particle')
+        if not s.scat:
+            raise TypeError('Writing FITS requires the scattering matrix, run optool with -s')
+
+        hdr = fits.Header()
+        # Parameters of the computation, as far as they are available.
+        # Objects produced by particle arithmetic may not have them.
+        for key,attr,comment in [('r_min','amin','[micron]'),
+                                 ('r_max','amax','[micron]'),
+                                 ('r_pow','apow',''),
+                                 ('f_max','fmax',''),
+                                 ('a1','a1','[micron]'),
+                                 ('porosity','pcore',''),
+                                 ('p_mantle','pmantle','')]:
+            if hasattr(s,attr):
+                hdr[key] = (float(getattr(s,attr)[0]),comment)
+        materials = []
+        if hasattr(s,'materials') and len(s.materials)>0:
+            materials = [m for m in s.materials[0] if m[0] != 'grain']
+        for i,(where,mfrac,rho,name) in enumerate(materials):
+            hdr['file%02d' % (i+1)] = name
+        for i,(where,mfrac,rho,name) in enumerate(materials):
+            hdr['frac%02d' % (i+1)] = (float(mfrac),'[mass fraction]')
+        for i,(where,mfrac,rho,name) in enumerate(materials):
+            hdr['rho%02d' % (i+1)] = (float(rho),'[g/cm^3]')
+        if hasattr(s,'nsub'):
+            hdr['n_radii'] = int(s.nsub[0])
+        if materials:
+            hdr['n_mat'] = len(materials)
+
+        opac = np.array([s.lam,s.kext[0],s.kabs[0],s.ksca[0]])
+        f    = np.array([s.f11[0],s.f12[0],s.f22[0],s.f33[0],s.f34[0],s.f44[0]])
+        scat = np.transpose(f,(2,0,1))   # (6,nlam,nang) -> (nang,6,nlam)
+        hdul = fits.HDUList([fits.PrimaryHDU(opac,header=hdr),
+                             fits.ImageHDU(scat)])
+        hdul.writeto(filename,overwrite=overwrite)
+
 class lnktable:
     """Class to work with lnk files.
 

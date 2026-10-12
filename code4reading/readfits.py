@@ -1,5 +1,5 @@
 # This is a Python code snippet showing how to read a fits file
-# produced by optool
+# written by the write_fits method of optool.particle in optool.py
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ ksca = opac.data[3,:]
 
 scat = hdul[1]
 nang = scat.shape[0]
-ang  = np.arange(nang) + 0.5*nang/180.
+ang  = (np.arange(nang) + 0.5) * 180./nang
 f11  = scat.data[:,0,:]
 f12  = scat.data[:,1,:]
 f22  = scat.data[:,2,:]

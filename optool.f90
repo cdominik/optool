@@ -43,7 +43,7 @@ subroutine usage()
   write(stdo,'("-chop [NDEG]              Remove NDEG degrees from the forward-scattering peak")')
   write(stdo,'("-o [DIRECTORY]            Output to DIRECTORY instead of current working dir")')
   write(stdo,'("-radmc [LABEL]            Output as RADMC-3D input file")')
-  write(stdo,'("-fits; -print [Var]       Output to FITS file, or to STDOUT")')
+  write(stdo,'("-print [Var]              Output to STDOUT")')
   write(stdo,'("-h [OPT]; -man            Show this msg or help on -OPT; Show the full manual")')
   write(stdo,'("-q; -v; -err              Quiet or more verbose on STDOUT//exit code 1 on fail")')
   write(stdo,'("-xlim XLIM                Switch to Mie for speed at x=XLIM")')
@@ -156,7 +156,6 @@ program optool
   real (kind=dp)  :: lmin,lmax,l1,l2 ! min and max wavelength
 
   logical         :: write_scatter   ! Should the scattering matrix be written?
-  logical         :: write_fits      ! Should a fits file be written?
   logical         :: for_radmc       ! Should the scattering matrix use RADME-3D convention?
 
   integer         :: nm              ! nr of grain materials
@@ -187,7 +186,6 @@ program optool
   logical         :: file_exists     ! return value
 
   ! Store and check for file names
-  character*500   :: fitsfile        ! file name for FITS output
   character*500   :: meanfile        ! file name for mean opacity output
   character*500   :: make_file_path  ! function
   character*50    :: radmclbl = ""   ! file label for RADMC-3D compatible
@@ -238,7 +236,6 @@ program optool
   method         = 'DHS'      ! method to compute the opacities
   fmax           = 0.8_dp     ! maximum volume fraction DHS
   
-  write_fits     = .false.    ! Default is to write ASCII output
   write_scatter  = .false.    ! Default is to not write scattering matrix
   for_radmc      = .false.    ! Default is to use optool conventions.
 
@@ -664,7 +661,11 @@ program optool
            endif
         endif
      case('-fits')
-        write_fits = .true.
+        write(stde,*) 'ERROR: FITS output has been removed from optool.'
+        write(stde,*) '       Use the python module instead, for example:'
+        write(stde,*) '         p = optool.particle("optool ... -s")'
+        write(stde,*) '         p.write_fits("dustkappa.fits")'
+        call stoperror
      case('-d')
         split = .true.
         if (arg_is_value(i+1)) then
@@ -746,13 +747,6 @@ program optool
         select case(trim(feature))
         case('multi')
 #ifdef USE_MULTI
-           write(stdo,'(A)') 'True'
-#else
-           write(stdo,'(A)') 'False'
-#endif
-           stop
-        case('fits')
-#ifdef USE_FITSIO
            write(stdo,'(A)') 'True'
 #else
            write(stdo,'(A)') 'False'
@@ -930,19 +924,10 @@ program optool
   endif
 
   ! *** Output files
-#ifndef USE_FITSIO
-  if (write_fits) then
-     write(stde,*) 'ERROR: Support for writing FITS files needs to be compiled in.'
-     write(stde,*) '       If you want FITS output, make sure cfitsio library is installed."'
-     write(stde,*) '       Then recompile with: "make clean", and then "make fitsio=true"'
-     call stoperror
-  endif
-#endif
   if (trim(outdir) .ne. '') then
      call make_directory(outdir)
   endif
   meanfile       = make_file_path(outdir,"dustkapmean.dat")
-  fitsfile       = make_file_path(outdir,"dustkappa.fits")
   sdoutfile      = make_file_path(outdir,"optool_sd.dat")
   lamoutfile     = make_file_path(outdir,"optool_lam.dat")
   mixoutfile     = make_file_path(outdir,"optool_mix.lnk")
@@ -1070,10 +1055,10 @@ program optool
      !$OMP shared(amin,afact,afsub,nsub,apow,amean,asig)               &
      !$OMP shared(fmax,pcore,pmantle)                                  &
      !$OMP shared(lmin,lmax,ndone,na,mat_mfr,mat_rho,mat_nm,nlam,nang) &
-     !$OMP shared(outdir,write_scatter,for_radmc,write_fits,radmclbl)  &
+     !$OMP shared(outdir,write_scatter,for_radmc,radmclbl)             &
      !$OMP shared(quiet,mmf_a0,mmf_struct,mmf_kf,mmfss)                &
      !$OMP shared(stdi,stdo,stde)                                      &
-     !$OMP private(ia,asplit,aminsplit,amaxsplit,label,fitsfile,p)
+     !$OMP private(ia,asplit,aminsplit,amaxsplit,label,p)
      do ia=1,na
 
         ! Allocate the particle structure
@@ -1112,19 +1097,10 @@ program optool
                    ia,asplit,p%scat_ok_lmin
            endif
         endif
-        if (write_fits) then
-#ifdef USE_FITSIO
-           write(fitsfile,'(A,"_",A,".fits")') "dustkappa",trim(label)
-           fitsfile = make_file_path(outdir,fitsfile)
-           call write_fits_file(p,aminsplit,amaxsplit,apow,amean,asig,nsub, &
-                fmax,pcore,pmantle,mat_nm,mat_mfr,mat_rho,fitsfile)
-#endif
-        else
-           if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
-           call write_ascii_file(p,aminsplit,amaxsplit,apow,amean,asig,nsub,lmin,lmax, &
-                fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
-                label,write_scatter,for_radmc,.false.)
-        endif
+        if (radmclbl .ne. ' ') label = trim(radmclbl) // "_" // label
+        call write_ascii_file(p,aminsplit,amaxsplit,apow,amean,asig,nsub,lmin,lmax, &
+             fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
+             label,write_scatter,for_radmc,.false.)
         !$OMP end critical
         do i=1,nlam
            deallocate(p%F(i)%F11,p%F(i)%F12,p%F(i)%F22,p%F(i)%F33,p%F(i)%F34,p%F(i)%F44)
@@ -1159,20 +1135,12 @@ program optool
            write(stde,'("WARNING: opacities OK, but some F_nn,g_asym are set to zero. lam<=",F10.3)') p%scat_ok_lmin
         endif
      endif
-     if (write_fits) then
-#ifdef USE_FITSIO
-        call write_fits_file(p,amin,amax,apow,amean,asig,na, &
-             fmax,pcore,pmantle,mat_nm,mat_mfr,mat_rho,fitsfile)
-#endif
-        continue
+     if (justnum .ne. ' ') then
+        call write_to_stdout(p,justnum,justnum_angle)
      else
-        if (justnum .ne. ' ') then
-           call write_to_stdout(p,justnum,justnum_angle)
-        else
-           call write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax, &
-                fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
-                radmclbl,write_scatter,for_radmc,.true.)
-        endif
+        call write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax, &
+             fmax,mmf_a0,mmf_struct,pcore,pmantle,mat_mfr,mat_nm, &
+             radmclbl,write_scatter,for_radmc,.true.)
      endif
 
      ! Deallocate the particle structure
@@ -2990,152 +2958,6 @@ subroutine write_ascii_file(p,amin,amax,apow,amean,asig,na,lmin,lmax,fmax,a0,str
      close(20)
   endif   ! end if (not scatter)
 end subroutine write_ascii_file
-
-#ifdef USE_FITSIO
-subroutine write_fits_file(p,amin,amax,apow,amean,asig,na, &
-     fmax,pcore,pmantle, &
-     nm,mfrac,rho,fitsfile)
-  ! ----------------------------------------------------------------------
-  ! Routine to write a FITS file with all the information about
-  ! the opacities and scattering properties.
-  ! FIXME: Something goes wrong with the keywords
-  ! ----------------------------------------------------------------------
-  use Defs
-  use IOunits
-  implicit none
-  real (kind=dp) :: amin,amax,apow,amean,asig,fmax,pcore,pmantle
-  real (kind=dp) :: mfrac(nm),rho(nm)
-  logical blend
-  character*6 word
-  character*500 fitsfile
-  type(particle) p
-  integer nm,na,i,j,nm2
-  real (kind=dp),allocatable :: array(:,:,:)
-  real (kind=dp) :: ameans(3)
-
-  integer status,unit,blocksize,bitpix,naxis,naxes(3)
-  integer group,fpixel,nelements
-  logical simple,extend
-  real a0,a1,a2,a3
-
-  call remove_file_if_exists(fitsfile)
-  write(stde,'("Writing full scattering data to file: ",A)') trim(fitsfile)
-
-  status = 0
-  ! Get an unused Logical Unit Number to use to create the FITS file
-  call ftgiou(unit,status)
-  ! Create the new empty FITS file
-  blocksize = 1
-  call ftinit(unit,fitsfile,blocksize,status)
-
-  simple = .true.
-  extend = .true.
-  group  = 1
-  fpixel = 1
-
-  bitpix    = -64
-  naxis     = 2
-  naxes(1)  = nlam
-  naxes(2)  = 4
-  nelements = naxes(1)*naxes(2)
-  allocate(array(nlam,4,1))
-
-  ! Write the required header keywords.
-  call ftphpr(unit,simple,bitpix,naxis,naxes,0,1,extend,status)
-
-  ! Write optional keywords to the header
-
-  call ftpkye(unit,'r_min',real(amin),8,'[micron]',status)
-  call ftpkye(unit,'r_max',real(amax),8,'[micron]',status)
-  call ftpkye(unit,'r_pow',real(apow),8,'',status)
-  call ftpkye(unit,'f_max',real(fmax),8,'',status)
-
-  call sdmeans(amin,amax,apow,amean,asig,ameans)
-  a1 = ameans(1)
-  call ftpkye(unit,'a1',real(a1),8,'[micron]',status)
-  !  call ftpkye(unit,'density',real(rho_av),8,'[g/cm^3]',status)
-
-  call ftpkye(unit,'porosity',real(pcore),8,'[g/cm^3]',status)
-  call ftpkye(unit,'p_mantle',real(pmantle),8,'[g/cm^3]',status)
-
-  do i=1,nm
-     write(word,'("file",i0.2)') i
-     call ftpkys(unit,word,trim(mat_lnk(i)),'',status)
-  enddo
-  do i=1,nm
-     write(word,'("frac",i0.2)') i
-     call ftpkye(unit,word,real(mfrac(i)),8,'[mass fraction]',status)
-  enddo
-  do i=1,nm
-     write(word,'("rho",i0.2)') i
-     call ftpkye(unit,word,real(rho(i)),8,'[g/cm^3]',status)
-  enddo
-
-  call ftpkyj(unit,'n_radii',na,' ',status)
-  call ftpkyj(unit,'n_mat',nm,' ',status)
-
-  !  Write the array to the FITS file.
-
-  ! ----------------------------------------------------------------------
-  ! HDU 0: opacities
-  ! ----------------------------------------------------------------------
-
-  do i=1,nlam
-     array(i,1,1)=lam(i)
-     array(i,2,1)=p%Kext(i)
-     array(i,3,1)=p%Kabs(i)
-     array(i,4,1)=p%Ksca(i)
-  enddo
-
-  call ftpprd(unit,group,fpixel,nelements,array(1:nlam,1:4,1),status)
-
-  deallocate(array)
-
-  ! ----------------------------------------------------------------------
-  ! HDU 1: scattering matrix
-  ! ----------------------------------------------------------------------
-  bitpix    = -64
-  naxis     = 3
-  naxes(1)  = nlam
-  naxes(2)  = 6
-  naxes(3)  = nang
-  nelements = naxes(1)*naxes(2)*naxes(3)
-
-  allocate(array(nlam,6,nang))
-
-  ! create new hdu
-  call ftcrhd(unit, status)
-
-  !  Write the required header keywords.
-  call ftphpr(unit,simple,bitpix,naxis,naxes,0,1,extend,status)
-
-  do i=1,nlam
-     do j=1,nang
-        array(i,1,j) = p%F(i)%F11(j)
-        array(i,2,j) = p%F(i)%F12(j)
-        array(i,3,j) = p%F(i)%F22(j)
-        array(i,4,j) = p%F(i)%F33(j)
-        array(i,5,j) = p%F(i)%F34(j)
-        array(i,6,j) = p%F(i)%F44(j)
-     enddo
-  enddo
-
-  !  Write the array to the FITS file.
-  call ftpprd(unit,group,fpixel,nelements,array,status)
-
-  deallocate(array)
-
-  !  Close the file and free the unit number.
-  call ftclos(unit, status)
-  call ftfiou(unit, status)
-
-  !  Check for any error, and if so print out error messages
-  if (status.gt.0) then
-     print*,'error in export to fits file',status
-  endif
-  return
-end subroutine write_fits_file
-#endif
 
 subroutine sdmeans(a1,a2,p,mn,sig,ameans)
   ! Compute the moments of the size disribution

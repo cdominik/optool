@@ -43,7 +43,7 @@
 #------------------------------------------------------------
 @options = qw(-h -help  -c -m -p          -dhs -mmf -mmfss -mie -cde 
               -a -amin -amax -apow -na    -l -lmin -lmax -nl -nlam
-              -o -s -d -chop -fits -radmc -print);
+              -o -s -d -chop -radmc -print);
 
 @materials =
   qw(pyr pyr-mg100 pyr-mg95 pyr-mg80 pyr-mg70 pyr-mg60 pyr-mg50 pyr-mg40

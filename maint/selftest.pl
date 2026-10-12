@@ -41,302 +41,247 @@ my $tests = [
   {name => 'noscat',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -q -na 10 -nl 30 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'quick',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -q -na 10 -nl 30 -s -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'full-diana-lowres',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -q -s -nl 30 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'sparse-file',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -q -s -nl 30 -na 20 -sparse 2.2 -sp 300 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'lognormal-lowres',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -q -s -a 0.001 4.9 0.1:1.0 30 -nl 30 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'diana-plus-ice-mantle',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -q -c pyr-mg70 0.87 -c c-z 0.13 -m ice-w 0.2 -p 0.25 -s -nl 30 -na 20 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'div-in-10-parts',
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -q -na 10 -nl 30 -d 3 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa_*.dat"},
 
   {name => 'large-grain',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd  => "./optool -q -c pyr-mg70 0.696 -c c-z 0.104 -m h2o-w 0.2 -p 0.25 -a 1000 -s -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'high-angular-resolution',
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -q -nl 10 -na 20 -s 720 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'pure-ice-grain',
    prepare => "rm -f $dir/dust*",
    cmd  => "./optool -q -c ice-w 1.0 -a 1 3 2.5 15 -l 10 100 -s -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'chop-peak',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -q -na 10 -nl 30 -s -chop 4 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'cde-rayleigh',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool -q -a 0.01 0.1 3.5 10 -l 10 60 30 -s -cde -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'mmf-scat',
    prepare => "rm -f $dir/dustkapscatmat.dat",
    cmd => "./optool pyr 1 -q -a 10 30 -mmf 0.3 .005 -l 30 3000 20 -s -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkapscatmat.dat"},
 
   {name => 'mmf-opac',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr 1 -q -a 10 30 3.5 2 -mmf 0.3 2.2 -nlam 3 -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-astrosil',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool astrosil 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-c-gra',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool c-gra 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-c-nano',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool c-nano 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-c-org',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool c-org 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-c-p',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool c-p 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-c-z',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool c-z 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ch3oh-a',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ch3oh-a 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ch3oh-c',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ch3oh-c 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ch4-a',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ch4-a 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ch4-c',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ch4-c 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-co-a',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool co-a 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-co2-a',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool co2-a 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-co2-c',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool co2-c 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-co2-w',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool co2-w 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-cor-c',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool cor-c 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-fe-c',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool fe-c 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-fes',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool fes 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-h2o-a',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool h2o-a 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-h2o-w',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool h2o-w 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-nh3-m',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool nh3-m 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ol-c-mg00',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ol-c-mg00 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ol-c-mg100',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ol-c-mg100 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ol-c-mg95',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ol-c-mg95 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ol-mg40',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ol-mg40 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-ol-mg50',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool ol-mg50 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-pyr-c-mg96',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr-c-mg96 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-pyr-mg100',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr-mg100 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-pyr-mg40',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr-mg40 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-pyr-mg50',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr-mg50 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-pyr-mg60',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr-mg60 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-pyr-mg70',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr-mg70 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-pyr-mg80',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr-mg80 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-pyr-mg95',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool pyr-mg95 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-sic',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool sic 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
    glob => "$dir/dustkappa.dat"},
 
   {name => 'material-sio2',
    prepare => "rm -f $dir/dustkappa.dat",
    cmd => "./optool sio2 1 -a 1 -dhs -o $dir",
-   getsha => "accuracy",
-   glob => "$dir/dustkappa.dat"},
-
-  {name => 'fits-output',
-   prepare => "rm -f $dir/dustkappa.fits",
-   cmd => "./optool -q -na 10 -nl 30 -s -fits -o $dir",
-   getsha => "shasum $dir/dustkappa.fits",
-   sha => 'fb1a85451e94e2d4d8a5d05317ebde9b6fc9e48e'}
+   glob => "$dir/dustkappa.dat"}
   ];
 
 
@@ -347,62 +292,43 @@ for (keys %only) {
   die "No such test: $n\n" unless grep { $_->{name} eq $n } @$tests;
 }
 
-$npassed=0;$nfailed=0;$nskipped=0;$nstored=0;
+$npassed=0;$nfailed=0;$nstored=0;
 foreach $test (@$tests) {
   $name = $test->{name};
   next if %only and not $only{$name};
   print "\nRunning test: $name....\n";
   system($test->{prepare}) if $test->{prepare};
   system($test->{cmd});
-  $getsha = $test->{getsha};
-  if ($getsha eq "accuracy") {
-    @files = glob($test->{glob});
-    if ($opt_s) {
-      &store_reference($name,@files);
-      $result = "Test $name: reference output stored\n";
-      $r = sprintf "Test %-30s reference stored",$name;
-      $nstored++;
-    } else {
-      ($status,$digits,$where) = &compare_to_reference($name,@files);
-      if ($status eq "identical") {
-        $result = "Test $name passed, output is numerically identical\n";
-        $r = sprintf "Test %-30s passed",$name;
+  @files = glob($test->{glob});
+  if ($opt_s) {
+    &store_reference($name,@files);
+    $result = "Test $name: reference output stored\n";
+    $r = sprintf "Test %-30s reference stored",$name;
+    $nstored++;
+  } else {
+    ($status,$digits,$where) = &compare_to_reference($name,@files);
+    if ($status eq "identical") {
+      $result = "Test $name passed, output is numerically identical\n";
+      $r = sprintf "Test %-30s passed",$name;
+      $npassed++;
+    } elsif ($status eq "printed") {
+      $result = "Test $name passed, output agrees to the printed precision"
+        . " of $digits digits, largest difference at\n  $where\n";
+      $r = sprintf "Test %-30s OK to printed precision (%d digits)",$name,$digits;
+      $npassed++;
+    } elsif ($status eq "different") {
+      if ($digits >= $mindigits) {
+        $r = sprintf "Test %-30s OK to %4.1f significant digits",$name,$digits;
         $npassed++;
-      } elsif ($status eq "printed") {
-        $result = "Test $name passed, output agrees to the printed precision"
-          . " of $digits digits, largest difference at\n  $where\n";
-        $r = sprintf "Test %-30s OK to printed precision (%d digits)",$name,$digits;
-        $npassed++;
-      } elsif ($status eq "different") {
-        if ($digits >= $mindigits) {
-          $r = sprintf "Test %-30s OK to %4.1f significant digits",$name,$digits;
-          $npassed++;
-        } else {
-          $r = sprintf "Test %-30s FAILED: only %4.1f significant digits",$name,$digits;
-          $nfailed++;
-        }
-        $result = sprintf "Test %s: agreement %.1f significant digits, worst at\n  %s\n",
-          $name,$digits,$where;
       } else {
-        $result = "Test $name failed: $digits\n";
-        $r = sprintf "Test %-30s FAILED: %s",$name,$status;
+        $r = sprintf "Test %-30s FAILED: only %4.1f significant digits",$name,$digits;
         $nfailed++;
       }
-    }
-  } else {
-    $sha = qx($getsha);
-    $sha = $1 if $sha =~ /([0-9a-fA-F]+)/;
-    if ($sha eq $test->{sha}) {
-      $result = "Test $test->{name} passed.\n";
-      $r = sprintf "Test %-30s passed",$test->{name};
-      $npassed++;
-    } elsif (($name eq 'fits-output') and (`./optool -feature fits` =~/False/)) {
-      $result = "Test $test->{name} skipped (fits support not implemented).\n";
-      $r = sprintf "Test %-30s skipped",$test->{name};
-      $nskipped++;
+      $result = sprintf "Test %s: agreement %.1f significant digits, worst at\n  %s\n",
+        $name,$digits,$where;
     } else {
-      $result = "Test $test->{name} failed: resulting SHA1 $sha does not match\n";
-      $r = sprintf "Test %-30s FAILED %s",$test->{name},$sha;
+      $result = "Test $name failed: $digits\n";
+      $r = sprintf "Test %-30s FAILED: %s",$name,$status;
       $nfailed++;
     }
   }
@@ -416,7 +342,7 @@ print "===========================================\n";
 for (@results) {print "$_\n"}
 print "-------------------------------------------\n";
 print "$nstored references stored; " if $opt_s;
-print "$npassed passed; $nfailed failed; $nskipped skipped\n";
+print "$npassed passed; $nfailed failed\n";
 print "Tests need at least $mindigits significant digits to pass\n" unless $opt_s;
 exit($nfailed ? 1 : 0);
 

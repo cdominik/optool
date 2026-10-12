@@ -78,7 +78,7 @@ foreach (@lines) {
   s/`/ /g;
   next if ($last eq "") and ($_ eq "");
   $last = $_;
-  s/\"/QQ/g;
+  s/\"/\"\"/g;     # a literal " in a Fortran format string
   $manf90 .= "     write(*,'(\"$_\")')\n";
 }
 $manf90 .= "  endif\nend subroutine manual\n";

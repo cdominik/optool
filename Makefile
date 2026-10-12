@@ -31,17 +31,6 @@ ifeq ($(debug),true)
   endif
 endif
 
-# CFITSIO support
-ifeq ($(fits),true)
-  FLAG_FITS		= -DUSE_FITSIO
-  LIBS_FITS		= -lcfitsio -L/opt/homebrew/lib/ -L.
-endif
-# backward compatibility, some people might use fitsio instead of fits
-ifeq ($(fitsio),true)
-  FLAG_FITS		= -DUSE_FITSIO
-  LIBS_FITS		= -lcfitsio -L/opt/homebrew/lib/ -L.
-endif
-
 ifeq ($(oldio),true)
   FLAG_IO = -DNO_F2003
 endif
@@ -62,19 +51,16 @@ endif
 # Combine the flags
 # First some defaults for operating systems I know little about
 # including WINDOWS.
-FFLAGS  = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
-LDFLAGS = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
-LIBS    = $(LIBS_FITS)
+FFLAGS  = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
+LDFLAGS = $(FLAG_ALL) $(FLAG_OTHER) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
 # Now the well-tested settings for Linux and Mac
 ifeq ($(shell uname),Linux)
-  FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
-  LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
-  LIBS    = $(LIBS_FITS)
+  FFLAGS  = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
+  LDFLAGS = $(FLAG_ALL) $(FLAG_LINUX) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
 endif
 ifeq ($(shell uname),Darwin)
-  FFLAGS  = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
-  LDFLAGS = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_FITS) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
-  LIBS    = $(LIBS_FITS)
+  FFLAGS  = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
+  LDFLAGS = $(FLAG_ALL) $(FLAG_MAC) $(FLAG_IO) $(FLAG_MULTI) $(FLAG_COMP)
 endif
 
 # Object files to link
@@ -97,7 +83,7 @@ all:		$(PROGRAM)
 install:	$(PROGRAM)
 		cp optool$(EXE_EXT) optool2tex optool-complete $(bindir)
 
-full:;		make multi=true fits=true
+full:;		make multi=true
 multi:;		make multi=true
 it:;		make clean
 		make multi=true
@@ -105,7 +91,7 @@ it:;		make clean
 it2:;		make clean
 		make full
 		make clean1
-cleanoutput:;   rm -rf dustkap*.dat dustkap*.fits dustkap*.inp optool_mix.lnk optool_sd.dat optool_lam.dat optool_tmp_output_dir_*
+cleanoutput:;   rm -rf dustkap*.dat dustkap*.inp optool_mix.lnk optool_sd.dat optool_lam.dat optool_tmp_output_dir_*
 cleanlatex:;	rm -rf *.tex *.aux *.log *.dvi *.blg *.bbl auto optool.pdf
 cleanpython:;	rm -rf optool.dSYM tmp.py __pycache__
 cclean:;	rm -f $(OBJS) $(PROGRAM)

@@ -47,8 +47,8 @@ Makefile                Makefile to compile the fortran snippets
 README                  Information about how to use the snippets
 readascii.f90           Fortran program to read ASCII output
 readascii.py            Python  program to read ASCII output
-readfits.f90            Fortran program to read FITS output
-readfits.py             Python  program to read FITS output
+readfits.f90            Fortran program to read FITS files
+readfits.py             Python  program to read FITS files
 
 
 In directory lnk_data

@@ -1,5 +1,7 @@
 This directory contains code snippets that read the output of optool,
-both the ASCII files and the fits files.  If you are planning to use
+both the ASCII files and the fits files.  optool itself writes only
+ASCII files, fits files can be written with the write_fits method of
+optool.particle in optool.py.  If you are planning to use
 opacities computed with optool in your code, this should get you
 started quickly.
 
