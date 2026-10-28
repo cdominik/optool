@@ -140,6 +140,12 @@ See the [[file:UserGuide.pdf][User Guide]] for more information.
     resolution, the problem was smaller.  With fewer sizes (-na) the
     error was larger.  Single grain sizes and size distributions read
     from a file were not affected.
+  - Bug fix: for (log-)normal size distributions, the size averages
+    <a^n> in the header of the output files were computed for the
+    wrong distribution (normal instead of log-normal, and vice
+    versa). Only these reported values were wrong, the opacities
+    were computed with the correct distribution. Thanks to Max for
+    the report.
   - With the -w switch, optool_mix.lnk will now also be written to the
     specified output directory.
   - A new switch, -err, will trigger optool to exit with error code 1

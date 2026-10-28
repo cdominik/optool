@@ -2968,8 +2968,8 @@ subroutine sdmeans(a1,a2,p,mn,sig,ameans)
   ! p       powerlaw for grain size distribution f(a) ~ a^(-p)
   ! mn      mean size for (log-)normal size distribution f(a) ~ (1/a) exp( ((log a/a0)/sig)**2 )
   ! sig     sigma for (log-)normal size distribution
-  ! If both mn and sig are nonzero and the product is positive, we use
-  ! the log-normal size distribution.  If not, we use the powerlaw.
+  ! If both mn and sig are nonzero, we use the log-normal size distribution
+  ! for sig>0, and the normal one for sig<0.  If not, we use the powerlaw.
   implicit none
   integer, parameter     :: dp = selected_real_kind(P=15)
   integer, parameter     :: ns = 1000
@@ -2989,7 +2989,7 @@ subroutine sdmeans(a1,a2,p,mn,sig,ameans)
         r=10d0**(aminlog + (amaxlog-aminlog)*real(is-1)/real(ns-1))
         if (abs(mn*sig) .gt. 0.d0) then
            ! normal or log-normal size distribution
-           if (sig.gt.0d0) then  ! normal
+           if (sig.lt.0d0) then  ! normal
               expo = 0.5*((r-mn)/sig)**2
            else                  ! log-normal
               expo = 0.5*(alog(r/mn)/sig)**2
