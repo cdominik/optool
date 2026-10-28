@@ -208,7 +208,7 @@ subroutine GetAndRegridLNK(input,grid,e1,e2,n,loglog,rho)
         do
            if (iup >= idown) exit
            temp = x(iup);  x(iup)  = x(idown);  x(idown)  = temp
-           temp = y1(iup); y1(iup) = y1(idown); y1(idown) = temp
+           temp = y1(iup); y1(iup) = y2(idown); y1(idown) = temp
            temp = y2(iup); y2(iup) = y2(idown); y2(idown) = temp
            iup = iup+1; idown = idown-1
         enddo
