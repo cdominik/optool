@@ -1058,7 +1058,8 @@ program optool
      !$OMP shared(outdir,write_scatter,for_radmc,radmclbl)             &
      !$OMP shared(quiet,mmf_a0,mmf_struct,mmf_kf,mmfss)                &
      !$OMP shared(stdi,stdo,stde)                                      &
-     !$OMP private(ia,asplit,aminsplit,amaxsplit,label,p)
+     !$OMP private(ia,asplit,aminsplit,amaxsplit,label,p)              &
+     !$OMP schedule(dynamic,1)
      do ia=1,na
 
         ! Allocate the particle structure
@@ -1572,7 +1573,8 @@ subroutine ComputePart(p,isplit,amin,amax,apow,amean,asig,na,fmax,mmf_a0,mmf_str
   !$OMP private(iqsca,iqcor,iqgeo,nang2)                                  &
   !$OMP private(m_mono,m_agg,V_agg,nmono,Dfrac,kfrac)                     &
   !$OMP private(cext_mmf,csca_mmf,cabs_mmf,mmf_Gsca,factor)               &
-  !$OMP private(Smat_mmf,deltaphi,Smat_nbad)                              
+  !$OMP private(Smat_mmf,deltaphi,Smat_nbad)                              &
+  !$OMP schedule(dynamic,1)
   
   do ilam = 1,nlam
 
